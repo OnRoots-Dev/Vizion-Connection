@@ -111,11 +111,16 @@ export default function RegisterForm() {
                         <div className="space-y-1.5">
                             <label className="text-xs text-white/40 font-medium">ユーザーID</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono">@</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono select-none">@</span>
                                 <input type="text" required placeholder="tanaka10" value={form.slug}
                                     onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                                    className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
-                                    style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
+                                    className="w-full rounded-xl py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
+                                    style={{
+                                        background: "#111118",
+                                        border: "1.5px solid #1e1e2a",
+                                        paddingLeft: "1.75rem",
+                                        paddingRight: "1rem",
+                                    }}
                                     onFocus={(e) => e.target.style.borderColor = selectedRole.color}
                                     onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
                             </div>
