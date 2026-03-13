@@ -30,7 +30,7 @@ export function ProblemSection() {
           <span className="text-[#FFD600]">まだ見えない価値</span>が多すぎる
         </motion.h2>
 
-        <div className="grid grid-cols-1 gap-px bg-white/5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px bg-white/5 md:grid-cols-4">
           {[
             { label: "Athlete", title: "アスリートの努力", color: "#FF4646" },
             { label: "Trainer", title: "トレーナーの知識", color: "#28D26E" },
