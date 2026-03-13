@@ -148,12 +148,12 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
                             filter: generated ? "brightness(1)" : "brightness(0.3) saturate(0.3)",
                         }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
-                        style={{ rotateX, rotateY, WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", position: "relative" }}
+                        style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", WebkitTapHighlightColor: "transparent" }}
                     >
                         <motion.div
                             animate={{ rotateY: isFlipped ? 180 : 0 }}
                             transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
-                            style={{ WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative" }}
+                            style={{transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                         >
 
                             {/* ════ FRONT ════ */}
@@ -230,7 +230,7 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
                             </div>
 
                             {/* ════ BACK ════ */}
-                            <div style={{ ...faceBase, WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
+                            <div style={{ ...faceBase, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
 
                                 {/* Photo */}

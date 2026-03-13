@@ -68,7 +68,7 @@ export function ProfileCard3DDemo() {
             if (target.closest("a")) return;
             setIsFlipped(f => !f);
           }}
-          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d" } as React.CSSProperties}
           className="v12-wrap relative h-full w-full cursor-pointer"
         >
           <motion.div
@@ -93,6 +93,7 @@ export function ProfileCard3DDemo() {
                 <img
                   src={s.photo}
                   alt={s.name}
+                  loading="eager"
                   className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
                   style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
                 />
@@ -147,8 +148,8 @@ export function ProfileCard3DDemo() {
 
             {/* ══ BACK FACE ══ */}
             <div
-              className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)] transform-[rotateY(180deg)]"
-              style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)` }}
+              className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)] "
+              style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)`, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", }}
             >
               <div className="absolute inset-0 z-0 opacity-40" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)` }} />
               <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
@@ -160,6 +161,7 @@ export function ProfileCard3DDemo() {
                 <img
                   src={s.photo}
                   alt={s.name}
+                  loading="eager"
                   className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
                   style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
                 />
@@ -172,7 +174,7 @@ export function ProfileCard3DDemo() {
                 </div>
               )}
 
-              <div className="absolute inset-0 z-[30] flex flex-col justify-between" style={{ padding: "14px 13px 16px", transform: "translateZ(2px)", transformStyle: "preserve-3d" }}>
+              <div className="absolute inset-0 z-[30] flex flex-col justify-between" style={{ padding: "14px 13px 16px" }}>
                 <div className="pointer-events-none flex items-center justify-between">
                   <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-10 w-auto opacity-60 mix-blend-lighten" />
                   <div className="flex items-center gap-[6px]">
