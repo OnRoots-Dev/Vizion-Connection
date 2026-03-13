@@ -148,12 +148,12 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
                             filter: generated ? "brightness(1)" : "brightness(0.3) saturate(0.3)",
                         }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
-                        style={{ rotateX, rotateY, transformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", position: "relative" }}
+                        style={{ rotateX, rotateY, WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", position: "relative" }}
                     >
                         <motion.div
                             animate={{ rotateY: isFlipped ? 180 : 0 }}
                             transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
-                            style={{ transformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative" }}
+                            style={{ WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative" }}
                         >
 
                             {/* ════ FRONT ════ */}

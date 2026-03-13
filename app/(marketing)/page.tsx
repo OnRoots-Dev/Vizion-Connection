@@ -22,7 +22,7 @@ const NextPhaseSection = dynamic(() => import("@/components/marketing/sections/B
 const FoundingBusinessPartnersSection = dynamic(() => import("@/components/marketing/sections/BusinessSection").then(m => ({ default: m.FoundingBusinessPartnersSection })));
 const SponsorComparisonTable = dynamic(() => import("@/components/marketing/sections/BusinessSection").then(m => ({ default: m.SponsorComparisonTable })));
 const CTASection = dynamic(() => import("@/components/marketing/sections/CTASection").then(m => ({ default: m.CTASection })));
-const FloatingCTA = dynamic(() => import("@/components/marketing/sections/CTASection").then(m => ({ default: m.FloatingCTA })), { ssr: false });
+import FloatingCTAWrapper from "@/components/marketing/sections/FloatingCTAWrapper";
 const FAQSection = dynamic(() => import("@/components/marketing/sections/FAQSection").then(m => ({ default: m.FAQSection })));
 
 export const dynamic_config = "force-static"; // 静的生成
@@ -53,7 +53,7 @@ export default function Page() {
         <CTASection />
         <FAQSection />
         <Footer />
-        <FloatingCTA />
+        <FloatingCTAWrapper />
       </main>
     </>
   );
