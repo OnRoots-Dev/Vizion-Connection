@@ -34,9 +34,11 @@ export async function createCheckout(
         slug,
         planId: plan.id,
         planName: plan.name,
-        amount: plan.price,
+        amount: plan.amount,
         squareLink: plan.squareUrl,
-    });
+    }
+    , "pending"
+);
 
     return {
         success: true,

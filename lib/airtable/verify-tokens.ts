@@ -1,5 +1,6 @@
 // lib/airtable/verify-tokens.ts
 
+import Airtable from "airtable";
 import { airtableBase } from "@/lib/airtable/client";
 import type { VerifyTokenRecord } from "@/features/auth/types";
 
