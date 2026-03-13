@@ -1,0 +1,102 @@
+"use client";
+
+import { useState } from "react";
+
+interface Props {
+    slug: string;
+    initialCheerCount: number;
+    roleColor: string;
+    isOwn: boolean;
+}
+
+export default function CheerButtonClient({ slug, initialCheerCount, roleColor, isOwn }: Props) {
+    const [cheerCount, setCheerCount] = useState(initialCheerCount);
+    const [cheered, setCheered] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    async function handleCheer() {
+        if (cheered || loading || isOwn) return;
+        setLoading(true);
+        try {
+            const res = await fetch("/api/cheer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ toSlug: slug }),
+            });
+
+            const data: { success: boolean; cheerCount?: number; error?: string } = await res.json();
+            if (data.success && data.cheerCount !== undefined) {
+                setCheerCount(data.cheerCount);
+                setCheered(true);
+            } else {
+                setErrorMsg(data.error ?? "Cheerできませんでした");
+            }
+        } catch {
+            setErrorMsg("通信エラーが発生しました");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (isOwn) {
+        return (
+            <div style={{
+                width: "100%", padding: "13px", borderRadius: "12px",
+                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+                fontSize: "13px", color: "rgba(255,255,255,0.2)", fontWeight: 600,
+                textAlign: "center", letterSpacing: "0.03em",
+            }}>
+                自分のプロフィールにはCheerできません
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <button
+                onClick={handleCheer}
+                disabled={cheered || loading}
+                style={{
+                    width: "100%", padding: "13px",
+                    borderRadius: "12px",
+                    fontSize: "14px", fontWeight: 800, cursor: cheered ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                    transition: "all 0.25s",
+                    letterSpacing: "0.03em",
+                    ...(cheered
+                        ? { background: `${roleColor}12`, color: roleColor, border: `1px solid ${roleColor}30` }
+                        : { background: roleColor, color: "#000" }),
+                }}
+            >
+                {loading ? (
+                    <>
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                            style={{ animation: "spin 1s linear infinite" }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                        送信中...
+                    </>
+                ) : cheered ? (
+                    <>
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Cheer しました！ · {cheerCount.toLocaleString()}
+                    </>
+                ) : (
+                    <>
+                        <span style={{ fontSize: "14px" }}>★</span>
+                        + 1 Cheer する · {cheerCount.toLocaleString()}
+                    </>
+                )}
+            </button>
+            {errorMsg && (
+                <p style={{ textAlign: "center", fontSize: "11px", color: "rgba(255,80,80,0.7)", marginTop: "6px" }}>
+                    {errorMsg}
+                </p>
+            )}
+        </>
+    );
+}
