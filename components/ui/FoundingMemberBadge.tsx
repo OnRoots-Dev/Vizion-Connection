@@ -35,7 +35,7 @@ export function FoundingMemberBadge() {
                 <circle cx="7" cy="6.5" r="1" fill="#ffe566" />
                 <circle cx="13" cy="9" r="1" fill="#ffe566" />
             </svg>
-            <span className="relative z-[3]">Founding Member</span>
+            <span className="relative z-[3] whitespace-nowrap">Founding Member</span>
             <div className="absolute inset-[2px] z-[4] rounded-[1px] border border-dashed border-[#ffd22826] pointer-events-none" />
         </motion.div>
     );

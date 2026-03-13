@@ -31,6 +31,7 @@ export default function LoginForm() {
                 setError(data.error ?? "メールアドレスまたはパスワードが正しくありません");
                 return;
             }
+            router.refresh();
             router.push(redirectTo);
         } catch {
             setError("通信エラーが発生しました");

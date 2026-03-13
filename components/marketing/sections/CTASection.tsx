@@ -132,12 +132,12 @@ export function FloatingCTA() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 md:bottom-7"
+          style={{ position: "fixed", bottom: 20, left: 16, right: 16, zIndex: 50, display: "flex", justifyContent: "center" }}
         >
           <Link
             href="/register"
-            className="group flex items-center gap-3 overflow-hidden bg-[#FFD600] px-7 py-3.5 font-display text-[13px] font-black uppercase tracking-[0.18em] text-[#0B0B0F] shadow-[0_8px_40px_rgba(255,214,0,0.35)] transition-all hover:bg-white"
-            style={{ borderRadius: "2px" }}
+            className="group flex items-center justify-center gap-3 overflow-hidden bg-[#FFD600] px-7 py-3.5 font-display text-[13px] font-black uppercase tracking-[0.18em] text-[#0B0B0F] shadow-[0_8px_40px_rgba(255,214,0,0.35)] transition-all hover:bg-white w-full"
+            style={{ borderRadius: "2px", maxWidth: 360 }}
           >
             <span>先行登録はこちら</span>
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current transition-transform group-hover:translate-x-1">
