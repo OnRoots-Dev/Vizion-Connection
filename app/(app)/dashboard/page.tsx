@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getProfileFromSession } from "@/features/profile/server/get-profile";
 import { DashboardClient } from "./DashboardClient";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export default async function DashboardPage() {
     const result = await getProfileFromSession();
 

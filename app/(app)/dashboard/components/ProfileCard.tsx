@@ -97,6 +97,9 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
         WebkitBackfaceVisibility: "hidden",
         backfaceVisibility: "hidden",
         boxShadow: "0 10px 42px rgba(0,0,0,0.65)",
+        WebkitTransform: "translateZ(0)",
+        transform: "translateZ(0)",
+        isolation: "isolate",
     };
 
     const photoMask: React.CSSProperties = {
@@ -227,7 +230,7 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
                             </div>
 
                             {/* ════ BACK ════ */}
-                            <div style={{ ...faceBase, transform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
+                            <div style={{ ...faceBase, WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
 
                                 {/* Photo */}

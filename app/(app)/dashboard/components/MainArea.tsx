@@ -65,11 +65,13 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
     }
 
     const card = (children: React.ReactNode, delay = 0, id?: string) => (
-        <motion.div id={id}
+        <motion.div
+            id={id}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] }}
-            style={{ borderRadius: "16px", padding: "20px", background: t.surface, border: `1px solid ${t.border}` }}>
+            style={{ borderRadius: "16px", padding: "20px", background: t.surface, border: `1px solid ${t.border}`, overflow: "hidden" }}
+        >
             {children}
         </motion.div>
     );
@@ -218,12 +220,14 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
             {/* ③ Referral — compact */}
             {card(<>
                 {sectionLabel("Referral")}
-                <div id="referral" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", borderRadius: "10px", background: `rgba(255,255,255,0.04)`, border: `1px solid ${t.border}` }}>
-                        <p style={{ flex: 1, fontSize: "11px", fontFamily: "monospace", color: t.sub, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", borderRadius: "10px", background: "rgba(255,255,255,0.04)", border: `1px solid ${t.border}`, overflow: "hidden" }}>
+                        <p style={{ flex: 1, fontSize: "11px", fontFamily: "monospace", color: t.sub, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
+                            {referralUrl}
+                        </p>
                     </div>
-                    <button onClick={handleCopy} style={{ flexShrink: 0, padding: "9px 16px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: "none", cursor: "pointer", background: copied ? "rgba(50,210,120,0.12)" : "#a78bfa", color: copied ? "#32D278" : "#000", transition: "all 0.2s", whiteSpace: "nowrap" }}>
-                        {copied ? "✓ コピー済み" : "コピー"}
+                    <button onClick={handleCopy} style={{ flexShrink: 0, padding: "9px 14px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: "none", cursor: "pointer", background: copied ? "rgba(50,210,120,0.12)" : "rgba(167,139,250,1)", color: copied ? "#32D278" : "#000", transition: "all 0.2s", whiteSpace: "nowrap" }}>
+                        {copied ? "✓" : "コピー"}
                     </button>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
@@ -234,7 +238,7 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
                     <motion.div style={{ height: "100%", borderRadius: "99px", background: "linear-gradient(90deg, #7c3aed, #a78bfa)" }}
                         initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.4 }} />
                 </div>
-            </>, 0.2)}
+            </>, 0.2, "referral")}
 
             {/* ④ Members Discover */}
             {card(<>

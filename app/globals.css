@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;700;900&display=swap');
 
 :root {
   --background: #07070e;
@@ -187,4 +188,65 @@ body {
 .photo-mask-right-soft {
   -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 20%, black 45%);
   mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 20%, black 45%);
+}
+
+/* ─────────────────────────────────────────
+   フォント設定
+───────────────────────────────────────── */
+:root {
+  --font-display: 'Bebas Neue', 'Noto Sans JP', sans-serif;
+  --font-body: 'Noto Sans JP', sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─────────────────────────────────────────
+   LP カードシマー / ホバーエフェクト
+───────────────────────────────────────── */
+.v12-shim {
+  background: linear-gradient(108deg, transparent 22%, rgba(255, 255, 255, 0.08) 50%, transparent 78%);
+  background-size: 200% 100%;
+  pointer-events: none;
+}
+
+.v12-wrap:hover .v12-shim {
+  animation: v12-shim 1.1s ease-in-out;
+  opacity: 1 !important;
+}
+
+.v12-face {
+  transition: box-shadow .35s;
+}
+
+.v12-wrap:hover .v12-face {
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.88), 0 0 44px var(--rg-val);
+}
+
+.flip-hint::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin-right: 4px;
+}
+
+@keyframes v12-shim {
+  from {
+    background-position: -100% 0;
+  }
+
+  to {
+    background-position: 230% 0;
+  }
 }
