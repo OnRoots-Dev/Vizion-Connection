@@ -1,21 +1,34 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 export function DynamicBackground() {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0B0B0F]">
-      <motion.div
-        animate={{ x: [-20, 20, -20], y: [-10, 30, -10], scale: [1, 1.2, 1] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-        className="absolute -left-[10%] -top-[10%] h-[70vh] w-[70vw] rounded-full bg-[#FFD600] opacity-[0.06] blur-[120px]"
-      />
-      <motion.div
-        animate={{ x: [20, -20, 20], y: [30, -10, 30], scale: [1.2, 1, 1.2] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-        className="absolute -right-[10%] top-[10%] h-[60vh] w-[60vw] rounded-full bg-[#FF4646] opacity-[0.04] blur-[100px]"
-      />
-      <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+    <div style={{ position: "fixed", inset: 0, zIndex: -10, overflow: "hidden", background: "#0B0B0F" }}>
+      <div style={{
+        position: "absolute", left: "-10%", top: "-10%",
+        height: "70vh", width: "70vw", borderRadius: "50%",
+        background: "#FFD600", opacity: 0.06, filter: "blur(120px)",
+        animation: "bg-drift-1 15s linear infinite",
+        willChange: "transform",
+      }} />
+      <div style={{
+        position: "absolute", right: "-10%", top: "10%",
+        height: "60vh", width: "60vw", borderRadius: "50%",
+        background: "#FF4646", opacity: 0.04, filter: "blur(100px)",
+        animation: "bg-drift-2 18s linear infinite",
+        willChange: "transform",
+      }} />
+      <style>{`
+        @keyframes bg-drift-1 {
+          0%   { transform: translate(-20px, -10px) scale(1); }
+          50%  { transform: translate(20px, 30px) scale(1.2); }
+          100% { transform: translate(-20px, -10px) scale(1); }
+        }
+        @keyframes bg-drift-2 {
+          0%   { transform: translate(20px, 30px) scale(1.2); }
+          50%  { transform: translate(-20px, -10px) scale(1); }
+          100% { transform: translate(20px, 30px) scale(1.2); }
+        }
+      `}</style>
     </div>
   );
 }
