@@ -87,7 +87,7 @@ export function CTASection() {
           Founding Member 枠 締切間近
         </p>
         <p className="mt-1 font-display text-[30px] font-bold text-white/70">
-          3/13 FRI 12:00 – 3/19 THU 23:59
+          3/14 SAT 12:00 – 3/20 FRI 23:59
         </p>
         <p className="mt-2 text-[11px] text-white/30 leading-relaxed">
           ※期間終了後はFoundingバッジの付与・特典解放は終了します（再開未定）。<br />

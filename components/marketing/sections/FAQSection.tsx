@@ -84,7 +84,7 @@ export function FAQSection() {
           <a href="mailto:support@vizion.co" className="text-[#FFD600] underline-offset-2 hover:underline">
             Contact
           </a>{" "}
-          ページからお問い合わせください。。
+          ページからお問い合わせください。
         </p>
       </div>
     </section>
