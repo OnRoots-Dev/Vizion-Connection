@@ -79,8 +79,8 @@ export function ProfileCard3DDemo() {
         >
           {/* ══ FRONT FACE ══ */}
           <div
-            className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
-            style={{ ["--rg-val" as string]: s.rg } as React.CSSProperties}
+            className="v12-face absolute inset-0 rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
+            style={{ ["--rg-val" as string]: s.rg, overflow: "hidden" } as React.CSSProperties}
           >
             <div className="absolute inset-0 z-0" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, color-mix(in srgb, ${s.bg1} 50%, #000) 55%, #060606 100%)` }} />
             <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
@@ -99,7 +99,7 @@ export function ProfileCard3DDemo() {
               />
             ) : (
               <div
-                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none[backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
               >
                 {initials}
@@ -148,11 +148,12 @@ export function ProfileCard3DDemo() {
 
           {/* ══ BACK FACE ══ */}
           <div
-            className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
+            className="v12-face absolute inset-0 rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
             style={{
               background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)`,
               transform: "rotateY(180deg)",
               WebkitTransform: "rotateY(180deg)",
+              overflow: "hidden",
             }}
           >
             <div className="absolute inset-0 z-0 opacity-40" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)` }} />
@@ -171,7 +172,7 @@ export function ProfileCard3DDemo() {
               />
             ) : (
               <div
-                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none[backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               >
                 {initials}

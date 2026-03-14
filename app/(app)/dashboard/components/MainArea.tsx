@@ -104,6 +104,8 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
         }
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+
+        await fetch("/api/share/complete", { method: "POST" });
     }
 
     // ── Edit / Settings ビュー ────────────────────────────────────────────────
