@@ -14,6 +14,7 @@ export function Footer() {
                 <Link href="/register" className="hover:text-[#FFD600] transition-colors">先行登録</Link>
                 <Link href="/business" className="hover:text-[#FFD600] transition-colors">Business登録</Link>
                 <Link href="/discover" className="hover:text-[#FFD600] transition-colors">Discovery</Link>
+                <Link href="/roadmap" className="hover:text-[#FFD600] transition-colors">Road Map</Link>
               </div>
             </div>
             <div className="flex flex-col gap-3">

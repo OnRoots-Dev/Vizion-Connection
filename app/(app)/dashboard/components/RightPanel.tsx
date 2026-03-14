@@ -33,7 +33,7 @@ export function RightPanel({ profile, referralCount, onLogout, t, onEditProfile 
     const MISSIONS = [
         { label: "先行登録完了", done: true },
         { label: "メール認証完了", done: profile.verified },
-        { label: "友人を1人招待", done: referralCount >= 1 },
+        { label: "SNSで共有", done: profile.hasShared ?? false },
         { label: "3人招待する", done: referralCount >= 3 },
         { label: "プロフィール編集", done: !!(profile.bio || profile.sport || profile.region) },
     ];
@@ -82,6 +82,15 @@ export function RightPanel({ profile, referralCount, onLogout, t, onEditProfile 
             {/* Missions */}
             {card(<>
                 {sLabel("Missions")}
+                {/* 報酬説明を追加 */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", padding: "8px 10px", borderRadius: "9px", background: `${roleColor}08`, border: `1px solid ${roleColor}20` }}>
+                    <span style={{ fontSize: "10px", color: t.sub, opacity: 0.7 }}>全完了ボーナス</span>
+                    <span style={{ fontSize: "11px", fontWeight: 800, color: roleColor, fontFamily: "monospace" }}>+500 pt</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px", padding: "8px 10px", borderRadius: "9px", background: "rgba(255,210,0,0.06)", border: "1px solid rgba(255,210,0,0.18)" }}>
+                    <span style={{ fontSize: "10px", color: t.sub, opacity: 0.7 }}>3人招待ボーナス</span>
+                    <span style={{ fontSize: "11px", fontWeight: 800, color: "#FFD600", fontFamily: "monospace" }}>+{(3 * POINTS_PER_REFERRAL).toLocaleString()} pt</span>
+                </div>
                 {MISSIONS.map(({ label, done }) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "8px" }}>
                         <div style={{ width: "16px", height: "16px", borderRadius: "50%", flexShrink: 0, background: done ? `${roleColor}20` : `rgba(255,255,255,0.05)`, border: `1.5px solid ${done ? roleColor : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>

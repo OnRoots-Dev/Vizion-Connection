@@ -53,6 +53,7 @@ export interface UserRecord {
     seq?: number;
     randA?: string;
     randB?: string;
+    hasShared?: boolean;
 }
 
 export interface VerifyTokenRecord {

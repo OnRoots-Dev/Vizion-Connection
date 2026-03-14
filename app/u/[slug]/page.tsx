@@ -253,7 +253,7 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </div>
             </main>
-            <Footer />
+            
         </div>
     );
 }

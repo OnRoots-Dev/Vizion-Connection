@@ -36,12 +36,6 @@ const NAV = [
             { id: "discover", href: "/discover", label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
         ],
     },
-    {
-        group: "Early Access",
-        items: [
-            { id: "missions", href: "/dashboard#missions", label: "Missions", icon: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" },
-        ],
-    },
 ];
 
 export function Sidebar({ profile, onClose, onLogout, theme, setTheme, t, view, setView }: Props) {

@@ -30,6 +30,7 @@ export interface ProfileData {
     isFoundingMember: boolean;
     isPublic?: boolean;
     isDeleted?: boolean;
+    hasShared?: boolean;
 }
 
 export interface DashboardData {
@@ -63,4 +64,5 @@ export interface PublicProfileData {
     isPublic?: boolean;
     isDeleted?: boolean;
     avatarUrl?: string;
+    hasShared?: boolean;
 }

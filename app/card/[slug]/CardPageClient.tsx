@@ -19,7 +19,7 @@ const theme = {
 export default function CardPageClient({ profile, referralUrl }: { profile: PublicProfileData; referralUrl: string; }) {
     const [copied, setCopied] = useState(false);
     const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
-    const profileUrl = `https://vizionconnection.com/u/${profile.slug}`;
+    const profileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
 
     async function handleCopy() {
         try { await navigator.clipboard.writeText(profileUrl); } catch { }

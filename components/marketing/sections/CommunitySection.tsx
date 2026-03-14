@@ -44,7 +44,7 @@ export function NowNextSection() {
             <ul className="mt-4 space-y-3 text-black/75 font-medium">
               {[
                 { title: "デジタル・パスポート発行", desc: "役割を証明するプロフィールカードと専用URL。" },
-                { title: "Founding Member 称号", desc: "初期参加者のみに与えられる永続的な証明。" },
+                { title: "Founding Member 称号", desc: "初期参加者のみに与えられる永続的な証明。【先着100名様 限定】" },
                 { title: "信頼（Cheer）の早期蓄積", desc: "公開初日から支援や評価を可視化。" },
                 { title: "β機能の優先解放", desc: "共創募集やスポンサー接続への優先参加権。" },
               ].map((item, i) => (
@@ -59,33 +59,26 @@ export function NowNextSection() {
           <div className="rounded-3xl border border-black/10 bg-white p-7">
             <p className="text-xs font-bold tracking-[0.35em] text-black/50">NEXT</p>
             <p className="mt-3 text-lg font-bold">この先、解放していくこと</p>
-            <ul className="mt-4 space-y-2 text-black/75">
-              <li>・共創募集（案件/協業の募集と参加）</li>
-              <li>・スポンサー/Business連携（先行ポジションが起点）</li>
-              <li>・信頼データを元にした推薦・接続</li>
-              <li>・活動ログや実績の積み上げ（カードに反映）</li>
-            </ul>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mt-10 flex justify-center"
+            >
+              <Link
+                href="/roadmap"
+                className="group inline-flex items-center gap-2 border border-black/15 bg-black/[0.04] px-6 py-3 font-display text-[11px] uppercase tracking-[0.3em] text-black/50 transition-all hover:border-black/30 hover:text-black/80"
+                style={{ borderRadius: "2px" }}
+              >
+                View Roadmap
+                <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current transition-transform group-hover:translate-x-1">
+                  <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
+                </svg>
+              </Link>
+            </motion.div>
             <p className="mt-4 text-sm text-black/50">※順次追加。先行参加者は優先案内。</p>
           </div>
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-10 flex justify-center"
-        >
-          <Link
-            href="/roadmap"
-            className="group inline-flex items-center gap-2 border border-black/15 bg-black/[0.04] px-6 py-3 font-display text-[11px] uppercase tracking-[0.3em] text-black/50 transition-all hover:border-black/30 hover:text-black/80"
-            style={{ borderRadius: "2px" }}
-          >
-            View Roadmap
-            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current transition-transform group-hover:translate-x-1">
-              <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
-            </svg>
-          </Link>
-        </motion.div>
       </div>
     </section>
   );

@@ -49,7 +49,6 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
 
     // 4. パスワードハッシュ化
     const passwordHash = await hashPassword(input.password);
-    const serialId = await getNextSerialId();
 
     // 5. rand生成を追加
     const rand = (d: number) =>
@@ -64,7 +63,6 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         role,
         displayName,
         slug,
-        serialId,
         referrerSlug: resolvedReferrerSlug,
         randA,
         randB,
@@ -73,7 +71,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     // 7. memberId を組み立てて serialId として保存
     const seq = user.seq ?? 1;
     const memberId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
-    await updateUserSerialId(user.id, memberId);  // ← 関数名変更
+    await updateUserSerialId(user.id, memberId);
 
     // 8. 認証トークン発行
     const { verifyUrl } = await issueVerifyToken(email, slug);

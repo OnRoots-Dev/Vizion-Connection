@@ -94,12 +94,12 @@ export function ProfileCard3DDemo() {
                 src={s.photo}
                 alt={s.name}
                 loading="eager"
-                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
+                    className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
               />
             ) : (
               <div
-                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none"
+                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none[backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
               >
                 {initials}
@@ -166,12 +166,12 @@ export function ProfileCard3DDemo() {
                 src={s.photo}
                 alt={s.name}
                 loading="eager"
-                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
+                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               />
             ) : (
               <div
-                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none"
+                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none[backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               >
                 {initials}

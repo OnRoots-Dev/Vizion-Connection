@@ -52,6 +52,7 @@ function toUserRecord(record: Airtable.Record<Airtable.FieldSet>): UserRecord {
         seq: (f["seq"] as number) || undefined,
         randA: (f["randA"] as string) || undefined,
         randB: (f["randB"] as string) || undefined,
+        hasShared: (f["hasShared"] as boolean) ?? false,
     };
 }
 
@@ -78,7 +79,6 @@ export interface CreateUserInput {
     displayName: string;
     slug: string;
     referrerSlug?: string;
-    serialId: string;
     randA?: string;
     randB?: string;
 }
@@ -95,7 +95,6 @@ export async function createUser(input: CreateUserInput): Promise<UserRecord> {
         points: 0,
         referrerSlug: input.referrerSlug ?? "",
         createdAt: new Date().toISOString(),
-        serialId: input.serialId,
         isFoundingMember,
         isPublic: true,
         ...(input.randA ? { randA: input.randA } : {}),
@@ -127,7 +126,7 @@ export async function updateUserProfile(
         "displayName" | "bio" | "region" | "prefecture" |
         "sportsCategory" | "sport" | "stance" |
         "instagram" | "xUrl" | "tiktok" |
-        "profileImageUrl" | "avatarUrl" | "isPublic"
+        "profileImageUrl" | "avatarUrl" | "isPublic" | "hasShared"
     >>
 ): Promise<void> {
     const payload = Object.fromEntries(
@@ -174,15 +173,15 @@ export async function findUserByAmbassadorCode(code: string): Promise<UserRecord
     return toUserRecord(records[0]);
 }
 
-export async function getNextSerialId(): Promise<string> {
+export async function getNextSerialId(): Promise<number> {
     const records = await airtableBase(TABLE)
-        .select({ fields: ["serialId"], filterByFormula: `{isDeleted} != TRUE()` })
+        .select({ fields: ["seq"], filterByFormula: `{isDeleted} != TRUE()` })
         .all();
     const max = records.reduce((acc, r) => {
-        const n = parseInt((r.fields["serialId"] as string) ?? "0", 10);
+        const n = (r.fields["seq"] as number) ?? 0;
         return n > acc ? n : acc;
     }, 0);
-    return String(max + 1).padStart(5, "0"); // 例: "00001"
+    return max + 1;
 }
 
 export async function updateUserSerialId(
