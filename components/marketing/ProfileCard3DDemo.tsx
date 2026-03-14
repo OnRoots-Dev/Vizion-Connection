@@ -94,7 +94,7 @@ export function ProfileCard3DDemo() {
                 src={s.photo}
                 alt={s.name}
                 loading="eager"
-                    className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
               />
             ) : (
@@ -162,17 +162,18 @@ export function ProfileCard3DDemo() {
             <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
             <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
 
-            {s.photo ? (
+            {/* ══ BACK FACE ══ の写真部分 */}
+            {s.backPhoto ? (
               <img
-                src={s.photo}
+                src={s.backPhoto}
                 alt={s.name}
                 loading="eager"
-                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               />
             ) : (
               <div
-                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               >
                 {initials}
