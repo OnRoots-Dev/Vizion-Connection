@@ -7,12 +7,6 @@ import { string } from "zod";
 
 const TABLE = "Users";
 
-// ── VZ番号生成 ──
-function generateVzId(): string {
-    const rand = (n: number) => Math.floor(Math.random() * Math.pow(10, n)).toString().padStart(n, "0");
-    return `VZ${rand(5)}-${rand(4)}-${rand(5)}`;
-}
-
 // ── Founding Member 判定（ロールごとに100人まで）──
 async function checkIsFoundingMember(role: string): Promise<boolean> {
     const records = await airtableBase(TABLE)
@@ -55,6 +49,9 @@ function toUserRecord(record: Airtable.Record<Airtable.FieldSet>): UserRecord {
         isDeleted: (f["isDeleted"] as boolean) ?? false,
         lastLoginAt: (f["lastLoginAt"] as string) || undefined,
         ambassadorCode: (f["ambassadorCode"] as string) || undefined,
+        seq: (f["seq"] as number) || undefined,
+        randA: (f["randA"] as string) || undefined,
+        randB: (f["randB"] as string) || undefined,
     };
 }
 
@@ -82,6 +79,8 @@ export interface CreateUserInput {
     slug: string;
     referrerSlug?: string;
     serialId: string;
+    randA?: string;
+    randB?: string;
 }
 
 export async function createUser(input: CreateUserInput): Promise<UserRecord> {
@@ -96,9 +95,11 @@ export async function createUser(input: CreateUserInput): Promise<UserRecord> {
         points: 0,
         referrerSlug: input.referrerSlug ?? "",
         createdAt: new Date().toISOString(),
-        ...(input.serialId ? { serialId: input.serialId } : {}),  // ← ここ
+        serialId: input.serialId,
         isFoundingMember,
         isPublic: true,
+        ...(input.randA ? { randA: input.randA } : {}),
+        ...(input.randB ? { randB: input.randB } : {}),
     });
     return toUserRecord(record);
 }
@@ -182,4 +183,11 @@ export async function getNextSerialId(): Promise<string> {
         return n > acc ? n : acc;
     }, 0);
     return String(max + 1).padStart(5, "0"); // 例: "00001"
+}
+
+export async function updateUserSerialId(
+    recordId: string,
+    serialId: string
+): Promise<void> {
+    await airtableBase(TABLE).update(recordId, { serialId });
 }

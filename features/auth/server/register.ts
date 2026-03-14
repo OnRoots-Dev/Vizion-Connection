@@ -1,7 +1,7 @@
 // features/auth/server/register.ts
 
 import { hashPassword } from "@/lib/auth/hash";
-import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, getNextSerialId } from "@/lib/airtable/users";
+import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, getNextSerialId, updateUserSerialId } from "@/lib/airtable/users";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { issueVerifyToken } from "@/features/auth/server/tokens";
 import { registerSchema } from "@/features/auth/validation/register-schema";
@@ -26,7 +26,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     // 3. スラッグ重複チェック
     const existingBySlug = await findUserBySlug(slug);
     if (existingBySlug) {
-        return { success: false, error: "このスラッグはすでに使用されています" };
+        return { success: false, error: "このユーザー名はすでに使用されています" };
     }
 
     // 3-a. 自己紹介チェック
@@ -39,19 +39,25 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     if (referrerSlug) {
         let referrer = await findUserBySlug(referrerSlug);
         if (!referrer) {
-            referrer = await findUserByAmbassadorCode(referrerSlug); // ← フォールバック
+            referrer = await findUserByAmbassadorCode(referrerSlug);
         }
         if (!referrer) {
             return { success: false, error: "紹介コードが無効です" };
         }
-        resolvedReferrerSlug = referrer.slug; // ambassadorCode で引いた場合も slug を使う
+        resolvedReferrerSlug = referrer.slug;
     }
 
     // 4. パスワードハッシュ化
     const passwordHash = await hashPassword(input.password);
     const serialId = await getNextSerialId();
 
-    // 5. ユーザー作成
+    // 5. rand生成を追加
+    const rand = (d: number) =>
+        Math.floor(Math.random() * 10 ** d).toString().padStart(d, "0");
+    const randA = rand(5);
+    const randB = rand(5);
+
+    // 6. ユーザー作成
     const user = await createUser({
         email,
         passwordHash,
@@ -60,17 +66,24 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         slug,
         serialId,
         referrerSlug: resolvedReferrerSlug,
+        randA,
+        randB,
     });
 
-    // 6. 認証トークン発行
+    // 7. memberId を組み立てて serialId として保存
+    const seq = user.seq ?? 1;
+    const memberId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
+    await updateUserSerialId(user.id, memberId);  // ← 関数名変更
+
+    // 8. 認証トークン発行
     const { verifyUrl } = await issueVerifyToken(email, slug);
 
-    // 7. 認証メール送信
+    // 9. 認証メール送信
     await sendVerifyEmail({
         to: email,
         displayName: user.displayName,
         verifyUrl,
     });
 
-    return { success: true, slug };
+    return { success: true, slug: user.slug };
 }

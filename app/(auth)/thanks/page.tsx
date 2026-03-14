@@ -44,7 +44,7 @@ export default async function ThanksPage({ searchParams }: Props) {
             style={{ background: "#07070e" }}>
 
             <Link href="/" className="mb-12 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                Vizion Connection
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
             </Link>
 
             <div className="w-full max-w-sm text-center space-y-6">

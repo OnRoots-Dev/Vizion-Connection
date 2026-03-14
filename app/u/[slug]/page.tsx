@@ -26,7 +26,7 @@ const ROLE_LABEL_JA: Record<UserRole, string> = {
 };
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
-const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
+const TK_PATH =  "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
 interface Props { params: Promise<{ slug: string }>; }
 
@@ -182,7 +182,7 @@ export default async function UserProfilePage({ params }: Props) {
                     )}
 
                     {/* Stats grid */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
                         {[
                             { label: "Role", value: ROLE_LABEL[profile.role], color: rl },
                             { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), color: "#FFD600" },
@@ -224,7 +224,7 @@ export default async function UserProfilePage({ params }: Props) {
                             </div>
                             <div>
                                 <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>プロフィールカードを見る</p>
-                                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "1px 0 0", fontFamily: "monospace" }}>vizionconnection.com/card/{profile.slug}</p>
+                                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "1px 0 0", fontFamily: "monospace" }}>{env.NEXT_PUBLIC_BASE_URL}/card/{profile.slug}</p>
                             </div>
                         </div>
                         <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={rl} strokeWidth={2}>

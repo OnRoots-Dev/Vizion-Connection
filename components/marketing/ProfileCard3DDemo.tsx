@@ -68,167 +68,170 @@ export function ProfileCard3DDemo() {
             if (target.closest("a")) return;
             setIsFlipped(f => !f);
           }}
-          style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d" } as React.CSSProperties}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
+          style={{
+            rotateX: isFlipped ? 0 : rotateX,
+            transformStyle: "preserve-3d",
+            WebkitTransformStyle: "preserve-3d",
+          } as React.CSSProperties}
           className="v12-wrap relative h-full w-full cursor-pointer"
         >
-          <motion.div
-            animate={{ rotateY: isFlipped ? 180 : 0 }}
-            transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
-            style={{ transformStyle: "preserve-3d" }}
-            className="relative h-full w-full"
+          {/* ══ FRONT FACE ══ */}
+          <div
+            className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
+            style={{ ["--rg-val" as string]: s.rg } as React.CSSProperties}
           >
-            {/* ══ FRONT FACE ══ */}
-            <div
-              className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
-              style={{ ["--rg-val" as string]: s.rg } as React.CSSProperties}
-            >
-              <div className="absolute inset-0 z-0" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, color-mix(in srgb, ${s.bg1} 50%, #000) 55%, #060606 100%)` }} />
-              <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
-              <div className="pointer-events-none absolute inset-px z-[1] rounded-[13px] border border-white/4" />
-              <div className="pointer-events-none absolute -right-[10%] -top-[10%] z-[1] h-[180px] w-[180px] blur-[25px]" style={{ background: `radial-gradient(circle at center, ${s.rg}, transparent 70%)` }} />
-              <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
-              <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
+            <div className="absolute inset-0 z-0" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, color-mix(in srgb, ${s.bg1} 50%, #000) 55%, #060606 100%)` }} />
+            <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
+            <div className="pointer-events-none absolute inset-px z-[1] rounded-[13px] border border-white/4" />
+            <div className="pointer-events-none absolute -right-[10%] -top-[10%] z-[1] h-[180px] w-[180px] blur-[25px]" style={{ background: `radial-gradient(circle at center, ${s.rg}, transparent 70%)` }} />
+            <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
+            <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
 
-              {s.photo ? (
-                <img
-                  src={s.photo}
-                  alt={s.name}
-                  loading="eager"
-                  className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
-                  style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
-                />
-              ) : (
-                <div
-                  className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none"
-                  style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
-                >
-                  {initials}
-                </div>
-              )}
+            {s.photo ? (
+              <img
+                src={s.photo}
+                alt={s.name}
+                loading="eager"
+                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
+                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
+              />
+            ) : (
+              <div
+                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none"
+                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
+              >
+                {initials}
+              </div>
+            )}
 
-              <div className="absolute inset-0 z-[6] flex flex-col justify-between" style={{ padding: "16px 60% 14px 16px" }}>
-                <div className="flex items-flex-start gap-[6px] pl-[10px]">
-                  <div className="flex flex-col items-start gap-[5px]">
-                    <FoundingMemberBadge />
-                    <span className="font-mono text-[9px] tracking-[0.08em] text-white/55">{s.region}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col justify-center gap-[3px]">
-                  <div className="font-mono text-[7px] font-[500] uppercase tracking-[0.22em] text-white/38">{s.label}</div>
-                  <div
-                    className="whitespace-nowrap text-ellipsis text-[20px] font-[900] text-white"
-                    style={{ lineHeight: 1.05, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}
-                  >
-                    {s.name}
-                  </div>
-                  <div className="whitespace-nowrap font-mono text-[10.5px] tracking-[0.03em] text-white/52">{s.spec}</div>
-                  <div className="mt-1.25 flex items-center gap-[4px]">
-                    <span className="text-[8px] text-[#FFD600]">★</span>
-                    <span className="font-mono text-[7px] tracking-[0.12em] text-white/28">Cheer</span>
-                    <span className="font-mono text-[13px] font-[700] leading-none tracking-tight text-[#FFD600]">{s.cheer}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-0">
-                  <div
-                    className="font-light text-[14px] font-bold uppercase tracking-[0.13em] text-white/45 whitespace-nowrap"
-                    style={{ textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.45)" }}
-                  >
-                    {s.memberId}
-                  </div>
-                  <div className="flip-hint mt-[4px] flex items-center font-mono text-[6px] uppercase tracking-[0.14em] text-white/18">Tap to see profile</div>
+            <div className="absolute inset-0 z-[6] flex flex-col justify-between" style={{ padding: "16px 60% 14px 16px" }}>
+              <div className="flex items-flex-start gap-[6px] pl-[10px]">
+                <div className="flex flex-col items-start gap-[5px]">
+                  <FoundingMemberBadge />
+                  <span className="font-mono text-[9px] tracking-[0.08em] text-white/55">{s.region}</span>
                 </div>
               </div>
 
-              <div className="absolute bottom-[10px] right-[12px] z-[7]">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto opacity-60 mix-blend-lighten" />
+              <div className="flex flex-1 flex-col justify-center gap-[3px]">
+                <div className="font-mono text-[7px] font-[500] uppercase tracking-[0.22em] text-white/38">{s.label}</div>
+                <div
+                  className="whitespace-nowrap text-ellipsis text-[20px] font-[900] text-white"
+                  style={{ lineHeight: 1.05, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}
+                >
+                  {s.name}
+                </div>
+                <div className="whitespace-nowrap font-mono text-[10.5px] tracking-[0.03em] text-white/52">{s.spec}</div>
+                <div className="mt-1.25 flex items-center gap-[4px]">
+                  <span className="text-[8px] text-[#FFD600]">★</span>
+                  <span className="font-mono text-[7px] tracking-[0.12em] text-white/28">Cheer</span>
+                  <span className="font-mono text-[13px] font-[700] leading-none tracking-tight text-[#FFD600]">{s.cheer}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-0">
+                <div
+                  className="font-light text-[14px] font-bold uppercase tracking-[0.13em] text-white/45 whitespace-nowrap"
+                  style={{ textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.45)" }}
+                >
+                  {s.memberId}
+                </div>
+                <div className="flip-hint mt-[4px] flex items-center font-mono text-[6px] uppercase tracking-[0.14em] text-white/18">Tap to see profile</div>
               </div>
             </div>
 
-            {/* ══ BACK FACE ══ */}
-            <div
-              className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)] "
-              style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)`, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", }}
-            >
-              <div className="absolute inset-0 z-0 opacity-40" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)` }} />
-              <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
-              <div className="pointer-events-none absolute inset-px z-[1] rounded-[13px] border border-white/4" />
-              <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
-              <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
+            <div className="absolute bottom-[10px] right-[12px] z-[7]">
+              <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto opacity-60 mix-blend-lighten" />
+            </div>
+          </div>
 
-              {s.photo ? (
-                <img
-                  src={s.photo}
-                  alt={s.name}
-                  loading="eager"
-                  className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
-                  style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
-                />
-              ) : (
+          {/* ══ BACK FACE ══ */}
+          <div
+            className="v12-face absolute inset-0 overflow-hidden rounded-[14px] border border-white/10 [backface-visibility:hidden] [-webkit-backface-visibility:hidden] shadow-[0_10px_42px_rgba(0,0,0,0.65)]"
+            style={{
+              background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)`,
+              transform: "rotateY(180deg)",
+              WebkitTransform: "rotateY(180deg)",
+            }}
+          >
+            <div className="absolute inset-0 z-0 opacity-40" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, #000 100%)` }} />
+            <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
+            <div className="pointer-events-none absolute inset-px z-[1] rounded-[13px] border border-white/4" />
+            <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
+            <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
+
+            {s.photo ? (
+              <img
+                src={s.photo}
+                alt={s.name}
+                loading="eager"
+                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
+                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
+              />
+            ) : (
+              <div
+                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none"
+                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
+              >
+                {initials}
+              </div>
+            )}
+
+            <div className="absolute inset-0 z-[30] flex flex-col justify-between" style={{ padding: "14px 13px 16px" }}>
+              <div className="pointer-events-none flex items-center justify-between">
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-10 w-auto opacity-60 mix-blend-lighten" />
+                <div className="flex items-center gap-[6px]">
+                  <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full" style={{ background: s.rl, boxShadow: `0 0 6px ${s.rl}` }} />
+                  <span className="font-mono text-[7.5px] font-[600] uppercase tracking-[0.18em] text-white/45">{s.label}</span>
+                </div>
+                <span className="font-mono text-[6px] uppercase tracking-[0.16em] text-white/18">Official Card</span>
+              </div>
+
+              <div className="pointer-events-none flex flex-1 flex-col justify-center items-start gap-[2px] py-[4px]">
                 <div
-                  className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none"
-                  style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
+                  className="overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-[900] text-white/88"
+                  style={{ lineHeight: 1.1, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}
                 >
-                  {initials}
+                  {s.name}
                 </div>
-              )}
+                <div className="font-mono text-[7.5px] tracking-[0.04em] text-white/38">{s.spec} · {s.region}</div>
+              </div>
 
-              <div className="absolute inset-0 z-[30] flex flex-col justify-between" style={{ padding: "14px 13px 16px" }}>
-                <div className="pointer-events-none flex items-center justify-between">
-                  <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-10 w-auto opacity-60 mix-blend-lighten" />
-                  <div className="flex items-center gap-[6px]">
-                    <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full" style={{ background: s.rl, boxShadow: `0 0 6px ${s.rl}` }} />
-                    <span className="font-mono text-[7.5px] font-[600] uppercase tracking-[0.18em] text-white/45">{s.label}</span>
+              <div className="pointer-events-none my-[6px] h-px opacity-40" style={{ background: `linear-gradient(90deg, ${s.rl} 0%, transparent 100%)` }} />
+
+              <div className="pointer-events-none min-h-[1em] pb-[2px] font-sans text-[10px] leading-[1.6] tracking-[0.01em] text-white/50 text-left">
+                {s.comment}
+              </div>
+
+              <div className="flex items-end justify-between gap-2.5">
+                <div
+                  className="relative z-[50] flex flex-col items-start gap-[5px] pointer-events-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="pointer-events-none font-mono text-[7px] uppercase tracking-[0.14em] text-white/35">Connect</span>
+                  <div className="flex gap-[6px]">
+                    <SnsIcon label="X" color={s.rl} path={X_PATH} />
+                    <SnsIcon label="Instagram" color={s.rl} path={IG_PATH} />
+                    <SnsIcon label="YouTube" color={s.rl} path={YT_PATH} />
                   </div>
-                  <span className="font-mono text-[6px] uppercase tracking-[0.16em] text-white/18">Official Card</span>
                 </div>
-
-                <div className="pointer-events-none flex flex-1 flex-col justify-center items-start gap-[2px] py-[4px]">
-                  <div
-                    className="overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-[900] text-white/88"
-                    style={{ lineHeight: 1.1, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}
-                  >
-                    {s.name}
+                <div className="pointer-events-none flex items-end gap-[8px]">
+                  <div className="flex flex-col items-end gap-[2px]">
+                    <span className="font-mono text-[6px] uppercase tracking-[0.14em] text-white/22">Profile URL</span>
+                    <span className="max-w-[110px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[8.5px] tracking-[0.03em] text-white/58">{s.url}</span>
                   </div>
-                  <div className="font-mono text-[7.5px] tracking-[0.04em] text-white/38">{s.spec} · {s.region}</div>
-                </div>
-
-                <div className="pointer-events-none my-[6px] h-px opacity-40" style={{ background: `linear-gradient(90deg, ${s.rl} 0%, transparent 100%)` }} />
-
-                <div className="pointer-events-none min-h-[1em] pb-[2px] font-sans text-[10px] leading-[1.6] tracking-[0.01em] text-white/50 text-left">
-                  {s.comment}
-                </div>
-
-                <div className="flex items-end justify-between gap-2.5">
-                  <div
-                    className="relative z-[50] flex flex-col items-start gap-[5px] pointer-events-auto"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span className="pointer-events-none font-mono text-[7px] uppercase tracking-[0.14em] text-white/35">Connect</span>
-                    <div className="flex gap-[6px]">
-                      <SnsIcon label="X" color={s.rl} path={X_PATH} />
-                      <SnsIcon label="Instagram" color={s.rl} path={IG_PATH} />
-                      <SnsIcon label="YouTube" color={s.rl} path={YT_PATH} />
-                    </div>
-                  </div>
-                  <div className="pointer-events-none flex items-end gap-[8px]">
-                    <div className="flex flex-col items-end gap-[2px]">
-                      <span className="font-mono text-[6px] uppercase tracking-[0.14em] text-white/22">Profile URL</span>
-                      <span className="max-w-[110px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[8.5px] tracking-[0.03em] text-white/58">{s.url}</span>
-                    </div>
-                    <div className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[4px] bg-white/94 p-[3px]">
-                      <div className="grid h-full w-full grid-cols-4 grid-rows-4 gap-[1px]">
-                        {Array.from({ length: 16 }).map((_, i) => (
-                          <div key={i} className="rounded-[1px]" style={{ background: [0, 1, 4, 5, 2, 7, 8, 11, 12, 13, 10, 15, 3, 6, 9, 14].indexOf(i) % 3 === 0 ? "#111" : "#fff" }} />
-                        ))}
-                      </div>
+                  <div className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[4px] bg-white/94 p-[3px]">
+                    <div className="grid h-full w-full grid-cols-4 grid-rows-4 gap-[1px]">
+                      {Array.from({ length: 16 }).map((_, i) => (
+                        <div key={i} className="rounded-[1px]" style={{ background: [0, 1, 4, 5, 2, 7, 8, 11, 12, 13, 10, 15, 3, 6, 9, 14].indexOf(i) % 3 === 0 ? "#111" : "#fff" }} />
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
 

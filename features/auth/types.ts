@@ -50,6 +50,9 @@ export interface UserRecord {
     ambassadorCode?: string;
     avatarUrl?: string;
     password?: string;
+    seq?: number;
+    randA?: string;
+    randB?: string;
 }
 
 export interface VerifyTokenRecord {
