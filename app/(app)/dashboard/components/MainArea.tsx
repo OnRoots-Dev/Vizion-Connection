@@ -277,54 +277,30 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
             <Card delay={0.25}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
                     <SLabel text="Discovery" />
-                    <Link href="/discover" style={{
-                        fontSize: "9px", color: t.sub, opacity: 0.5,
-                        textDecoration: "none", fontFamily: "monospace",
-                        letterSpacing: "0.1em", transition: "opacity 0.2s",
-                    }}>
-                        すべて見る →
-                    </Link>
+                    <span style={{ fontSize: "9px", color: t.sub, opacity: 0.4, fontFamily: "monospace", letterSpacing: "0.1em" }}>
+                        3/15 (日) 12:00 解放
+                    </span>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    {SAMPLE_MEMBERS.map((m, i) => (
-                        <motion.div
-                            key={m.slug}
-                            initial={{ opacity: 0, scale: 0.85 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
-                        >
-                            <Link href={`/u/${m.slug}`} style={{
-                                display: "flex", flexDirection: "column", alignItems: "center", gap: "5px",
-                                padding: "10px 12px", borderRadius: "12px",
-                                background: "rgba(255,255,255,0.03)",
-                                border: "1px solid rgba(255,255,255,0.07)",
-                                textDecoration: "none", transition: "all 0.2s",
-                                minWidth: "70px",
-                            }}>
-                                <div style={{
-                                    width: "34px", height: "34px", borderRadius: "50%",
-                                    background: `${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}20`,
-                                    border: `2px solid ${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}40`,
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    fontSize: "13px", fontWeight: 900,
-                                    color: MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa",
-                                }}>
-                                    {m.initial}
-                                </div>
-                                <span style={{ fontSize: "9px", color: t.sub, whiteSpace: "nowrap", maxWidth: "64px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                    {m.name.split(" ")[0]}
-                                </span>
-                                <span style={{
-                                    fontSize: "7px", fontFamily: "monospace", fontWeight: 700,
-                                    padding: "1px 5px", borderRadius: "3px",
-                                    background: `${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}15`,
-                                    color: MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa",
-                                }}>
-                                    {m.role}
-                                </span>
-                            </Link>
-                        </motion.div>
-                    ))}
+                <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    padding: "28px 20px", borderRadius: "12px",
+                    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+                    gap: "8px",
+                }}>
+                    <motion.div
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 2.4, repeat: Infinity }}
+                        style={{
+                            fontSize: "9px", fontWeight: 900, fontFamily: "monospace",
+                            letterSpacing: "0.3em", textTransform: "uppercase",
+                            color: "rgba(255,255,255,0.25)",
+                        }}
+                    >
+                        COMING SOON
+                    </motion.div>
+                    <p style={{ fontSize: "11px", color: t.sub, opacity: 0.4, margin: 0, textAlign: "center" }}>
+                        3月15日（日）正午に解放予定です
+                    </p>
                 </div>
             </Card>
 

@@ -45,7 +45,7 @@ export default function VerifyContent() {
     return (
         <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
             <div className="w-full max-w-md text-center">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-24 w-auto" />
                 {state === "loading" && (
                     <div className="space-y-6">
                         <div className="flex justify-center">

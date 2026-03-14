@@ -39,7 +39,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     referrerSlug: user.referrerSlug,
                     createdAt: user.createdAt,
                     serialId: user.serialId,
-                    profileImageUrl: user.profileImageUrl,                
+                    profileImageUrl: user.profileImageUrl,
                     bio: user.bio,
                     region: user.region,
                     prefecture: user.prefecture,
@@ -51,11 +51,11 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     tiktok: user.tiktok,
                     cheerCount: user.cheerCount ?? 0,
                     missionBonusGiven: user.missionBonusGiven ?? false,
-                    isFoundingMember: user.serialId !== undefined && parseInt(user.serialId) <= 100,
+                    isFoundingMember: (user.seq ?? 999) <= 100,
                 },
                 referralUrl,
                 referralCount,
-                isFoundingMember: user.serialId !== undefined && parseInt(user.serialId) <= 100,
+                isFoundingMember: (user.seq ?? 999) <= 100,
             },
         };
     } catch (err) {
