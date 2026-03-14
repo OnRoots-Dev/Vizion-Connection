@@ -4,7 +4,6 @@ import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by
 import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import CheerButtonClient from "./CheerButtonClient";
-import ShareButtonClient from "./ShareButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import { Footer } from "@/components/layout/Footer";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
@@ -235,7 +234,6 @@ export default async function UserProfilePage({ params }: Props) {
                     {/* Share */}
                     <div style={{ borderRadius: "14px", padding: "18px", background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.07)" }}>
                         <p style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 12px" }}>Share</p>
-                        <ShareButtonClient profileUrl={profileUrl} referralUrl={referralUrl} displayName={profile.displayName} roleColor={rl} />
                     </div>
 
                     {/* CTA */}

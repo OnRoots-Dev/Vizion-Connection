@@ -111,7 +111,6 @@ export default function CardPageClient({
 
                         {/* ── シェアボタン（モーダルを開く） ── */}
                         <button
-                            onClick={openShare}
                             title="カードをシェア"
                             style={{
                                 flexShrink: 0, width: "42px", height: "42px",
