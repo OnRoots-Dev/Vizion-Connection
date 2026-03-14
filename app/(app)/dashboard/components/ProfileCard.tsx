@@ -294,7 +294,7 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
                                             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
                                                 <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>Profile URL</span>
                                                 <span style={{ fontFamily: "monospace", fontSize: 7.5, color: "rgba(255,255,255,0.5)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                    vizionconnection.com/u/{profile.slug}
+                                                    vizion-connection.jp/u/{profile.slug}
                                                 </span>
                                             </div>
                                             {qrDataUrl ? (
