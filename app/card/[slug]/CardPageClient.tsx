@@ -7,9 +7,7 @@ import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard
 import type { PublicProfileData } from "@/features/profile/types";
 import type { ProfileData } from "@/features/profile/types";
 
-// ── 追加: シェア機能のインポート ──────────────────────────────────────────────
-import { useShareCard } from "./useShareCard";       // パスは実際の配置に合わせる
-import { ShareModal } from "./ShareModal";           // パスは実際の配置に合わせる
+
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -31,14 +29,7 @@ export default function CardPageClient({
     const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const profileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
 
-    // ── シェアフック ────────────────────────────────────────────────────────
-    const { openShare, closeShare, isOpen, shareTo, isGenerating, imageUrl } = useShareCard({
-        slug: profile.slug,
-        displayName: profile.displayName,
-        cardElementId: "profile-card-share",   // ProfileCardSection の親要素にこのIDを付与
-        shareUrl: referralUrl,
-        tweetText: `${profile.displayName} のVizion Connectionプロフィールカードをシェア！`,
-    });
+    
 
     async function handleCopy() {
         try { await navigator.clipboard.writeText(profileUrl); } catch { }
@@ -167,16 +158,7 @@ export default function CardPageClient({
                 </motion.div>
             </main>
 
-            {/* ── シェアモーダル ── */}
-            <ShareModal
-                isOpen={isOpen}
-                onClose={closeShare}
-                onShareTo={shareTo}
-                isGenerating={isGenerating}
-                imageUrl={imageUrl}
-                displayName={profile.displayName}
-                roleColor={rl}
-            />
+            
         </div>
     );
 }
