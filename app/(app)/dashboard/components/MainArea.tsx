@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import type { ProfileData } from "@/features/profile/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
@@ -13,22 +13,17 @@ import type { UserRecord } from "@/features/auth/types";
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
 };
-const ROLE_LABEL: Record<string, string> = {
-    Athlete: "Athlete", Trainer: "Trainer", Members: "Members", Business: "Business",
-};
 
 interface ThemeColors { bg: string; surface: string; border: string; text: string; sub: string; }
 
 const REFERRAL_LIMIT = 30;
 const POINTS_PER_REFERRAL = 500;
 
-// ── サンプルバナー（後でAPIから差し替え） ──
 const SAMPLE_BANNERS = [
     { id: "1", company: "Sports Lab Tokyo", text: "アスリート向け栄養管理サービス開始", cta: "詳細を見る", color: "#3C8CFF" },
     { id: "2", company: "MOVE Performance", text: "トップアスリートのトレーニング動画公開中", cta: "今すぐ見る", color: "#32D278" },
 ];
 
-// ── サンプルメンバー（後でAPIから差し替え） ──
 const SAMPLE_MEMBERS = [
     { name: "Kenji Yamada", slug: "kenji", role: "Athlete", initial: "K" },
     { name: "Saki Mori", slug: "saki", role: "Trainer", initial: "S" },
@@ -37,6 +32,54 @@ const SAMPLE_MEMBERS = [
     { name: "Taro Suzuki", slug: "taro", role: "Business", initial: "T" },
     { name: "Miku Tanaka", slug: "miku", role: "Trainer", initial: "M" },
 ];
+
+const MEMBER_ROLE_COLOR: Record<string, string> = {
+    Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
+};
+
+// ── セクションラベル ──────────────────────────────────────────────────────────
+function SLabel({ text }: { text: string }) {
+    return (
+        <p style={{
+            fontSize: "8px", fontWeight: 900, letterSpacing: "0.25em",
+            textTransform: "uppercase", color: "rgba(255,255,255,0.2)",
+            margin: "0 0 14px", fontFamily: "monospace",
+        }}>
+            {text}
+        </p>
+    );
+}
+
+// ── メインカード ──────────────────────────────────────────────────────────────
+function Card({ children, delay = 0, accentColor }: {
+    children: React.ReactNode; delay?: number; accentColor?: string;
+}) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+                borderRadius: "16px",
+                padding: "20px",
+                background: "rgba(255,255,255,0.025)",
+                border: `1px solid ${accentColor ? `${accentColor}22` : "rgba(255,255,255,0.07)"}`,
+                overflow: "hidden",
+                position: "relative",
+            }}
+        >
+            {accentColor && (
+                <div style={{
+                    position: "absolute", top: "-30px", right: "-30px",
+                    width: "120px", height: "120px", borderRadius: "50%",
+                    background: `radial-gradient(circle, ${accentColor}12, transparent 70%)`,
+                    pointerEvents: "none",
+                }} />
+            )}
+            {children}
+        </motion.div>
+    );
+}
 
 export function MainArea({ profile, referralUrl, referralCount, t, view, setView, onProfileUpdate }: {
     profile: ProfileData;
@@ -50,7 +93,6 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
     const [copied, setCopied] = useState(false);
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const progress = Math.min((referralCount / REFERRAL_LIMIT) * 100, 100);
-    const banner = SAMPLE_BANNERS[0];
 
     async function handleCopy() {
         try { await navigator.clipboard.writeText(referralUrl); }
@@ -64,22 +106,7 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
         setTimeout(() => setCopied(false), 2000);
     }
 
-    const card = (children: React.ReactNode, delay = 0, id?: string) => (
-        <motion.div
-            id={id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] }}
-            style={{ borderRadius: "16px", padding: "20px", background: t.surface, border: `1px solid ${t.border}`, overflow: "hidden" }}
-        >
-            {children}
-        </motion.div>
-    );
-
-    const sectionLabel = (text: string) => (
-        <p style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: "0 0 14px", opacity: 0.6 }}>{text}</p>
-    );
-
+    // ── Edit / Settings ビュー ────────────────────────────────────────────────
     if (view === "edit") {
         return (
             <EditProfileClient
@@ -91,310 +118,374 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
                             const data = await res.json();
                             onProfileUpdate?.(data.profile);
                         }
-                    } catch { /* 失敗しても画面は戻す */ }
+                    } catch { }
                     setView("home");
                 }}
             />
         );
     }
     if (view === "settings") {
-        return (
-            <SettingsClient
-                user={profile as unknown as UserRecord}
-                onBack={() => setView("home")}
-            />
-        );
+        return <SettingsClient user={profile as unknown as UserRecord} onBack={() => setView("home")} />;
     }
 
+    // ── Home ビュー ───────────────────────────────────────────────────────────
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
 
-            {/* ── Wide Ad Banner (Profile Card上) ── */}
-            <div style={{
-                width: "100%",
-                borderRadius: "10px",
-                overflow: "hidden",
-                border: `1px solid ${t.border}`,
-                background: t.surface,
-                marginBottom: "12px",
-                minHeight: "72px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-            }}>
-                {/* 広告プレースホルダー */}
-                <div style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%)",
-                }} />
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", opacity: 0.25 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ width: "20px", height: "1px", background: t.sub }} />
-                        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>
-                            Business AD AREA
-                        </span>
-                        <div style={{ width: "20px", height: "1px", background: t.sub }} />
-                    </div>
-                    <span style={{ fontSize: "8px", color: t.sub, letterSpacing: "0.08em" }}>728 × 90</span>
-                </div>
-            </div>
-
-            {/* ① My Profile Card */}
-            <ProfileCardSection profile={profile} t={t} />
-
-            {/* ② Public Profile + Early Badge */}
-            {card(<>
-                {sectionLabel("Public Profile")}
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                    {/* URL + copy */}
-                    <div style={{ flex: 1, minWidth: "180px", display: "flex", alignItems: "center", gap: "8px", padding: "10px 12px", borderRadius: "10px", background: `rgba(255,255,255,0.04)`, border: `1px solid ${t.border}` }}>
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={1.75} style={{ flexShrink: 0 }}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                        </svg>
-                        <p style={{ flex: 1, fontSize: "11px", fontFamily: "monospace", color: t.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
-                            {`/u/${profile.slug}`}
-                        </p>
-                        <button onClick={handleCopy} style={{ flexShrink: 0, padding: "4px 10px", borderRadius: "7px", fontSize: "11px", fontWeight: 700, border: "none", cursor: "pointer", background: copied ? "rgba(50,210,120,0.15)" : roleColor, color: copied ? "#32D278" : "#000", transition: "all 0.2s" }}>
-                            {copied ? "✓" : "コピー"}
-                        </button>
-                    </div>
-                    {/* Open profile button */}
-                    <Link href={`/u/${profile.slug}`} style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "6px", padding: "10px 14px", borderRadius: "10px", background: `${roleColor}12`, border: `1px solid ${roleColor}28`, color: roleColor, fontSize: "12px", fontWeight: 600 }}>
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
-                        プロフィールを開く
-                    </Link>
-                </div>
-
-                <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", borderRadius: "10px", background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }}>
-                    <span style={{ fontSize: "16px" }}>🏅</span>
-                    <div>
-                        <p style={{ fontSize: "11px", fontWeight: 800, color: "#fbbf24", margin: 0, letterSpacing: "0.05em" }}>
-                            {profile.isFoundingMember ? "FOUNDING MEMBER" : "EARLY MEMBER"}
-                        </p>
-                        <p style={{ fontSize: "10px", color: "rgba(251,191,36,0.6)", margin: 0 }}>
-                            先行登録 — {new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" })}
-                        </p>
-                    </div>
-                    <div style={{ marginLeft: "auto", fontSize: "18px", fontWeight: 900, color: "rgba(251,191,36,0.4)", fontFamily: "monospace" }}>
-                        {profile.serialId ? `#${profile.serialId}` : "#----"}
-                    </div>
-                </div>
-            </>, 0.1)}
-
-            {/* ── Wide Ad Banner (Profile Card上) ── */}
-            <div style={{
-                width: "100%",
-                borderRadius: "10px",
-                overflow: "hidden",
-                border: `1px solid ${t.border}`,
-                background: t.surface,
-                marginBottom: "12px",
-                minHeight: "72px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-            }}>
-                {/* 広告プレースホルダー */}
-                <div style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%)",
-                }} />
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", opacity: 0.25 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ width: "20px", height: "1px", background: t.sub }} />
-                        <span style={{ fontSize: "9px", fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>
-                            Business AD AREA--
-                        </span>
-                        <div style={{ width: "20px", height: "1px", background: t.sub }} />
-                    </div>
-                    <span style={{ fontSize: "8px", color: t.sub, letterSpacing: "0.08em" }}>728 × 90</span>
-                </div>
-            </div>
-
-            {/* ③ Referral — compact */}
-            {card(<>
-                {sectionLabel("Referral")}
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px", minWidth: 0 }}>
-                    <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "8px", padding: "9px 12px", borderRadius: "10px", background: "rgba(255,255,255,0.04)", border: `1px solid ${t.border}`, overflow: "hidden" }}>
-                        <p style={{ flex: 1, fontSize: "11px", fontFamily: "monospace", color: t.sub, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
-                            {referralUrl}
-                        </p>
-                    </div>
-                    <button onClick={handleCopy} style={{ flexShrink: 0, padding: "9px 14px", borderRadius: "10px", fontSize: "12px", fontWeight: 700, border: "none", cursor: "pointer", background: copied ? "rgba(50,210,120,0.12)" : "rgba(167,139,250,1)", color: copied ? "#32D278" : "#000", transition: "all 0.2s", whiteSpace: "nowrap" }}>
-                        {copied ? "✓" : "コピー"}
-                    </button>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                    <span style={{ fontSize: "11px", color: t.sub }}>{referralCount} / {REFERRAL_LIMIT} 人招待済み · 双方に {POINTS_PER_REFERRAL}pt</span>
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa" }}>残り {REFERRAL_LIMIT - referralCount} 人</span>
-                </div>
-                <div style={{ height: "5px", borderRadius: "99px", background: `rgba(255,255,255,0.07)`, overflow: "hidden" }}>
-                    <motion.div style={{ height: "100%", borderRadius: "99px", background: "linear-gradient(90deg, #7c3aed, #a78bfa)" }}
-                        initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.4 }} />
-                </div>
-            </>, 0.2, "referral")}
-
-            {/* ④ Members Discover */}
-            {card(<>
-                {sectionLabel("Discovery")}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", padding: "12px 0" }}>
-                    <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "rgba(255,255,255,0.05)", border: `1px solid ${t.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.25)" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                        <p style={{ fontSize: "13px", fontWeight: 700, color: t.text, margin: "0 0 4px" }}>Members Discovery</p>
-                        <p style={{ fontSize: "11px", color: t.sub, opacity: 0.6, margin: 0, lineHeight: 1.6 }}>
-                            他のメンバーを探す機能は近日公開予定です
-                        </p>
-                    </div>
-                    <div style={{ padding: "4px 12px", borderRadius: "20px", background: "rgba(255,255,255,0.04)", border: `1px solid ${t.border}` }}>
-                        <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: "0.15em", textTransform: "uppercase" }}>3/14 (土) 12:00公開予定</span>
-                    </div>
-                </div>
-            </>, 0.25)}
-
-            {/* ── Middle Banner ── */}
+            {/* ── Ad Banner（上部） ── */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.28 }}
-                style={{ borderRadius: "12px", padding: "14px 16px", background: `rgba(60,140,255,0.06)`, border: "1px solid rgba(60,140,255,0.18)", display: "flex", alignItems: "center", gap: "12px" }}
+                transition={{ duration: 0.6 }}
+                style={{
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "rgba(255,255,255,0.02)",
+                    minHeight: "64px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                }}
+            >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", opacity: 0.18 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ width: "24px", height: "1px", background: "rgba(255,255,255,0.4)" }} />
+                        <span style={{ fontSize: "8px", fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub }}>
+                            Business AD Area
+                        </span>
+                        <div style={{ width: "24px", height: "1px", background: "rgba(255,255,255,0.4)" }} />
+                    </div>
+                    <span style={{ fontSize: "7px", color: t.sub, letterSpacing: "0.1em", fontFamily: "monospace" }}>728 × 64</span>
+                </div>
+            </motion.div>
+
+            {/* ── ① Profile Card ── */}
+            <ProfileCardSection profile={profile} t={t} />
+
+            {/* ── ② Public Profile & Founding Badge ── */}
+            <Card delay={0.1} accentColor={roleColor}>
+                <SLabel text="Public Profile" />
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+
+                    {/* URL コピー */}
+                    <div style={{
+                        flex: 1, minWidth: "180px",
+                        display: "flex", alignItems: "center", gap: "8px",
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                    }}>
+                        <span style={{
+                            flex: 1, fontSize: "11px", fontFamily: "monospace",
+                            color: t.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>
+                            {referralUrl.replace("https://", "")}
+                        </span>
+                        <button onClick={handleCopy} style={{
+                            flexShrink: 0, padding: "5px 10px", borderRadius: "7px",
+                            border: `1px solid ${copied ? roleColor + "50" : "rgba(255,255,255,0.1)"}`,
+                            background: copied ? `${roleColor}15` : "rgba(255,255,255,0.04)",
+                            color: copied ? roleColor : t.sub,
+                            fontSize: "10px", fontWeight: 700, cursor: "pointer",
+                            transition: "all 0.2s",
+                        }}>
+                            {copied ? "✓ Copied" : "Copy"}
+                        </button>
+                    </div>
+
+                    {/* 公開リンク */}
+                    <Link href={`/u/${profile.slug}`} style={{
+                        display: "flex", alignItems: "center", gap: "6px",
+                        padding: "10px 14px", borderRadius: "10px",
+                        background: `${roleColor}12`, border: `1px solid ${roleColor}30`,
+                        color: roleColor, fontSize: "11px", fontWeight: 700,
+                        textDecoration: "none", whiteSpace: "nowrap",
+                        transition: "all 0.2s",
+                    }}>
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                        公開ページを見る
+                    </Link>
+                </div>
+            </Card>
+
+            {/* ── ③ 招待リンク ── */}
+            <Card delay={0.18} accentColor="#FFD600">
+                <SLabel text="Referral" />
+
+                {/* 進捗ヘッダー */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                    <div>
+                        <span style={{ fontSize: "26px", fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 }}>
+                            {referralCount}
+                        </span>
+                        <span style={{ fontSize: "11px", color: t.sub, marginLeft: "5px" }}>/ {REFERRAL_LIMIT} 人</span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                        <p style={{ fontSize: "8px", color: t.sub, opacity: 0.5, margin: 0, fontFamily: "monospace" }}>獲得ポイント</p>
+                        <p style={{ fontSize: "13px", fontWeight: 900, color: "#FFD600", margin: 0, fontFamily: "monospace" }}>
+                            +{(referralCount * POINTS_PER_REFERRAL).toLocaleString()} pt
+                        </p>
+                    </div>
+                </div>
+
+                {/* プログレスバー */}
+                <div style={{ height: "5px", borderRadius: "99px", background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: "14px" }}>
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        style={{
+                            height: "100%", borderRadius: "99px",
+                            background: "linear-gradient(90deg, #FFD600, #FFD60066)",
+                            boxShadow: "0 0 8px rgba(255,214,0,0.5)",
+                        }}
+                    />
+                </div>
+
+                {/* 招待URL */}
+                <div style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    padding: "10px 12px", borderRadius: "10px",
+                    background: "rgba(255,214,0,0.05)",
+                    border: "1px solid rgba(255,214,0,0.18)",
+                }}>
+                    <span style={{ flex: 1, fontSize: "10px", fontFamily: "monospace", color: "rgba(255,214,0,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {referralUrl}
+                    </span>
+                    <button onClick={handleCopy} style={{
+                        flexShrink: 0, padding: "5px 12px", borderRadius: "7px",
+                        background: copied ? "rgba(255,214,0,0.2)" : "rgba(255,214,0,0.12)",
+                        border: "1px solid rgba(255,214,0,0.3)",
+                        color: "#FFD600", fontSize: "10px", fontWeight: 800,
+                        cursor: "pointer", transition: "all 0.2s",
+                    }}>
+                        {copied ? "✓ Copied!" : "Copy"}
+                    </button>
+                </div>
+
+                <p style={{ fontSize: "9px", color: t.sub, opacity: 0.4, margin: "8px 0 0", fontFamily: "monospace" }}>
+                    1人招待ごとに {POINTS_PER_REFERRAL}pt 付与
+                </p>
+            </Card>
+
+            {/* ── ④ Discovery Preview ── */}
+            <Card delay={0.25}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+                    <SLabel text="Discovery" />
+                    <Link href="/discover" style={{
+                        fontSize: "9px", color: t.sub, opacity: 0.5,
+                        textDecoration: "none", fontFamily: "monospace",
+                        letterSpacing: "0.1em", transition: "opacity 0.2s",
+                    }}>
+                        すべて見る →
+                    </Link>
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {SAMPLE_MEMBERS.map((m, i) => (
+                        <motion.div
+                            key={m.slug}
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
+                        >
+                            <Link href={`/u/${m.slug}`} style={{
+                                display: "flex", flexDirection: "column", alignItems: "center", gap: "5px",
+                                padding: "10px 12px", borderRadius: "12px",
+                                background: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.07)",
+                                textDecoration: "none", transition: "all 0.2s",
+                                minWidth: "70px",
+                            }}>
+                                <div style={{
+                                    width: "34px", height: "34px", borderRadius: "50%",
+                                    background: `${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}20`,
+                                    border: `2px solid ${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}40`,
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    fontSize: "13px", fontWeight: 900,
+                                    color: MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa",
+                                }}>
+                                    {m.initial}
+                                </div>
+                                <span style={{ fontSize: "9px", color: t.sub, whiteSpace: "nowrap", maxWidth: "64px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {m.name.split(" ")[0]}
+                                </span>
+                                <span style={{
+                                    fontSize: "7px", fontFamily: "monospace", fontWeight: 700,
+                                    padding: "1px 5px", borderRadius: "3px",
+                                    background: `${MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa"}15`,
+                                    color: MEMBER_ROLE_COLOR[m.role] ?? "#a78bfa",
+                                }}>
+                                    {m.role}
+                                </span>
+                            </Link>
+                        </motion.div>
+                    ))}
+                </div>
+            </Card>
+
+            {/* ── ⑤ Roadmap ── */}
+            <Card delay={0.32}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <SLabel text="Roadmap" />
+                    <Link href="/roadmap" style={{
+                        fontSize: "9px", color: t.sub, opacity: 0.5, textDecoration: "none",
+                        fontFamily: "monospace", letterSpacing: "0.1em",
+                    }}>
+                        詳細を見る →
+                    </Link>
+                </div>
+
+                {[
+                    {
+                        label: "先行登録フェーズ", status: "current" as const,
+                        items: ["プロフィールカード", "公開URL", "Cheer", "Discovery", "招待リンク", "Businessスポンサー"],
+                        color: roleColor,
+                    },
+                    {
+                        label: "β版", status: "upcoming" as const,
+                        items: ["Discovery拡張", "フォロー", "Signal投稿", "Cheer通知"],
+                        color: "#3C8CFF",
+                    },
+                    {
+                        label: "正式版", status: "future" as const,
+                        items: ["Trust Score", "AI Discovery", "VZ Market", "イベント"],
+                        color: "#FF4646",
+                    },
+                ].map((phase, pi) => (
+                    <div key={phase.label} style={{ marginBottom: pi < 2 ? "16px" : 0 }}>
+                        {/* フェーズヘッダー */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                            {phase.status === "current" ? (
+                                <motion.div
+                                    animate={{ opacity: [1, 0.4, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    style={{ width: "6px", height: "6px", borderRadius: "50%", background: phase.color, boxShadow: `0 0 5px ${phase.color}` }}
+                                />
+                            ) : (
+                                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: phase.color, opacity: 0.3 }} />
+                            )}
+                            <span style={{
+                                fontSize: "9px", fontWeight: 900, fontFamily: "monospace",
+                                letterSpacing: "0.12em", textTransform: "uppercase",
+                                color: phase.status === "current" ? phase.color : t.sub,
+                                opacity: phase.status === "future" ? 0.4 : 1,
+                            }}>
+                                {phase.label}
+                            </span>
+                            {phase.status === "current" && (
+                                <span style={{
+                                    fontSize: "7px", fontWeight: 900, fontFamily: "monospace",
+                                    padding: "1px 6px", borderRadius: "3px",
+                                    background: `${phase.color}18`, color: phase.color,
+                                    border: `1px solid ${phase.color}35`,
+                                    letterSpacing: "0.1em",
+                                }}>
+                                    NOW
+                                </span>
+                            )}
+                        </div>
+
+                        {/* アイテムグリッド */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "5px" }}>
+                            {phase.items.map(item => (
+                                <div key={item} style={{
+                                    display: "flex", alignItems: "center", gap: "7px",
+                                    padding: "6px 9px", borderRadius: "8px",
+                                    background: phase.status === "current" ? `${phase.color}08` : "rgba(255,255,255,0.02)",
+                                    border: `1px solid ${phase.status === "current" ? `${phase.color}20` : "rgba(255,255,255,0.05)"}`,
+                                    opacity: phase.status === "future" ? 0.45 : 1,
+                                }}>
+                                    {phase.status === "current" ? (
+                                        <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke={phase.color} strokeWidth={3}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : (
+                                        <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: t.sub, opacity: 0.3, flexShrink: 0 }} />
+                                    )}
+                                    <span style={{ fontSize: "10px", color: phase.status === "current" ? t.text : t.sub, opacity: phase.status === "current" ? 0.75 : 0.5 }}>
+                                        {item}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </Card>
+
+            {/* ── ⑥ Sponsor Banner ── */}
+            <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.38 }}
+                style={{
+                    borderRadius: "14px", padding: "14px 16px",
+                    background: "rgba(60,140,255,0.05)",
+                    border: "1px solid rgba(60,140,255,0.18)",
+                    display: "flex", alignItems: "center", gap: "12px",
+                }}
             >
                 <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: "9px", fontWeight: 700, color: "#3C8CFF", letterSpacing: "0.1em", textTransform: "uppercase" }}>Sponsor · VIZION PARTNER</span>
-                    <p style={{ fontSize: "12px", color: t.text, margin: "3px 0 0", fontWeight: 500 }}>広告掲載のお問い合わせはこちら</p>
+                    <span style={{ fontSize: "8px", fontWeight: 700, color: "#3C8CFF", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" }}>
+                        Vizion Partner
+                    </span>
+                    <p style={{ fontSize: "12px", color: t.text, margin: "4px 0 0", fontWeight: 500 }}>
+                        広告掲載のお問い合わせはこちら
+                    </p>
                 </div>
-                <Link href="/business" style={{ flexShrink: 0, padding: "6px 14px", borderRadius: "8px", fontSize: "11px", fontWeight: 700, border: "1px solid rgba(60,140,255,0.3)", background: "rgba(60,140,255,0.1)", color: "#3C8CFF", whiteSpace: "nowrap" }}>
+                <Link href="/business" style={{
+                    flexShrink: 0, padding: "7px 14px", borderRadius: "9px",
+                    fontSize: "11px", fontWeight: 700,
+                    border: "1px solid rgba(60,140,255,0.35)",
+                    background: "rgba(60,140,255,0.12)",
+                    color: "#3C8CFF", whiteSpace: "nowrap",
+                    textDecoration: "none", transition: "all 0.2s",
+                }}>
                     詳細を見る
                 </Link>
             </motion.div>
-            {card(<>
-                {sectionLabel("Roadmap")}
 
-                {/* 先行登録フェーズ */}
-                <div style={{ marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: roleColor }} />
-                        <span style={{ fontSize: "10px", fontWeight: 800, color: roleColor, letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                            先行登録フェーズ
-                        </span>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                        {[
-                            "Vizionプロフィールカード",
-                            "公開プロフィールURL",
-                            "Cheer（応援）",
-                            "ユーザーDiscovery",
-                            "招待リンク",
-                            "Businessスポンサー"
-                        ].map(item => (
-                            <div key={item} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 10px", borderRadius: "9px", background: `${roleColor}08`, border: `1px solid ${roleColor}20` }}>
-                                <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke={roleColor} strokeWidth={3}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>{item}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* β版 */}
-                <div style={{ marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.2)" }} />
-                        <span style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.3)", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                            β版
-                        </span>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                        {[
-                            "Discovery拡張検索",
-                            "フォロー / Synergy",
-                            "Signal投稿",
-                            "Cheer通知",
-                            "スキルタグ",
-                            "Businessページ"
-                        ].map(item => (
-                            <div key={item} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 10px", borderRadius: "9px", background: "rgba(255,255,255,0.03)", border: `1px solid ${t.border}` }}>
-                                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-                                <span style={{ fontSize: "11px", color: t.sub, opacity: 0.6 }}>{item}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 正式版 */}
-                <div style={{ marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-                        <span style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                            正式版
-                        </span>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                        {[
-                            "VZ Boost pt",
-                            "Athlete Vote",
-                            "Trust Score",
-                            "AI Discovery",
-                            "Athlete×Trainerマッチング",
-                            "スポンサー案件投稿"
-                        ].map(item => (
-                            <div key={item} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 10px", borderRadius: "9px", background: "rgba(255,255,255,0.02)", border: `1px solid rgba(255,255,255,0.05)` }}>
-                                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
-                                <span style={{ fontSize: "11px", color: t.sub, opacity: 0.45 }}>{item}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-                        <span style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.18)", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                            追実装
-                        </span>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                        {[
-                            "VZ Market",
-                            "Athlete支援",
-                            "イベント作成",
-                            "コミュニティ機能",
-                            "VZ MAP",
-                            "プロフィールAnalytics"
-                        ].map(item => (
-                            <div key={item} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "8px 10px", borderRadius: "9px", background: "rgba(255,255,255,0.015)", border: `1px solid rgba(255,255,255,0.03)` }}>
-                                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-                                <span style={{ fontSize: "11px", color: t.sub, opacity: 0.3 }}>{item}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-            </>, 0.35)}
-
-            {/* Business CTA */}
+            {/* ── ⑦ Business CTA（Businessロールのみ） ── */}
             {profile.role === "Business" && (
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-                    style={{ borderRadius: "16px", padding: "20px", background: "rgba(60,140,255,0.05)", border: "1px solid rgba(60,140,255,0.2)" }}>
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#3C8CFF", margin: "0 0 6px" }}>先行ポジションを確保する</p>
-                    <p style={{ fontSize: "12px", color: t.sub, lineHeight: 1.7, margin: "0 0 14px" }}>本日23:59締切。Vizion Connection の最初期スポンサーとして参加できます。</p>
-                    <Link href="/business/checkout" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 18px", borderRadius: "10px", background: "#3C8CFF", color: "#000", fontSize: "12px", fontWeight: 700 }}>
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.44 }}
+                    style={{
+                        borderRadius: "16px", padding: "20px",
+                        background: "rgba(60,140,255,0.06)",
+                        border: "1px solid rgba(60,140,255,0.22)",
+                        position: "relative", overflow: "hidden",
+                    }}
+                >
+                    <div style={{
+                        position: "absolute", top: "-20px", right: "-20px",
+                        width: "100px", height: "100px", borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(60,140,255,0.15), transparent 70%)",
+                        pointerEvents: "none",
+                    }} />
+                    <p style={{ fontSize: "9px", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3C8CFF", margin: "0 0 6px", fontFamily: "monospace" }}>
+                        For Business
+                    </p>
+                    <p style={{ fontSize: "14px", fontWeight: 700, color: t.text, margin: "0 0 6px" }}>
+                        先行ポジションを確保する
+                    </p>
+                    <p style={{ fontSize: "12px", color: t.sub, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.7 }}>
+                        本日23:59締切。Vizion Connection 最初期スポンサーとして参加できます。
+                    </p>
+                    <Link href="/business/checkout" style={{
+                        display: "inline-flex", alignItems: "center", gap: "6px",
+                        padding: "9px 18px", borderRadius: "10px",
+                        background: "#3C8CFF", color: "#000",
+                        fontSize: "12px", fontWeight: 800,
+                        textDecoration: "none", transition: "all 0.2s",
+                    }}>
                         先行ポジションを見る
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </Link>
