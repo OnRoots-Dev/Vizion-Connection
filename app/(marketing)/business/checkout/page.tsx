@@ -1,4 +1,5 @@
 // app/(marketing)/business/checkout/page.tsx
+"use client";
 
 import { getAllPlanOrderCounts } from "@/lib/airtable/business-orders";
 import { BUSINESS_PLANS} from "@/features/business/constants";

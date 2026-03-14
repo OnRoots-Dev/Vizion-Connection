@@ -1,10 +1,12 @@
 // app/(marketing)/business/page.tsx
+"use client";
 
 import Link from "next/link";
 import { BUSINESS_PLANS} from "@/features/business/constants";
 import { HeaderLight } from "@/components/layout/HeaderLight";
 import { FooterLight } from "@/components/layout/FooterLight";
 import { FAQSectionLight } from "@/components/marketing/sections/FAQSectionLight";
+import { use } from "react";
 
 export default function BusinessPage() {
   return (
