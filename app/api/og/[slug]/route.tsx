@@ -9,9 +9,6 @@ import { createElement as h } from "react";
 
 export const runtime = "nodejs";
 
-// 1時間キャッシュ（プロフィール更新後は次のリクエストで再生成）
-export const revalidate = 3600;
-
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
 };
@@ -22,13 +19,20 @@ const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
 };
 
+// キャッシュ付きImageResponseを返す
+function withCache(imageResponse: ImageResponse): Response {
+    const headers = new Headers(imageResponse.headers);
+    headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return new Response(imageResponse.body, { headers, status: imageResponse.status });
+}
+
 function fallback(w: number, hh: number) {
-    return new ImageResponse(
+    return withCache(new ImageResponse(
         h("div", { style: { width: `${w}px`, height: `${hh}px`, display: "flex", alignItems: "center", justifyContent: "center", background: "#07070e" } },
             h("span", { style: { fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: "0.3em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
         ),
         { width: w, height: hh }
-    );
+    ));
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -40,6 +44,27 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     if (!result.success || !result.data.isPublic) return fallback(isStories ? 1080 : 1200, isStories ? 1920 : 630);
 
     const p = result.data;
+
+    // 画像をタイムアウト付きで取得（2秒以内に取れなければnull）
+    async function fetchImageAsDataUrl(url: string | null): Promise<string | null> {
+        if (!url) return null;
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2000);
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timer);
+            if (!res.ok) return null;
+            const buf = await res.arrayBuffer();
+            const mime = res.headers.get("content-type") ?? "image/jpeg";
+            const b64 = Buffer.from(buf).toString("base64");
+            return `data:${mime};base64,${b64}`;
+        } catch { return null; }
+    }
+
+    const [avatarDataUrl, bgDataUrl] = await Promise.all([
+        fetchImageAsDataUrl(p.avatarUrl ?? p.profileImageUrl ?? null),
+        fetchImageAsDataUrl(p.profileImageUrl ?? null),
+    ]);
     const displayName = p.displayName ?? "Vizion Member";
     const role = p.role ?? "Members";
     const bio = p.bio ?? "";
@@ -48,8 +73,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     const cheerCount = p.cheerCount ?? 0;
     const serialId = p.serialId ?? "";
     const isFounding = p.isFoundingMember ?? false;
-    const avatarUrl = p.avatarUrl ?? p.profileImageUrl ?? null;
-    const bgPhotoUrl = p.profileImageUrl ?? null;
+    const avatarUrl = avatarDataUrl;
+    const bgPhotoUrl = bgDataUrl;
     const rl = ROLE_COLOR[role] ?? "#a78bfa";
     const bg1 = ROLE_GRADIENT[role] ?? "#1a1a2e";
     const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -58,7 +83,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     if (isStories) {
         const nameFz = displayName.length > 14 ? (displayName.length > 20 ? "80px" : "96px") : "116px";
 
-        return new ImageResponse(
+        return withCache(new ImageResponse(
             h("div", {
                 style: {
                     width: "1080px", height: "1920px",
@@ -118,15 +143,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
                     style: {
                         position: "absolute", inset: 0,
                         display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center",
-                        padding: "0 80px",
+                        alignItems: "center", justifyContent: "space-between",
+                        padding: "160px 80px 160px",
                     }
                 },
                     // ブランド（上部）
                     h("div", {
                         style: {
                             display: "flex", flexDirection: "column", alignItems: "center",
-                            marginBottom: "80px",
+
                         }
                     },
                         h("span", {
@@ -155,7 +180,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
                             background: `linear-gradient(145deg, ${bg1}, #0a0a0a)`,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             boxShadow: `0 0 80px ${rl}40, 0 0 160px ${rl}15`,
-                            marginBottom: "52px",
                         }
                     },
                         avatarUrl
@@ -169,7 +193,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
                             display: "flex", alignItems: "center", gap: "10px",
                             padding: "10px 28px", borderRadius: "40px",
                             background: `${rl}15`, border: `1.5px solid ${rl}55`,
-                            marginBottom: "32px",
                         }
                     },
                         h("div", {
@@ -310,12 +333,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
                 )
             ),
             { width: 1080, height: 1920 }
-        );
+        ));
     }
 
     // ── OG: 1200×630 横長 ────────────────────────────────────────────────────
     const nameFz = displayName.length > 16 ? (displayName.length > 22 ? "34px" : "42px") : "52px";
-    return new ImageResponse(
+    return withCache(new ImageResponse(
         h("div", {
             style: {
                 width: "1200px", height: "630px", display: "flex",
@@ -407,5 +430,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
             h("div", { style: { position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", background: `linear-gradient(to bottom, transparent, ${rl}, transparent)`, display: "flex" } })
         ),
         { width: 1200, height: 630 }
-    );
+    ));
 }

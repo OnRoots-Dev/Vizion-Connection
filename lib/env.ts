@@ -13,24 +13,28 @@ function optionalEnv(key: string): string {
 }
 
 export const env = {
-  // Supabase
-  SUPABASE_URL:              requireEnv("SUPABASE_URL"),
+  // Supabase（サーバーサイド）
+  SUPABASE_URL: requireEnv("SUPABASE_URL"),
   SUPABASE_SERVICE_ROLE_KEY: requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
 
   // Auth
-  SESSION_SECRET:       requireEnv("SESSION_SECRET"),
+  SESSION_SECRET: requireEnv("SESSION_SECRET"),
 
   // Email
-  RESEND_API_KEY:       requireEnv("RESEND_API_KEY"),
-  FROM_EMAIL:           process.env.FROM_EMAIL ?? "noreply@vizion-connection.jp",
+  RESEND_API_KEY: requireEnv("RESEND_API_KEY"),
+  FROM_EMAIL: process.env.FROM_EMAIL ?? "noreply@vizion-connection.jp",
 
   // App
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
 
   // Square（決済リンク）- 遅延評価のためoptional
-  SQUARE_LINK_ENTRY_SUPPORTER:   optionalEnv("SQUARE_LINK_ENTRY_SUPPORTER"),
-  SQUARE_LINK_STARTER_POSITION:  optionalEnv("SQUARE_LINK_STARTER_POSITION"),
-  SQUARE_LINK_IMPACT_PARTNER:    optionalEnv("SQUARE_LINK_IMPACT_PARTNER"),
-  SQUARE_LINK_PRIME_SPONSOR:     optionalEnv("SQUARE_LINK_PRIME_SPONSOR"),
-  SQUARE_LINK_CHAMPION_PARTNER:  optionalEnv("SQUARE_LINK_CHAMPION_PARTNER"),
+  SQUARE_LINK_ENTRY_SUPPORTER: optionalEnv("SQUARE_LINK_ENTRY_SUPPORTER"),
+  SQUARE_LINK_STARTER_POSITION: optionalEnv("SQUARE_LINK_STARTER_POSITION"),
+  SQUARE_LINK_IMPACT_PARTNER: optionalEnv("SQUARE_LINK_IMPACT_PARTNER"),
+  SQUARE_LINK_PRIME_SPONSOR: optionalEnv("SQUARE_LINK_PRIME_SPONSOR"),
+  SQUARE_LINK_CHAMPION_PARTNER: optionalEnv("SQUARE_LINK_CHAMPION_PARTNER"),
+
+  // Upstash Redis（rate limiting）
+  UPSTASH_REDIS_REST_URL: requireEnv("UPSTASH_REDIS_REST_URL"),
+  UPSTASH_REDIS_REST_TOKEN: requireEnv("UPSTASH_REDIS_REST_TOKEN"),
 };

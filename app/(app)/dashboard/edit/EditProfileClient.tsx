@@ -4,12 +4,12 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { UserRecord } from "@/features/auth/types";
+import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
 };
 
-// ── 地方 → 都道府県 マッピング ──
 const REGIONS: Record<string, string[]> = {
     "北海道": ["北海道"],
     "東北": ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
@@ -22,98 +22,14 @@ const REGIONS: Record<string, string[]> = {
 };
 
 const SPORTS_BY_CATEGORY: Record<string, string[]> = {
-    "球技（ゴール型）": [
-        "サッカー",
-        "フットサル",
-        "バスケットボール",
-        "ラグビー",
-        "ハンドボール",
-        "5人制サッカー（ブラインドサッカー）",
-        "車いすバスケットボール",
-        "車いすラグビー",
-        "ゲートボール"
-    ],
-
-    "球技（ネット・ベース型）": [
-        "テニス",
-        "バレーボール",
-        "バドミントン",
-        "卓球",
-        "野球",
-        "ソフトボール",
-        "車いすテニス",
-        "シッティングバレーボール",
-        "パラバドミントン",
-        "パラ卓球",
-        "クリケット",
-        "セパタクロー"
-    ],
-
-    "武道・格闘技": [
-        "柔道",
-        "空手",
-        "剣道",
-        "ボクシング",
-        "総合格闘技",
-        "視覚障害者柔道",
-        "パラテコンドー",
-        "レスリング",
-        "相撲"
-    ],
-
-    "陸上・水泳": [
-        "陸上競技",
-        "競泳",
-        "マリンスポーツ",
-        "パラ陸上",
-        "パラ水泳",
-        "パラトライアスロン",
-        "トライアスロン",
-        "オープンウォータースイム",
-        "アクアスロン"
-    ],
-
-    "アーバン・ダンス": [
-        "ダンス",
-        "スケートボード",
-        "クライミング",
-        "車いすダンス",
-        "パラクライミング",
-        "パルクール",
-        "フリースタイルフットボール",
-        "ブレイキン（ブレイクダンス）",
-        "ウォールトランポリン",
-        "トリッキング"
-    ],
-
-    "ウィンター": [
-        "スキー",
-        "スノーボード",
-        "フィギュアスケート",
-        "パラアルペンスキー",
-        "パラスノーボード",
-        "パラクロスカントリー",
-        "パラバイアスロン",
-        "カーリング",
-        "アイスホッケー",
-        "スケルトン",
-        "ボブスレー"
-    ],
-
-    "その他": [
-        "eスポーツ",
-        "モータースポーツ",
-        "その他",
-        "アーチェリー",
-        "射撃",
-        "サーフィン",
-        "カヌー",
-        "ボート",
-        "馬術"
-    ]
+    "球技（ゴール型）": ["サッカー", "フットサル", "バスケットボール", "ラグビー", "ハンドボール", "5人制サッカー（ブラインドサッカー）", "車いすバスケットボール", "車いすラグビー", "ゲートボール"],
+    "球技（ネット・ベース型）": ["テニス", "バレーボール", "バドミントン", "卓球", "野球", "ソフトボール", "車いすテニス", "シッティングバレーボール", "パラバドミントン", "パラ卓球", "クリケット", "セパタクロー"],
+    "武道・格闘技": ["柔道", "空手", "剣道", "ボクシング", "総合格闘技", "視覚障害者柔道", "パラテコンドー", "レスリング", "相撲"],
+    "陸上・水泳": ["陸上競技", "競泳", "マリンスポーツ", "パラ陸上", "パラ水泳", "パラトライアスロン", "トライアスロン", "オープンウォータースイム", "アクアスロン"],
+    "アーバン・ダンス": ["ダンス", "スケートボード", "クライミング", "車いすダンス", "パラクライミング", "パルクール", "フリースタイルフットボール", "ブレイキン（ブレイクダンス）", "ウォールトランポリン", "トリッキング"],
+    "ウィンター": ["スキー", "スノーボード", "フィギュアスケート", "パラアルペンスキー", "パラスノーボード", "パラクロスカントリー", "パラバイアスロン", "カーリング", "アイスホッケー", "スケルトン", "ボブスレー"],
+    "その他": ["eスポーツ", "モータースポーツ", "その他", "アーチェリー", "射撃", "サーフィン", "カヌー", "ボート", "馬術"],
 };
-
-
 
 const TRAINER_SPORTS = ["パーソナルトレーナー", "アスレティックトレーナー", "ストレングスコーチ", "メンタルコーチ", "管理栄養士・栄養士", "理学療法士・柔道整復師", "ヨガ・ピラティスインストラクター", "スキルコーチ（競技特化）", "その他"];
 const MEMBERS_SPORTS = ["スポンサー獲得支援", "メディア露出・PR支援", "セカンドキャリア支援", "イベント・合宿誘致", "SNS運用・ブランディング", "地方創生・行政連携", "ファンコミュニティ運営", "商品開発・コラボ支援", "資金調達・助成金サポート", "その他"];
@@ -154,7 +70,6 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
     const [tiktok, setTiktok] = useState(user.tiktok ?? "");
     const [isPublic, setIsPublic] = useState<boolean>(user.isPublic !== false);
 
-    // Cloudinary upload
     const [profileImageUrl, setProfileImageUrl] = useState(user.profileImageUrl ?? "");
     const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl ?? "");
     const [uploadingProfile, setUploadingProfile] = useState(false);
@@ -169,34 +84,22 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
             : role === "Members" ? MEMBERS_SPORTS
                 : BUSINESS_SPORTS;
 
-    // ── Cloudinary upload ──
-    async function uploadToCloudinary(file: File): Promise<string> {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? "vizion");
-        const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: "POST", body: fd });
-        const data = await res.json();
-        if (!data.secure_url) throw new Error("Upload failed");
-        return data.secure_url;
-    }
-
     async function handleImageUpload(type: "profile" | "avatar") {
         const inputMap = { profile: profileInputRef, avatar: avatarInputRef };
         const input = inputMap[type]?.current;
         const file = input?.files?.[0];
         if (!file) return;
         if (type === "profile") setUploadingProfile(true);
-        else if (type === "avatar") setUploadingAvatar(true);
+        else setUploadingAvatar(true);
         try {
-            const url = await uploadToCloudinary(file);
+            const url = await uploadImageToSupabase(file, user.slug, type);
             if (type === "profile") setProfileImageUrl(url);
-            else if (type === "avatar") setAvatarUrl(url);
+            else setAvatarUrl(url);
         } catch {
             setError("画像のアップロードに失敗しました");
         } finally {
             if (type === "profile") setUploadingProfile(false);
-            else if (type === "avatar") setUploadingAvatar(false);
+            else setUploadingAvatar(false);
         }
     }
 
@@ -224,7 +127,6 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
         }
     }
 
-    // ── UI helpers ──
     const t = { bg: "#07070e", surface: "#0d0d1a", border: "rgba(255,255,255,0.07)", text: "#fff", sub: "rgba(255,255,255,0.45)" };
 
     const field = (label: string, children: React.ReactNode) => (
@@ -278,22 +180,17 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
 
     const imageUploadBlock = (
         label: string,
-        type: "profile" | "avatar" | "card",
+        type: "profile" | "avatar",
         currentUrl: string,
         inputRef: React.RefObject<HTMLInputElement | null>,
         uploading: boolean,
-        isRound = false,
     ) => (
         field(label,
             <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                 <div style={{ width: "64px", height: "64px", borderRadius: "12px", overflow: "hidden", background: "rgba(255,255,255,0.05)", border: `1px solid ${t.border}`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {currentUrl
                         ? <img src={currentUrl} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        : isRound
-                            ? <span style={{ fontSize: "22px", color: `${rl}60` }}>
-                                {(user.displayName ?? "?").slice(0, 1).toUpperCase()}
-                            </span>
-                            : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M13.5 10.5h.008v.008H13.5V10.5z" /></svg>
+                        : <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M13.5 10.5h.008v.008H13.5V10.5z" /></svg>
                     }
                 </div>
                 <div style={{ flex: 1 }}>
@@ -302,12 +199,8 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                         type="file"
                         accept="image/*"
                         style={{ display: "none" }}
-                        onChange={() => {
-                            if (type === "profile" || type === "avatar") {
-                                handleImageUpload(type);
-                            }
-                        }}
-                        aria-label={`${label} を選択`}
+                        onChange={() => handleImageUpload(type)}
+                        aria-label={`${label}を選択`}
                     />
                     <button
                         onClick={() => inputRef.current?.click()}
@@ -316,9 +209,9 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                     >
                         {uploading ? "アップロード中..." : "画像を選択"}
                     </button>
-                    {type === "card" && <p>推奨: 1600×900px, 5MB以内</p>}
-                    {type === "profile" && <p>カード背景・公開プロフィールのヒーロー画像</p>}
-                    {type === "avatar" && <p>アイコン写真（正方形推奨）</p>}
+                    <p style={{ fontSize: "11px", color: t.sub, margin: "6px 0 0" }}>
+                        {type === "profile" ? "カード背景・プロフィールのヒーロー画像" : "アイコン写真（正方形推奨）"}
+                    </p>
                 </div>
             </div>
         )
@@ -326,7 +219,6 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
 
     return (
         <div style={{ minHeight: "100vh", background: t.bg, color: t.text }}>
-            {/* Header */}
             <div style={{ position: "sticky", top: 0, zIndex: 30, padding: "14px 20px", background: "rgba(7,7,14,0.95)", backdropFilter: "blur(16px)", borderBottom: `1px solid ${t.border}`, display: "flex", alignItems: "center", gap: "12px" }}>
                 <button onClick={() => onBack ? onBack() : router.back()} title="戻る"
                     style={{ padding: "7px", borderRadius: "9px", background: "rgba(255,255,255,0.06)", border: `1px solid ${t.border}`, cursor: "pointer", display: "flex" }}>
@@ -342,15 +234,12 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
 
             <div style={{ maxWidth: "640px", margin: "0 auto", padding: "28px 20px", display: "flex", flexDirection: "column", gap: "20px" }}>
 
-                {/* 画像 */}
                 {card(<>
                     {sectionTitle("Images")}
-                    {imageUploadBlock("カード背景画像", "profile", profileImageUrl, profileInputRef, uploadingProfile, false)}
-                    {imageUploadBlock("アイコン写真（正方形推奨）", "avatar", avatarUrl, avatarInputRef, uploadingAvatar, true)}
+                    {imageUploadBlock("カード背景画像", "profile", profileImageUrl, profileInputRef, uploadingProfile)}
+                    {imageUploadBlock("アイコン写真（正方形推奨）", "avatar", avatarUrl, avatarInputRef, uploadingAvatar)}
                 </>)}
 
-
-                {/* 基本情報 */}
                 {card(<>
                     {sectionTitle("Basic Info")}
                     {field("名前（変更不可）", input(user.displayName, () => { }, "", true))}
@@ -369,7 +258,6 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                     )}
                 </>)}
 
-                {/* 活動エリア */}
                 {card(<>
                     {sectionTitle("Area")}
                     {field("活動エリア（地方）", select(region, (v) => { setRegion(v); setPrefecture(""); }, Object.keys(REGIONS), "選択してください", "活動エリア"))}
@@ -380,21 +268,19 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                     )}
                 </>)}
 
-                {/* 競技 / 専門 */}
                 {card(<>
                     {sectionTitle(role === "Athlete" ? "Sport" : role === "Trainer" ? "Specialty" : role === "Business" ? "Industry" : "Area")}
                     {role === "Athlete" && field("カテゴリー", select(sportsCategory, (v) => { setSportsCategory(v); setSport(""); }, Object.keys(SPORTS_BY_CATEGORY), "選択してください", "スポーツカテゴリー"))}
                     {field(
                         role === "Athlete" ? "競技名" : role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域",
-                        select(sport, setSport, sportOptions, "選択してください", role === "Athlete" ? "競技名" : role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域")
+                        select(sport, setSport, sportOptions, "選択してください", "競技名")
                     )}
                     {field(
                         role === "Athlete" ? "今の注力テーマ" : role === "Trainer" ? "指導スタンス" : role === "Business" ? "関わりたい目的" : "関わりたいスタンス",
-                        select(stance, setStance, STANCE[role] ?? [], "選択してください", role === "Athlete" ? "今の注力テーマ" : role === "Trainer" ? "指導スタンス" : role === "Business" ? "関わりたい目的" : "関わりたいスタンス")
+                        select(stance, setStance, STANCE[role] ?? [], "選択してください", "スタンス")
                     )}
                 </>)}
 
-                {/* SNS */}
                 {card(<>
                     {sectionTitle("SNS Links")}
                     {field("X（旧Twitter）URL", input(xUrl, setXUrl, "https://x.com/username"))}
@@ -402,67 +288,36 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                     {field("TikTok URL", input(tiktok, setTiktok, "https://tiktok.com/@username"))}
                 </>)}
 
-                {/* ── Privacy ── */}
                 {card(<>
                     {sectionTitle("Privacy")}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <span style={{ fontSize: "13px", fontWeight: 600, color: t.text }}>
-                                プロフィールを公開する
-                            </span>
+                            <span style={{ fontSize: "13px", fontWeight: 600, color: t.text }}>プロフィールを公開する</span>
                             <span style={{ fontSize: "11px", color: t.sub }}>
-                                {isPublic
-                                    ? "現在公開中 — 誰でも閲覧できます"
-                                    : "現在非公開 — 自分のみ確認できます"}
+                                {isPublic ? "現在公開中 — 誰でも閲覧できます" : "現在非公開 — 自分のみ確認できます"}
                             </span>
                         </div>
-                        {/* トグルスイッチ */}
                         <button
                             onClick={() => setIsPublic(v => !v)}
                             aria-label="プロフィール公開設定"
-                            style={{
-                                position: "relative",
-                                width: "48px", height: "28px",
-                                borderRadius: "14px",
-                                background: isPublic ? rl : "rgba(255,255,255,0.1)",
-                                border: "none", cursor: "pointer",
-                                transition: "background 0.2s",
-                                flexShrink: 0, padding: 0,
-                            }}
+                            style={{ position: "relative", width: "48px", height: "28px", borderRadius: "14px", background: isPublic ? rl : "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", transition: "background 0.2s", flexShrink: 0, padding: 0 }}
                         >
-                            <span style={{
-                                position: "absolute",
-                                top: "3px",
-                                left: isPublic ? "23px" : "3px",
-                                width: "22px", height: "22px",
-                                borderRadius: "50%",
-                                background: "#fff",
-                                transition: "left 0.2s",
-                                boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
-                            }} />
+                            <span style={{ position: "absolute", top: "3px", left: isPublic ? "23px" : "3px", width: "22px", height: "22px", borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }} />
                         </button>
                     </div>
-                    {/* 非公開時の警告 */}
                     {!isPublic && (
-                        <div style={{
-                            padding: "10px 12px", borderRadius: "9px",
-                            background: "rgba(255,200,30,0.06)",
-                            border: "1px solid rgba(255,200,30,0.15)",
-                            fontSize: "11px", color: "rgba(255,200,30,0.7)", lineHeight: 1.6,
-                        }}>
-                            ⚠ 非公開中は プロフィールページ と カードページ が閲覧不可になります。紹介リンクも機能しません。
+                        <div style={{ padding: "10px 12px", borderRadius: "9px", background: "rgba(255,200,30,0.06)", border: "1px solid rgba(255,200,30,0.15)", fontSize: "11px", color: "rgba(255,200,30,0.7)", lineHeight: 1.6 }}>
+                            ⚠ 非公開中はプロフィールページとカードページが閲覧不可になります。紹介リンクも機能しません。
                         </div>
                     )}
                 </>)}
 
-                {/* Error */}
                 {error && (
                     <div style={{ padding: "12px 16px", borderRadius: "10px", background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)", color: "#ff5050", fontSize: "12px" }}>
                         {error}
                     </div>
                 )}
 
-                {/* Save button */}
                 <motion.button
                     onClick={handleSave}
                     disabled={saving || saved}
@@ -473,8 +328,7 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                         color: saved ? "#32D278" : "#000",
                         border: saved ? "1px solid rgba(50,210,120,0.3)" : "none",
                         fontSize: "14px", fontWeight: 800, cursor: saving ? "not-allowed" : "pointer",
-                        letterSpacing: "0.05em", transition: "all 0.3s",
-                        opacity: saving ? 0.7 : 1,
+                        letterSpacing: "0.05em", transition: "all 0.3s", opacity: saving ? 0.7 : 1,
                     }}
                 >
                     {saved ? "✓ 保存しました" : saving ? "保存中..." : "プロフィールを保存"}
