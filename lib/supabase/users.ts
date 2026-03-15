@@ -1,5 +1,4 @@
 // lib/supabase/users.ts
-// Airtable版と同じ関数名・戻り値型を維持（呼び出し側変更不要）
 
 import { supabase } from "./client";
 
@@ -132,7 +131,7 @@ export async function getNextSerialId(): Promise<{ seq: number; randA: string; r
     const rand = (d: number) => Math.floor(Math.random() * 10 ** d).toString().padStart(d, "0");
     const randA = rand(5);
     const randB = rand(5);
-    return { seq: 0, randA, randB, serialId: "" }; // createUser内で確定
+    return { seq: 0, randA, randB, serialId: "" };
 }
 
 export async function updateUserSerialId(slug: string, seq: number, randA: string, randB: string): Promise<void> {
@@ -178,7 +177,6 @@ export async function createUser(params: {
 
     if (error || !data) { console.error("[createUser]", error); return null; }
 
-    // id を seq として使い serialId を確定
     const seq = data.id;
     const serialId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
     await supabase.from("users").update({ seq, serial_id: serialId }).eq("id", seq);
@@ -277,4 +275,14 @@ export async function getPublicUsers(params: {
     const { data, error } = await query;
     if (error) { console.error("[getPublicUsers]", error); return []; }
     return (data ?? []).map(toProfile);
+}
+
+export async function countUsersByRole(role: string): Promise<number> {
+    const { count, error } = await supabase
+        .from("users")
+        .select("*", { count: "exact", head: true })
+        .eq("role", role)
+        .eq("is_deleted", false);
+    if (error) { console.error("[countUsersByRole]", error); return 0; }
+    return count ?? 0;
 }

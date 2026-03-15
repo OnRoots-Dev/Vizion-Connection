@@ -1,11 +1,12 @@
 // features/auth/server/register.ts
-
 import { hashPassword } from "@/lib/auth/hash";
-import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, getNextSerialId, updateUserSerialId } from "@/lib/supabase/users";
+import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, countUsersByRole } from "@/lib/supabase/users";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { issueVerifyToken } from "@/features/auth/server/tokens";
 import { registerSchema } from "@/features/auth/validation/register-schema";
 import type { RegisterInput, RegisterResponse } from "@/features/auth/types";
+
+const FOUNDING_MEMBER_LIMIT = 100;
 
 export async function registerUser(input: RegisterInput): Promise<RegisterResponse> {
     // 1. バリデーション
@@ -14,7 +15,6 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         const message = parsed.error.issues[0]?.message ?? "入力内容が正しくありません";
         return { success: false, error: message };
     }
-
     const { email, password, role, displayName, slug, referrerSlug } = parsed.data;
 
     // 2. メール重複チェック
@@ -48,7 +48,11 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     }
 
     // 4. パスワードハッシュ化
-    const passwordHash = await hashPassword(input.password);
+    const passwordHash = await hashPassword(password);
+
+    // 5. 創設メンバー判定（100名以内）
+    const roleCount = await countUsersByRole(role);
+    const isFoundingMember = roleCount < FOUNDING_MEMBER_LIMIT;
 
     // 6. ユーザー作成
     const user = await createUser({
@@ -58,6 +62,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         displayName,
         slug,
         referrerSlug: resolvedReferrerSlug,
+        isFoundingMember,
     });
     if (!user) {
         return { success: false, error: "ユーザー作成に失敗しました" };
