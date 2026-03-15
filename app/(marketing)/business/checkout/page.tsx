@@ -1,15 +1,14 @@
 // app/(marketing)/business/checkout/page.tsx
-"use client";
-
-import { getAllPlanOrderCounts } from "@/lib/airtable/business-orders";
-import { BUSINESS_PLANS} from "@/features/business/constants";
+import { getAllPlanOrderCounts } from "@/lib/supabase/business-orders";
+import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import type { BusinessPlanWithAvailability } from "@/features/business/types";
 import BusinessCheckoutClient from "./BusinessCheckoutClient";
 
 export default async function BusinessCheckoutPage() {
   const orderCounts = await getAllPlanOrderCounts();
+  const plans = getBusinessPlansWithUrls();
 
-  const plansWithAvailability: BusinessPlanWithAvailability[] = BUSINESS_PLANS.map((plan) => {
+  const plansWithAvailability: BusinessPlanWithAvailability[] = plans.map((plan) => {
     const soldCount = orderCounts[plan.id] ?? 0;
     return {
       ...plan,

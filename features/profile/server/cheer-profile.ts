@@ -1,22 +1,21 @@
-import { findUserBySlug } from "@/lib/airtable/users";
-import { airtableBase } from "@/lib/airtable/client";
-import { createCheer } from "@/lib/airtable/cheers";
-
-const TABLE = "Users";
+import { findUserBySlug } from "@/lib/supabase/users";
+import { createCheer, hasAlreadyCheered } from "@/lib/supabase/cheers";
 
 export async function cheerProfile(toSlug: string, fromSlug: string) {
-    const target = await findUserBySlug(toSlug);
     try {
+        const target = await findUserBySlug(toSlug);
         if (!target) return { success: false, error: "ユーザーが見つかりません" };
 
-        const newCount = (target.cheerCount ?? 0) + 1;
+        // 重複チェック
+        const already = await hasAlreadyCheered(toSlug, fromSlug);
+        if (already) return { success: false, error: "すでにCheerしています" };
 
-        // Airtable の Users.cheerCount を更新
-        await airtableBase(TABLE).update(target.id, { cheerCount: newCount });
+        // Cheer作成（cheers.ts内でcheer_countもインクリメント）
+        const ok = await createCheer(toSlug, fromSlug);
+        if (!ok) return { success: false, error: "Cheerに失敗しました" };
 
-        await createCheer(fromSlug, toSlug);
-
-        return { success: true, cheerCount: newCount };
+        const updated = await findUserBySlug(toSlug);
+        return { success: true, cheerCount: updated?.cheerCount ?? target.cheerCount + 1 };
     } catch (err) {
         console.error("[cheerProfile]", err);
         return { success: false, error: "サーバーエラーが発生しました" };

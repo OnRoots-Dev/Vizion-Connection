@@ -1,7 +1,7 @@
 // features/profile/server/get-profile-by-slug.ts
 
-import { findUserBySlug } from "@/lib/airtable/users";
-import { countCheers } from "@/lib/airtable/cheers";
+import { findUserBySlug } from "@/lib/supabase/users";
+import { countCheers } from "@/lib/supabase/cheers";
 import type { PublicProfileData } from "@/features/profile/types";
 
 export type GetPublicProfileResult =
@@ -29,18 +29,18 @@ export async function getPublicProfileBySlug(
                 verified: user.verified,
                 cheerCount,
                 createdAt: user.createdAt,
-                serialId: user.serialId,
-                profileImageUrl: user.profileImageUrl,
-                avatarUrl: user.avatarUrl,
-                bio: user.bio,
-                region: user.region,
-                prefecture: user.prefecture,
-                sport: user.sport,
-                sportsCategory: user.sportsCategory,
-                stance: user.stance,
-                instagram: user.instagram,
-                xUrl: user.xUrl,
-                tiktok: user.tiktok,
+                serialId: user.serialId ?? undefined,
+                profileImageUrl: user.profileImageUrl ?? undefined,
+                avatarUrl: user.avatarUrl ?? undefined,
+                bio: user.bio ?? undefined,
+                region: user.region ?? undefined,
+                prefecture: user.prefecture ?? undefined,
+                sport: user.sport ?? undefined,
+                sportsCategory: user.sportsCategory ?? undefined,
+                stance: user.stance ?? undefined,
+                instagram: user.instagram ?? undefined,
+                xUrl: user.xUrl ?? undefined,
+                tiktok: user.tiktok ?? undefined,
                 missionBonusGiven: user.missionBonusGiven ?? false,
                 isFoundingMember: (user.seq ?? 999) <= 100,
                 isPublic: user.isPublic ?? true,

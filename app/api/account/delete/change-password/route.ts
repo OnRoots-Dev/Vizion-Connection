@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug } from "@/lib/airtable/users";
-import { airtableBase } from "@/lib/airtable/client";
+import { findUserBySlug, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -14,8 +13,6 @@ const schema = z.object({
         .max(100)
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/, "使用できない文字が含まれています"),
 });
-
-const TABLE = "Users";
 
 export async function POST(req: Request) {
     try {
@@ -34,11 +31,11 @@ export async function POST(req: Request) {
         const user = await findUserBySlug(session.slug);
         if (!user) return NextResponse.json({ ok: false, error: "ユーザーが見つかりません" }, { status: 404 });
 
-        const valid = await bcrypt.compare(currentPassword, user.password ?? "");
+        const valid = await bcrypt.compare(currentPassword, user.passwordHash);
         if (!valid) return NextResponse.json({ ok: false, error: "現在のパスワードが正しくありません" }, { status: 403 });
 
         const hashed = await bcrypt.hash(newPassword, 12);
-        await airtableBase(TABLE).update(user.id, { password: hashed });
+        await updatePassword(session.slug, hashed);
 
         return NextResponse.json({ ok: true });
     } catch (err) {

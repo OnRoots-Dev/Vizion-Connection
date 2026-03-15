@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { airtableBase } from "@/lib/airtable/client";
+import { createContact } from "@/lib/supabase/contacts";
 import { z } from "zod";
-
-const TABLE = "Contacts";
 
 const schema = z.object({
   category: z.enum(["広告・スポンサー", "取材・メディア", "不具合・バグ報告", "機能要望", "その他"]),
@@ -20,14 +18,7 @@ export async function POST(req: Request) {
     }
 
     const { category, name, email, message } = parsed.data;
-
-    await airtableBase(TABLE).create({
-      category,
-      name,
-      email,
-      message,
-      createdAt: new Date().toISOString(),
-    });
+    await createContact({ category, name, email, message });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

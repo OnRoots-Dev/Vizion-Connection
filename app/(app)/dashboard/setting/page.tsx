@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug } from "@/lib/airtable/users";
+import { findUserBySlug } from "@/lib/supabase/users";
 import SettingsClient from "./SettingsClient";
 
 export default async function SettingsPage() {

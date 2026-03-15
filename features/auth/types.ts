@@ -1,7 +1,5 @@
 // features/auth/types.ts
 
-import { is } from "zod/locales";
-
 export type UserRole = "Athlete" | "Trainer" | "Members" | "Business";
 
 export interface RegisterInput {
@@ -18,42 +16,49 @@ export interface LoginInput {
     password: string;
 }
 
+// toProfile() の戻り値と完全に一致させる
 export interface UserRecord {
-    id: string;
-    email: string;
-    passwordHash: string;
-    role: UserRole;
-    displayName: string;
+    id: number;
     slug: string;
-    verified: boolean;
-    points: number;
-    referrerSlug?: string;
-    createdAt: string;
-    serialId?: string;
-    profileImageUrl?: string;
-    cardBgUrl?: string;
-    bio?: string;
-    region?: string;
-    prefecture?: string;
-    sportsCategory?: string;
-    sport?: string;
-    stance?: string;
-    instagram?: string;
-    xUrl?: string;
-    tiktok?: string;
-    cheerCount: number;
-    missionBonusGiven: boolean;
-    isFoundingMember: boolean;
+    displayName: string;
+    passwordHash: string;
+    email: string;
+    role: UserRole;
     isPublic: boolean;
+    isFoundingMember: boolean;
+    verified: boolean;
+    serialId: string | null;
+    seq: number | null;
+    randA: string | null;
+    randB: string | null;
+    avatarUrl: string | null;
+    profileImageUrl: string | null;
+    bio: string | null;
+    region: string | null;
+    prefecture: string | null;
+    location: string | null;
+    sport: string | null;
+    sportsCategory: string | null;
+    stance: string | null;
+    claim: string | null;
+    instagram: string | null;
+    xUrl: string | null;
+    tiktok: string | null;
+    proofUrl: string | null;
+    ambassadorCode: string | null;
+    foundingNumber: number | null;
+    fromSlug: string | null;
+    referrerSlug: string | null;
+    cheerCount: number;
+    points: number;
+    missionBonusGiven: boolean;
+    hasShared: boolean;
+    resetToken: string | null;
+    resetTokenExpires: string | null;
     isDeleted: boolean;
-    lastLoginAt?: string;
-    ambassadorCode?: string;
-    avatarUrl?: string;
-    password?: string;
-    seq?: number;
-    randA?: string;
-    randB?: string;
-    hasShared?: boolean;
+    deletedAt: string | null;
+    createdAt: string;
+    lastLoginAt: string | null;
 }
 
 export interface VerifyTokenRecord {
@@ -62,7 +67,7 @@ export interface VerifyTokenRecord {
     email: string;
     slug: string;
     used: boolean;
-    createdAt: string;
+    created_at: string;
 }
 
 export interface RegisterResult {

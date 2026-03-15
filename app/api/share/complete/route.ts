@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserProfile } from "@/lib/airtable/users";
+import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
 
 export async function POST() {
     try {
@@ -17,7 +17,7 @@ export async function POST() {
         if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
         if (!user.hasShared) {
-            await updateUserProfile(user.id, { hasShared: true });
+            await updateUserProfile(user.slug, { hasShared: true });
         }
 
         return NextResponse.json({ success: true });

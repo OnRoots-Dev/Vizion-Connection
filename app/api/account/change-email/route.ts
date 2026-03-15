@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug, findUserByEmail } from "@/lib/airtable/users";
-import { airtableBase } from "@/lib/airtable/client";
+import { findUserBySlug, findUserByEmail, updateUserProfile } from "@/lib/supabase/users";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { env } from "@/lib/env";
 import { z } from "zod";
@@ -11,8 +10,6 @@ import { z } from "zod";
 const schema = z.object({
     newEmail: z.string().email("有効なメールアドレスを入力してください"),
 });
-
-const TABLE = "Users";
 
 export async function POST(req: Request) {
     try {
@@ -34,14 +31,10 @@ export async function POST(req: Request) {
         const user = await findUserBySlug(session.slug);
         if (!user) return NextResponse.json({ ok: false, error: "ユーザーが見つかりません" }, { status: 404 });
 
-        await airtableBase(TABLE).update(user.id, { email: newEmail });
+        await updateUserProfile(session.slug, { email: newEmail });
 
         const verifyUrl = `${env.NEXT_PUBLIC_BASE_URL}/verify?email=${encodeURIComponent(newEmail)}`;
-        await sendVerifyEmail({
-            to: newEmail,
-            displayName: user.displayName,
-            verifyUrl,
-        });
+        await sendVerifyEmail({ to: newEmail, displayName: user.displayName, verifyUrl });
 
         return NextResponse.json({ ok: true });
     } catch (err) {

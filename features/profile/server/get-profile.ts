@@ -2,8 +2,8 @@
 
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/airtable/users";
-import { countReferralsBySlug } from "@/lib/airtable/referrals";
+import { findUserBySlug } from "@/lib/supabase/users";
+import { countReferralsBySlug } from "@/lib/supabase/referrals";
 import { env } from "@/lib/env";
 import type { DashboardData } from "@/features/profile/types";
 
@@ -29,26 +29,26 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
             success: true,
             data: {
                 profile: {
-                    id: user.id,
+                    id: String(user.id),
                     slug: user.slug,
                     displayName: user.displayName,
                     role: user.role,
                     email: user.email,
                     verified: user.verified,
                     points: user.points,
-                    referrerSlug: user.referrerSlug,
+                    referrerSlug: user.referrerSlug ?? undefined,
                     createdAt: user.createdAt,
-                    serialId: user.serialId,
-                    profileImageUrl: user.profileImageUrl,
-                    bio: user.bio,
-                    region: user.region,
-                    prefecture: user.prefecture,
-                    sportsCategory: user.sportsCategory,
-                    stance: user.stance,
-                    sport: user.sport,
-                    instagram: user.instagram,
-                    xUrl: user.xUrl,
-                    tiktok: user.tiktok,
+                    serialId: user.serialId ?? undefined,
+                    profileImageUrl: user.profileImageUrl ?? undefined,
+                    bio: user.bio ?? undefined,
+                    region: user.region ?? undefined,
+                    prefecture: user.prefecture ?? undefined,
+                    sportsCategory: user.sportsCategory ?? undefined,
+                    stance: user.stance ?? undefined,
+                    sport: user.sport ?? undefined,
+                    instagram: user.instagram ?? undefined,
+                    xUrl: user.xUrl ?? undefined,
+                    tiktok: user.tiktok ?? undefined,
                     cheerCount: user.cheerCount ?? 0,
                     missionBonusGiven: user.missionBonusGiven ?? false,
                     isFoundingMember: (user.seq ?? 999) <= 100,

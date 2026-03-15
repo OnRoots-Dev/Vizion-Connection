@@ -1,7 +1,7 @@
 // features/auth/server/register.ts
 
 import { hashPassword } from "@/lib/auth/hash";
-import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, getNextSerialId, updateUserSerialId } from "@/lib/airtable/users";
+import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, getNextSerialId, updateUserSerialId } from "@/lib/supabase/users";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { issueVerifyToken } from "@/features/auth/server/tokens";
 import { registerSchema } from "@/features/auth/validation/register-schema";
@@ -50,12 +50,6 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     // 4. パスワードハッシュ化
     const passwordHash = await hashPassword(input.password);
 
-    // 5. rand生成を追加
-    const rand = (d: number) =>
-        Math.floor(Math.random() * 10 ** d).toString().padStart(d, "0");
-    const randA = rand(5);
-    const randB = rand(5);
-
     // 6. ユーザー作成
     const user = await createUser({
         email,
@@ -64,14 +58,10 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         displayName,
         slug,
         referrerSlug: resolvedReferrerSlug,
-        randA,
-        randB,
     });
-
-    // 7. memberId を組み立てて serialId として保存
-    const seq = user.seq ?? 1;
-    const memberId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
-    await updateUserSerialId(user.id, memberId);
+    if (!user) {
+        return { success: false, error: "ユーザー作成に失敗しました" };
+    }
 
     // 8. 認証トークン発行
     const { verifyUrl } = await issueVerifyToken(email, slug);

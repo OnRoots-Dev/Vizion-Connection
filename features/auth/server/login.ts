@@ -1,12 +1,12 @@
 // features/auth/server/login.ts
 
-import { findUserByEmail } from "@/lib/airtable/users";
+import { findUserByEmail } from "@/lib/supabase/users";
 import { verifyPassword } from "@/lib/auth/hash";
 import { signSession } from "@/lib/auth/session";
 import { setSessionCookie } from "@/lib/auth/cookies";
 import { loginSchema } from "@/features/auth/validation/login-schema";
 import type { LoginInput } from "@/features/auth/types";
-import { updateLastLogin } from "@/lib/airtable/users";
+import { updateLastLogin } from "@/lib/supabase/users";
 
 export type LoginResult =
     | { success: true; slug: string; role: string }
@@ -50,11 +50,10 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
         };
     }
 
-    await updateLastLogin(user.id);
+    await updateLastLogin(user.slug);
 
-    // 5. セッショントークン発行
     const token = signSession({
-        userId: user.id,
+        userId: String(user.id),
         slug: user.slug,
         role: user.role,
         email: user.email,

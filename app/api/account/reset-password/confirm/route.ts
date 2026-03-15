@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { airtableBase } from "@/lib/airtable/client";
+import { findUserByResetToken, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-
-const TABLE = "Users";
 
 const schema = z.object({
     token: z.string().min(1),
@@ -18,24 +16,11 @@ export async function POST(req: Request) {
 
         const { token, newPassword } = parsed.data;
 
-        const records = await airtableBase(TABLE)
-            .select({ filterByFormula: `{resetToken} = "${token}"`, maxRecords: 1 })
-            .firstPage();
-
-        if (records.length === 0) return NextResponse.json({ ok: false, error: "無効なリンクです" }, { status: 400 });
-
-        const record = records[0];
-        const expires = record.fields["resetTokenExpires"] as string;
-        if (!expires || new Date(expires) < new Date()) {
-            return NextResponse.json({ ok: false, error: "リンクの有効期限が切れています" }, { status: 400 });
-        }
+        const user = await findUserByResetToken(token);
+        if (!user) return NextResponse.json({ ok: false, error: "無効なリンク、または有効期限切れです" }, { status: 400 });
 
         const newHash = await bcrypt.hash(newPassword, 12);
-        await airtableBase(TABLE).update(record.id, {
-            passwordHash: newHash,
-            resetToken: "",
-            resetTokenExpires: "",
-        });
+        await updatePassword(user.slug, newHash);
 
         return NextResponse.json({ ok: true });
     } catch (err) {

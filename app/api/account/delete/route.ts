@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug, deactivateUser } from "@/lib/airtable/users";
+import { findUserBySlug, deactivateUser } from "@/lib/supabase/users";
 
 export async function POST() {
     const cookieStore = await cookies();
@@ -16,7 +16,7 @@ export async function POST() {
     const user = await findUserBySlug(session.slug);
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    await deactivateUser(user.id);
+    await deactivateUser(user.slug);
 
     cookieStore.delete(SESSION_COOKIE_NAME);
 

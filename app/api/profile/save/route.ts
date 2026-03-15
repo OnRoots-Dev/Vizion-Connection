@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserProfile } from "@/lib/airtable/users";
+import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    await updateUserProfile(user.id, {
+    await updateUserProfile(user.slug, {
         displayName: body.displayName,
         bio: body.bio,
         region: body.region,

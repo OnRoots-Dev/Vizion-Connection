@@ -1,6 +1,6 @@
 // features/business/server/create-checkout.ts
 
-import { BUSINESS_PLANS } from "@/features/business/constants";
+import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import { saveBusinessOrder } from "@/features/business/server/save-order";
 import type { PlanId, CreateCheckoutResult } from "@/features/business/types";
 
@@ -15,8 +15,10 @@ export async function createCheckout(
 ): Promise<CreateCheckoutResult> {
     const { planId, email, slug } = input;
 
-    // 1. プラン検索
-    const plan = BUSINESS_PLANS.find((p) => p.id === planId);
+    // getBusinessPlansWithUrls() でsquareUrlを含むプラン一覧を取得
+    const plans = getBusinessPlansWithUrls();
+    const plan = plans.find((p) => p.id === planId);
+
     if (!plan) {
         return { success: false, error: "プランが見つかりません" };
     }
@@ -28,17 +30,18 @@ export async function createCheckout(
         };
     }
 
-    // 2. Airtable に注文を保存
-    await saveBusinessOrder({
-        email,
-        slug,
-        planId: plan.id,
-        planName: plan.name,
-        amount: plan.amount,
-        squareLink: plan.squareUrl,
-    }
-    , "pending"
-);
+    //注文を保存
+    await saveBusinessOrder(
+        {
+            email,
+            slug,
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.amount,
+            squareLink: plan.squareUrl,
+        },
+        "pending"
+    );
 
     return {
         success: true,

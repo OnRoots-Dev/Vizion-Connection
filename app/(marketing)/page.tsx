@@ -32,7 +32,7 @@ export default function Page() {
     <>
       <Header />
       <DynamicBackground />
-      <main className="relative w-full overflow-x-hidden pt-[70px]">
+      <main className="relative w-full overflow-x-hidden pt-17.5">
         <HeroSection />
         <ProblemSection />
         <WhatIsVizionSection />

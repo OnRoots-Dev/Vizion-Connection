@@ -1,9 +1,17 @@
 // features/business/constants.ts
-
-import { env } from "@/lib/env";
 import type { BusinessPlan, PlanId } from "./types";
 
-export const BUSINESS_PLANS: BusinessPlan[] = [
+// squareUrl は関数にして遅延評価（サーバー側でのみ呼ぶ）
+// Client Component から BUSINESS_PLANS をimportしても env は評価されない
+const SQUARE_URLS = () => ({
+    "entry-supporter": process.env.SQUARE_LINK_ENTRY_SUPPORTER ?? "",
+    "starter-position": process.env.SQUARE_LINK_STARTER_POSITION ?? "",
+    "impact-partner": process.env.SQUARE_LINK_IMPACT_PARTNER ?? "",
+    "prime-sponsor": process.env.SQUARE_LINK_PRIME_SPONSOR ?? "",
+    "champion-partner": process.env.SQUARE_LINK_CHAMPION_PARTNER ?? "",
+});
+
+const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
     {
         id: "entry-supporter",
         name: "Entry Supporter",
@@ -17,7 +25,6 @@ export const BUSINESS_PLANS: BusinessPlan[] = [
             "正式版3ヶ月間 月額料金で利用可能",
             "先行登録メンバーへの露出",
         ],
-        squareUrl: env.SQUARE_LINK_ENTRY_SUPPORTER,
     },
     {
         id: "starter-position",
@@ -32,7 +39,6 @@ export const BUSINESS_PLANS: BusinessPlan[] = [
             "正式版3ヶ月間 月額料金で利用可能",
             "Discovery 優先表示（β期間）",
         ],
-        squareUrl: env.SQUARE_LINK_STARTER_POSITION,
     },
     {
         id: "impact-partner",
@@ -48,7 +54,6 @@ export const BUSINESS_PLANS: BusinessPlan[] = [
             "Discovery 優先表示（β期間）",
             "地域ターゲット広告枠（1エリア）",
         ],
-        squareUrl: env.SQUARE_LINK_IMPACT_PARTNER,
     },
     {
         id: "prime-sponsor",
@@ -65,7 +70,6 @@ export const BUSINESS_PLANS: BusinessPlan[] = [
             "地域ターゲット広告枠（3エリア）",
             "月次レポート提供",
         ],
-        squareUrl: env.SQUARE_LINK_PRIME_SPONSOR,
     },
     {
         id: "champion-partner",
@@ -83,6 +87,17 @@ export const BUSINESS_PLANS: BusinessPlan[] = [
             "月次レポート＋戦略MTG",
             "限定バッジ表示",
         ],
-        squareUrl: env.SQUARE_LINK_CHAMPION_PARTNER,
     },
 ];
+
+// クライアントでも安全にimportできる（squareUrlなし）
+export const BUSINESS_PLANS: Omit<BusinessPlan, "squareUrl">[] = PLANS_BASE;
+
+// サーバーサイドのみで使う（squareUrlあり）
+export function getBusinessPlansWithUrls(): BusinessPlan[] {
+    const urls = SQUARE_URLS();
+    return PLANS_BASE.map(p => ({
+        ...p,
+        squareUrl: urls[p.id as keyof typeof urls] ?? "",
+    }));
+}

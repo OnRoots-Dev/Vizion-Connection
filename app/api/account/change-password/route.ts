@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug } from "@/lib/airtable/users";
-import { airtableBase } from "@/lib/airtable/client";
+import { findUserBySlug, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -11,8 +10,6 @@ const schema = z.object({
     currentPassword: z.string().min(1),
     newPassword: z.string().min(8, "8文字以上で入力してください").max(100).regex(/^\S+$/, "スペースは使用できません"),
 });
-
-const TABLE = "Users";
 
 export async function POST(req: Request) {
     try {
@@ -35,7 +32,7 @@ export async function POST(req: Request) {
         if (!valid) return NextResponse.json({ ok: false, error: "現在のパスワードが正しくありません" }, { status: 400 });
 
         const newHash = await bcrypt.hash(newPassword, 12);
-        await airtableBase(TABLE).update(user.id, { passwordHash: newHash });
+        await updatePassword(session.slug, newHash);
 
         return NextResponse.json({ ok: true });
     } catch (err) {

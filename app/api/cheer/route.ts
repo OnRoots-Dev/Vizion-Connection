@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { hasAlreadyCheered } from "@/lib/airtable/cheers";
+import { hasAlreadyCheered } from "@/lib/supabase/cheers";
 import { cheerProfile } from "@/features/profile/server/cheer-profile";
 
 interface RequestBody {
@@ -34,20 +34,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         const { toSlug } = body as RequestBody;
 
-        if (session.slug === toSlug) {
-            return NextResponse.json({ success: false, error: "自分自身にはCheerできません" }, { status: 403 });
-        }
-
-        const alreadyCheered = await hasAlreadyCheered(session.slug, toSlug);
-        if (alreadyCheered) {
-            return NextResponse.json({ success: false, error: "すでにCheer済みです" }, { status: 409 });
-        }
-
         if (!toSlug || typeof toSlug !== "string") {
             return NextResponse.json(
                 { success: false, error: "スラッグが指定されていません" },
                 { status: 400 }
             );
+        }
+
+        if (session.slug === toSlug) {
+            return NextResponse.json({ success: false, error: "自分自身にはCheerできません" }, { status: 403 });
+        }
+
+        if (await hasAlreadyCheered(toSlug, session.slug)) {
+            return NextResponse.json({ success: false, error: "すでにCheer済みです" }, { status: 409 });
         }
 
         const result = await cheerProfile(toSlug, session.slug);

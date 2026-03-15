@@ -3,8 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
 import { getSessionCookie } from "@/lib/auth/cookies";
-import { BUSINESS_PLANS } from "@/features/business/constants";
-import { createBusinessOrder, countOrdersByPlanId } from "@/lib/airtable/business-orders";
+import { getBusinessPlansWithUrls } from "@/features/business/constants";
+import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
 import type { PlanId } from "@/features/business/types";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -30,7 +30,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "プランIDが指定されていません" }, { status: 400 });
         }
 
-        const plan = BUSINESS_PLANS.find((p) => p.id === planId);
+        // getBusinessPlansWithUrls() でsquareUrlを含むプラン一覧を取得
+        const plans = getBusinessPlansWithUrls();
+        const plan = plans.find(p => p.id === planId);
+
         if (!plan) {
             return NextResponse.json({ success: false, error: "プランが見つかりません" }, { status: 400 });
         }

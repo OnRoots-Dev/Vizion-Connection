@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserPoints } from "@/lib/airtable/users";
+import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/users";
 
 const MISSION_BONUS_POINTS = 1000;
 
@@ -24,7 +24,8 @@ export async function POST(): Promise<NextResponse> {
         }
 
         // ポイント付与 + フラグ更新
-        await updateUserPoints(user.slug, user.points + MISSION_BONUS_POINTS, { missionBonusGiven: true });
+        await updateUserPoints(user.slug, user.points + MISSION_BONUS_POINTS);
+        await setMissionBonusGiven(user.slug);
 
         return NextResponse.json({ ok: true, pointsAdded: MISSION_BONUS_POINTS });
 

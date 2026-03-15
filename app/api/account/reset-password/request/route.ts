@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { findUserByEmail } from "@/lib/airtable/users";
-import { airtableBase } from "@/lib/airtable/client";
+import { findUserByEmail, saveResetToken } from "@/lib/supabase/users";
 import { sendResetEmail } from "@/lib/resend/send-reset-email";
 import { env } from "@/lib/env";
 import crypto from "crypto";
-
-const TABLE = "Users";
 
 export async function POST(req: Request) {
     try {
@@ -17,12 +14,9 @@ export async function POST(req: Request) {
         if (!user) return NextResponse.json({ ok: true });
 
         const token = crypto.randomBytes(32).toString("hex");
-        const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1時間
+        const expires = new Date(Date.now() + 60 * 60 * 1000); // 1時間
 
-        await airtableBase(TABLE).update(user.id, {
-            resetToken: token,
-            resetTokenExpires: expires,
-        });
+        await saveResetToken(user.email, token, expires);
 
         const resetUrl = `${env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${token}`;
         await sendResetEmail({ to: user.email, displayName: user.displayName, resetUrl });
