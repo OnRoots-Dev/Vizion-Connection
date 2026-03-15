@@ -3,9 +3,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginUser } from "@/features/auth/server/login";
 import type { LoginInput } from "@/features/auth/types";
+import { loginLimiter, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
+        const ip = getIp(req);
+        const { success } = await loginLimiter.limit(ip);
+        if (!success) {
+            return NextResponse.json(
+                { success: false, error: "しばらく時間をおいてから再度お試しください" },
+                { status: 429 }
+            );
+        }
         const body: unknown = await req.json();
 
         if (!body || typeof body !== "object") {

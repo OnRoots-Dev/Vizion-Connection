@@ -6,6 +6,7 @@ import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { hasAlreadyCheered } from "@/lib/supabase/cheers";
 import { cheerProfile } from "@/features/profile/server/cheer-profile";
+import { cheerLimiter, getIp } from "@/lib/ratelimit";
 
 interface RequestBody {
     toSlug: string;
@@ -13,6 +14,15 @@ interface RequestBody {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
+        const ip = getIp(req);
+        const { success } = await cheerLimiter.limit(ip);
+        if (!success) {
+            return NextResponse.json(
+                { success: false, error: "しばらく時間をおいてから再度お試しください" },
+                { status: 429 }
+            );
+        }
+
         const cookieStore = await cookies();
         const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
         if (!token) {

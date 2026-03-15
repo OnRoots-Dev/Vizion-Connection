@@ -19,10 +19,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }
 
-        if (session.role !== "Business") {
-            return NextResponse.json({ success: false, error: "Business アカウント専用です" }, { status: 403 });
-        }
-
         const body = await req.json() as { planId?: PlanId };
         const { planId } = body;
 

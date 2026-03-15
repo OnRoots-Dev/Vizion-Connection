@@ -3,9 +3,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerUser } from "@/features/auth/server/register";
 import type { RegisterInput } from "@/features/auth/types";
+import { registerLimiter, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    const ip = getIp(req);
+    const { success } = await registerLimiter.limit(ip);
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: "しばらく時間をおいてから再度お試しください" },
+        { status: 429 }
+      );
+    }
     const body: unknown = await req.json();
 
     if (!body || typeof body !== "object") {
