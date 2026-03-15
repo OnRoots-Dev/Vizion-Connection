@@ -1,7 +1,6 @@
 // features/profile/server/get-profile-by-slug.ts
 
 import { findUserBySlug } from "@/lib/supabase/users";
-import { countCheers } from "@/lib/supabase/cheers";
 import type { PublicProfileData } from "@/features/profile/types";
 
 export type GetPublicProfileResult =
@@ -13,12 +12,8 @@ export async function getPublicProfileBySlug(
 ): Promise<GetPublicProfileResult> {
     try {
         const user = await findUserBySlug(slug);
-        if (!user) {
-            return { success: false, reason: "not_found" };
-        }
+        if (!user) return { success: false, reason: "not_found" };
         if (user.isDeleted) return { success: false, reason: "not_found" };
-
-        const cheerCount = await countCheers(slug);
 
         return {
             success: true,
@@ -27,7 +22,7 @@ export async function getPublicProfileBySlug(
                 displayName: user.displayName,
                 role: user.role,
                 verified: user.verified,
-                cheerCount,
+                cheerCount: user.cheerCount, // DBのcheer_countをそのまま使用
                 createdAt: user.createdAt,
                 serialId: user.serialId ?? undefined,
                 profileImageUrl: user.profileImageUrl ?? undefined,
@@ -42,7 +37,7 @@ export async function getPublicProfileBySlug(
                 xUrl: user.xUrl ?? undefined,
                 tiktok: user.tiktok ?? undefined,
                 missionBonusGiven: user.missionBonusGiven ?? false,
-                isFoundingMember: (user.seq ?? 999) <= 100,
+                isFoundingMember: user.isFoundingMember,
                 isPublic: user.isPublic ?? true,
                 isDeleted: user.isDeleted ?? false,
             },
