@@ -231,11 +231,6 @@ export default async function UserProfilePage({ params }: Props) {
                         </svg>
                     </a>
 
-                    {/* Share */}
-                    <div style={{ borderRadius: "14px", padding: "18px", background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.07)" }}>
-                        <p style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 12px" }}>Share</p>
-                    </div>
-
                     {/* CTA */}
                     <div style={{ borderRadius: "16px", padding: "24px 20px", background: `${rl}08`, border: `1px solid ${rl}20`, textAlign: "center" }}>
                         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", margin: "0 0 16px", lineHeight: 1.75 }}>

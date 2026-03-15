@@ -301,7 +301,7 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
                         COMING SOON
                     </motion.div>
                     <p style={{ fontSize: "11px", color: t.sub, opacity: 0.4, margin: 0, textAlign: "center" }}>
-                        3月15日（日）正午に解放予定です
+                        3月16日（月）正午に解放予定です
                     </p>
                 </div>
             </Card>

@@ -62,7 +62,7 @@ export default function RegisterForm() {
             style={{ background: "#07070e" }}>
 
             <Link href="/" className="mb-10 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                Vizion Connection
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="inline-block w-5 mr-1 -mt-0.5" />
             </Link>
 
             <div className="w-full max-w-md">
