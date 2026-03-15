@@ -1,3 +1,4 @@
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next";
 import "./globals.css";
 import { Bebas_Neue, Noto_Sans_JP } from "next/font/google";
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="ja" className={`${bebas.variable} ${noto.variable}`}>
             <body>
                 {children}
+                <SpeedInsights />
             </body>
         </html>
     );

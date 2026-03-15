@@ -74,7 +74,7 @@ export default function ResetPasswordForm() {
     return (
         <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
             <Link href="/login" style={{ marginBottom: "40px" }}>
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "32px", width: "auto", opacity: 0.8 }} />
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "3vw", width: "auto", opacity: 0.8 }} />
             </Link>
             <div style={{ width: "100%", maxWidth: "400px", background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "36px 32px", display: "flex", flexDirection: "column", gap: "20px" }}>
                 <div>
