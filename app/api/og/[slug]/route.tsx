@@ -7,7 +7,7 @@ import { ImageResponse } from "next/og";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { createElement as h } from "react";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",

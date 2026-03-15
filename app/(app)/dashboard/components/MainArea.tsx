@@ -280,7 +280,7 @@ export function MainArea({ profile, referralUrl, referralCount, t, view, setView
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
                     <SLabel text="Discovery" />
                     <span style={{ fontSize: "9px", color: t.sub, opacity: 0.4, fontFamily: "monospace", letterSpacing: "0.1em" }}>
-                        3/15 (日) 12:00 解放
+                        3/16 (月) 12:00 解放
                     </span>
                 </div>
                 <div style={{
