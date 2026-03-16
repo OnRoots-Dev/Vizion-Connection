@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/marketing/HeroSection";
@@ -26,6 +27,15 @@ import FloatingCTAWrapper from "@/components/marketing/sections/FloatingCTAWrapp
 const FAQSection = dynamic(() => import("@/components/marketing/sections/FAQSection").then(m => ({ default: m.FAQSection })));
 
 export const dynamic_config = "force-static"; // 静的生成
+
+export const metadata: Metadata = {
+  title: "Vizion Connection | Beyond the Limit, Connect the Trust.",
+  description:
+    "スポーツの「信頼」を新しい時代の資産に。アスリート・トレーナー・スポンサーが役割と信頼でつながるプラットフォーム。先行登録受付中。",
+  alternates: {
+    canonical: "https://vizion-connection.jp",
+  },
+};
 
 export default function Page() {
   return (

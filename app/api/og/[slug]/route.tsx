@@ -1,7 +1,4 @@
 // app/api/og/[slug]/route.tsx
-//
-// ?format=og      → 1200×630  OGP / X用（デフォルト）
-// ?format=stories → 1080×1920 Instagram Stories用
 
 import { ImageResponse } from "next/og";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
@@ -10,29 +7,33 @@ import { createElement as h } from "react";
 export const runtime = "nodejs";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
+    Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
 };
 const ROLE_GRADIENT: Record<string, string> = {
-    Athlete: "#6b0000", Trainer: "#003d1a", Members: "#5a4200", Business: "#001f5a",
+    Athlete: "#2D0000", Trainer: "#001A0A", Members: "#1A0F00", Business: "#000A24",
 };
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
 };
 
-// キャッシュ付きImageResponseを返す
-function withCache(imageResponse: ImageResponse): Response {
-    const headers = new Headers(imageResponse.headers);
+function withCache(r: ImageResponse): Response {
+    const headers = new Headers(r.headers);
     headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return new Response(imageResponse.body, { headers, status: imageResponse.status });
+    return new Response(r.body, { headers, status: r.status });
 }
 
-function fallback(w: number, hh: number) {
-    return withCache(new ImageResponse(
-        h("div", { style: { width: `${w}px`, height: `${hh}px`, display: "flex", alignItems: "center", justifyContent: "center", background: "#07070e" } },
-            h("span", { style: { fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: "0.3em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
-        ),
-        { width: w, height: hh }
-    ));
+async function fetchBase64(url: string | null): Promise<string | null> {
+    if (!url) return null;
+    try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!res.ok) return null;
+        const buf = await res.arrayBuffer();
+        const mime = res.headers.get("content-type") ?? "image/jpeg";
+        return `data:${mime};base64,${Buffer.from(buf).toString("base64")}`;
+    } catch { return null; }
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -41,394 +42,254 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     const isStories = format === "stories";
 
     const result = await getPublicProfileBySlug(slug);
-    if (!result.success || !result.data.isPublic) return fallback(isStories ? 1080 : 1200, isStories ? 1920 : 630);
-
-    const p = result.data;
-
-    // 画像をタイムアウト付きで取得（2秒以内に取れなければnull）
-    async function fetchImageAsDataUrl(url: string | null): Promise<string | null> {
-        if (!url) return null;
-        try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 2000);
-            const res = await fetch(url, { signal: controller.signal });
-            clearTimeout(timer);
-            if (!res.ok) return null;
-            const buf = await res.arrayBuffer();
-            const mime = res.headers.get("content-type") ?? "image/jpeg";
-            const b64 = Buffer.from(buf).toString("base64");
-            return `data:${mime};base64,${b64}`;
-        } catch { return null; }
+    if (!result.success || !result.data.isPublic) {
+        const w = isStories ? 1080 : 1200;
+        const hh = isStories ? 1920 : 630;
+        return withCache(new ImageResponse(
+            h("div", { style: { width: `${w}px`, height: `${hh}px`, display: "flex", alignItems: "center", justifyContent: "center", background: "#07070e" } },
+                h("span", { style: { fontSize: "13px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.3em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
+            ), { width: w, height: hh }
+        ));
     }
 
-    const [avatarDataUrl, bgDataUrl] = await Promise.all([
-        fetchImageAsDataUrl(p.avatarUrl ?? p.profileImageUrl ?? null),
-        fetchImageAsDataUrl(p.profileImageUrl ?? null),
-    ]);
+    const p = result.data;
     const displayName = p.displayName ?? "Vizion Member";
     const role = p.role ?? "Members";
     const bio = p.bio ?? "";
     const sport = p.sport ?? "";
     const region = p.region ?? "";
+    const prefecture = p.prefecture ?? "";
+    const stance = p.stance ?? "";
     const cheerCount = p.cheerCount ?? 0;
     const serialId = p.serialId ?? "";
     const isFounding = p.isFoundingMember ?? false;
-    const avatarUrl = avatarDataUrl;
-    const bgPhotoUrl = bgDataUrl;
     const rl = ROLE_COLOR[role] ?? "#a78bfa";
     const bg1 = ROLE_GRADIENT[role] ?? "#1a1a2e";
     const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+    const location = [region, prefecture].filter(Boolean).join(" / ");
 
-    // ── Stories: 1080×1920 ────────────────────────────────────────────────────
-    if (isStories) {
-        const nameFz = displayName.length > 14 ? (displayName.length > 20 ? "80px" : "96px") : "116px";
+    const [avatarData, bgData] = await Promise.all([
+        fetchBase64(p.avatarUrl ?? p.profileImageUrl ?? null),
+        fetchBase64(p.profileImageUrl ?? null),
+    ]);
 
-        return withCache(new ImageResponse(
+    // ── OG 1200×630 ── DEMOカードのフロント面を忠実再現
+    const nameFz = displayName.length > 16 ? (displayName.length > 22 ? "36px" : "46px") : "58px";
+
+    const cardFront = h("div", {
+        style: {
+            width: "1200px", height: "630px",
+            display: "flex", position: "relative",
+            overflow: "hidden", fontFamily: "sans-serif",
+            background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 50%, #000) 55%, #060606 100%)`,
+        }
+    },
+        // ── ベース背景グラデーション
+        h("div", { style: { position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 50%, #000) 55%, #060606 100%)`, display: "flex" } }),
+
+        // ── Sheen（光沢）
+        h("div", { style: { position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", display: "flex" } }),
+
+        // ── グロー（右上）
+        h("div", { style: { position: "absolute", right: "-10%", top: "-10%", width: "360px", height: "360px", background: `radial-gradient(circle at center, ${rl}30, transparent 70%)`, display: "flex" } }),
+
+        // ── 写真（右側、maskでフェード）
+        bgData
+            ? h("img", {
+                src: bgData,
+                style: {
+                    position: "absolute", bottom: 0, right: "-8px",
+                    width: "65%", height: "105%",
+                    objectFit: "cover", objectPosition: "center top",
+                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                }
+            })
+            : h("div", {
+                style: {
+                    position: "absolute", bottom: 0, right: "-8px",
+                    width: "65%", height: "116%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "148px", fontWeight: 900, color: `${rl}08`,
+                    fontFamily: "monospace",
+                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                }
+            }, initials),
+
+        // ── Watermark
+        h("div", { style: { position: "absolute", bottom: "10px", right: "14px", fontFamily: "monospace", fontSize: "6px", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", display: "flex" } },
+            "VIZION CONNECTION · PROOF OF EXISTENCE"
+        ),
+
+        // ── 左テキストエリア（40%幅）
+        h("div", {
+            style: {
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                padding: "28px 0 24px 28px",
+                width: "42%",
+            }
+        },
+            // 上部：Founding badge + location
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } },
+                // Founding Member Badge
+                h("div", { style: { display: "flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "4px", background: `${rl}22`, border: `1px solid ${rl}55`, alignSelf: "flex-start" } },
+                    h("span", { style: { fontSize: "10px", fontWeight: 900, color: rl, letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "monospace" } }, isFounding ? "● FOUNDING MEMBER" : "● EARLY MEMBER")
+                ),
+                // location
+                location && h("span", { style: { fontSize: "13px", fontFamily: "monospace", letterSpacing: "0.06em", color: "rgba(255,255,255,0.55)" } }, location)
+            ),
+
+            // 中部：Role → 名前 → sport → Cheer
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+                h("span", { style: { fontSize: "12px", fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", fontFamily: "monospace" } }, ROLE_LABEL[role]),
+                h("div", { style: { fontSize: nameFz, fontWeight: 900, color: "#ffffff", lineHeight: 1.05, letterSpacing: "-0.01em", display: "flex", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55)" } }, displayName),
+                (sport || bio) && h("span", { style: { fontSize: "15px", fontFamily: "monospace", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)" } }, sport || bio),
+                h("div", { style: { display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" } },
+                    h("span", { style: { fontSize: "12px", color: "#FFD600" } }, "*"),
+                    h("span", { style: { fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)", fontFamily: "monospace" } }, "Cheer"),
+                    h("span", { style: { fontSize: "20px", fontWeight: 700, lineHeight: 1, color: "#FFD600", fontFamily: "monospace" } }, cheerCount.toLocaleString())
+                )
+            ),
+
+            // 下部：serial ID
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
+                h("span", { style: { fontSize: "15px", fontWeight: 700, letterSpacing: "0.13em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", fontFamily: "monospace", textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65)" } }, serialId),
+                h("div", { style: { display: "flex", alignItems: "center", gap: "5px" } },
+                    h("div", { style: { width: "18px", height: "1px", background: "rgba(255,255,255,0.2)", display: "flex" } }),
+                    h("span", { style: { fontSize: "8px", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)", fontFamily: "monospace" } }, "TAP TO SEE PROFILE")
+                )
+            )
+        ),
+
+        // ── ロゴ（右下）
+        h("div", { style: { position: "absolute", bottom: "14px", right: "14px", display: "flex" } },
+            h("span", { style: { fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.15)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
+        )
+    );
+
+    if (!isStories) {
+        return withCache(new ImageResponse(cardFront, { width: 1200, height: 630 }));
+    }
+
+    // ── Stories 1080×1920 ── カードを上に、情報を下に
+    const nameFzS = displayName.length > 12 ? (displayName.length > 18 ? "64px" : "80px") : "96px";
+
+    return withCache(new ImageResponse(
+        h("div", { style: { width: "1080px", height: "1920px", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", fontFamily: "sans-serif", background: `linear-gradient(180deg, ${bg1} 0%, #060606 40%, #07070e 100%)` } },
+
+            // 背景グロー
+            h("div", { style: { position: "absolute", top: "100px", left: "50%", width: "1200px", height: "900px", borderRadius: "50%", background: `radial-gradient(circle, ${rl}20 0%, transparent 65%)`, transform: "translateX(-50%)", display: "flex" } }),
+
+            // 左ライン
+            h("div", { style: { position: "absolute", left: 0, top: 0, bottom: 0, width: "6px", background: `linear-gradient(to bottom, transparent 5%, ${rl} 50%, transparent 95%)`, display: "flex" } }),
+
+            // 上部ブランド
+            h("div", { style: { position: "absolute", top: "56px", left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" } },
+                h("span", { style: { fontSize: "17px", fontWeight: 900, color: "rgba(255,255,255,0.2)", letterSpacing: "0.38em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION"),
+                h("div", { style: { width: "36px", height: "1px", background: `linear-gradient(90deg, transparent, ${rl}, transparent)`, display: "flex" } })
+            ),
+
+            // ── カードビジュアル（縮小・忠実再現）
             h("div", {
                 style: {
-                    width: "1080px", height: "1920px",
-                    display: "flex", flexDirection: "column",
-                    background: "#07070e",
-                    fontFamily: "sans-serif",
-                    overflow: "hidden",
-                    position: "relative",
+                    position: "absolute", top: "148px", left: "48px", right: "48px",
+                    height: "576px", borderRadius: "16px", overflow: "hidden",
+                    boxShadow: `0 24px 80px rgba(0,0,0,0.85), 0 0 48px ${rl}22`,
+                    display: "flex",
+                    background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 50%, #000) 55%, #060606 100%)`,
                 }
             },
-                // ── 背景写真（極暗）
-                bgPhotoUrl && h("img", {
-                    src: bgPhotoUrl,
-                    style: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.07 }
-                }),
-
-                // ── 背景グロー（ロールカラー）
-                h("div", {
-                    style: {
-                        position: "absolute", top: "400px", left: "50%",
-                        width: "1200px", height: "1200px", borderRadius: "50%",
-                        background: `radial-gradient(circle, ${rl}22 0%, transparent 65%)`,
-                        transform: "translateX(-50%)",
-                        display: "flex",
-                    }
-                }),
-
-                // ── 暗めオーバーレイ（上下）
-                h("div", {
-                    style: {
-                        position: "absolute", inset: 0,
-                        background: "linear-gradient(to bottom, rgba(7,7,14,0.85) 0%, rgba(7,7,14,0.45) 35%, rgba(7,7,14,0.45) 65%, rgba(7,7,14,0.92) 100%)",
-                        display: "flex",
-                    }
-                }),
-
-                // ── 左ライン（ロールカラー）
-                h("div", {
-                    style: {
-                        position: "absolute", left: 0, top: 0, bottom: 0, width: "8px",
-                        background: `linear-gradient(to bottom, transparent 8%, ${rl} 50%, transparent 92%)`,
-                        display: "flex",
-                    }
-                }),
-
-                // ── 右ライン（薄め）
-                h("div", {
-                    style: {
-                        position: "absolute", right: 0, top: 0, bottom: 0, width: "2px",
-                        background: `linear-gradient(to bottom, transparent 8%, ${rl}40 50%, transparent 92%)`,
-                        display: "flex",
-                    }
-                }),
-
-                // ── メインコンテンツ
-                h("div", {
-                    style: {
-                        position: "absolute", inset: 0,
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "space-between",
-                        padding: "160px 80px 160px",
-                    }
-                },
-                    // ブランド（上部）
-                    h("div", {
-                        style: {
-                            display: "flex", flexDirection: "column", alignItems: "center",
-
-                        }
-                    },
-                        h("span", {
-                            style: {
-                                fontSize: "18px", fontWeight: 900,
-                                color: "rgba(255,255,255,0.18)",
-                                letterSpacing: "0.4em", textTransform: "uppercase",
-                                fontFamily: "monospace",
-                            }
-                        }, "VIZION CONNECTION"),
-                        h("div", {
-                            style: {
-                                width: "48px", height: "1px", marginTop: "12px",
-                                background: `linear-gradient(90deg, transparent, ${rl}, transparent)`,
-                                display: "flex",
-                            }
-                        })
-                    ),
-
-                    // アバター（大）
-                    h("div", {
-                        style: {
-                            width: "240px", height: "240px", borderRadius: "50%",
-                            overflow: "hidden",
-                            border: `5px solid ${rl}70`,
-                            background: `linear-gradient(145deg, ${bg1}, #0a0a0a)`,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            boxShadow: `0 0 80px ${rl}40, 0 0 160px ${rl}15`,
-                        }
-                    },
-                        avatarUrl
-                            ? h("img", { src: avatarUrl, style: { width: "100%", height: "100%", objectFit: "cover" } })
-                            : h("span", { style: { fontSize: "88px", fontWeight: 900, color: `${rl}80`, fontFamily: "monospace" } }, initials)
-                    ),
-
-                    // Founding / Early バッジ
-                    h("div", {
-                        style: {
-                            display: "flex", alignItems: "center", gap: "10px",
-                            padding: "10px 28px", borderRadius: "40px",
-                            background: `${rl}15`, border: `1.5px solid ${rl}55`,
-                        }
-                    },
-                        h("div", {
-                            style: {
-                                width: "9px", height: "9px", borderRadius: "50%",
-                                background: rl, boxShadow: `0 0 8px ${rl}`,
-                                display: "flex",
-                            }
-                        }),
-                        h("span", {
-                            style: {
-                                fontSize: "20px", fontWeight: 800, color: rl,
-                                letterSpacing: "0.22em", textTransform: "uppercase",
-                                fontFamily: "monospace",
-                            }
-                        }, isFounding ? "FOUNDING MEMBER" : "EARLY MEMBER"),
-                        serialId && h("span", {
-                            style: {
-                                fontSize: "16px", color: "rgba(255,255,255,0.2)",
-                                fontFamily: "monospace", marginLeft: "8px",
-                            }
-                        }, serialId)
-                    ),
-
-                    // Role / Sport
-                    h("span", {
-                        style: {
-                            fontSize: "22px", fontWeight: 700,
-                            color: `${rl}cc`, letterSpacing: "0.35em",
-                            textTransform: "uppercase", fontFamily: "monospace",
-                            marginBottom: "20px",
-                        }
-                    }, sport || ROLE_LABEL[role]),
-
-                    // 名前（メイン）
-                    h("div", {
-                        style: {
-                            fontSize: nameFz, fontWeight: 900, color: "#ffffff",
-                            letterSpacing: "-0.025em", lineHeight: 1.0,
-                            textAlign: "center", marginBottom: "16px",
-                            textShadow: `0 0 60px ${rl}35, 0 2px 8px rgba(0,0,0,0.8)`,
-                            display: "flex",
-                        }
-                    }, displayName),
-
-                    // @slug · region
-                    h("span", {
-                        style: {
-                            fontSize: "26px", color: "rgba(255,255,255,0.32)",
-                            fontFamily: "monospace", letterSpacing: "0.04em",
-                            marginBottom: bio ? "40px" : "52px",
-                        }
-                    }, `@${slug}${region ? ` · ${region}` : ""}`),
-
-                    // Bio
-                    bio && h("div", {
-                        style: {
-                            fontSize: "24px", color: "rgba(255,255,255,0.48)",
-                            lineHeight: 1.75, textAlign: "center",
-                            maxWidth: "880px", marginBottom: "52px",
-                            display: "flex",
-                        }
-                    }, bio),
-
-                    // 区切りライン
-                    h("div", {
-                        style: {
-                            width: "80px", height: "1px", marginBottom: "48px",
-                            background: `linear-gradient(90deg, transparent, ${rl}, transparent)`,
-                            display: "flex",
-                        }
-                    }),
-
-                    // Stats（Cheer / Role）
-                    h("div", {
-                        style: {
-                            display: "flex", alignItems: "center", gap: "72px",
-                        }
-                    },
-                        h("div", {
-                            style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }
-                        },
-                            h("span", {
-                                style: {
-                                    fontSize: "17px", color: "rgba(255,255,255,0.25)",
-                                    letterSpacing: "0.22em", textTransform: "uppercase",
-                                    fontFamily: "monospace",
-                                }
-                            }, "CHEER"),
-                            h("span", {
-                                style: {
-                                    fontSize: "72px", fontWeight: 900, color: "#FFD600",
-                                    fontFamily: "monospace", lineHeight: 1,
-                                    textShadow: "0 0 30px rgba(255,214,0,0.45)",
-                                }
-                            }, cheerCount.toLocaleString())
+                // Sheen
+                h("div", { style: { position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.015) 30%,transparent 55%)", display: "flex" } }),
+                // グロー
+                h("div", { style: { position: "absolute", right: "-8%", top: "-8%", width: "300px", height: "300px", background: `radial-gradient(circle, ${rl}28, transparent 70%)`, display: "flex" } }),
+                // 写真
+                bgData
+                    ? h("img", { src: bgData, style: { position: "absolute", bottom: 0, right: "-6px", width: "65%", height: "105%", objectFit: "cover", objectPosition: "center top", WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" } })
+                    : h("div", { style: { position: "absolute", bottom: 0, right: "-6px", width: "65%", height: "116%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "120px", fontWeight: 900, color: `${rl}08`, fontFamily: "monospace", WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" } }, initials),
+                // 左テキスト
+                h("div", { style: { position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "22px 0 20px 22px", width: "42%" } },
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+                        h("div", { style: { display: "flex", alignItems: "center", gap: "5px", padding: "3px 8px", borderRadius: "3px", background: `${rl}22`, border: `1px solid ${rl}50`, alignSelf: "flex-start" } },
+                            h("span", { style: { fontSize: "9px", fontWeight: 900, color: rl, letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace" } }, isFounding ? "● FOUNDING MEMBER" : "● EARLY MEMBER")
                         ),
-                        h("div", {
-                            style: {
-                                width: "1px", height: "64px",
-                                background: "rgba(255,255,255,0.1)",
-                                display: "flex",
-                            }
-                        }),
-                        h("div", {
-                            style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }
-                        },
-                            h("span", {
-                                style: {
-                                    fontSize: "17px", color: "rgba(255,255,255,0.25)",
-                                    letterSpacing: "0.22em", textTransform: "uppercase",
-                                    fontFamily: "monospace",
-                                }
-                            }, "ROLE"),
-                            h("span", {
-                                style: {
-                                    fontSize: "38px", fontWeight: 900, color: rl,
-                                    fontFamily: "monospace", lineHeight: 1,
-                                }
-                            }, ROLE_LABEL[role])
+                        location && h("span", { style: { fontSize: "11px", fontFamily: "monospace", letterSpacing: "0.05em", color: "rgba(255,255,255,0.55)" } }, location)
+                    ),
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: "3px" } },
+                        h("span", { style: { fontSize: "10px", fontWeight: 500, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", fontFamily: "monospace" } }, ROLE_LABEL[role]),
+                        h("div", { style: { fontSize: "26px", fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", display: "flex", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" } }, displayName),
+                        (sport || bio) && h("span", { style: { fontSize: "12px", fontFamily: "monospace", color: "rgba(255,255,255,0.52)" } }, sport || bio),
+                        h("div", { style: { display: "flex", alignItems: "center", gap: "4px", marginTop: "3px" } },
+                            h("span", { style: { fontSize: "10px", color: "#FFD600" } }, "*"),
+                            h("span", { style: { fontSize: "9px", color: "rgba(255,255,255,0.28)", fontFamily: "monospace" } }, "Cheer"),
+                            h("span", { style: { fontSize: "17px", fontWeight: 700, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 } }, cheerCount.toLocaleString())
+                        )
+                    ),
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: "3px" } },
+                        h("span", { style: { fontSize: "12px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", fontFamily: "monospace" } }, serialId),
+                        h("div", { style: { display: "flex", alignItems: "center", gap: "4px" } },
+                            h("div", { style: { width: "14px", height: "1px", background: "rgba(255,255,255,0.2)", display: "flex" } }),
+                            h("span", { style: { fontSize: "7px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)", fontFamily: "monospace" } }, "TAP TO SEE PROFILE")
                         )
                     )
                 ),
-
-                // ── 下部URL
-                h("div", {
-                    style: {
-                        position: "absolute", bottom: "72px", left: 0, right: 0,
-                        display: "flex", flexDirection: "column", alignItems: "center", gap: "0px",
-                    }
-                },
-                    h("span", {
-                        style: {
-                            fontSize: "21px", color: "rgba(255,255,255,0.2)",
-                            fontFamily: "monospace", letterSpacing: "0.06em",
-                        }
-                    }, `vizion-connection.jp/u/${slug}`)
-                )
-            ),
-            { width: 1080, height: 1920 }
-        ));
-    }
-
-    // ── OG: 1200×630 横長 ────────────────────────────────────────────────────
-    const nameFz = displayName.length > 16 ? (displayName.length > 22 ? "34px" : "42px") : "52px";
-    return withCache(new ImageResponse(
-        h("div", {
-            style: {
-                width: "1200px", height: "630px", display: "flex",
-                background: "#07070e", fontFamily: "sans-serif",
-                overflow: "hidden", position: "relative",
-            }
-        },
-            // 左パネル（写真）
-            h("div", {
-                style: {
-                    width: "420px", height: "630px", flexShrink: 0,
-                    position: "relative", display: "flex",
-                    background: `linear-gradient(145deg, ${bg1} 0%, #060606 100%)`,
-                    overflow: "hidden",
-                }
-            },
-                h("div", { style: { position: "absolute", top: "-60px", left: "-60px", width: "320px", height: "320px", background: `radial-gradient(circle, ${rl}35, transparent 65%)`, display: "flex" } }),
-                bgPhotoUrl
-                    ? h("img", { src: bgPhotoUrl, style: { position: "absolute", bottom: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.6 } })
-                    : h("div", { style: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "120px", fontWeight: 900, color: `${rl}18`, fontFamily: "monospace" } }, initials),
-                h("div", { style: { position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 50%, #07070e 100%)", display: "flex" } }),
-                h("div", { style: { position: "absolute", bottom: 0, left: 0, right: 0, height: "160px", background: "linear-gradient(to top, #07070e, transparent)", display: "flex" } }),
-                // アバター（左下）
-                h("div", {
-                    style: {
-                        position: "absolute", bottom: "28px", left: "28px",
-                        width: "80px", height: "80px", borderRadius: "50%",
-                        overflow: "hidden", border: `3px solid ${rl}80`,
-                        background: `linear-gradient(145deg, ${bg1}, #111)`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        boxShadow: `0 0 24px ${rl}50`,
-                    }
-                },
-                    avatarUrl
-                        ? h("img", { src: avatarUrl, style: { width: "100%", height: "100%", objectFit: "cover" } })
-                        : h("span", { style: { fontSize: "28px", fontWeight: 900, color: `${rl}90`, fontFamily: "monospace" } }, initials)
+                // ロゴ
+                h("div", { style: { position: "absolute", bottom: "10px", right: "12px", display: "flex" } },
+                    h("span", { style: { fontSize: "7px", color: "rgba(255,255,255,0.15)", letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
                 )
             ),
 
-            // 右パネル（情報）
-            h("div", {
-                style: {
-                    flex: 1, display: "flex", flexDirection: "column",
-                    justifyContent: "center", padding: "48px 56px 48px 40px",
-                    position: "relative",
-                }
-            },
-                // バッジ
-                h("div", { style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "20px" } },
-                    h("div", {
-                        style: {
-                            display: "flex", alignItems: "center", gap: "6px",
-                            padding: "5px 12px", borderRadius: "20px",
-                            background: `${rl}15`, border: `1px solid ${rl}40`,
-                        }
-                    },
-                        h("div", { style: { width: "6px", height: "6px", borderRadius: "50%", background: rl, display: "flex" } }),
-                        h("span", { style: { fontSize: "11px", fontWeight: 700, color: rl, letterSpacing: "0.15em", fontFamily: "monospace", textTransform: "uppercase" } }, isFounding ? "FOUNDING MEMBER" : "EARLY MEMBER")
-                    ),
-                    serialId && h("span", { style: { fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.18)", fontFamily: "monospace", letterSpacing: "0.1em", marginLeft: "8px" } }, serialId)
+            // ── 下部：名前・詳細情報
+            h("div", { style: { position: "absolute", top: "780px", left: "60px", right: "60px", display: "flex", flexDirection: "column" } },
+
+                // Founding badge
+                h("div", { style: { display: "flex", alignItems: "center", gap: "8px", padding: "8px 18px", borderRadius: "40px", background: `${rl}15`, border: `1.5px solid ${rl}50`, marginBottom: "22px", alignSelf: "flex-start" } },
+                    h("div", { style: { width: "7px", height: "7px", borderRadius: "50%", background: rl, display: "flex" } }),
+                    h("span", { style: { fontSize: "17px", fontWeight: 800, color: rl, letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "monospace" } }, isFounding ? "FOUNDING MEMBER" : "EARLY MEMBER")
                 ),
-                h("div", { style: { fontSize: "13px", fontWeight: 600, color: rl, letterSpacing: "0.25em", textTransform: "uppercase", fontFamily: "monospace", marginBottom: "10px" } }, sport || ROLE_LABEL[role]),
-                h("div", { style: { fontSize: nameFz, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1.05, marginBottom: "8px" } }, displayName),
-                h("div", { style: { fontSize: "16px", color: "rgba(255,255,255,0.35)", fontFamily: "monospace", marginBottom: "20px", letterSpacing: "0.03em" } }, `@${slug}${region ? ` · ${region}` : ""}`),
-                bio && h("div", { style: { fontSize: "16px", color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: "28px", maxWidth: "520px" } }, bio),
-                h("div", { style: { width: "48px", height: "2px", background: `linear-gradient(90deg, ${rl}, transparent)`, marginBottom: "24px", display: "flex" } }),
-                h("div", { style: { display: "flex", alignItems: "center", gap: "32px" } },
+
+                // Role / Sport
+                h("span", { style: { fontSize: "19px", fontWeight: 700, color: `${rl}cc`, letterSpacing: "0.3em", textTransform: "uppercase", fontFamily: "monospace", marginBottom: "12px" } }, sport || ROLE_LABEL[role]),
+
+                // 名前（大）
+                h("div", { style: { fontSize: nameFzS, fontWeight: 900, color: "#ffffff", letterSpacing: "-0.02em", lineHeight: 1.0, marginBottom: "10px", textShadow: `0 0 40px ${rl}25, 0 2px 12px rgba(0,0,0,0.8)`, display: "flex" } }, displayName),
+
+                // @slug · location
+                h("span", { style: { fontSize: "21px", color: "rgba(255,255,255,0.45)", fontFamily: "monospace", letterSpacing: "0.03em", marginBottom: "20px" } }, `@${slug}${location ? ` · ${location}` : ""}`),
+
+                // Bio
+                bio && h("div", { style: { fontSize: "20px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65, marginBottom: "16px", display: "flex" } }, bio),
+
+                // Stance
+                stance && h("div", { style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" } },
+                    h("div", { style: { width: "4px", height: "4px", borderRadius: "50%", background: rl, display: "flex" } }),
+                    h("span", { style: { fontSize: "17px", color: "rgba(255,255,255,0.4)", fontFamily: "monospace" } }, stance)
+                ),
+
+                // 区切り
+                h("div", { style: { width: "56px", height: "1px", background: `linear-gradient(90deg, ${rl}, transparent)`, marginBottom: "28px", display: "flex" } }),
+
+                // Stats
+                h("div", { style: { display: "flex", alignItems: "center", gap: "48px" } },
                     h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-                        h("span", { style: { fontSize: "11px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "monospace" } }, "Cheer"),
-                        h("span", { style: { fontSize: "28px", fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 } }, cheerCount.toLocaleString())
+                        h("span", { style: { fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace" } }, "CHEER"),
+                        h("span", { style: { fontSize: "56px", fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 } }, cheerCount.toLocaleString())
                     ),
-                    h("div", { style: { width: "1px", height: "36px", background: "rgba(255,255,255,0.08)", display: "flex" } }),
+                    h("div", { style: { width: "1px", height: "48px", background: "rgba(255,255,255,0.12)", display: "flex" } }),
                     h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-                        h("span", { style: { fontSize: "11px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "monospace" } }, "Role"),
-                        h("span", { style: { fontSize: "18px", fontWeight: 800, color: rl, fontFamily: "monospace", lineHeight: 1 } }, ROLE_LABEL[role])
+                        h("span", { style: { fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace" } }, "ROLE"),
+                        h("span", { style: { fontSize: "32px", fontWeight: 900, color: rl, fontFamily: "monospace", lineHeight: 1 } }, ROLE_LABEL[role])
                     )
-                ),
-                h("div", { style: { position: "absolute", bottom: "36px", right: "56px" } },
-                    h("span", { style: { fontSize: "12px", color: "rgba(255,255,255,0.2)", fontFamily: "monospace", letterSpacing: "0.05em" } }, `vizion-connection.jp/u/${slug}`)
                 )
             ),
 
-            // VIZION CONNECTION ラベル（右上）
-            h("div", { style: { position: "absolute", top: "28px", right: "56px", display: "flex" } },
-                h("span", { style: { fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
-            ),
-
-            // 左ライン
-            h("div", { style: { position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", background: `linear-gradient(to bottom, transparent, ${rl}, transparent)`, display: "flex" } })
+            // URL
+            h("div", { style: { position: "absolute", bottom: "44px", left: 0, right: 0, display: "flex", justifyContent: "center" } },
+                h("span", { style: { fontSize: "17px", color: "rgba(255,255,255,0.2)", fontFamily: "monospace", letterSpacing: "0.06em" } }, `vizion-connection.jp/u/${slug}`)
+            )
         ),
-        { width: 1200, height: 630 }
+        { width: 1080, height: 1920 }
     ));
 }
