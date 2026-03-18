@@ -5,10 +5,15 @@ import { cookies } from "next/headers";
 export const SESSION_COOKIE_NAME = "vizion_session";
 
 function shouldUseSecureCookie(): boolean {
+    // Local dev runs on http://localhost; secure cookies would be dropped and login would fail.
+    // Prefer explicit production flag so .env pointing to the prod domain doesn't force secure locally.
+    if (process.env.NODE_ENV !== "production") return false;
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (baseUrl) return baseUrl.startsWith("https://");
-    // next start は production 扱いだが、ローカルHTTP運用もあるためデフォルトは false
-    return process.env.NODE_ENV === "production" ? false : false;
+
+    // Fallback: production without explicit BASE_URL -> assume https
+    return true;
 }
 
 export const COOKIE_OPTIONS = {

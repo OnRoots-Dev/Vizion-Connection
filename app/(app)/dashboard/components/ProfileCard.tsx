@@ -37,7 +37,17 @@ function SnsIconBtn({ label, href, color, path }: {
     );
 }
 
-export function ProfileCardSection({ profile, t, roleColor, setView }: { profile: ProfileData; t: ThemeColors; roleColor: string; setView: (view: DashboardView) => void }) {
+export function ProfileCardSection({
+    profile,
+    t,
+    roleColor,
+    setView,
+}: {
+    profile: ProfileData;
+    t: ThemeColors;
+    roleColor?: string;
+    setView?: (view: DashboardView) => void;
+}) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [qrDataUrl, setQrDataUrl] = useState<string>("");
     useEffect(() => {
@@ -76,7 +86,7 @@ export function ProfileCardSection({ profile, t, roleColor, setView }: { profile
     }
     function onLeave() { mx.set(0); my.set(0); }
 
-    const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
+    const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "#a78bfa");
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ00000-0000-00000";
@@ -351,13 +361,27 @@ export function ProfileCardSection({ profile, t, roleColor, setView }: { profile
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
                 <div style={{ display: "flex", gap: 8 }}>
-                    <a href={`/card/${profile.slug}`}
-                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>
-                        <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
-                        シェア用カードを確認
-                    </a>
+                    {setView ? (
+                        <button
+                            onClick={() => setView("profile")}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+                        >
+                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            プロフィール表示
+                        </button>
+                    ) : (
+                        <a
+                            href={`/u/${profile.slug}`}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, textDecoration: "none" }}
+                        >
+                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            プロフィールページ表示
+                        </a>
+                    )}
                     <button
                         onClick={() => {
                             const url = `${window.location.origin}/card/${profile.slug}`;

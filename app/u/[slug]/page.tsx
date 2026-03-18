@@ -10,6 +10,8 @@ import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
+import type { ProfileData } from "@/features/profile/types";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -25,7 +27,7 @@ const ROLE_LABEL_JA: Record<UserRole, string> = {
 };
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
-const TK_PATH =  "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
+const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
 interface Props { params: Promise<{ slug: string }>; }
 
@@ -78,6 +80,14 @@ export default async function UserProfilePage({ params }: Props) {
         { label: "TikTok", href: profile.tiktok, path: TK_PATH },
     ].filter(s => s.href);
 
+    const cardTheme = {
+        bg: "#07070e",
+        surface: "rgba(255,255,255,0.03)",
+        border: "rgba(255,255,255,0.07)",
+        text: "#ffffff",
+        sub: "rgba(255,255,255,0.45)",
+    };
+
     return (
         <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff" }}>
             <style>{`* { box-sizing: border-box; } a { text-decoration: none; }`}</style>
@@ -88,21 +98,40 @@ export default async function UserProfilePage({ params }: Props) {
             {/* ── Header ── */}
             <header style={{ position: "sticky", top: 0, zIndex: 30, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,14,0.92)", backdropFilter: "blur(20px)", padding: "12px 24px" }}>
                 <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href={isOwn ? "/dashboard" : "/"} style={{ display: "flex" }}>
+                    <a href="/" style={{ display: "flex" }}>
                         <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "26px", opacity: 0.8 }} />
                     </a>
-                    {isOwn ? (
-                        <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "20px", background: `${rl}15`, border: `1px solid ${rl}35`, color: rl, fontSize: "12px", fontWeight: 700 }}>
-                            <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                        {isOwn && (
+                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "20px", background: `${rl}15`, border: `1px solid ${rl}35`, color: rl, fontSize: "12px", fontWeight: 800 }}>
+                                <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                </svg>
+                                ダッシュボード
+                            </a>
+                        )}
+
+                        <a
+                            href="/contact"
+                            aria-label="お問い合わせ"
+                            title="お問い合わせ"
+                            style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 999,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid rgba(255,255,255,0.08)",
+                                color: "rgba(255,255,255,0.8)",
+                            }}
+                        >
+                            <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75m19.5 0l-8.786 5.49a1.5 1.5 0 01-1.928 0L2.25 6.75" />
                             </svg>
-                            ダッシュボード
                         </a>
-                    ) : (
-                        <a href="/register" style={{ padding: "7px 16px", borderRadius: "20px", background: `${rl}15`, border: `1px solid ${rl}35`, color: rl, fontSize: "12px", fontWeight: 700 }}>
-                            先行登録
-                        </a>
-                    )}
+                    </div>
                 </div>
             </header>
 
@@ -130,7 +159,7 @@ export default async function UserProfilePage({ params }: Props) {
 
                     {/* Top badges */}
                     <div style={{ position: "absolute", top: "20px", left: "24px", display: "flex", alignItems: "center", gap: "8px" }}>
-                            {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                        {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
                         {serialDisplay && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.08em" }}>{serialDisplay}</span>}
                     </div>
 
@@ -212,24 +241,15 @@ export default async function UserProfilePage({ params }: Props) {
                     {/* Cheer button */}
                     <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
 
-                    {/* Card link */}
-                    <a href={`/card/${profile.slug}`}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: "14px", background: `${rl}08`, border: `1px solid ${rl}22` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 9, background: `${rl}15`, border: `1px solid ${rl}30`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke={rl} strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>プロフィールカードを見る</p>
-                                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "1px 0 0", fontFamily: "monospace" }}>{env.NEXT_PUBLIC_BASE_URL}/card/{profile.slug}</p>
-                            </div>
-                        </div>
-                        <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={rl} strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
+                    {/* Profile Card (same page) */}
+                    <div id="card" style={{ scrollMarginTop: 90 }} />
+                    <div style={{ padding: "6px 0 0" }}>
+                        <ProfileCardSection
+                            profile={profile as unknown as ProfileData}
+                            t={cardTheme}
+                            roleColor={rl}
+                        />
+                    </div>
 
                     {/* CTA */}
                     <div style={{ borderRadius: "16px", padding: "24px 20px", background: `${rl}08`, border: `1px solid ${rl}20`, textAlign: "center" }}>
@@ -246,7 +266,7 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </div>
             </main>
-            
+
         </div>
     );
 }

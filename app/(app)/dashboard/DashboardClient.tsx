@@ -6,12 +6,14 @@ import type { ProfileData } from "@/features/profile/types";
 import { ProfileCardSection } from "./components/ProfileCard";
 import { EditProfileClient } from "./edit/EditProfileClient";
 import type { UserRecord } from "@/features/auth/types";
+import { DashboardProfileView } from "./components/DashboardProfileView";
 
 // ─── 型定義 ───────────────────────────────────────────────────────────────────
 export type Theme = "dark" | "dim" | "light";
 export type DashboardView =
     | "home"
     | "card"
+    | "profile"
     | "referral"
     | "discovery"
     | "roadmap"
@@ -108,6 +110,15 @@ export default function DashboardClient({
                         t={t}
                         roleColor={roleColor}
                         setView={setView}
+                    />
+                );
+            case "profile":
+                return (
+                    <DashboardProfileView
+                        profile={profile}
+                        t={t}
+                        roleColor={roleColor}
+                        onBack={() => setView("home")}
                     />
                 );
             case "edit":
@@ -318,6 +329,7 @@ function DashboardSidebar({ profile, view, setView, theme, setTheme, t, roleColo
             group: "メイン",
             items: [
                 { id: "home" as DashboardView, label: "ダッシュボード", icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" },
+                { id: "profile" as DashboardView, label: "プロフィール", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
                 { id: "cheer" as DashboardView, label: "Cheer", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
                 { id: "referral" as DashboardView, label: "招待リンク", icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" },
                 { id: "missions" as DashboardView, label: "ミッション", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
@@ -370,8 +382,8 @@ function DashboardSidebar({ profile, view, setView, theme, setTheme, t, roleColo
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 13, fontWeight: 900, color: roleColor, overflow: "hidden",
                     }}>
-                        {(profile.avatarUrl || profile.profileImageUrl)
-                            ? <img src={profile.avatarUrl || profile.profileImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        {profile.avatarUrl
+                            ? <img src={profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             : profile.displayName[0].toUpperCase()
                         }
                     </div>
@@ -771,8 +783,8 @@ function FloatingProfileCard({ profile, t, roleColor, setView }: {
                         {/* アバター */}
                         <div style={{ position: "relative" }}>
                             <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", background: `${roleColor}20`, border: `2px solid ${roleColor}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: roleColor, boxShadow: `0 0 16px ${roleColor}30` }}>
-                                {(profile.avatarUrl || profile.profileImageUrl)
-                                    ? <img src={profile.avatarUrl || profile.profileImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                {profile.avatarUrl
+                                    ? <img src={profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                     : profile.displayName[0].toUpperCase()
                                 }
                             </div>

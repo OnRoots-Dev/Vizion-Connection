@@ -93,8 +93,8 @@ export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, 
                 >
                     {/* アバター */}
                     <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: `${roleColor}20`, border: `2px solid ${roleColor}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: roleColor, overflow: "hidden", boxShadow: `0 0 10px ${roleColor}20` }}>
-                        {(profile.avatarUrl || profile.profileImageUrl)
-                            ? <img src={profile.avatarUrl || profile.profileImageUrl} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        {profile.avatarUrl
+                            ? <img src={profile.avatarUrl} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             : profile.displayName[0].toUpperCase()
                         }
                     </div>
