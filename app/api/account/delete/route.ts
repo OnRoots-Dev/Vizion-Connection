@@ -4,8 +4,12 @@ import { NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { findUserBySlug, deactivateUser } from "@/lib/supabase/users";
+import { accountLimiter, getIp } from "@/lib/ratelimit";
 
-export async function POST() {
+export async function POST(req: Request) {
+    const { success } = await accountLimiter.limit(getIp(req));
+    if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
+
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -5,6 +5,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { findUserBySlug, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { accountLimiter, getIp } from "@/lib/ratelimit";
 
 const schema = z.object({
     currentPassword: z.string().min(1),
@@ -18,6 +19,9 @@ export async function POST(req: Request) {
         if (!token) return NextResponse.json({ ok: false, error: "ログインが必要です" }, { status: 401 });
         const session = verifySession(token);
         if (!session) return NextResponse.json({ ok: false, error: "セッションが無効です" }, { status: 401 });
+
+        const { success } = await accountLimiter.limit(getIp(req));
+        if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
         const body = await req.json();
         const parsed = schema.safeParse(body);

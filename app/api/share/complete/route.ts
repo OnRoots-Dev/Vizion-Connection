@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
+import { shareLimiter, getIp } from "@/lib/ratelimit";
 
-export async function POST() {
+export async function POST(req: Request) {
     try {
+        const { success } = await shareLimiter.limit(getIp(req));
+        if (!success) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
+
         const token = await getSessionCookie();
         if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { loginUser } from "@/features/auth/server/login";
 import type { LoginInput } from "@/features/auth/types";
 import { loginLimiter, getIp } from "@/lib/ratelimit";
+import { COOKIE_OPTIONS, SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
@@ -31,8 +32,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json(result, { status: 401 });
         }
 
-        // Cookie は loginUser 内で set 済み
-        return NextResponse.json(result, { status: 200 });
+        const res = NextResponse.json(
+            { success: true, slug: result.slug, role: result.role },
+            { status: 200 }
+        );
+        res.cookies.set(SESSION_COOKIE_NAME, result.token, COOKIE_OPTIONS);
+        return res;
     } catch (err) {
         console.error("[POST /api/login]", err);
         return NextResponse.json(

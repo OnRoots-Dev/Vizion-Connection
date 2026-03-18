@@ -4,16 +4,20 @@ import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/users";
+import { missionLimiter, getIp } from "@/lib/ratelimit";
 
 const MISSION_BONUS_POINTS = 1000;
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const token = await getSessionCookie();
         if (!token) return NextResponse.json({ ok: false, error: "unauthenticated" }, { status: 401 });
 
         const session = verifySession(token);
         if (!session) return NextResponse.json({ ok: false, error: "unauthenticated" }, { status: 401 });
+
+        const { success } = await missionLimiter.limit(getIp(req));
+        if (!success) return NextResponse.json({ ok: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
         const user = await findUserBySlug(session.slug);
         if (!user) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });

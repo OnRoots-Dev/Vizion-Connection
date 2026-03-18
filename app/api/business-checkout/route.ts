@@ -6,6 +6,7 @@ import { getSessionCookie } from "@/lib/auth/cookies";
 import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
 import type { PlanId } from "@/features/business/types";
+import { businessLimiter, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         if (!session) {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }
+
+        const { success } = await businessLimiter.limit(getIp(req));
+        if (!success) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
         const body = await req.json() as { planId?: PlanId };
         const { planId } = body;

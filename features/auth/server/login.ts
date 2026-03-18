@@ -3,13 +3,12 @@
 import { findUserByEmail } from "@/lib/supabase/users";
 import { verifyPassword } from "@/lib/auth/hash";
 import { signSession } from "@/lib/auth/session";
-import { setSessionCookie } from "@/lib/auth/cookies";
 import { loginSchema } from "@/features/auth/validation/login-schema";
 import type { LoginInput } from "@/features/auth/types";
 import { updateLastLogin } from "@/lib/supabase/users";
 
 export type LoginResult =
-    | { success: true; slug: string; role: string }
+    | { success: true; slug: string; role: string; token: string }
     | { success: false; error: string };
 
 export async function loginUser(input: LoginInput): Promise<LoginResult> {
@@ -59,8 +58,5 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
         email: user.email,
     });
 
-    // 6. Cookie にセット（Server Action / Route Handler 内のみ動作）
-    await setSessionCookie(token);
-
-    return { success: true, slug: user.slug, role: user.role };
+    return { success: true, slug: user.slug, role: user.role, token };
 }

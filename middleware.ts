@@ -1,7 +1,7 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { verifySessionEdge } from "@/lib/auth/session-edge";
 
 // 認証が必要なパス
 const PROTECTED_PATHS = ["/dashboard"];
@@ -9,10 +9,10 @@ const PROTECTED_PATHS = ["/dashboard"];
 // 認証済みユーザーがアクセスできないパス（ログイン済みなら/dashboardへ）
 const AUTH_PATHS = ["/login", "/register"];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
     const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const session = token ? verifySession(token) : null;
+    const session = token ? await verifySessionEdge(token) : null;
 
     // 保護ルートへの未認証アクセス → /loginへリダイレクト
     const isProtected = PROTECTED_PATHS.some(p => pathname.startsWith(p));

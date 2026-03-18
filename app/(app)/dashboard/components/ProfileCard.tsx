@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, type MouseEvent } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
+import { useState, useEffect, type MouseEvent } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import type { ProfileData } from "@/features/profile/types";
 import QRCode from "qrcode";
+import { DashboardView } from "../DashboardClient";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -18,7 +19,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
-const LINE_PATH = "M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314";
+const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
 interface ThemeColors {
     bg: string; surface: string; border: string; text: string; sub: string;
@@ -36,213 +37,9 @@ function SnsIconBtn({ label, href, color, path }: {
     );
 }
 
-// ── シェアモーダル ────────────────────────────────────────────────────────────
-type ShareStep = "preview" | "share";
-
-function ShareModal({ profile, onClose }: { profile: ProfileData; onClose: () => void }) {
-    const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
-    const profileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
-    const storiesUrl = `https://vizion-connection.jp/api/og/${profile.slug}?format=stories`;
-    const ogUrl = `https://vizion-connection.jp/api/og/${profile.slug}`;
-
-    const [step, setStep] = useState<ShareStep>("preview");
-    const [previewTab, setPreviewTab] = useState<"stories" | "og">("stories");
-    const [copied, setCopied] = useState<string | null>(null);
-    const [imgLoaded, setImgLoaded] = useState(false);
-
-    const copy = useCallback(async (text: string, key: string) => {
-        try { await navigator.clipboard.writeText(text); }
-        catch {
-            const el = document.createElement("textarea");
-            el.value = text; document.body.appendChild(el); el.select();
-            document.execCommand("copy"); document.body.removeChild(el);
-        }
-        setCopied(key);
-        setTimeout(() => setCopied(null), 2000);
-    }, []);
-
-    const founding = profile.isFoundingMember ? "Founding Member" : "Early Member";
-    const roleLabel = ROLE_LABEL[profile.role] ?? profile.role;
-    const xText = encodeURIComponent(`Vizion Connectionに登録しました🔥\n${founding}として参加中です。\n\n#VizionConnection #${roleLabel}\n${profileUrl}`);
-    const lineText = encodeURIComponent(`Vizion Connectionに登録しました！\nプロフィールはこちら👉 ${profileUrl}`);
-
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(10px)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}
-        >
-            <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                onClick={e => e.stopPropagation()}
-                style={{ width: "100%", maxWidth: 480, background: "#0d0d18", border: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", borderRadius: "20px 20px 0 0", padding: "20px 20px 40px", maxHeight: "90vh", overflowY: "auto" }}
-            >
-                {/* ハンドル */}
-                <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(255,255,255,0.15)", margin: "0 auto 16px" }} />
-
-                {/* ヘッダー */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {step === "share" && (
-                            <button onClick={() => setStep("preview")} style={{ width: 30, height: 30, borderRadius: 99, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                            </button>
-                        )}
-                        <div>
-                            <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", margin: "0 0 3px", fontFamily: "monospace" }}>
-                                {step === "preview" ? "Preview" : "Share"}
-                            </p>
-                            <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>
-                                {step === "preview" ? "シェア画像を確認" : "シェア先を選ぶ"}
-                            </p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 99, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
-                </div>
-
-                <AnimatePresence mode="wait">
-                    {step === "preview" ? (
-                        <motion.div key="preview" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.22 }}>
-
-                            {/* タブ切替 */}
-                            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                                {(["stories", "og"] as const).map(tab => (
-                                    <button key={tab} onClick={() => { setPreviewTab(tab); setImgLoaded(false); }} style={{ flex: 1, padding: "8px 0", borderRadius: 10, border: `1px solid ${previewTab === tab ? rl + "50" : "rgba(255,255,255,0.08)"}`, background: previewTab === tab ? `${rl}15` : "rgba(255,255,255,0.03)", color: previewTab === tab ? rl : "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
-                                        {tab === "stories" ? "Instagram Stories" : "X / OGP"}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* プレビュー画像 */}
-                            <div style={{ borderRadius: 14, overflow: "hidden", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 14, position: "relative", minHeight: previewTab === "stories" ? 320 : 180 }}>
-                                {!imgLoaded && (
-                                    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ width: 24, height: 24, borderRadius: "50%", border: `2px solid ${rl}40`, borderTop: `2px solid ${rl}` }} />
-                                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>生成中...</span>
-                                    </div>
-                                )}
-                                <img
-                                    src={previewTab === "stories" ? storiesUrl : ogUrl}
-                                    alt="preview"
-                                    onLoad={() => setImgLoaded(true)}
-                                    style={{ width: "100%", height: "auto", display: imgLoaded ? "block" : "none", borderRadius: 14 }}
-                                />
-                            </div>
-
-                            {/* 保存ガイド（Stories） */}
-                            {previewTab === "stories" && imgLoaded && (
-                                <div style={{ padding: "10px 14px", borderRadius: 10, background: `${rl}10`, border: `1px solid ${rl}25`, marginBottom: 14, display: "flex", alignItems: "flex-start", gap: 10 }}>
-                                    <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
-                                    <div>
-                                        <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", margin: "0 0 3px" }}>iOSで保存する方法</p>
-                                        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.6 }}>上の画像を<strong style={{ color: "rgba(255,255,255,0.7)" }}>長押し</strong>→「写真に追加」で保存できます。その後Instagramで使用してください。</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 次へボタン */}
-                            <button
-                                onClick={() => setStep("share")}
-                                style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: rl, color: "#000", fontSize: 13, fontWeight: 800, cursor: "pointer", border: "none", boxShadow: `0 4px 20px ${rl}40` }}
-                            >
-                                シェア先を選ぶ →
-                            </button>
-                        </motion.div>
-                    ) : (
-                        <motion.div key="share" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.22 }}>
-
-                            {/* SNSボタン */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                                {[
-                                    {
-                                        key: "x",
-                                        label: "X (Twitter)",
-                                        desc: "OG画像付きで投稿",
-                                        iconBg: "#000",
-                                        iconColor: "#fff",
-                                        borderColor: "rgba(255,255,255,0.15)",
-                                        href: `https://twitter.com/intent/tweet?text=${xText}`,
-                                        icon: X_PATH,
-                                    },
-                                    {
-                                        key: "instagram",
-                                        label: "Instagram Stories",
-                                        desc: "画像を長押しで保存 → Instagramで使用",
-                                        iconBg: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)",
-                                        iconColor: "#fff",
-                                        borderColor: "rgba(225,48,108,0.3)",
-                                        href: storiesUrl,
-                                        icon: IG_PATH,
-                                        isImage: true,
-                                    },
-                                    {
-                                        key: "line",
-                                        label: "LINE",
-                                        desc: "友達にシェア",
-                                        iconBg: "#06C755",
-                                        iconColor: "#fff",
-                                        borderColor: "rgba(6,199,85,0.3)",
-                                        href: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(profileUrl)}&text=${lineText}`,
-                                        icon: LINE_PATH,
-                                    },
-                                ].map(s => (
-                                    <a
-                                        key={s.key}
-                                        href={s.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: `1px solid ${s.borderColor}`, textDecoration: "none" }}
-                                    >
-                                        <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                            <svg viewBox="0 0 24 24" width={18} height={18} fill={s.iconColor}><path d={s.icon} /></svg>
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>{s.label}</p>
-                                            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", margin: 0 }}>{s.desc}</p>
-                                        </div>
-                                        <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.25)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                                    </a>
-                                ))}
-                            </div>
-
-                            {/* 区切り */}
-                            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", marginBottom: 14 }} />
-
-                            {/* URLコピー */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                {[
-                                    { key: "profile", label: "プロフィールURL", value: profileUrl },
-                                    { key: "og", label: "OG画像URL", value: ogUrl },
-                                ].map(({ key, label, value }) => (
-                                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", margin: "0 0 2px", fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</p>
-                                            <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: 0, fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</p>
-                                        </div>
-                                        <button onClick={() => copy(value, key)} style={{ flexShrink: 0, padding: "5px 10px", borderRadius: 7, background: copied === key ? `${rl}20` : "rgba(255,255,255,0.06)", border: `1px solid ${copied === key ? rl + "50" : "rgba(255,255,255,0.1)"}`, color: copied === key ? rl : "rgba(255,255,255,0.5)", fontSize: 10, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
-                                            {copied === key ? "✓" : "Copy"}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-        </motion.div>
-    );
-}
-
-export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: ThemeColors }) {
+export function ProfileCardSection({ profile, t, roleColor, setView }: { profile: ProfileData; t: ThemeColors; roleColor: string; setView: (view: DashboardView) => void }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [qrDataUrl, setQrDataUrl] = useState<string>("");
-    const [showShare, setShowShare] = useState(false);
-
     useEffect(() => {
         QRCode.toDataURL(
             `https://vizion-connection.jp/u/${profile.slug}`,
@@ -250,15 +47,20 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
         ).then(setQrDataUrl).catch(() => { });
     }, [profile.slug]);
 
+    // ── 生成アニメーション（初回のみ）──
     const [generated, setGenerated] = useState(false);
     const [showScan, setShowScan] = useState(false);
 
     useEffect(() => {
         const t1 = setTimeout(() => setShowScan(true), 300);
-        const t2 = setTimeout(() => { setShowScan(false); setGenerated(true); }, 1400);
+        const t2 = setTimeout(() => {
+            setShowScan(false);
+            setGenerated(true);
+        }, 1400);
         return () => { clearTimeout(t1); clearTimeout(t2); };
     }, [profile.slug]);
 
+    // ── 3D チルト ──
     const mx = useMotionValue(0);
     const my = useMotionValue(0);
     const sx = useSpring(mx, { stiffness: 180, damping: 22, mass: 0.6 });
@@ -277,7 +79,7 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
     const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-    const vzId = profile.serialId ?? "";
+    const vzId = profile.serialId ?? "VZ00000-0000-00000";
     const cheerCount = profile.cheerCount ?? 0;
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
@@ -285,15 +87,22 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
         { label: "Instagram", href: profile.instagram, path: IG_PATH },
-        { label: "TikTok", href: profile.tiktok, path: "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z" },
+        { label: "TikTok", href: profile.tiktok, path: TK_PATH },
     ].filter(s => s.href);
 
     const faceBase: React.CSSProperties = {
-        position: "absolute", inset: 0, overflow: "hidden", borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.10)", WebkitBackfaceVisibility: "hidden",
-        backfaceVisibility: "hidden", boxShadow: "0 10px 42px rgba(0,0,0,0.65)",
-        WebkitTransform: "translateZ(0)", transform: "translateZ(0)", isolation: "isolate",
+        position: "absolute", inset: 0,
+        overflow: "hidden",
+        borderRadius: 14,
+        border: "1px solid rgba(255,255,255,0.10)",
+        WebkitBackfaceVisibility: "hidden",
+        backfaceVisibility: "hidden",
+        boxShadow: "0 10px 42px rgba(0,0,0,0.65)",
+        WebkitTransform: "translateZ(0)",
+        transform: "translateZ(0)",
+        isolation: "isolate",
     };
+
     const photoMask: React.CSSProperties = {
         WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
         maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
@@ -304,146 +113,269 @@ export function ProfileCardSection({ profile, t }: { profile: ProfileData; t: Th
     };
 
     return (
-        <>
-            <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-                style={{ borderRadius: 16, padding: 20, background: t.surface, border: `1px solid ${t.border}` }}
-            >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>Profile Card</p>
-                    <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: `${rl}15`, color: rl, border: `1px solid ${rl}30`, fontWeight: 700 }}>{ROLE_LABEL[profile.role]}</span>
+        <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            style={{ borderRadius: 16, padding: 20, background: t.surface, border: `1px solid ${t.border}` }}
+        >
+            {/* ── Header ── */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>
+                    Profile Card
+                </p>
+                <div style={{ display: "flex", gap: 6 }}>
+                    <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: `${rl}15`, color: rl, border: `1px solid ${rl}30`, fontWeight: 700 }}>
+                        {ROLE_LABEL[profile.role]}
+                    </span>
                 </div>
+            </div>
 
-                <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
-                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            {/* ── Card Stage ── */}
+            <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
+                {/* 生成アニメーション用ラッパー */}
+                <div style={{ position: "relative", width: "100%", height: "100%" }}>
+
+                    <motion.div
+                        onMouseMove={onMove}
+                        onMouseLeave={onLeave}
+                        onClick={e => {
+                            if (!generated) return; // 生成中はフリップ禁止
+                            if ((e.target as HTMLElement).closest("a,button")) return;
+                            setIsFlipped(f => !f);
+                        }}
+                        animate={{
+                            opacity: generated ? 1 : 0.15,
+                            filter: generated ? "brightness(1)" : "brightness(0.3) saturate(0.3)",
+                        }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", WebkitTapHighlightColor: "transparent" }}
+                    >
                         <motion.div
-                            onMouseMove={onMove} onMouseLeave={onLeave}
-                            onClick={e => { if (!generated) return; if ((e.target as HTMLElement).closest("a,button")) return; setIsFlipped(f => !f); }}
-                            animate={{ opacity: generated ? 1 : 0.15, filter: generated ? "brightness(1)" : "brightness(0.3) saturate(0.3)" }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                            style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", WebkitTapHighlightColor: "transparent" }}
+                            animate={{ rotateY: isFlipped ? 180 : 0 }}
+                            transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
+                            style={{transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                         >
-                            <motion.div
-                                animate={{ rotateY: isFlipped ? 180 : 0 }}
-                                transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
-                                style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-                            >
-                                {/* FRONT */}
-                                <div style={faceBase}>
-                                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 40%, #000) 60%, #060606 100%)` }} />
-                                    <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
-                                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
-                                    {profile.profileImageUrl
-                                        ? <img src={profile.profileImageUrl} alt={profile.displayName} style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", ...photoMask }} />
-                                        : <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", ...photoMask }}>{initials}</div>
-                                    }
-                                    <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
-                                    <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "42%" }}>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                                            {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
-                                            <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
+
+                            {/* ════ FRONT ════ */}
+                            <div style={faceBase}>
+                                {/* BG */}
+                                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 40%, #000) 60%, #060606 100%)` }} />
+                                {/* Glow */}
+                                <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
+                                {/* Sheen */}
+                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+
+                                {/* Photo */}
+                                {profile.profileImageUrl ? (
+                                    <img src={profile.profileImageUrl} alt={profile.displayName}
+                                        style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", ...photoMask }} />
+                                ) : (
+                                    <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", ...photoMask }}>
+                                        {initials}
+                                    </div>
+                                )}
+
+                                {/* Watermark */}
+                                <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>
+                                    VIZION CONNECTION · PROOF OF EXISTENCE
+                                </div>
+
+                                {/* Left content — 42% */}
+                                <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "42%" }}>
+                                    {/* Top */}
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                                        {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                                        <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>
+                                            {profile.region || "N/A"} / {profile.prefecture || "N/A"}
+                                        </span>
+                                    </div>
+
+                                    {/* Mid */}
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
+                                            {ROLE_LABEL[profile.role]}
                                         </div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                                            <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                            <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>{profile.displayName}</div>
-                                            {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.sport}</div>}
-                                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                                                <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                                <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
-                                                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
-                                            </div>
+                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
+                                            {profile.displayName}
                                         </div>
-                                        <div>
-                                            <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>{vzId}</div>
-                                            <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
-                                                <span style={{ display: "inline-block", width: 16, height: 1, background: "rgba(255,255,255,0.2)" }} />TAP TO SEE PROFILE
+                                        {profile.sport && (
+                                            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {profile.sport}
                                             </div>
+                                        )}
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
                                     </div>
-                                    <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
-                                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+
+                                    {/* Bottom: VZ ID */}
+                                    <div>
+                                        <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>
+                                            {vzId}
+                                        </div>
+                                        <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
+                                            <span style={{ display: "inline-block", width: 16, height: 1, background: "rgba(255,255,255,0.2)" }} />
+                                            TAP TO SEE PROFILE
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* BACK */}
-                                <div style={{ ...faceBase, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
-                                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
-                                    {profile.profileImageUrl
-                                        ? <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
-                                        : <div style={{ position: "absolute", right: 0, top: 0, width: "60%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", pointerEvents: "none", userSelect: "none", ...photoMaskSoft }}>{initials}</div>
-                                    }
-                                    <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "13px 12px 14px" }}>
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
-                                            <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
-                                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: rl, boxShadow: `0 0 5px ${rl}`, flexShrink: 0, display: "inline-block" }} />
-                                                <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{ROLE_LABEL[profile.role]}</span>
-                                            </div>
-                                            <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
+                                {/* Logo */}
+                                <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
+                                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo"
+                                        style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+                                </div>
+                            </div>
+
+                            {/* ════ BACK ════ */}
+                            <div style={{ ...faceBase, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
+                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+
+                                {/* Photo */}
+                                {profile.profileImageUrl ? (
+                                    <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
+                                ) : (
+                                    <div style={{ position: "absolute", right: 0, top: 0, width: "60%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", pointerEvents: "none", userSelect: "none", ...photoMaskSoft }}>
+                                        {initials}
+                                    </div>
+                                )}
+
+                                <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "13px 12px 14px" }}>
+                                    {/* Top */}
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
+                                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
+                                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                            <span style={{ width: 5, height: 5, borderRadius: "50%", background: rl, boxShadow: `0 0 5px ${rl}`, flexShrink: 0, display: "inline-block" }} />
+                                            <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
+                                                {ROLE_LABEL[profile.role]}
+                                            </span>
                                         </div>
-                                        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
-                                            <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</div>
-                                            <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>@{profile.slug}{profile.region ? ` · ${profile.region}` : ""}</div>
-                                            {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.sport}</div>}
+                                        <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
+                                    </div>
+
+                                    {/* Mid */}
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
+                                        <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                            {profile.displayName}
                                         </div>
-                                        <div style={{ height: 1, background: `linear-gradient(90deg, ${rl} 0%, transparent 100%)`, opacity: 0.4, margin: "5px 0" }} />
-                                        <div style={{ fontSize: 9.5, lineHeight: 1.6, color: "rgba(255,255,255,0.38)", pointerEvents: "none", minHeight: "1em" }}>{profile.bio ?? "—"}</div>
-                                        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
-                                            <div style={{ display: "flex", flexDirection: "column", gap: 5, zIndex: 50 }} onClick={e => e.stopPropagation()}>
-                                                <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", pointerEvents: "none" }}>Connect</span>
-                                                <div style={{ display: "flex", gap: 5 }}>
-                                                    {snsLinks.length > 0 ? snsLinks.map(s => <SnsIconBtn key={s.label} label={s.label} href={s.href} color={rl} path={s.path} />) : <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>—</span>}
-                                                </div>
+                                        <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
+                                            @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
+                                        </div>
+                                        {profile.sport && (
+                                            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {profile.sport}
                                             </div>
-                                            <div style={{ display: "flex", alignItems: "flex-end", gap: 7, pointerEvents: "none" }}>
-                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                                                    <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>Profile URL</span>
-                                                    <span style={{ fontFamily: "monospace", fontSize: 7.5, color: "rgba(255,255,255,0.5)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>vizion-connection.jp/u/{profile.slug}</span>
-                                                </div>
-                                                {qrDataUrl ? <img src={qrDataUrl} alt="QR" style={{ width: 44, height: 44, borderRadius: 3, flexShrink: 0 }} /> : <div style={{ width: 44, height: 44, borderRadius: 3, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />}
+                                        )}
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div style={{ height: 1, background: `linear-gradient(90deg, ${rl} 0%, transparent 100%)`, opacity: 0.4, margin: "5px 0" }} />
+
+                                    {/* Bio */}
+                                    <div style={{ fontSize: 9.5, lineHeight: 1.6, color: "rgba(255,255,255,0.38)", pointerEvents: "none", minHeight: "1em" }}>
+                                        {profile.bio ?? "—"}
+                                    </div>
+
+                                    {/* Bottom: SNS + QR */}
+                                    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 5, zIndex: 50 }} onClick={e => e.stopPropagation()}>
+                                            <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", pointerEvents: "none" }}>Connect</span>
+                                            <div style={{ display: "flex", gap: 5 }}>
+                                                {snsLinks.length > 0
+                                                    ? snsLinks.map(s => <SnsIconBtn key={s.label} label={s.label} href={s.href} color={rl} path={s.path} />)
+                                                    : <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>—</span>
+                                                }
                                             </div>
+                                        </div>
+
+                                        <div style={{ display: "flex", alignItems: "flex-end", gap: 7, pointerEvents: "none" }}>
+                                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                                                <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>Profile URL</span>
+                                                <span style={{ fontFamily: "monospace", fontSize: 7.5, color: "rgba(255,255,255,0.5)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                    vizion-connection.jp/u/{profile.slug}
+                                                </span>
+                                            </div>
+                                            {qrDataUrl ? (
+                                                <img src={qrDataUrl} alt="QR" style={{ width: 44, height: 44, borderRadius: 3, flexShrink: 0 }} />
+                                            ) : (
+                                                <div style={{ width: 44, height: 44, borderRadius: 3, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
+
                         </motion.div>
+                    </motion.div>
 
-                        {showScan && (
-                            <motion.div initial={{ top: "-8%", opacity: 0 }} animate={{ top: "108%", opacity: [0, 1, 1, 0] }} transition={{ duration: 0.9, ease: "linear" }}
-                                style={{ position: "absolute", left: 0, right: 0, height: "6px", zIndex: 20, pointerEvents: "none", background: `linear-gradient(to bottom, transparent, ${rl}CC, transparent)`, boxShadow: `0 0 18px 6px ${rl}66` }} />
-                        )}
-                        {showScan && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0.6, 1] }} transition={{ duration: 0.6, repeat: Infinity, repeatType: "mirror" }}
-                                style={{ position: "absolute", bottom: "-26px", left: 0, right: 0, textAlign: "center", fontFamily: "monospace", fontSize: "9px", letterSpacing: "0.2em", color: rl, pointerEvents: "none", textTransform: "uppercase" }}>
-                                Generating Card...
-                            </motion.div>
-                        )}
-                    </div>
+                    {/* ── スキャンライン（初回生成アニメーション）── */}
+                    {showScan && (
+                        <motion.div
+                            initial={{ top: "-8%", opacity: 0 }}
+                            animate={{ top: "108%", opacity: [0, 1, 1, 0] }}
+                            transition={{ duration: 0.9, ease: "linear" }}
+                            style={{
+                                position: "absolute", left: 0, right: 0,
+                                height: "6px", zIndex: 20, pointerEvents: "none",
+                                background: `linear-gradient(to bottom, transparent, ${rl}CC, transparent)`,
+                                boxShadow: `0 0 18px 6px ${rl}66`,
+                            }}
+                        />
+                    )}
+
+                    {/* ── 生成中テキスト ── */}
+                    {showScan && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0, 1, 0.6, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity, repeatType: "mirror" }}
+                            style={{
+                                position: "absolute", bottom: "-26px", left: 0, right: 0,
+                                textAlign: "center", fontFamily: "monospace",
+                                fontSize: "9px", letterSpacing: "0.2em",
+                                color: rl, pointerEvents: "none",
+                                textTransform: "uppercase",
+                            }}
+                        >
+                            Generating Card...
+                        </motion.div>
+                    )}
+
                 </div>
+            </div>
 
-                {/* Actions */}
-                <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <a href={`/card/${profile.slug}`} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>
-                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                            カードを確認
-                        </a>
-                        <button onClick={() => setShowShare(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 14px", borderRadius: 8, background: `${rl}18`, border: `1px solid ${rl}40`, color: rl, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
-                            シェア
-                        </button>
-                    </div>
+            {/* ── Actions ── */}
+            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <a href={`/card/${profile.slug}`}
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, textDecoration: "none" }}>
+                        <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                        シェア用カードを確認
+                    </a>
+                    <button
+                        onClick={() => {
+                            const url = `${window.location.origin}/card/${profile.slug}`;
+                            if (navigator.share) { navigator.share({ url, title: `${profile.displayName} — Vizion Connection` }); }
+                            else { navigator.clipboard.writeText(url); }
+                        }}
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: `1px solid ${t.border}`, color: t.sub, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                        <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                        </svg>
+                        シェア
+                    </button>
                 </div>
+            </div>
 
-                <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>{vzId} · {joinDate}</p>
-            </motion.div>
-
-            <AnimatePresence>
-                {showShare && <ShareModal profile={profile} onClose={() => setShowShare(false)} />}
-            </AnimatePresence>
-        </>
+            <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>
+                {vzId} · {joinDate}
+            </p>
+        </motion.div>
     );
 }

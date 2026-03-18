@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { profileLimiter, getIp } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
     const cookieStore = await cookies();
@@ -14,6 +15,9 @@ export async function POST(req: NextRequest) {
 
     const user = await findUserBySlug(session.slug);
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    const { success } = await profileLimiter.limit(getIp(req));
+    if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
     const body = await req.json();
 
