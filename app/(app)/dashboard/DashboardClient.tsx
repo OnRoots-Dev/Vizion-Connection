@@ -79,8 +79,9 @@ export default function DashboardClient({
     }, [theme]);
 
     const handleLogout = useCallback(async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
-        window.location.href = "/";
+        // 正しいログアウト API を叩き、セッション Cookie を削除してからログインページへ戻す
+        await fetch("/api/logout", { method: "POST" });
+        window.location.href = "/login";
     }, []);
 
     const handleProfileUpdate = useCallback((updated: ProfileData) => {
