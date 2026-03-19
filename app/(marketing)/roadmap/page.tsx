@@ -39,7 +39,7 @@ const PHASES = [
         num: "02",
         label: "β版",
         status: "upcoming" as const,
-        period: "2026 Q2",
+        period: "2026年 5月 公開予定",
         tagline: "つながりに、深さを。",
         desc: "Discoveryが進化し、人と人の間に意味ある接続が生まれ始める。",
         progress: 20,
@@ -66,7 +66,7 @@ const PHASES = [
         num: "03",
         label: "正式版 v1.0",
         status: "future" as const,
-        period: "2026 Q3–Q4",
+        period: "2026年 9月 リリース予定",
         tagline: "信頼が、経済になる。",
         desc: "スポーツに関わるすべての人が、信頼を資産として活用できるプラットフォームへ。",
         progress: 0,
@@ -97,7 +97,7 @@ const PHASES = [
         num: "04",
         label: "追実装",
         status: "future" as const,
-        period: "2027 –",
+        period: "2027年以降 順次展開",
         tagline: "信頼が、世界をつなぐ。",
         desc: "コミュニティの進化と共に、新しいスポーツ経済圏を広げていく。あなたと作っていく。",
         progress: 0,
@@ -212,8 +212,8 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                     </motion.span>
                                 )}
                                 {isUpcoming && (
-                                    <span className="rounded-full border border-[#3282FF]/30 bg-[#3282FF]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#3282FF]/70">
-                                        Coming Next
+                                    <span className="rounded-full border border-[#3282FF]/40 bg-[#3282FF]/15 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#3282FF]/90">
+                                        🔜 Coming Next — 5月公開
                                     </span>
                                 )}
                                 <span

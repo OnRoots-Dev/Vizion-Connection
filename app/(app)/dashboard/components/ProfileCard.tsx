@@ -91,6 +91,7 @@ export function ProfileCardSection({
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ00000-0000-00000";
     const cheerCount = profile.cheerCount ?? 0;
+    const avatarSrc = profile.avatarUrl ?? null;
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
 
@@ -202,22 +203,29 @@ export function ProfileCardSection({
                                     </div>
 
                                     {/* Mid */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                                        <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
-                                            {ROLE_LABEL[profile.role]}
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <div style={{ width: 46, height: 46, borderRadius: "50%", overflow: "hidden", border: `2px solid ${rl}60`, background: `${rl}12`, flexShrink: 0, boxShadow: `0 4px 14px ${rl}35`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            {avatarSrc
+                                                ? <img src={avatarSrc} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                : <span style={{ fontSize: 16, fontWeight: 900, color: `${rl}90`, fontFamily: "monospace" }}>{initials}</span>}
                                         </div>
-                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
-                                            {profile.displayName}
-                                        </div>
-                                        {profile.sport && (
-                                            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                {profile.sport}
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+                                            <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
+                                                {ROLE_LABEL[profile.role]}
                                             </div>
-                                        )}
-                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
+                                            <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
+                                                {profile.displayName}
+                                            </div>
+                                            {profile.sport && (
+                                                <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                    {profile.sport}
+                                                </div>
+                                            )}
+                                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                                                <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                                <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
+                                                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
+                                            </div>
                                         </div>
                                     </div>
 

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
+import ShareButton from "./ShareButton";
 import type { PublicProfileData } from "@/features/profile/types";
 import type { ProfileData } from "@/features/profile/types";
-
-
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -26,10 +24,9 @@ export default function CardPageClient({
     referralUrl: string;
 }) {
     const [copied, setCopied] = useState(false);
+    const [shareOpen, setShareOpen] = useState(false);
     const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const profileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
-
-    
 
     async function handleCopy() {
         try { await navigator.clipboard.writeText(profileUrl); } catch { }
@@ -50,13 +47,113 @@ export default function CardPageClient({
                 background: `radial-gradient(ellipse 60% 40% at 50% 0%, ${rl}12 0%, transparent 70%)`,
             }} />
 
+            {/* ── シェアモーダル ── */}
+            <AnimatePresence>
+                {shareOpen && (
+                    <>
+                        {/* オーバーレイ */}
+                        <motion.div
+                            key="overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShareOpen(false)}
+                            style={{
+                                position: "fixed", inset: 0, zIndex: 50,
+                                background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)",
+                            }}
+                        />
+                        {/* モーダル本体 */}
+                        <motion.div
+                            key="modal"
+                            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                            transition={{ type: "spring", damping: 24, stiffness: 300 }}
+                            style={{
+                                position: "fixed", bottom: 0, left: 0, right: 0,
+                                zIndex: 51, padding: "0 16px 32px",
+                                maxWidth: "560px", margin: "0 auto",
+                            }}
+                        >
+                            <div style={{
+                                borderRadius: 20, padding: "20px 18px",
+                                background: "#0d0d1a",
+                                border: `1px solid ${rl}30`,
+                                boxShadow: `0 0 48px ${rl}15, 0 24px 60px rgba(0,0,0,0.8)`,
+                            }}>
+                                {/* モーダルヘッダー */}
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                                    <div>
+                                        <p style={{ margin: 0, fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>
+                                            Share Card
+                                        </p>
+                                        <p style={{ margin: "4px 0 0", fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                                            {profile.displayName}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShareOpen(false)}
+                                        style={{
+                                            width: 32, height: 32, borderRadius: "50%",
+                                            background: "rgba(255,255,255,0.06)",
+                                            border: "1px solid rgba(255,255,255,0.1)",
+                                            color: "rgba(255,255,255,0.5)",
+                                            cursor: "pointer", display: "flex",
+                                            alignItems: "center", justifyContent: "center",
+                                        }}
+                                    >
+                                        <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* カード見本プレビュー */}
+                                <div style={{
+                                    borderRadius: 12, overflow: "hidden",
+                                    marginBottom: 14,
+                                    border: `1px solid ${rl}20`,
+                                    background: "rgba(0,0,0,0.3)",
+                                }}>
+                                    {/* OG画像プレビュー（/api/og/slug から取得） */}
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={`/api/og/${profile.slug}?format=og`}
+                                        alt="カードプレビュー"
+                                        style={{
+                                            width: "100%",
+                                            height: "auto",
+                                            display: "block",
+                                            borderRadius: 12,
+                                        }}
+                                        onError={(e) => {
+                                            // 画像読み込み失敗時は非表示
+                                            (e.target as HTMLImageElement).style.display = "none";
+                                        }}
+                                    />
+                                </div>
+
+                                {/* ShareButton（3つのボタン） */}
+                                <ShareButton
+                                    slug={profile.slug}
+                                    displayName={profile.displayName}
+                                    roleColor={rl}
+                                    profileUrl={profileUrl}
+                                />
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
             <main style={{
                 maxWidth: "560px", margin: "0 auto",
                 padding: "32px 20px 80px",
                 position: "relative", zIndex: 1,
             }}>
 
-                {/* ── プロフィールカード（html2canvasのターゲットにidを付与） ── */}
+                {/* ── プロフィールカード ── */}
                 <div id="profile-card-share">
                     <ProfileCardSection profile={profile as unknown as ProfileData} t={theme} />
                 </div>
@@ -111,6 +208,7 @@ export default function CardPageClient({
 
                         {/* ── シェアボタン（モーダルを開く） ── */}
                         <button
+                            onClick={() => setShareOpen(true)}
                             title="カードをシェア"
                             style={{
                                 flexShrink: 0, width: "42px", height: "42px",
@@ -156,8 +254,6 @@ export default function CardPageClient({
                     </a>
                 </motion.div>
             </main>
-
-            
         </div>
     );
 }

@@ -91,11 +91,46 @@ export function DashboardProfileView({
                     background: t.surface,
                 }}
             >
+                {/* ── プロフィール画像（ヒーローバナー） ── */}
                 <div
                     style={{
-                        padding: "18px 18px 16px",
+                        position: "relative",
+                        height: profile.profileImageUrl ? 120 : 0,
+                        overflow: "hidden",
+                    }}
+                >
+                    {profile.profileImageUrl && (
+                        <>
+                            <img
+                                src={profile.profileImageUrl}
+                                alt=""
+                                style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    objectPosition: "center top",
+                                    opacity: 0.55,
+                                }}
+                            />
+                            {/* グラデーションオーバーレイ */}
+                            <div style={{
+                                position: "absolute",
+                                inset: 0,
+                                background: `linear-gradient(to bottom, transparent 30%, ${t.surface} 100%)`,
+                            }} />
+                        </>
+                    )}
+                </div>
+
+                <div
+                    style={{
+                        padding: profile.profileImageUrl ? "0 18px 16px" : "18px 18px 16px",
                         background: `radial-gradient(ellipse 70% 55% at 50% 0%, ${roleColor}18 0%, transparent 70%)`,
                         borderBottom: `1px solid ${t.border}`,
+                        marginTop: profile.profileImageUrl ? -32 : 0,
+                        position: "relative",
                     }}
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -105,7 +140,7 @@ export function DashboardProfileView({
                                 height: 58,
                                 borderRadius: "50%",
                                 background: `${roleColor}18`,
-                                border: `2px solid ${roleColor}55`,
+                                border: `2.5px solid ${roleColor}70`,
                                 overflow: "hidden",
                                 display: "flex",
                                 alignItems: "center",
@@ -114,6 +149,7 @@ export function DashboardProfileView({
                                 fontSize: 18,
                                 fontWeight: 900,
                                 color: roleColor,
+                                boxShadow: `0 0 16px ${roleColor}30`,
                             }}
                         >
                             {profile.avatarUrl ? (
@@ -249,4 +285,3 @@ export function DashboardProfileView({
         </div>
     );
 }
-
