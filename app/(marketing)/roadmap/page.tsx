@@ -216,12 +216,22 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                         🔜 Coming Next — 5月公開
                                     </span>
                                 )}
-                                <span
-                                    className="font-mono text-[10px] uppercase tracking-widest"
-                                    style={{ color: isCurrent ? phase.accent + "80" : "#AAAAAA" }}
-                                >
-                                    {phase.period}
-                                </span>
+                            </div>
+
+                            {/* 🗓 日程バッジ（大きく目立つ位置） */}
+                            <div
+                                className="mb-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 font-mono font-bold"
+                                style={{
+                                    fontSize: "clamp(12px, 1.6vw, 15px)",
+                                    background: isCurrent ? `${phase.accent}18` : isUpcoming ? "rgba(50,130,255,0.08)" : "rgba(0,0,0,0.04)",
+                                    border: `1.5px solid ${isCurrent ? phase.accentBorder : isUpcoming ? "rgba(50,130,255,0.3)" : "#DEDEDE"}`,
+                                    color: isCurrent ? phase.accent : isUpcoming ? "#3282FF" : "#999999",
+                                }}
+                            >
+                                <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2}>
+                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="16" y1="2" x2="16" y2="6" />
+                                </svg>
+                                {phase.period}
                             </div>
 
                             <h2
@@ -237,7 +247,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                 className="mt-1 font-bold"
                                 style={{
                                     fontSize: "clamp(13px, 1.5vw, 16px)",
-                                    color: isCurrent ? phase.accent : phase.accent,
+                                    color: phase.accent,
                                 }}
                             >
                                 {phase.tagline}

@@ -91,7 +91,6 @@ export function ProfileCardSection({
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ00000-0000-00000";
     const cheerCount = profile.cheerCount ?? 0;
-    const avatarSrc = profile.avatarUrl ?? null;
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
 
@@ -130,7 +129,7 @@ export function ProfileCardSection({
             transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             style={{ borderRadius: 16, padding: 20, background: t.surface, border: `1px solid ${t.border}` }}
         >
-            {/* ── Header ── */}
+            {/* ── Header（カード右上にプロフィール表示ボタン） ── */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>
                     Profile Card
@@ -139,6 +138,27 @@ export function ProfileCardSection({
                     <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: `${rl}15`, color: rl, border: `1px solid ${rl}30`, fontWeight: 700 }}>
                         {ROLE_LABEL[profile.role]}
                     </span>
+                    {setView ? (
+                        <button
+                            onClick={() => setView("profile")}
+                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 9, fontWeight: 800, cursor: "pointer" }}
+                        >
+                            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                            プロフィール表示
+                        </button>
+                    ) : (
+                        <a
+                            href={`/u/${profile.slug}`}
+                            style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 9, fontWeight: 800, textDecoration: "none" }}
+                        >
+                            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            公開ページ
+                        </a>
+                    )}
                 </div>
             </div>
 
@@ -165,7 +185,7 @@ export function ProfileCardSection({
                         <motion.div
                             animate={{ rotateY: isFlipped ? 180 : 0 }}
                             transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
-                            style={{transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                            style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                         >
 
                             {/* ════ FRONT ════ */}
@@ -192,40 +212,35 @@ export function ProfileCardSection({
                                     VIZION CONNECTION · PROOF OF EXISTENCE
                                 </div>
 
-                                {/* Left content — 42% */}
-                                <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "42%" }}>
+                                {/* Left content — width広げてはみ出しOK */}
+                                <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "85%" }}>
                                     {/* Top */}
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                                        {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
+                                        <div style={{ display: "inline-flex" }}>
+                                            {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                                        </div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>
                                             {profile.region || "N/A"} / {profile.prefecture || "N/A"}
                                         </span>
                                     </div>
 
                                     {/* Mid */}
-                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                        <div style={{ width: 46, height: 46, borderRadius: "50%", overflow: "hidden", border: `2px solid ${rl}60`, background: `${rl}12`, flexShrink: 0, boxShadow: `0 4px 14px ${rl}35`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                            {avatarSrc
-                                                ? <img src={avatarSrc} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                                : <span style={{ fontSize: 16, fontWeight: 900, color: `${rl}90`, fontFamily: "monospace" }}>{initials}</span>}
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
+                                            {ROLE_LABEL[profile.role]}
                                         </div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
-                                            <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
-                                                {ROLE_LABEL[profile.role]}
+                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
+                                            {profile.displayName}
+                                        </div>
+                                        {profile.sport && (
+                                            <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>
+                                                {profile.sport}
                                             </div>
-                                            <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
-                                                {profile.displayName}
-                                            </div>
-                                            {profile.sport && (
-                                                <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                    {profile.sport}
-                                                </div>
-                                            )}
-                                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                                                <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                                <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
-                                                <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
-                                            </div>
+                                        )}
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
                                     </div>
 
@@ -366,48 +381,237 @@ export function ProfileCardSection({
             </div>
 
             {/* ── Actions ── */}
-            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
-                <div style={{ display: "flex", gap: 8 }}>
-                    {setView ? (
-                        <button
-                            onClick={() => setView("profile")}
-                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, cursor: "pointer" }}
-                        >
-                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                            </svg>
-                            プロフィール表示
-                        </button>
-                    ) : (
-                        <a
-                            href={`/u/${profile.slug}`}
-                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 11, fontWeight: 700, textDecoration: "none" }}
-                        >
-                            <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                            </svg>
-                            プロフィールページ表示
-                        </a>
-                    )}
-                    <button
-                        onClick={() => {
-                            const url = `${window.location.origin}/card/${profile.slug}`;
-                            if (navigator.share) { navigator.share({ url, title: `${profile.displayName} — Vizion Connection` }); }
-                            else { navigator.clipboard.writeText(url); }
-                        }}
-                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: `1px solid ${t.border}`, color: t.sub, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                        <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-                        </svg>
-                        シェア
-                    </button>
-                </div>
-            </div>
+            <ShareMenu profile={profile} t={t} rl={rl} />
 
             <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>
                 {vzId} · {joinDate}
             </p>
         </motion.div>
+    );
+}
+
+// ── シェアメニュー（1ボタン → ドロップダウン） ───────────────────────────────
+function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; rl: string }) {
+    const [open, setOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [storiesLoading, setStoriesLoading] = useState(false);
+
+    const url = typeof window !== "undefined" ? `${window.location.origin}/u/${profile.slug}` : `/u/${profile.slug}`;
+
+    async function handleCopyUrl() {
+        try { await navigator.clipboard.writeText(url); } catch {
+            const el = document.createElement("textarea");
+            el.value = url; document.body.appendChild(el); el.select();
+            document.execCommand("copy"); document.body.removeChild(el);
+        }
+        setCopied(true);
+        setTimeout(() => { setCopied(false); setOpen(false); }, 1800);
+    }
+
+    function handleX() {
+        const roleLabel: Record<string, string> = {
+            Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス",
+        };
+        const role = roleLabel[profile.role] ?? profile.role;
+        const sport = profile.sport ? ` · ${profile.sport}` : "";
+        const cheer = (profile.cheerCount ?? 0).toLocaleString();
+        const text = `${profile.displayName}（${role}${sport}）さんのVizion Connectionプロフィール 🔥\n⭐ Cheer ${cheer}\n\nスポーツの新しいつながりを、ここから。\n#VizionConnection`;
+        window.open(
+            `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+            "_blank", "width=600,height=500,noopener"
+        );
+        setOpen(false);
+    }
+
+    async function handleStories() {
+        setStoriesLoading(true);
+        const storiesUrl = `${window.location.origin}/api/og/${profile.slug}?format=stories`;
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const rlColor = profile.role === "Athlete" ? "#C1272D"
+            : profile.role === "Trainer" ? "#1A7A4A"
+                : profile.role === "Members" ? "#B8860B" : "#1B3A8C";
+        try {
+            if (isMobile) {
+                const res = await fetch(storiesUrl);
+                const blob = await res.blob();
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const w = window.open("about:blank", "_blank");
+                    if (w) {
+                        w.document.write(`<!DOCTYPE html><html><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#07070e;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:max(env(safe-area-inset-top),20px) 20px max(env(safe-area-inset-bottom),20px);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;}
+.bar{width:100%;display:flex;align-items:center;justify-content:center;padding:14px 0 16px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:20px;}
+.logo{font-size:9px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.28);}
+.img-wrap{width:100%;max-width:320px;border-radius:14px;overflow:hidden;box-shadow:0 16px 56px rgba(0,0,0,.85),0 0 0 1px ${rlColor}28;margin-bottom:20px;}
+.img-wrap img{width:100%;display:block;}
+.guide{width:100%;max-width:320px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+.step{display:flex;align-items:flex-start;gap:10px;}
+.num{width:22px;height:22px;border-radius:50%;background:${rlColor}20;border:1px solid ${rlColor}45;color:${rlColor};font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.txt{font-size:13px;color:rgba(255,255,255,.6);line-height:1.65;}
+.txt b{color:#fff;font-weight:700;}
+.hr{height:1px;background:rgba(255,255,255,.06);}
+.hint{font-size:10px;color:rgba(255,255,255,.2);text-align:center;margin-top:10px;letter-spacing:.04em;}
+</style>
+</head><body>
+<div class="bar"><span class="logo">Vizion Connection</span></div>
+<div class="img-wrap"><img src="${reader.result}" alt="Vizion Card"/></div>
+<div class="guide">
+  <div class="step"><div class="num">1</div><div class="txt">画像を<b>長押し</b>して「写真に追加」を選択</div></div>
+  <div class="hr"></div>
+  <div class="step"><div class="num">2</div><div class="txt">Instagramを開いて<b>新規ストーリーズ</b>を作成</div></div>
+  <div class="hr"></div>
+  <div class="step"><div class="num">3</div><div class="txt">保存した画像を選んで<b>シェア！</b></div></div>
+</div>
+<p class="hint">1080 × 1920 px · Stories 推奨サイズ</p>
+</body></html>`);
+                        w.document.close();
+                    }
+                };
+                reader.readAsDataURL(blob);
+            } else {
+                const a = document.createElement("a");
+                a.href = storiesUrl;
+                a.download = `vizion-stories-${profile.slug}.png`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+        } catch { window.open(storiesUrl, "_blank"); }
+        setStoriesLoading(false);
+        setOpen(false);
+    }
+
+    async function handleNativeShare() {
+        if (navigator.share) {
+            try { await navigator.share({ title: `${profile.displayName} | Vizion Connection`, url }); } catch { /* cancel */ }
+        } else {
+            await handleCopyUrl();
+        }
+        setOpen(false);
+    }
+
+    const menuItems = [
+        {
+            label: "Xに投稿",
+            sub: "OG画像付きでツイート",
+            icon: <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>,
+            color: "#ffffff",
+            bg: "rgba(255,255,255,0.06)",
+            border: "rgba(255,255,255,0.1)",
+            onClick: handleX,
+        },
+        {
+            label: "Instagram Stories",
+            sub: "縦長画像を保存して投稿",
+            icon: <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z" /></svg>,
+            color: "#e1306c",
+            bg: "linear-gradient(135deg,rgba(240,148,51,.1),rgba(188,24,136,.1))",
+            border: "rgba(225,48,108,0.2)",
+            onClick: handleStories,
+            loading: storiesLoading,
+        },
+        {
+            label: copied ? "コピーしました ✓" : "URLをコピー",
+            sub: "プロフィールURLをコピー",
+            icon: <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>,
+            color: copied ? "#32D278" : "rgba(255,255,255,0.55)",
+            bg: copied ? "rgba(50,210,120,0.08)" : "rgba(255,255,255,0.04)",
+            border: copied ? "rgba(50,210,120,0.25)" : "rgba(255,255,255,0.08)",
+            onClick: handleCopyUrl,
+        },
+        {
+            label: "その他のアプリでシェア",
+            sub: "Web Share API / LINEなど",
+            icon: <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>,
+            color: "rgba(255,255,255,0.4)",
+            bg: "rgba(255,255,255,0.03)",
+            border: "rgba(255,255,255,0.07)",
+            onClick: handleNativeShare,
+        },
+    ];
+
+    return (
+        <div style={{ marginTop: 14, position: "relative" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
+                <button
+                    onClick={() => setOpen(v => !v)}
+                    style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "7px 14px", borderRadius: 10,
+                        background: open ? `${rl}18` : "rgba(255,255,255,0.06)",
+                        border: `1px solid ${open ? rl + "40" : "rgba(255,255,255,0.1)"}`,
+                        color: open ? rl : "rgba(255,255,255,0.6)",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        transition: "all 0.18s",
+                    }}
+                >
+                    <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                    </svg>
+                    シェア
+                    <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                        style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* ドロップダウンメニュー */}
+            {open && (
+                <>
+                    {/* 背景タップで閉じる */}
+                    <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
+                    <div style={{
+                        position: "absolute", right: 0, bottom: "calc(100% + 8px)",
+                        width: 260, zIndex: 50,
+                        background: "#0f0f1c",
+                        border: `1px solid ${rl}30`,
+                        borderRadius: 14,
+                        boxShadow: `0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px ${rl}15`,
+                        overflow: "hidden",
+                        animation: "shareMenuIn 0.18s cubic-bezier(0.16,1,0.3,1)",
+                    }}>
+                        <style>{`@keyframes shareMenuIn { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }`}</style>
+                        {/* ヘッダー */}
+                        <div style={{ padding: "11px 14px 9px", borderBottom: `1px solid ${rl}18` }}>
+                            <p style={{ margin: 0, fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>
+                                Share Card
+                            </p>
+                        </div>
+                        {/* メニューアイテム */}
+                        <div style={{ padding: "6px" }}>
+                            {menuItems.map((item) => (
+                                <button
+                                    key={item.label}
+                                    onClick={item.onClick}
+                                    disabled={item.loading}
+                                    style={{
+                                        width: "100%", display: "flex", alignItems: "center", gap: 10,
+                                        padding: "10px 12px", borderRadius: 9, marginBottom: 4,
+                                        background: item.bg, border: `1px solid ${item.border}`,
+                                        color: item.color, cursor: item.loading ? "wait" : "pointer",
+                                        textAlign: "left", transition: "filter 0.15s",
+                                    }}
+                                >
+                                    <span style={{ flexShrink: 0, width: 20, display: "flex", justifyContent: "center" }}>
+                                        {item.loading
+                                            ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: "spin .8s linear infinite" }}><path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" /></svg>
+                                            : item.icon
+                                        }
+                                    </span>
+                                    <span style={{ flex: 1 }}>
+                                        <span style={{ display: "block", fontSize: 12, fontWeight: 700, lineHeight: 1.3 }}>{item.label}</span>
+                                        <span style={{ display: "block", fontSize: 10, opacity: 0.45, marginTop: 1 }}>{item.sub}</span>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            )}
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
     );
 }

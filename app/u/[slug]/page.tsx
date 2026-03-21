@@ -5,19 +5,19 @@ import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import CheerButtonClient from "./CheerButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
-import { Footer } from "@/components/layout/Footer";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
+import CareerSection from "./CareerSection";
 import type { ProfileData } from "@/features/profile/types";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
 };
 const ROLE_GRADIENT: Record<UserRole, string> = {
-    Athlete: "#2D0000", Trainer: "#001A0A", Members: "#1A0F00", Business: "#000A24",
+    Athlete: "#3D0000", Trainer: "#002211", Members: "#221500", Business: "#000D30",
 };
 const ROLE_LABEL: Record<UserRole, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
@@ -46,10 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             description: `${ROLE_LABEL_JA[role]} として活動中`,
             images: [`${env.NEXT_PUBLIC_BASE_URL}/api/og/${slug}`],
         },
-        twitter: {
-            card: "summary_large_image",
-            images: [`${env.NEXT_PUBLIC_BASE_URL}/api/og/${slug}`],
-        },
+        twitter: { card: "summary_large_image", images: [`${env.NEXT_PUBLIC_BASE_URL}/api/og/${slug}`] },
     };
 }
 
@@ -66,68 +63,111 @@ export default async function UserProfilePage({ params }: Props) {
     if (!result.data.isPublic) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
-    const profileUrl = `${env.NEXT_PUBLIC_BASE_URL}/u/${slug}`;
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const rl = ROLE_COLOR[profile.role];
     const bg1 = ROLE_GRADIENT[profile.role];
     const initials = profile.displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
     const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
-    const avatarSrc = profile.avatarUrl ?? null;
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
         { label: "Instagram", href: profile.instagram, path: IG_PATH },
         { label: "TikTok", href: profile.tiktok, path: TK_PATH },
     ].filter(s => s.href);
-
-    const cardTheme = {
-        bg: "#07070e",
-        surface: "rgba(255,255,255,0.03)",
-        border: "rgba(255,255,255,0.07)",
-        text: "#ffffff",
-        sub: "rgba(255,255,255,0.45)",
-    };
+    const cardTheme = { bg: "#08080f", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.07)", text: "#ffffff", sub: "rgba(255,255,255,0.45)" };
 
     return (
-        <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff" }}>
-            <style>{`* { box-sizing: border-box; } a { text-decoration: none; }`}</style>
+        <div style={{ minHeight: "100vh", background: "#08080f", color: "#fff", overflowX: "hidden" }}>
+            <style>{`
+                *, *::before, *::after { box-sizing: border-box; }
+                a { text-decoration: none; }
+                body { margin: 0; }
 
-            {/* ── BG ambient ── */}
-            <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: `radial-gradient(ellipse 70% 40% at 50% 0%, ${rl}10 0%, transparent 70%)` }} />
+                @keyframes _fadeUp   { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+                @keyframes _fadeIn   { from{opacity:0} to{opacity:1} }
+                @keyframes _scaleIn  { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+                @keyframes _slideX   { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+                @keyframes _ticker   { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+                @keyframes _pulse    { 0%,100%{opacity:.35} 50%{opacity:.8} }
+                @keyframes _glowPop  { 0%{box-shadow:0 0 0 0 ${rl}60} 70%{box-shadow:0 0 0 18px transparent} 100%{box-shadow:0 0 0 0 transparent} }
+                @keyframes _spin     { to{transform:rotate(360deg)} }
+                @keyframes _float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+
+                .u1 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .05s both }
+                .u2 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .14s both }
+                .u3 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .23s both }
+                .u4 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .32s both }
+                .u5 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .41s both }
+                .u6 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .50s both }
+                .u7 { animation:_fadeUp .75s cubic-bezier(.16,1,.3,1) .60s both }
+                .fi { animation:_fadeIn .9s ease .08s both }
+                .si { animation:_scaleIn .7s cubic-bezier(.16,1,.3,1) .1s both }
+                .rline { display:block; height:2px; border-radius:2px; transform-origin:left; animation:_slideX .9s cubic-bezier(.16,1,.3,1) .25s both }
+                .float { animation:_float 3.8s ease-in-out infinite }
+
+                /* ticker */
+                .tkwrap { overflow:hidden; padding:9px 0; border-top:1px solid rgba(255,255,255,0.045); border-bottom:1px solid rgba(255,255,255,0.045); white-space:nowrap; }
+                .tkinner { display:inline-flex; gap:56px; animation:_ticker 32s linear infinite; }
+                .tkitem { font-family:monospace; font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.09); flex-shrink:0; }
+
+                /* stat cards */
+                .sc { transition:transform .18s ease, background .18s ease; }
+                .sc:hover { transform:translateY(-2px); background:rgba(255,255,255,.055) !important; }
+
+                /* sns */
+                .snsb { transition:transform .15s, opacity .15s; }
+                .snsb:hover { transform:translateY(-2px); opacity:.85; }
+
+                /* cheer */
+                .cheerb button { transition:all .2s; }
+                .cheerb button:not(:disabled):hover { filter:brightness(1.12); transform:translateY(-1px); }
+
+                /* CTA */
+                .ctabtn { transition:filter .18s, transform .18s; display:inline-flex; align-items:center; }
+                .ctabtn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+
+                /* noise overlay */
+                .noise::after {
+                    content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+                    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+                    background-size:180px 180px; opacity:.45; mix-blend-mode:overlay;
+                }
+
+                /* scroll reveal utility */
+                .sr { opacity:0; transform:translateY(20px); transition:opacity .6s ease, transform .6s ease; }
+                .sr.vis { opacity:1; transform:translateY(0); }
+            `}</style>
+
+            {/* ── Ambient BG（fixed） ── */}
+            <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
+                {/* メイングロー */}
+                <div style={{ position: "absolute", top: "-15%", left: "50%", transform: "translateX(-50%)", width: "900px", height: "600px", background: `radial-gradient(ellipse 55% 55% at 50% 50%, ${rl}22 0%, transparent 70%)`, filter: "blur(1px)" }} />
+                {/* サブグロー bottom */}
+                <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: "500px", height: "300px", background: `radial-gradient(ellipse, ${rl}0e 0%, transparent 70%)` }} />
+                {/* ロールカラー角グロー */}
+                <div style={{ position: "absolute", top: 0, left: 0, width: "300px", height: "300px", background: `radial-gradient(circle, ${bg1} 0%, transparent 70%)`, opacity: .6 }} />
+                <div style={{ position: "absolute", top: 0, right: 0, width: "300px", height: "300px", background: `radial-gradient(circle, ${bg1} 0%, transparent 70%)`, opacity: .4 }} />
+                {/* 斜めライン装飾 */}
+                <div style={{ position: "absolute", inset: 0, backgroundImage: `repeating-linear-gradient(135deg, ${rl}06 0px, ${rl}06 1px, transparent 1px, transparent 60px)` }} />
+            </div>
 
             {/* ── Header ── */}
-            <header style={{ position: "sticky", top: 0, zIndex: 30, borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,14,0.92)", backdropFilter: "blur(20px)", padding: "12px 24px" }}>
-                <div style={{ maxWidth: "680px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/" style={{ display: "flex" }}>
-                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "26px", opacity: 0.8 }} />
+            <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.055)", background: "rgba(8,8,15,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
+                <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 20px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <a href="/">
+                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 20, opacity: .72 }} />
                     </a>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         {isOwn && (
-                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "20px", background: `${rl}15`, border: `1px solid ${rl}35`, color: rl, fontSize: "12px", fontWeight: 800 }}>
-                                <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 13px", borderRadius: 20, background: `${rl}14`, border: `1px solid ${rl}38`, color: rl, fontSize: 11, fontWeight: 800, letterSpacing: ".04em" }}>
+                                <svg width={11} height={11} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                                 </svg>
-                                ダッシュボード
+                                Dashboard
                             </a>
                         )}
-
-                        <a
-                            href="/contact"
-                            aria-label="お問い合わせ"
-                            title="お問い合わせ"
-                            style={{
-                                width: 34,
-                                height: 34,
-                                borderRadius: 999,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                background: "rgba(255,255,255,0.04)",
-                                border: "1px solid rgba(255,255,255,0.08)",
-                                color: "rgba(255,255,255,0.8)",
-                            }}
-                        >
-                            <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <a href="/contact" style={{ width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)" }}>
+                            <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75m19.5 0l-8.786 5.49a1.5 1.5 0 01-1.928 0L2.25 6.75" />
                             </svg>
                         </a>
@@ -135,138 +175,196 @@ export default async function UserProfilePage({ params }: Props) {
                 </div>
             </header>
 
-            <main style={{ maxWidth: "680px", margin: "0 auto", padding: "0 0 60px", position: "relative", zIndex: 1 }}>
+            <main style={{ maxWidth: "700px", margin: "0 auto", position: "relative", zIndex: 1, paddingBottom: 100 }}>
 
-                {/* ── Hero ── */}
-                <div style={{ position: "relative", height: "340px", overflow: "hidden", background: `linear-gradient(145deg, ${bg1} 0%, #050505 100%)` }}>
-                    {/* Glow */}
-                    <div style={{ position: "absolute", top: "-30%", right: "-10%", width: "360px", height: "360px", background: `radial-gradient(circle, ${rl}28, transparent 65%)`, pointerEvents: "none" }} />
-                    <div style={{ position: "absolute", bottom: "-20%", left: "-5%", width: "200px", height: "200px", background: `radial-gradient(circle, ${rl}15, transparent 65%)`, pointerEvents: "none" }} />
+                {/* ══════════════════════════════════════════════
+                    HERO — 全幅ビジュアルブロック
+                ══════════════════════════════════════════════ */}
+                <div className="noise" style={{ position: "relative", minHeight: 420, overflow: "hidden" }}>
 
                     {/* 背景画像 */}
                     {profile.profileImageUrl ? (
-                        <img src={profile.profileImageUrl} alt={profile.displayName}
-                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: 0.5 }} />
+                        <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .38, filter: "saturate(1.2) contrast(1.05)" }} />
                     ) : (
-                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "140px", fontWeight: 900, color: `${rl}10`, fontFamily: "monospace" }}>
-                            {initials}
+                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, #050508 100%)` }}>
+                            <div style={{ position: "absolute", inset: 0, fontSize: "22vw", fontWeight: 900, color: `${rl}07`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", letterSpacing: "-.04em", userSelect: "none" }}>{initials}</div>
                         </div>
                     )}
 
-                    {/* Gradient overlay */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #07070e 0%, rgba(7,7,14,0.3) 55%, transparent 100%)" }} />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(7,7,14,0.5) 0%, transparent 60%)" }} />
+                    {/* 多重グラデーション */}
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, #08080f 0%, rgba(8,8,15,.62) 40%, rgba(8,8,15,.08) 100%)` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(8,8,15,.78) 0%, rgba(8,8,15,.1) 55%, transparent 100%)` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(155deg, ${bg1}70 0%, transparent 55%)` }} />
 
-                    {/* Top badges */}
-                    <div style={{ position: "absolute", top: "20px", left: "24px", display: "flex", alignItems: "center", gap: "8px" }}>
-                        {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
-                        {serialDisplay && <span style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.22)", letterSpacing: "0.08em" }}>{serialDisplay}</span>}
-                    </div>
+                    {/* 右上コーナーグロー */}
+                    <div style={{ position: "absolute", top: "-20%", right: "-5%", width: 340, height: 340, background: `radial-gradient(circle, ${rl}22, transparent 68%)`, pointerEvents: "none" }} />
 
-                    {/* Bottom info */}
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "0 24px 28px" }}>
-                        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "12px" }}>
-                            <div style={{ display: "flex", alignItems: "flex-end", gap: "16px" }}>
-                                {/* Avatar */}
-                                <div style={{ width: 64, height: 64, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${rl}80`, background: `linear-gradient(145deg, ${bg1}, #111)`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 20px ${rl}40` }}>
-                                    {avatarSrc
-                                        ? <img src={avatarSrc} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        : <span style={{ fontSize: "22px", fontWeight: 900, color: `${rl}90`, fontFamily: "monospace" }}>{initials}</span>
-                                    }
-                                </div>
-                                <div style={{ paddingBottom: 4 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                        <h1 style={{ fontSize: "30px", fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "-0.02em", textShadow: "0 2px 16px rgba(0,0,0,0.8)" }}>
-                                            {profile.displayName}
-                                        </h1>
-                                        {profile.verified && (
-                                            <svg width={20} height={20} viewBox="0 0 24 24" fill={rl} style={{ flexShrink: 0 }}>
-                                                <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.491 4.491 0 01-3.497-1.307 4.491 4.491 0 01-1.307-3.497A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.491 4.491 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontFamily: "monospace", margin: 0 }}>
-                                        {ROLE_LABEL[profile.role]}{profile.sport ? ` · ${profile.sport}` : ""} · @{profile.slug}
-                                    </p>
-                                </div>
+                    {/* 斜めアクセントライン */}
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, ${rl}70, transparent 60%)` }} />
+
+                    {/* コンテンツ */}
+                    <div style={{ position: "relative", zIndex: 2, padding: "40px 24px 32px" }}>
+
+                        {/* バッジ行 */}
+                        <div className="u1" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                            {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                            {serialDisplay && <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,.22)", letterSpacing: ".1em", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", padding: "2px 8px", borderRadius: 4 }}>{serialDisplay}</span>}
+                        </div>
+
+                        {/* Roleライン */}
+                        <div className="u1" style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
+                            <span className="rline" style={{ width: 28, background: rl }} />
+                            <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 800, letterSpacing: ".32em", textTransform: "uppercase", color: `${rl}dd` }}>
+                                {ROLE_LABEL[profile.role]}{profile.sport ? ` · ${profile.sport}` : ""}
+                            </span>
+                        </div>
+
+                        {/* 名前 */}
+                        <div className="u2" style={{ display: "flex", alignItems: "flex-end", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+                            <h1 style={{ fontSize: "clamp(40px,9vw,60px)", fontWeight: 900, color: "#fff", margin: 0, lineHeight: .95, letterSpacing: "-.035em", textShadow: `0 0 40px ${rl}30, 0 2px 20px rgba(0,0,0,.7)` }}>
+                                {profile.displayName}
+                            </h1>
+                            {profile.verified && (
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 9px 3px 5px", borderRadius: 20, background: `${rl}20`, border: `1px solid ${rl}55`, color: rl, fontSize: 9.5, fontWeight: 800, letterSpacing: ".1em", marginBottom: 6 }}>
+                                    <svg width={10} height={10} viewBox="0 0 24 24" fill={rl}><path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.491 4.491 0 01-3.497-1.307 4.491 4.491 0 01-1.307-3.497A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.491 4.491 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" /></svg>
+                                    VERIFIED
+                                </span>
+                            )}
+                        </div>
+
+                        {/* @slug · region */}
+                        <div className="u2" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
+                            <span style={{ fontSize: 12, fontFamily: "monospace", color: "rgba(255,255,255,.32)", letterSpacing: ".04em" }}>@{profile.slug}</span>
+                            {profile.region && <>
+                                <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.18)", display: "inline-block" }} />
+                                <span style={{ fontSize: 12, fontFamily: "monospace", color: "rgba(255,255,255,.32)" }}>{profile.region}</span>
+                            </>}
+                        </div>
+
+                        {/* アバター + Cheer + SNS */}
+                        <div className="u3" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                            {/* アバター */}
+                            <div className="float" style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${rl}`, background: `linear-gradient(145deg, ${bg1}, #111)`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 4px ${rl}18, 0 0 30px ${rl}45`, animation: "_glowPop 3s ease-in-out infinite, _float 3.8s ease-in-out infinite" }}>
+                                {profile.avatarUrl
+                                    ? <img src={profile.avatarUrl} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    : <span style={{ fontSize: 20, fontWeight: 900, color: `${rl}dd`, fontFamily: "monospace" }}>{initials}</span>
+                                }
                             </div>
-                            {/* Cheer count */}
-                            <div style={{ flexShrink: 0, textAlign: "center", padding: "12px 18px", borderRadius: "14px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,210,0,0.2)" }}>
-                                <p style={{ fontSize: "24px", fontWeight: 900, color: "#FFD600", margin: 0, fontFamily: "monospace", lineHeight: 1 }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
-                                <p style={{ fontSize: "8px", color: "rgba(255,210,0,0.45)", margin: "3px 0 0", letterSpacing: "0.12em", textTransform: "uppercase" }}>Cheer</p>
+
+                            {/* Cheer */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,210,0,.45)" }}>CHEER</span>
+                                <span style={{ fontSize: 36, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1, letterSpacing: "-.025em", textShadow: "0 0 24px rgba(255,214,0,.5), 0 0 8px rgba(255,214,0,.3)" }}>
+                                    {(profile.cheerCount ?? 0).toLocaleString()}
+                                </span>
                             </div>
+
+                            {/* SNS */}
+                            {snsLinks.length > 0 && (
+                                <div style={{ display: "flex", gap: 7, marginLeft: "auto" }}>
+                                    {snsLinks.map(s => (
+                                        <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" className="snsb"
+                                            style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${rl}18`, border: `1px solid ${rl}35`, color: rl }}>
+                                            <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor"><path d={s.path} /></svg>
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* ── Body ── */}
-                <div style={{ padding: "24px 24px 0", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* ── TICKER ── */}
+                <div className="tkwrap fi">
+                    <div className="tkinner">
+                        {Array.from({ length: 10 }).map((_, i) => (
+                            <span key={i} className="tkitem">{profile.displayName} · {ROLE_LABEL[profile.role]} · VIZION CONNECTION ·</span>
+                        ))}
+                    </div>
+                </div>
 
-                    {/* Bio */}
+                {/* ════════════════════════
+                    BODY
+                ════════════════════════ */}
+                <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", gap: 14 }}>
+
+                    {/* ── BIO ── */}
                     {profile.bio && (
-                        <div style={{ padding: "16px 18px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: 1.75, margin: 0 }}>{profile.bio}</p>
+                        <div className="u4" style={{ position: "relative", padding: "18px 20px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
+                            {/* 左アクセントライン */}
+                            <div style={{ position: "absolute", left: 0, top: "18%", bottom: "18%", width: 3, borderRadius: "0 3px 3px 0", background: `linear-gradient(to bottom, transparent, ${rl}cc, transparent)` }} />
+                            {/* 右上の飾り文字 */}
+                            <div style={{ position: "absolute", top: 8, right: 14, fontFamily: "monospace", fontSize: 28, fontWeight: 900, color: "rgba(255,255,255,.03)", lineHeight: 1, userSelect: "none" }}>"</div>
+                            <p style={{ fontSize: 14, color: "rgba(255,255,255,.65)", lineHeight: 1.85, margin: 0, paddingLeft: 6 }}>{profile.bio}</p>
                         </div>
                     )}
 
-                    {/* Stats grid */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
+                    {/* ── STATS グリッド ── */}
+                    <div className="u4" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
                         {[
                             { label: "Role", value: ROLE_LABEL[profile.role], color: rl },
                             { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), color: "#FFD600" },
-                            { label: "参加日", value: joinedAt, color: undefined },
-                            ...(profile.region ? [{ label: "Area", value: profile.region, color: undefined }] : []),
-                            ...(profile.sport ? [{ label: "Sport / Job", value: profile.sport, color: undefined }] : []),
+                            { label: "参加日", value: joinedAt },
+                            ...(profile.region ? [{ label: "Area", value: profile.region }] : []),
+                            ...(profile.sport ? [{ label: "Sport / Job", value: profile.sport }] : []),
                         ].map(({ label, value, color }) => (
-                            <div key={label} style={{ padding: "12px 14px", borderRadius: "12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                                <p style={{ fontSize: "8px", color: "rgba(255,255,255,0.22)", letterSpacing: "0.12em", textTransform: "uppercase", fontFamily: "monospace", margin: "0 0 5px" }}>{label}</p>
-                                <p style={{ fontSize: "13px", fontWeight: 800, color: color ?? "rgba(255,255,255,0.65)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</p>
+                            <div key={label} className="sc" style={{ padding: "14px 15px", borderRadius: 14, background: "rgba(255,255,255,.026)", border: "1px solid rgba(255,255,255,.065)" }}>
+                                <p style={{ fontSize: 8, color: "rgba(255,255,255,.2)", letterSpacing: ".16em", textTransform: "uppercase", fontFamily: "monospace", margin: "0 0 6px" }}>{label}</p>
+                                <p style={{ fontSize: 14, fontWeight: 800, color: color ?? "rgba(255,255,255,.7)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</p>
                             </div>
                         ))}
                     </div>
 
-                    {/* SNS */}
-                    {snsLinks.length > 0 && (
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                            {snsLinks.map(s => (
-                                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
-                                    style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: "10px", background: `${rl}10`, border: `1px solid ${rl}25`, color: rl, fontSize: "12px", fontWeight: 700 }}>
-                                    <svg viewBox="0 0 24 24" width={12} height={12} fill="currentColor"><path d={s.path} /></svg>
-                                    {s.label}
-                                </a>
-                            ))}
-                        </div>
-                    )}
+                    {/* ── CHEER BUTTON ── */}
+                    <div className="u5 cheerb">
+                        <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
+                    </div>
 
-                    {/* Cheer button */}
-                    <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
+                    {/* ── PROFILE CARD ── */}
+                    <div className="u6" id="card" style={{ scrollMarginTop: 80 }}>
+                        <ProfileCardSection profile={profile as unknown as ProfileData} t={cardTheme} roleColor={rl} />
+                    </div>
 
-                    {/* Profile Card (same page) */}
-                    <div id="card" style={{ scrollMarginTop: 90 }} />
-                    <div style={{ padding: "6px 0 0" }}>
-                        <ProfileCardSection
-                            profile={profile as unknown as ProfileData}
-                            t={cardTheme}
+                    {/* ── CAREER TAB SECTION ── */}
+                    <div className="u7">
+                        <CareerSection
                             roleColor={rl}
+                            bio={profile.bio}
+                            sport={profile.sport}
+                            region={profile.region}
+                            prefecture={profile.prefecture}
+                            joinedAt={joinedAt}
+                            roleLabel={ROLE_LABEL[profile.role]}
+                            cheerCount={profile.cheerCount ?? 0}
+                            isPublic={profile.isPublic}
+                            slug={slug}
                         />
                     </div>
 
-                    {/* CTA */}
-                    <div style={{ borderRadius: "16px", padding: "24px 20px", background: `${rl}08`, border: `1px solid ${rl}20`, textAlign: "center" }}>
-                        <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", margin: "0 0 16px", lineHeight: 1.75 }}>
-                            <span style={{ color: "#fff", fontWeight: 700 }}>{profile.displayName}</span> の紹介で<br />Vizion Connection に参加しませんか？
+                    {/* ── CTA ── */}
+                    <div className="u7" style={{ position: "relative", borderRadius: 20, padding: "32px 24px", background: `linear-gradient(135deg, ${bg1} 0%, rgba(8,8,15,.6) 100%)`, border: `1px solid ${rl}22`, textAlign: "center", overflow: "hidden" }}>
+                        {/* 背景装飾 */}
+                        <div style={{ position: "absolute", top: "-50%", right: "-10%", width: 240, height: 240, background: `radial-gradient(circle, ${rl}18, transparent 68%)`, pointerEvents: "none" }} />
+                        <div style={{ position: "absolute", bottom: "-40%", left: "-5%", width: 180, height: 180, background: `radial-gradient(circle, ${rl}0e, transparent 68%)`, pointerEvents: "none" }} />
+                        {/* 上部ライン */}
+                        <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, ${rl}60, transparent)` }} />
+
+                        <p style={{ position: "relative", zIndex: 1, fontSize: 9, fontFamily: "monospace", letterSpacing: ".28em", textTransform: "uppercase", color: "rgba(255,255,255,.28)", margin: "0 0 10px" }}>INVITE</p>
+                        <p style={{ position: "relative", zIndex: 1, fontSize: 15, color: "rgba(255,255,255,.5)", margin: "0 0 22px", lineHeight: 1.75 }}>
+                            <span style={{ color: "#fff", fontWeight: 800 }}>{profile.displayName}</span> の紹介で<br />
+                            Vizion Connection に参加しませんか？
                         </p>
-                        <a href={referralUrl} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "13px 28px", borderRadius: "12px", background: rl, color: "#000", fontSize: "14px", fontWeight: 800, letterSpacing: "0.03em" }}>
+                        <a href={referralUrl} className="ctabtn" style={{ position: "relative", zIndex: 1, gap: 8, padding: "14px 32px", borderRadius: 14, background: rl, color: "#000", fontSize: 13, fontWeight: 800, letterSpacing: ".04em" }}>
                             先行登録する（無料）
-                            <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
-                        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: "12px 0 0" }}>完全無料 · いつでも退会可</p>
+                        <p style={{ position: "relative", zIndex: 1, fontSize: 10, color: "rgba(255,255,255,.18)", margin: "14px 0 0" }}>完全無料 · いつでも退会可</p>
                     </div>
+
                 </div>
             </main>
-
         </div>
     );
 }

@@ -337,7 +337,7 @@ function DashboardSidebar({ profile, view, setView, theme, setTheme, t, roleColo
             ],
         },
         {
-            group: "コミュニティ",
+            group: "探索",
             items: [
                 { id: "discovery" as DashboardView, label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
                 { id: "roadmap" as DashboardView, label: "ロードマップ", icon: "M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" },
@@ -630,41 +630,26 @@ function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, 
             />
 
             {/* ── Cheer ＋ 公開URLカード（2カラム） ── */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {/* Cheer */}
+            {/* ── Cheer（1カラム・全幅） ── */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                 <button onClick={() => setView("cheer")} className="vz-btn vz-card-hover" style={{
-                    padding: "18px 16px", borderRadius: 16,
+                    width: "100%", padding: "18px 20px", borderRadius: 16,
                     background: `radial-gradient(circle at top right, ${roleColor}15, rgba(255,255,255,0.02))`,
                     border: `1px solid ${roleColor}25`,
                     cursor: "pointer", textAlign: "left",
                     position: "relative", overflow: "hidden",
                 }}>
+                    {/* 右上：詳細バッジ */}
+                    <div style={{ position: "absolute", top: 14, right: 16, display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 20, background: `${roleColor}18`, border: `1px solid ${roleColor}35`, color: roleColor, fontSize: 9, fontWeight: 800, fontFamily: "monospace", letterSpacing: "0.08em" }}>
+                        詳細 →
+                    </div>
                     <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: roleColor, margin: "0 0 6px", fontFamily: "monospace", opacity: 0.7 }}>Cheer</p>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                        <span style={{ fontSize: 34, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace" }}>{profile.cheerCount ?? 0}</span>
-                        <span style={{ fontSize: 10, color: t.sub }}>★</span>
+                        <span style={{ fontSize: 40, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace" }}>{profile.cheerCount ?? 0}</span>
+                        <span style={{ fontSize: 12, color: t.sub }}>★ 応援数</span>
                     </div>
-                    <p style={{ fontSize: 10, color: t.sub, margin: "4px 0 0", opacity: 0.6 }}>応援数</p>
-                    <div style={{ position: "absolute", bottom: 10, right: 12, fontSize: 9, color: roleColor, opacity: 0.5, fontFamily: "monospace", letterSpacing: "0.08em" }}>詳細 →</div>
+                    <p style={{ fontSize: 10, color: t.sub, margin: "6px 0 0", opacity: 0.45 }}>プロフィールを広めてCheerを集めよう</p>
                 </button>
-
-                {/* Public URL */}
-                <div className="vz-card-hover" style={{ padding: "18px 16px", borderRadius: 16, background: t.surface, border: `1px solid ${t.border}` }}>
-                    <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub, margin: "0 0 8px", fontFamily: "monospace", opacity: 0.5 }}>Public URL</p>
-                    <p style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, margin: "0 0 10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: 0.6 }}>
-                        /u/{profile.slug}
-                    </p>
-                    <button onClick={handleCopy} className="vz-btn" style={{
-                        width: "100%", padding: "7px 10px", borderRadius: 9,
-                        background: copied ? `${roleColor}18` : `${roleColor}10`,
-                        border: `1px solid ${copied ? roleColor + "50" : roleColor + "30"}`,
-                        color: copied ? roleColor : t.sub,
-                        fontSize: 10, fontWeight: 700, cursor: "pointer",
-                    }}>
-                        {copied ? "✓ Copied!" : "URLをコピー"}
-                    </button>
-                </div>
             </motion.div>
 
             {/* ── 招待リンク ── */}
