@@ -2,24 +2,50 @@
 
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react"; // ← 修正: useEffect追加
 import { HeaderLight } from "@/components/layout/HeaderLight";
 import { FooterLight } from "@/components/layout/FooterLight";
 import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
 
 type CheckoutState = "idle" | "loading" | "error";
 
+// ← 修正: カウントダウン用
+const DEADLINE = new Date("2026-03-28T12:00:00+09:00");
+
+function calcTimeLeft() {
+    const diff = DEADLINE.getTime() - Date.now();
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    return {
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        seconds: Math.floor((diff / 1000) % 60),
+    };
+}
+
 export default function BusinessCheckoutClient({
     plans,
     deadlineText,
+    initialPlanId,
 }: {
     plans: BusinessPlanWithAvailability[];
     deadlineText: string;
+    initialPlanId: string | null;
 }) {
-    const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(null);
+    const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(
+        (initialPlanId as PlanId) ?? null
+    );
     const [state, setState] = useState<CheckoutState>("idle");
     const [errorMessage, setErrorMessage] = useState("");
+
+    // ← 修正: カウントダウンタイマー（1秒ごと更新）
+    const [timeLeft, setTimeLeft] = useState(calcTimeLeft());
+    useEffect(() => {
+        const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const isExpired = DEADLINE.getTime() - Date.now() <= 0; // ← 修正
 
     async function handleCheckout() {
         if (!selectedPlanId) return;
@@ -37,8 +63,11 @@ export default function BusinessCheckoutClient({
                 await res.json();
 
             if (!data.success) {
-                if (res.status === 403) {
-                    window.location.href = `/register?message=business_required`;
+                if (res.status === 401) {
+                    const returnUrl = encodeURIComponent(
+                        `/business/checkout?plan=${selectedPlanId}`
+                    );
+                    window.location.href = `/register?redirect=${returnUrl}`;
                     return;
                 }
                 setState("error");
@@ -72,31 +101,57 @@ export default function BusinessCheckoutClient({
                         <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#ff3b30" }} />
                         <span className="text-xs font-medium" style={{ color: "#ff3b30" }}>{deadlineText}</span>
                     </div>
+
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "#1d1d1f" }}>
                         先行ポジションを選択
                     </h1>
                     <p className="text-sm leading-relaxed" style={{ color: "#6e6e73" }}>
                         プランを選んで申し込みボタンを押すと、Square の安全な決済ページへ移動します
                     </p>
+
+                    {/* ← 修正: カウントダウンタイマー */}
+                    {!isExpired ? (
+                        <div className="flex items-center gap-3 pt-1">
+                            {[
+                                { label: "日", value: timeLeft.days },
+                                { label: "時間", value: timeLeft.hours },
+                                { label: "分", value: timeLeft.minutes },
+                                { label: "秒", value: timeLeft.seconds },
+                            ].map(({ label, value }) => (
+                                <div key={label} className="text-center">
+                                    <div className="rounded-xl px-3 py-2 text-xl font-black tabular-nums"
+                                        style={{ background: "#1d1d1f", color: "#fff", minWidth: "52px" }}>
+                                        {String(value).padStart(2, "0")}
+                                    </div>
+                                    <div className="text-[10px] mt-1" style={{ color: "#aeaeb2" }}>{label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm font-bold" style={{ color: "#ff3b30" }}>申込受付は終了しました</p>
+                    )}
                 </div>
 
                 {/* Plans */}
                 <div className="space-y-3">
                     {plans.map((plan, i) => {
                         const isSelected = selectedPlanId === plan.id;
+                        const isLow = !plan.soldOut && plan.remaining <= 3; // ← 修正: 残り枠3以下判定
+
                         return (
                             <label
                                 key={plan.id}
                                 htmlFor={`plan-${plan.id}`}
-                                className={`block rounded-3xl transition-all ${plan.soldOut ? "cursor-not-allowed opacity-40" : "cursor-pointer"
-                                    }`}
+                                className={`block rounded-3xl transition-all ${plan.soldOut ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
                                 style={{
                                     background: isSelected ? "rgba(0,122,255,0.06)" : "rgba(255,255,255,0.7)",
                                     backdropFilter: "blur(30px)",
                                     WebkitBackdropFilter: "blur(30px)",
                                     border: isSelected
                                         ? "2px solid rgba(0,122,255,0.4)"
-                                        : "1.5px solid rgba(255,255,255,0.95)",
+                                        : isLow
+                                            ? "1.5px solid rgba(255,59,48,0.35)" // ← 修正: 残り枠少ない時は赤枠
+                                            : "1.5px solid rgba(255,255,255,0.95)",
                                     boxShadow: isSelected
                                         ? "0 4px 32px rgba(0,122,255,0.12)"
                                         : "0 2px 16px rgba(0,0,0,0.05)",
@@ -125,8 +180,6 @@ export default function BusinessCheckoutClient({
 
                                 <div className="px-6 pt-6 pb-4 flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-4 flex-1 min-w-0">
-
-                                        {/* Radio indicator — 大きく明確に */}
                                         <div
                                             className="flex-shrink-0 flex items-center justify-center rounded-full transition-all"
                                             style={{
@@ -134,26 +187,14 @@ export default function BusinessCheckoutClient({
                                                 height: "28px",
                                                 minWidth: "28px",
                                                 marginTop: "1px",
-                                                border: isSelected
-                                                    ? "2.5px solid #007aff"
-                                                    : "2px solid rgba(0,0,0,0.18)",
-                                                background: isSelected
-                                                    ? "rgba(0,122,255,0.12)"
-                                                    : "rgba(255,255,255,0.8)",
-                                                boxShadow: isSelected
-                                                    ? "0 0 0 4px rgba(0,122,255,0.1)"
-                                                    : "none",
+                                                border: isSelected ? "2.5px solid #007aff" : "2px solid rgba(0,0,0,0.18)",
+                                                background: isSelected ? "rgba(0,122,255,0.12)" : "rgba(255,255,255,0.8)",
+                                                boxShadow: isSelected ? "0 0 0 4px rgba(0,122,255,0.1)" : "none",
                                             }}
                                         >
                                             {isSelected && (
-                                                <div
-                                                    className="rounded-full"
-                                                    style={{
-                                                        width: "12px",
-                                                        height: "12px",
-                                                        background: "#007aff",
-                                                    }}
-                                                />
+                                                <div className="rounded-full"
+                                                    style={{ width: "12px", height: "12px", background: "#007aff" }} />
                                             )}
                                         </div>
 
@@ -176,6 +217,12 @@ export default function BusinessCheckoutClient({
                                                         style={{ background: "rgba(255,59,48,0.1)", color: "#ff3b30", border: "1px solid rgba(255,59,48,0.2)" }}>
                                                         SOLD OUT
                                                     </span>
+                                                ) : isLow ? (
+                                                    // ← 修正: 残り枠3以下は赤バッジ＋「残りわずか！」
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                                                        style={{ background: "rgba(255,59,48,0.08)", color: "#ff3b30", border: "1px solid rgba(255,59,48,0.2)" }}>
+                                                        残り {plan.remaining} 枠・残りわずか！
+                                                    </span>
                                                 ) : (
                                                     <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
                                                         style={{ background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.35)" }}>
@@ -193,10 +240,8 @@ export default function BusinessCheckoutClient({
                                     </div>
                                 </div>
 
-                                {/* Divider */}
                                 <div style={{ height: "1px", background: "rgba(0,0,0,0.05)", margin: "0 24px" }} />
 
-                                {/* Benefits */}
                                 <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 pointer-events-none">
                                     <div className="flex items-start gap-2 sm:col-span-2 mb-1">
                                         <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor"
@@ -224,7 +269,7 @@ export default function BusinessCheckoutClient({
                 </div>
             </main>
 
-            {/* 申し込みバー — フッターの直上に配置 */}
+            {/* 申し込みバー */}
             <div className="sticky bottom-0 z-40 px-6 py-5 mb-14 mx-4 rounded-3xl flex items-center justify-between gap-4 transition-all"
                 style={{
                     background: "rgba(245,245,247,0.95)",
@@ -233,15 +278,18 @@ export default function BusinessCheckoutClient({
                     borderTop: "1px solid rgba(0,0,0,0.08)",
                     borderBottom: "1px solid rgba(0,0,0,0.06)",
                 }}>
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto w-full">
                     {selectedPlan ? (
                         <div className="flex items-center gap-4">
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold truncate" style={{ color: "#1d1d1f" }}>
                                     {selectedPlan.name}
                                 </p>
-                                <p className="text-xs mt-0.5" style={{ color: "#aeaeb2" }}>
+                                {/* ← 修正: 残り枠3以下は赤文字 */}
+                                <p className="text-xs mt-0.5"
+                                    style={{ color: selectedPlan.remaining <= 3 ? "#ff3b30" : "#aeaeb2" }}>
                                     {selectedPlan.priceLabel} 一括払い / 残り {selectedPlan.remaining} 枠
+                                    {selectedPlan.remaining <= 3 && " · 残りわずか！"}
                                 </p>
                             </div>
                             {errorMessage && (
@@ -251,7 +299,7 @@ export default function BusinessCheckoutClient({
                             )}
                             <button
                                 onClick={handleCheckout}
-                                disabled={state === "loading"}
+                                disabled={state === "loading" || isExpired}
                                 className="flex-shrink-0 font-bold px-8 py-3.5 rounded-full text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{
                                     background: "#FFD600",

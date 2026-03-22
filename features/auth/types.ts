@@ -9,6 +9,7 @@ export interface RegisterInput {
     displayName: string;
     slug: string;
     referrerSlug?: string;
+    redirectTo?: string; // ← 修正
 }
 
 export interface LoginInput {

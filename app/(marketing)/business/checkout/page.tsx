@@ -4,7 +4,11 @@ import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import type { BusinessPlanWithAvailability } from "@/features/business/types";
 import BusinessCheckoutClient from "./BusinessCheckoutClient";
 
-export default async function BusinessCheckoutPage() {
+export default async function BusinessCheckoutPage({
+  searchParams,
+}: {
+  searchParams: { plan?: string };
+}) {
   const orderCounts = await getAllPlanOrderCounts();
   const plans = getBusinessPlansWithUrls();
 
@@ -21,7 +25,8 @@ export default async function BusinessCheckoutPage() {
   return (
     <BusinessCheckoutClient
       plans={plansWithAvailability}
-      deadlineText="申込締切: 2026年3月19日 23:59まで"
+      deadlineText="申込締切: 2026年3月28日 12:00まで" // ← 修正
+      initialPlanId={searchParams.plan ?? null}
     />
   );
 }

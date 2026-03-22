@@ -1,9 +1,12 @@
+// app/(marketing)/page.tsx
+
 import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { DynamicBackground } from "@/components/marketing/DynamicBackground";
+import Link from "next/link"; // ← 修正: バナー用
 
 // スクロール後のセクションは全部遅延ロード
 const ViralLoopSection = dynamic(() => import("@/components/marketing/sections/ViralLoopSection").then(m => ({ default: m.ViralLoopSection })));
@@ -26,7 +29,7 @@ const CTASection = dynamic(() => import("@/components/marketing/sections/CTASect
 import FloatingCTAWrapper from "@/components/marketing/sections/FloatingCTAWrapper";
 const FAQSection = dynamic(() => import("@/components/marketing/sections/FAQSection").then(m => ({ default: m.FAQSection })));
 
-export const dynamic_config = "force-static"; // 静的生成
+export const dynamic_config = "force-static";
 
 export const metadata: Metadata = {
   title: "Vizion Connection | Beyond the Limit, Connect the Trust.",
@@ -42,6 +45,21 @@ export default function Page() {
     <>
       <Header />
       <DynamicBackground />
+
+      {/* ← 修正: ビジネス向け動線バナー（Header直下・固定表示） */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div className="w-full pointer-events-auto" style={{ background: "#3C8CFF" }}>
+          <Link
+            href="/business"
+            className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
+            <span>🏢 ビジネス先行枠 受付中 — 3/28 12:00 締切</span>
+            <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
+          </Link>
+        </div>
+      </div>
+
       <main className="relative w-full overflow-x-hidden pt-17.5">
         <HeroSection />
         <ProblemSection />

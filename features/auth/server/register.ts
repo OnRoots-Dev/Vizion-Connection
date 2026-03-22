@@ -69,7 +69,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     }
 
     // 8. 認証トークン発行
-    const { verifyUrl } = await issueVerifyToken(email, slug);
+    const { verifyUrl } = await issueVerifyToken(email, slug, input.redirectTo); // ← 修正
 
     // 9. 認証メール送信
     await sendVerifyEmail({

@@ -19,6 +19,7 @@ export default function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const refSlug = searchParams.get("ref") ?? "";
+    const redirectTo = searchParams.get("redirect") ?? ""; // ← 修正
 
     const [role, setRole] = useState<Role>("Athlete");
     const [form, setForm] = useState({
@@ -42,14 +43,18 @@ export default function RegisterForm() {
             const res = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...form, role }),
+                body: JSON.stringify({ ...form, role, redirectTo }), // ← 修正
             });
             const data = await res.json();
             if (!data.success) {
                 setError(data.error ?? "エラーが発生しました");
                 return;
             }
-            router.push("/thanks?type=verify");
+            // ← 修正: redirectTo がある場合は thanks にも引き継ぐ
+            const next = redirectTo
+                ? `/thanks?type=verify&redirect=${encodeURIComponent(redirectTo)}`
+                : "/thanks?type=verify";
+            router.push(next); // ← 修正
         } catch {
             setError("通信エラーが発生しました");
         } finally {

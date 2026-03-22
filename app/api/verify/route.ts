@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     const token = req.nextUrl.searchParams.get("token");
+    const redirectTo = req.nextUrl.searchParams.get("redirect"); // ← 修正
 
     if (!token) {
         return NextResponse.redirect(`${env.NEXT_PUBLIC_BASE_URL}/login?error=invalid_token`);
@@ -20,5 +21,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     await setSessionCookie(result.sessionToken);
 
-    return NextResponse.redirect(`${env.NEXT_PUBLIC_BASE_URL}/dashboard`);
+    // ← 修正: redirectTo がある場合はそちらへ、なければ /dashboard
+    const dest = redirectTo ? decodeURIComponent(redirectTo) : "/dashboard";
+    return NextResponse.redirect(new URL(dest, env.NEXT_PUBLIC_BASE_URL)); // ← 修正
 }
