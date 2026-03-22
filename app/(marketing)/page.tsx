@@ -2,13 +2,12 @@
 
 import dynamic from "next/dynamic";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { DynamicBackground } from "@/components/marketing/DynamicBackground";
-import Link from "next/link"; // ← 修正: バナー用
 
-// スクロール後のセクションは全部遅延ロード
 const ViralLoopSection = dynamic(() => import("@/components/marketing/sections/ViralLoopSection").then(m => ({ default: m.ViralLoopSection })));
 const ProblemSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.ProblemSection })));
 const WhatIsVizionSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.WhatIsVizionSection })));
@@ -44,22 +43,19 @@ export default function Page() {
   return (
     <>
       <Header />
+
+      {/* ← 修正: ビジネス動線バナー — Header直後にstatic配置（重なり解消） */}
+      <Link
+        href="/business"
+        className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity"
+        style={{ background: "#3C8CFF" }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
+        <span>🏢 ビジネス先行枠 受付中 — 3/28 12:00 締切</span>
+        <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
+      </Link>
+
       <DynamicBackground />
-
-      {/* ← 修正: ビジネス向け動線バナー（Header直下・固定表示） */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div className="w-full pointer-events-auto" style={{ background: "#3C8CFF" }}>
-          <Link
-            href="/business"
-            className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
-            <span>🏢 ビジネス先行枠 受付中 — 3/28 12:00 締切</span>
-            <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
-          </Link>
-        </div>
-      </div>
-
       <main className="relative w-full overflow-x-hidden pt-17.5">
         <HeroSection />
         <ProblemSection />
