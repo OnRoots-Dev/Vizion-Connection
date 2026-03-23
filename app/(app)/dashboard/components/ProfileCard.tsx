@@ -1,6 +1,9 @@
+// components/profile/ProfileCardSection.tsx
+// (もとのファイルパスに合わせて配置してください)
+
 "use client";
 
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react"; // ← 修正: useRef追加
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import type { ProfileData } from "@/features/profile/types";
@@ -37,6 +40,125 @@ function SnsIconBtn({ label, href, color, path }: {
     );
 }
 
+// ── ★ Storiesキャプチャ用 静的カード（html2canvas対象・画面外に配置）────────────
+// framer-motion / 3D transform なしの純粋なDOMで、html2canvasが確実にキャプチャできる
+function StaticCaptureCard({
+    captureRef,
+    profile,
+    rl,
+    bg1,
+    initials,
+    vzId,
+    isFounding,
+}: {
+    captureRef: React.RefObject<HTMLDivElement | null>; // ← 修正: React 19対応
+    profile: ProfileData;
+    rl: string;
+    bg1: string;
+    initials: string;
+    vzId: string;
+    isFounding: boolean;
+}) {
+    const photoMask: React.CSSProperties = {
+        WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
+        maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
+    };
+
+    return (
+        <div
+            ref={captureRef}
+            aria-hidden="true"
+            style={{
+                // ★ 画面外に配置（レイアウトに影響なし）
+                position: "fixed",
+                left: "-9999px",
+                top: 0,
+                width: "400px",
+                height: "240px",
+                overflow: "hidden",
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,0.10)",
+                boxShadow: "0 10px 42px rgba(0,0,0,0.65)",
+                isolation: "isolate",
+                pointerEvents: "none",
+            }}
+        >
+            {/* BG — color-mix は html2canvas 未対応のため rgba で代替 */}
+            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, #050505 60%, #060606 100%)` }} />
+            {/* Glow */}
+            <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
+            {/* Sheen */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+
+            {/* Photo */}
+            {profile.profileImageUrl ? (
+                <img
+                    src={profile.profileImageUrl}
+                    alt=""
+                    crossOrigin="anonymous"
+                    style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", ...photoMask }}
+                />
+            ) : (
+                <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", ...photoMask }}>
+                    {initials}
+                </div>
+            )}
+
+            {/* Watermark */}
+            <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>
+                VIZION CONNECTION · PROOF OF EXISTENCE
+            </div>
+
+            {/* Left content */}
+            <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "85%" }}>
+                {/* Top */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
+                    <div style={{ display: "inline-flex" }}>
+                        {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                    </div>
+                    <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>
+                        {profile.region || "N/A"} / {profile.prefecture || "N/A"}
+                    </span>
+                </div>
+
+                {/* Mid */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
+                        {ROLE_LABEL[profile.role]}
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>
+                        {profile.displayName}
+                    </div>
+                    {profile.sport && (
+                        <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>
+                            {profile.sport}
+                        </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                        <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                        <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
+                        <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{profile.cheerCount ?? 0}</span>
+                    </div>
+                </div>
+
+                {/* Bottom: VZ ID */}
+                <div>
+                    <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>
+                        {vzId}
+                    </div>
+                </div>
+            </div>
+
+            {/* Logo */}
+            <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo"
+                    crossOrigin="anonymous"
+                    style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+            </div>
+        </div>
+    );
+}
+
 export function ProfileCardSection({
     profile,
     t,
@@ -57,7 +179,6 @@ export function ProfileCardSection({
         ).then(setQrDataUrl).catch(() => { });
     }, [profile.slug]);
 
-    // ── 生成アニメーション（初回のみ）──
     const [generated, setGenerated] = useState(false);
     const [showScan, setShowScan] = useState(false);
 
@@ -70,7 +191,6 @@ export function ProfileCardSection({
         return () => { clearTimeout(t1); clearTimeout(t2); };
     }, [profile.slug]);
 
-    // ── 3D チルト ──
     const mx = useMotionValue(0);
     const my = useMotionValue(0);
     const sx = useSpring(mx, { stiffness: 180, damping: 22, mass: 0.6 });
@@ -93,6 +213,9 @@ export function ProfileCardSection({
     const cheerCount = profile.cheerCount ?? 0;
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
+
+    // ★ Storiesキャプチャ用ref（React 19: HTMLDivElement | null）
+    const captureRef = useRef<HTMLDivElement | null>(null); // ← 修正
 
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
@@ -129,7 +252,18 @@ export function ProfileCardSection({
             transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             style={{ borderRadius: 16, padding: 20, background: t.surface, border: `1px solid ${t.border}` }}
         >
-            {/* ── Header（カード右上にプロフィール表示ボタン） ── */}
+            {/* ★ Storiesキャプチャ用 静的カード（画面外・hidden） */}
+            <StaticCaptureCard
+                captureRef={captureRef}
+                profile={profile}
+                rl={rl}
+                bg1={bg1}
+                initials={initials}
+                vzId={vzId}
+                isFounding={isFounding}
+            />
+
+            {/* ── Header ── */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>
                     Profile Card
@@ -164,14 +298,12 @@ export function ProfileCardSection({
 
             {/* ── Card Stage ── */}
             <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
-                {/* 生成アニメーション用ラッパー */}
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
-
                     <motion.div
                         onMouseMove={onMove}
                         onMouseLeave={onLeave}
                         onClick={e => {
-                            if (!generated) return; // 生成中はフリップ禁止
+                            if (!generated) return;
                             if ((e.target as HTMLElement).closest("a,button")) return;
                             setIsFlipped(f => !f);
                         }}
@@ -187,17 +319,12 @@ export function ProfileCardSection({
                             transition={{ duration: 1.0, ease: [0.68, 0, 0.32, 1] }}
                             style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                         >
-
                             {/* ════ FRONT ════ */}
                             <div style={faceBase}>
-                                {/* BG */}
                                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 40%, #000) 60%, #060606 100%)` }} />
-                                {/* Glow */}
                                 <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
-                                {/* Sheen */}
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
 
-                                {/* Photo */}
                                 {profile.profileImageUrl ? (
                                     <img src={profile.profileImageUrl} alt={profile.displayName}
                                         style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", ...photoMask }} />
@@ -207,14 +334,11 @@ export function ProfileCardSection({
                                     </div>
                                 )}
 
-                                {/* Watermark */}
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>
                                     VIZION CONNECTION · PROOF OF EXISTENCE
                                 </div>
 
-                                {/* Left content — width広げてはみ出しOK */}
                                 <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "85%" }}>
-                                    {/* Top */}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
                                         <div style={{ display: "inline-flex" }}>
                                             {isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
@@ -224,7 +348,6 @@ export function ProfileCardSection({
                                         </span>
                                     </div>
 
-                                    {/* Mid */}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>
                                             {ROLE_LABEL[profile.role]}
@@ -244,7 +367,6 @@ export function ProfileCardSection({
                                         </div>
                                     </div>
 
-                                    {/* Bottom: VZ ID */}
                                     <div>
                                         <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>
                                             {vzId}
@@ -256,7 +378,6 @@ export function ProfileCardSection({
                                     </div>
                                 </div>
 
-                                {/* Logo */}
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
                                     <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo"
                                         style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
@@ -267,7 +388,6 @@ export function ProfileCardSection({
                             <div style={{ ...faceBase, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
 
-                                {/* Photo */}
                                 {profile.profileImageUrl ? (
                                     <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
                                 ) : (
@@ -277,7 +397,6 @@ export function ProfileCardSection({
                                 )}
 
                                 <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "13px 12px 14px" }}>
-                                    {/* Top */}
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
                                         <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -289,7 +408,6 @@ export function ProfileCardSection({
                                         <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
                                     </div>
 
-                                    {/* Mid */}
                                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
                                         <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                             {profile.displayName}
@@ -304,15 +422,12 @@ export function ProfileCardSection({
                                         )}
                                     </div>
 
-                                    {/* Divider */}
                                     <div style={{ height: 1, background: `linear-gradient(90deg, ${rl} 0%, transparent 100%)`, opacity: 0.4, margin: "5px 0" }} />
 
-                                    {/* Bio */}
                                     <div style={{ fontSize: 9.5, lineHeight: 1.6, color: "rgba(255,255,255,0.38)", pointerEvents: "none", minHeight: "1em" }}>
                                         {profile.bio ?? "—"}
                                     </div>
 
-                                    {/* Bottom: SNS + QR */}
                                     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 8 }}>
                                         <div style={{ display: "flex", flexDirection: "column", gap: 5, zIndex: 50 }} onClick={e => e.stopPropagation()}>
                                             <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", pointerEvents: "none" }}>Connect</span>
@@ -340,11 +455,9 @@ export function ProfileCardSection({
                                     </div>
                                 </div>
                             </div>
-
                         </motion.div>
                     </motion.div>
 
-                    {/* ── スキャンライン（初回生成アニメーション）── */}
                     {showScan && (
                         <motion.div
                             initial={{ top: "-8%", opacity: 0 }}
@@ -359,7 +472,6 @@ export function ProfileCardSection({
                         />
                     )}
 
-                    {/* ── 生成中テキスト ── */}
                     {showScan && (
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -376,12 +488,11 @@ export function ProfileCardSection({
                             Generating Card...
                         </motion.div>
                     )}
-
                 </div>
             </div>
 
-            {/* ── Actions ── */}
-            <ShareMenu profile={profile} t={t} rl={rl} />
+            {/* ── Actions（ShareMenu に captureRef を渡す）── */}
+            <ShareMenu profile={profile} t={t} rl={rl} captureRef={captureRef} /> {/* ← 修正 */}
 
             <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>
                 {vzId} · {joinDate}
@@ -390,8 +501,159 @@ export function ProfileCardSection({
     );
 }
 
-// ── シェアメニュー（1ボタン → ドロップダウン） ───────────────────────────────
-function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; rl: string }) {
+// ── ★ Storiesキャンバス合成（カード画像 → 9:16 黒背景に配置）────────────────────
+async function buildStoriesCanvas(
+    cardCanvas: HTMLCanvasElement,
+    profile: ProfileData,
+    rl: string
+): Promise<HTMLCanvasElement> {
+    const W = 1080;
+    const H = 1920;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    // ── 背景
+    ctx.fillStyle = "#07070e";
+    ctx.fillRect(0, 0, W, H);
+
+    // ── ロールカラーのグロー（左上）
+    const glow = ctx.createRadialGradient(W * 0.2, H * 0.25, 0, W * 0.2, H * 0.25, 700);
+    glow.addColorStop(0, rl + "28");
+    glow.addColorStop(1, "transparent");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── グリッド（薄）
+    ctx.strokeStyle = "rgba(255,255,255,0.025)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    // ── ロゴ文字（上部）
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255,255,255,0.22)";
+    ctx.font = "800 28px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+    ctx.letterSpacing = "0.3em";
+    ctx.fillText("VIZION CONNECTION", W / 2, 160);
+
+    // ── カード画像（中央より少し上）
+    // cardCanvasは400×240px × scale=2.5 → 1000×600px
+    // 横は余白40pxずつで1000px幅に
+    const cardW = W - 80;           // 1000px
+    const cardH = Math.round(cardW * (240 / 400)); // 600px
+    const cardX = 40;
+    const cardY = Math.round((H - cardH) / 2) - 120; // 少し上寄り
+
+    // カード影
+    ctx.shadowColor = rl + "55";
+    ctx.shadowBlur = 60;
+    ctx.shadowOffsetY = 20;
+
+    // 角丸クリップ
+    const r = 28;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cardX + r, cardY);
+    ctx.lineTo(cardX + cardW - r, cardY);
+    ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + r);
+    ctx.lineTo(cardX + cardW, cardY + cardH - r);
+    ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - r, cardY + cardH);
+    ctx.lineTo(cardX + r, cardY + cardH);
+    ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - r);
+    ctx.lineTo(cardX, cardY + r);
+    ctx.quadraticCurveTo(cardX, cardY, cardX + r, cardY);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(cardCanvas, cardX, cardY, cardW, cardH);
+    ctx.restore();
+
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // カードボーダー
+    ctx.strokeStyle = rl + "44";
+    ctx.lineWidth = 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cardX + r, cardY);
+    ctx.lineTo(cardX + cardW - r, cardY);
+    ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + r);
+    ctx.lineTo(cardX + cardW, cardY + cardH - r);
+    ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - r, cardY + cardH);
+    ctx.lineTo(cardX + r, cardY + cardH);
+    ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - r);
+    ctx.lineTo(cardX, cardY + r);
+    ctx.quadraticCurveTo(cardX, cardY, cardX + r, cardY);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    // ── 仕切り線
+    const divY = cardY + cardH + 80;
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(80, divY); ctx.lineTo(W - 80, divY); ctx.stroke();
+
+    // ── 招待テキスト
+    const inviteUrl = `vizion-connection.jp/r/${profile.slug}`;
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.font = "600 28px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText("一緒にはじめよう", W / 2, divY + 70);
+
+    ctx.fillStyle = rl;
+    ctx.font = "700 34px 'SF Mono', 'Fira Code', monospace";
+    ctx.fillText(inviteUrl, W / 2, divY + 124);
+
+    // ── QRコード（招待URL）
+    const inviteQrDataUrl = await QRCode.toDataURL(
+        `https://vizion-connection.jp/r/${profile.slug}`,
+        { width: 220, margin: 2, color: { dark: "#ffffff", light: "#00000000" } }
+    );
+    await new Promise<void>((resolve) => {
+        const qrImg = new Image();
+        qrImg.onload = () => {
+            const qrSize = 180;
+            const qrX = (W - qrSize) / 2;
+            const qrY = divY + 160;
+            // QR背景
+            ctx.fillStyle = "rgba(255,255,255,0.05)";
+            const qrPad = 16;
+            ctx.beginPath();
+            ctx.roundRect?.(qrX - qrPad, qrY - qrPad, qrSize + qrPad * 2, qrSize + qrPad * 2, 16);
+            ctx.fill();
+            ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+            resolve();
+        };
+        qrImg.onerror = () => resolve();
+        qrImg.src = inviteQrDataUrl;
+    });
+
+    // ── 最下部タグライン
+    ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.font = "500 22px -apple-system, sans-serif";
+    ctx.fillText("Beyond the Limit, Connect the Trust.", W / 2, H - 80);
+
+    return canvas;
+}
+
+// ── シェアメニュー ─────────────────────────────────────────────────────────────
+function ShareMenu({
+    profile,
+    t,
+    rl,
+    captureRef, // ← 修正: captureRef追加
+}: {
+    profile: ProfileData;
+    t: ThemeColors;
+    rl: string;
+    captureRef: React.RefObject<HTMLDivElement | null>; // ← 修正: React 19対応
+}) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [storiesLoading, setStoriesLoading] = useState(false);
@@ -423,63 +685,67 @@ function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; r
         setOpen(false);
     }
 
+    // ★ Strava方式：カードキャプチャ → Web Share API files → ネイティブシェアシートを直接開く
     async function handleStories() {
+        if (!captureRef.current) return;
         setStoriesLoading(true);
-        const storiesUrl = `${window.location.origin}/api/og/${profile.slug}?format=stories`;
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const rlColor = profile.role === "Athlete" ? "#C1272D"
-            : profile.role === "Trainer" ? "#1A7A4A"
-                : profile.role === "Members" ? "#B8860B" : "#1B3A8C";
         try {
-            if (isMobile) {
-                const res = await fetch(storiesUrl);
-                const blob = await res.blob();
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const w = window.open("about:blank", "_blank");
-                    if (w) {
-                        w.document.write(`<!DOCTYPE html><html><head>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:#07070e;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:max(env(safe-area-inset-top),20px) 20px max(env(safe-area-inset-bottom),20px);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;}
-.bar{width:100%;display:flex;align-items:center;justify-content:center;padding:14px 0 16px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:20px;}
-.logo{font-size:9px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.28);}
-.img-wrap{width:100%;max-width:320px;border-radius:14px;overflow:hidden;box-shadow:0 16px 56px rgba(0,0,0,.85),0 0 0 1px ${rlColor}28;margin-bottom:20px;}
-.img-wrap img{width:100%;display:block;}
-.guide{width:100%;max-width:320px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
-.step{display:flex;align-items:flex-start;gap:10px;}
-.num{width:22px;height:22px;border-radius:50%;background:${rlColor}20;border:1px solid ${rlColor}45;color:${rlColor};font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.txt{font-size:13px;color:rgba(255,255,255,.6);line-height:1.65;}
-.txt b{color:#fff;font-weight:700;}
-.hr{height:1px;background:rgba(255,255,255,.06);}
-.hint{font-size:10px;color:rgba(255,255,255,.2);text-align:center;margin-top:10px;letter-spacing:.04em;}
-</style>
-</head><body>
-<div class="bar"><span class="logo">Vizion Connection</span></div>
-<div class="img-wrap"><img src="${reader.result}" alt="Vizion Card"/></div>
-<div class="guide">
-  <div class="step"><div class="num">1</div><div class="txt">画像を<b>長押し</b>して「写真に追加」を選択</div></div>
-  <div class="hr"></div>
-  <div class="step"><div class="num">2</div><div class="txt">Instagramを開いて<b>新規ストーリーズ</b>を作成</div></div>
-  <div class="hr"></div>
-  <div class="step"><div class="num">3</div><div class="txt">保存した画像を選んで<b>シェア！</b></div></div>
-</div>
-<p class="hint">1080 × 1920 px · Stories 推奨サイズ</p>
-</body></html>`);
-                        w.document.close();
-                    }
-                };
-                reader.readAsDataURL(blob);
+            const html2canvas = (await import("html2canvas")).default;
+
+            // 1. 静的カードをキャプチャ
+            const cardCanvas = await html2canvas(captureRef.current, {
+                scale: 2.5,
+                backgroundColor: null,
+                useCORS: true,
+                allowTaint: false,
+                logging: false,
+            });
+
+            // 2. 9:16 Storiesキャンバスに合成
+            const storiesCanvas = await buildStoriesCanvas(cardCanvas, profile, rl);
+
+            // 3. Canvas → Blob → File に変換
+            const blob = await new Promise<Blob>((resolve, reject) =>
+                storiesCanvas.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png")
+            );
+            const file = new File([blob], `vizion-${profile.slug}.png`, { type: "image/png" });
+
+            // 4. ★ Web Share API (files) でネイティブシェアシートを直接起動
+            //    iOS Safari / Android Chrome どちらも対応。
+            //    シェアシートからInstagramを選ぶとStoriesに直接貼れる（Strava同方式）
+            if (navigator.canShare?.({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    // title/textはInstagramには渡らないが他アプリ用に設定
+                    title: `${profile.displayName} | Vizion Connection`,
+                    text: `一緒にはじめよう → vizion-connection.jp/r/${profile.slug}`,
+                });
             } else {
-                const a = document.createElement("a");
-                a.href = storiesUrl;
-                a.download = `vizion-stories-${profile.slug}.png`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                // フォールバック①: canShare未対応 → PNG直接ダウンロード
+                _downloadBlob(blob, `vizion-stories-${profile.slug}.png`);
             }
-        } catch { window.open(storiesUrl, "_blank"); }
-        setStoriesLoading(false);
-        setOpen(false);
+        } catch (err: unknown) {
+            // ユーザーがシェアシートをキャンセルした場合は AbortError → 何もしない
+            if (err instanceof Error && err.name === "AbortError") return;
+            console.error("[handleStories]", err);
+            // フォールバック②: 完全失敗 → 既存APIエンドポイント
+            window.open(`${window.location.origin}/api/og/${profile.slug}?format=stories`, "_blank");
+        } finally {
+            setStoriesLoading(false);
+            setOpen(false);
+        }
+    }
+
+    // ダウンロードヘルパー
+    function _downloadBlob(blob: Blob, filename: string) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     async function handleNativeShare() {
@@ -502,8 +768,8 @@ body{background:#07070e;min-height:100vh;min-height:100dvh;display:flex;flex-dir
             onClick: handleX,
         },
         {
-            label: "Instagram Stories",
-            sub: "縦長画像を保存して投稿",
+            label: "Instagram Stories", // ← 修正: Strava方式に変更
+            sub: "プロフィールカードを画像化して投稿",
             icon: <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z" /></svg>,
             color: "#e1306c",
             bg: "linear-gradient(135deg,rgba(240,148,51,.1),rgba(188,24,136,.1))",
@@ -558,10 +824,8 @@ body{background:#07070e;min-height:100vh;min-height:100dvh;display:flex;flex-dir
                 </button>
             </div>
 
-            {/* ドロップダウンメニュー */}
             {open && (
                 <>
-                    {/* 背景タップで閉じる */}
                     <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
                     <div style={{
                         position: "absolute", right: 0, bottom: "calc(100% + 8px)",
@@ -574,13 +838,11 @@ body{background:#07070e;min-height:100vh;min-height:100dvh;display:flex;flex-dir
                         animation: "shareMenuIn 0.18s cubic-bezier(0.16,1,0.3,1)",
                     }}>
                         <style>{`@keyframes shareMenuIn { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }`}</style>
-                        {/* ヘッダー */}
                         <div style={{ padding: "11px 14px 9px", borderBottom: `1px solid ${rl}18` }}>
                             <p style={{ margin: 0, fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>
                                 Share Card
                             </p>
                         </div>
-                        {/* メニューアイテム */}
                         <div style={{ padding: "6px" }}>
                             {menuItems.map((item) => (
                                 <button
