@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { DynamicBackground } from "@/components/marketing/DynamicBackground";
+import { getTotalUserCount } from "@/lib/supabase/stats"; // ← 修正
 
 const ViralLoopSection = dynamic(() => import("@/components/marketing/sections/ViralLoopSection").then(m => ({ default: m.ViralLoopSection })));
 const ProblemSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.ProblemSection })));
@@ -39,24 +40,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
+export default async function Page() {
+  const totalUsers = await getTotalUserCount(); // ← 修正
+
   return (
     <>
       <Header />
 
-      {/* ← 修正: ビジネス動線バナー — Header直後にstatic配置（重なり解消） */}
-      <Link
-        href="/business"
-        className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity"
-        style={{ background: "#3C8CFF" }}
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
-        <span>🏢 ビジネス先行枠 受付中 — 3/28 12:00 締切</span>
-        <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
-      </Link>
-
       <DynamicBackground />
       <main className="relative w-full overflow-x-hidden pt-17.5">
+        {/* ← 修正: main内の先頭に配置。pt-17.5でHeader分のオフセット済みなので被らない */}
+        <Link
+          href="/business"
+          className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity w-full"
+          style={{ background: "#3C8CFF", display: "flex" }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
+          <span>🏢 ビジネス先行枠 受付中 — 3/28 12:00 締切</span>
+          <span className="mx-2 opacity-40">|</span>
+          <span>現在 <strong>{totalUsers}</strong> 人登録済み</span>
+          <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
+        </Link>
         <HeroSection />
         <ProblemSection />
         <WhatIsVizionSection />

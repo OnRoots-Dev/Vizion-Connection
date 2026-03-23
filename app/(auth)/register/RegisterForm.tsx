@@ -15,11 +15,25 @@ const ROLES: { value: Role; label: string; color: string; border: string; desc: 
     { value: "Business", label: "Business", color: "#3C8CFF", border: "rgba(60,140,255,0.4)", desc: "ビジネス" },
 ];
 
+// ← 修正: 目アイコン
+function EyeIcon({ open }: { open: boolean }) {
+    return open ? (
+        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+    ) : (
+        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+        </svg>
+    );
+}
+
 export default function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const refSlug = searchParams.get("ref") ?? "";
-    const redirectTo = searchParams.get("redirect") ?? ""; // ← 修正
+    const redirectTo = searchParams.get("redirect") ?? "";
 
     const [role, setRole] = useState<Role>("Athlete");
     const [form, setForm] = useState({
@@ -29,6 +43,7 @@ export default function RegisterForm() {
         password: "",
         referrerSlug: refSlug,
     });
+    const [showPassword, setShowPassword] = useState(false); // ← 修正
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -43,18 +58,17 @@ export default function RegisterForm() {
             const res = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...form, role, redirectTo }), // ← 修正
+                body: JSON.stringify({ ...form, role, redirectTo }),
             });
             const data = await res.json();
             if (!data.success) {
                 setError(data.error ?? "エラーが発生しました");
                 return;
             }
-            // ← 修正: redirectTo がある場合は thanks にも引き継ぐ
             const next = redirectTo
                 ? `/thanks?type=verify&redirect=${encodeURIComponent(redirectTo)}`
                 : "/thanks?type=verify";
-            router.push(next); // ← 修正
+            router.push(next);
         } catch {
             setError("通信エラーが発生しました");
         } finally {
@@ -142,14 +156,33 @@ export default function RegisterForm() {
                             onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
                     </div>
 
+                    {/* ← 修正: パスワード入力 + 目マーク + 注意書き */}
                     <div className="space-y-1.5">
                         <label className="text-xs text-white/40 font-medium">パスワード</label>
-                        <input type="password" required placeholder="8文字以上" value={form.password}
-                            onChange={(e) => setForm({ ...form, password: e.target.value })}
-                            className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
-                            style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                            onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                            onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                required
+                                placeholder="8文字以上"
+                                value={form.password}
+                                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-white/20 outline-none transition-all"
+                                style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
+                                onFocus={(e) => e.target.style.borderColor = selectedRole.color}
+                                onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(v => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                            >
+                                <EyeIcon open={showPassword} />
+                            </button>
+                        </div>
+                        {/* ← 修正: パスワード制限の注意書き */}
+                        <p className="text-[10px] text-white/25 leading-relaxed pl-1">
+                            8文字以上 ／ 半角英字・数字を含めてください
+                        </p>
                     </div>
 
                     {error && (

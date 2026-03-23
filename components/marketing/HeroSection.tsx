@@ -32,6 +32,25 @@ export function HeroSection() {
           style={{ scale, opacity }}
           className="relative z-10 flex flex-col items-center text-center"
         >
+          {/* ← 修正: 先行登録期間バッジ */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5"
+            style={{ background: "rgba(255,214,0,0.08)", border: "1px solid rgba(255,214,0,0.25)" }}
+          >
+            <motion.span
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: "#FFD600" }}
+            />
+            <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#FFD600" }}>
+              先行登録期間: 3/23 MON 15:00 〜 3/31 TUE 23:59
+            </span>
+          </motion.div>
+
           <div className="mb-6 overflow-hidden">
             <motion.p
               initial={{ y: 30, opacity: 0 }}
@@ -101,7 +120,6 @@ export function HeroSection() {
 
         <ViralLoopSection />
         <CTASection />
-
       </div>
     </section>
   );
