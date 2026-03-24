@@ -5,13 +5,13 @@ import { useState, useEffect } from "react";
 const PHASES = [
   {
     label: "先行登録",
-    deadline: new Date("2026-03-20T23:59:00+09:00"),
+    deadline: new Date("2026-03-31T23:59:00+09:00"), // ← 修正
     next: "先行登録締め切りまで",
     color: "#C1272D",
   },
   {
     label: "β版",
-    deadline: new Date("2026-03-31T23:59:00+09:00"),
+    deadline: new Date("2026-04-08T23:59:00+09:00"), // ← 修正
     next: "β版終了まで",
     color: "#1A7A4A",
   },
@@ -114,9 +114,9 @@ export function CountdownTimer() {
       {/* フェーズスケジュール */}
       <div style={{ display: "flex", flexDirection: "column", gap: "6px", width: "100%", maxWidth: "360px", marginTop: "8px" }}>
         {[
-          { label: "先行登録", period: "3/14 SAT 12:00 〜 3/20 FRI 23:59", color: "#C1272D", active: phase.label === "先行登録" },
-          { label: "β版", period: "3/20 FRI 10:00 〜 3/31 TUE 23:59", color: "#1A7A4A", active: phase.label === "β版" },
-          { label: "正式版", period: "4/1 WED 10:00 〜", color: "#1B3A8C", active: phase.label === "正式版" },
+          { label: "先行登録", period: "3/23 MON 17:00 〜 3/31 TUE 23:59", color: "#C1272D", active: phase.label === "先行登録" }, // ← 修正
+          { label: "β版", period: "4/1 WED 10:00 〜 4/8 WED 23:59", color: "#1A7A4A", active: phase.label === "β版" },      // ← 修正
+          { label: "正式版", period: "4/9 THU 10:00 〜", color: "#1B3A8C", active: phase.label === "正式版" },    // ← 修正
         ].map(({ label, period, color, active }) => (
           <div key={label} style={{
             display: "flex", alignItems: "center", gap: "10px",

@@ -1,0 +1,362 @@
+"use client";
+// app/(app)/dashboard/career/CareerDashboardClient.tsx
+
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Sparkles, Pencil, Eye, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useCareerWizard } from "@/hooks/useCareerWizard";
+import { ROLE_CONFIG } from "@/types/career";
+import type { UserRole } from "@/types/career";
+import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
+
+// ─── Props ────────────────────────────────────────────────
+
+interface Props {
+  user: {
+    slug: string;
+    displayName: string;
+    role: string;
+    sport: string;
+    region: string;
+    instagram: string;
+    xUrl: string;
+    tiktok: string;
+    cheerCount: number;
+    avatarUrl: string | null;
+  };
+  careerProfile: CareerProfileRow | null;
+}
+
+// ─── Component ────────────────────────────────────────────
+
+export default function CareerDashboardClient({ user, careerProfile }: Props) {
+  const {
+    data,
+    setRole,
+    initFromUser,
+    initFromCareerProfile,
+    roleColor,
+  } = useCareerWizard();
+
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  const role = user.role as UserRole;
+  const cfg = ROLE_CONFIG[role];
+  const color = cfg?.color ?? "#C1272D";
+  const hasCareer = !!(careerProfile || data.episodes.length > 0 || data.tagline);
+
+  // ── サーバーデータをストアに読み込む ────────────────────────
+  useEffect(() => {
+    // usersテーブルのデータ
+    initFromUser({
+      role:      role,
+      name:      user.displayName,
+      slug:      user.slug,
+      sport:     user.sport,
+      region:    user.region,
+      instagram: user.instagram,
+      xUrl:      user.xUrl,
+      tiktok:    user.tiktok,
+    });
+
+    // career_profilesのデータ（あれば上書き）
+    if (careerProfile) {
+      initFromCareerProfile(careerProfile);
+    }
+
+    // 初回（キャリアなし）なら自動でウィザードを開く
+    if (!careerProfile) {
+      setWizardOpen(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const completeness = [
+    { icon: "💬", label: "キャッチコピー", ok: !!(careerProfile?.tagline || data.tagline) },
+    { icon: "📝", label: "自己紹介",       ok: !!(careerProfile?.bio_career || data.bioCareer) },
+    { icon: "📅", label: "キャリア年表",   ok: (careerProfile?.episodes?.length ?? data.episodes.length) > 0 },
+    { icon: "💪", label: "スキル",         ok: (careerProfile?.skills?.length ?? data.skills.length) > 0 },
+  ];
+  const completedCount = completeness.filter((c) => c.ok).length;
+  const completePct = Math.round((completedCount / completeness.length) * 100);
+
+  return (
+    <div
+      className="min-h-screen text-white"
+      style={{ background: "#08080f" }}
+    >
+      {/* ── Header ──────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-30 border-b px-5 py-3.5 flex items-center justify-between"
+        style={{
+          background: "rgba(8,8,15,0.88)",
+          borderColor: "rgba(255,255,255,0.07)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          <span className="font-mono text-[10px] tracking-[0.18em] uppercase">
+            Dashboard
+          </span>
+        </Link>
+        <span
+          className="font-mono text-[9px] tracking-[0.28em] uppercase"
+          style={{ color }}
+        >
+          Career Page
+        </span>
+      </header>
+
+      <div className="max-w-[600px] mx-auto px-5 py-8">
+
+        {/* ── Profile header ────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 mb-6"
+        >
+          {/* Avatar */}
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+            style={{ background: `${color}18`, border: `1px solid ${color}30` }}
+          >
+            {user.avatarUrl
+              ? <img src={user.avatarUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
+              : cfg?.icon ?? "👤"}
+          </div>
+          <div>
+            <p className="font-extrabold text-[17px] tracking-[-0.02em]">
+              {user.displayName}
+            </p>
+            <p
+              className="font-mono text-[10px] tracking-[0.16em] uppercase mt-0.5"
+              style={{ color }}
+            >
+              {cfg?.labelEn ?? role}
+              {user.sport ? ` · ${user.sport}` : ""}
+            </p>
+          </div>
+        </motion.div>
+
+        {hasCareer ? (
+          <>
+            {/* ── Completeness bar ───────────────────────── */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="mb-4 p-4 rounded-2xl border"
+              style={{
+                background: `${color}06`,
+                borderColor: `${color}22`,
+              }}
+            >
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="font-mono text-[9px] tracking-[0.22em] uppercase text-white/35">
+                  完成度
+                </p>
+                <p
+                  className="font-mono text-[13px] font-medium"
+                  style={{ color }}
+                >
+                  {completePct}%
+                </p>
+              </div>
+              <div className="h-[3px] bg-white/[0.07] rounded-full overflow-hidden mb-3">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: `linear-gradient(90deg, ${color}, ${color}55)` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completePct}%` }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {completeness.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px]"
+                    style={
+                      item.ok
+                        ? { background: `${color}14`, color, border: `1px solid ${color}35` }
+                        : { background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.07)" }
+                    }
+                  >
+                    <span>{item.icon}</span>
+                    <span className="font-medium">{item.label}</span>
+                    {item.ok
+                      ? <span className="text-[10px]">✓</span>
+                      : <span className="text-[10px] opacity-40">未入力</span>
+                    }
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* ── Actions ────────────────────────────────── */}
+            <div className="flex flex-col gap-2.5 mb-6">
+              <motion.button
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => setWizardOpen(true)}
+                className="flex items-center gap-3 p-4 rounded-2xl border transition-all group"
+                style={{
+                  background: "rgba(255,255,255,0.025)",
+                  borderColor: "rgba(255,255,255,0.07)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.025)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                }}
+              >
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${color}18`, color }}
+                >
+                  <Pencil size={15} />
+                </div>
+                <div className="text-left flex-1">
+                  <p className="text-[13px] font-bold">キャリアページを編集</p>
+                  <p className="text-[11px] text-white/35 mt-0.5">
+                    {(careerProfile?.episodes?.length ?? 0)}件のエピソード ·{" "}
+                    {(careerProfile?.skills?.length ?? 0)}スキル
+                  </p>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                  stroke="rgba(255,255,255,0.2)" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </motion.button>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <Link
+                  href={`/u/${user.slug}`}
+                  className="flex items-center gap-3 p-4 rounded-2xl border transition-all"
+                  style={{
+                    background: "rgba(255,255,255,0.025)",
+                    borderColor: "rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/[0.05] text-white/40">
+                    <Eye size={15} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[13px] font-bold">公開ページを見る</p>
+                    <p className="text-[11px] text-white/35 mt-0.5">
+                      vizion.connection/u/{user.slug}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* ── Episodes preview ───────────────────────── */}
+            {(careerProfile?.episodes?.length ?? 0) > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <p className="font-mono text-[9px] tracking-[0.24em] uppercase text-white/25 mb-3">
+                  キャリア年表
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {(careerProfile!.episodes as any[]).slice(0, 5).map(
+                    (ep: any, i: number) => (
+                      <div
+                        key={ep.id ?? i}
+                        className="flex items-center gap-3 px-3.5 py-3 rounded-xl"
+                        style={{
+                          background: "rgba(255,255,255,0.025)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center font-mono text-[9px] font-medium flex-shrink-0"
+                          style={{ background: `${color}18`, color }}
+                        >
+                          {i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-semibold text-white/75 truncate">
+                            {ep.role}
+                            {ep.org ? (
+                              <span className="font-normal text-white/35"> — {ep.org}</span>
+                            ) : null}
+                          </p>
+                          <p className="font-mono text-[9px] text-white/28 mt-0.5">
+                            {ep.period}
+                          </p>
+                        </div>
+                        {ep.isCurrent && (
+                          <span
+                            className="font-mono text-[8px] tracking-[0.1em] uppercase px-2 py-1 rounded flex-shrink-0"
+                            style={{ background: `${color}18`, color }}
+                          >
+                            現在
+                          </span>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </>
+        ) : (
+          /* ── Empty state ──────────────────────────────── */
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <Sparkles size={24} className="text-white/25" />
+            </div>
+            <h2 className="text-[18px] font-extrabold tracking-[-0.025em] mb-2">
+              キャリアページを作ろう
+            </h2>
+            <p className="text-[13px] text-white/38 leading-relaxed mb-7 max-w-xs mx-auto">
+              いくつかの質問に答えるだけで、プロフェッショナルなキャリアストーリーページが自動生成されます。
+            </p>
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-[13px] text-white transition-all hover:brightness-110 active:scale-[0.97]"
+              style={{
+                background: color,
+                boxShadow: `0 0 28px ${color}40`,
+              }}
+            >
+              <Sparkles size={14} />
+              作成をはじめる（約3分）
+            </button>
+          </motion.div>
+        )}
+      </div>
+
+      {/* ── Wizard modal ────────────────────────────────── */}
+      <AnimatePresence>
+        {wizardOpen && (
+          <CareerWizardModal onClose={() => setWizardOpen(false)} />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

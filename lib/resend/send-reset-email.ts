@@ -25,7 +25,10 @@ export async function sendResetEmail({
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
         <tr><td style="padding:0 0 32px;" align="center">
-          <img src="https://vizion-connection.jp/images/Vizion_Connection_logo-wt.png">
+          <img src="https://vizion-connection.jp/images/Vizion_Connection_logo-wt.png"
+                alt="Vizion Connection"
+                width="140"
+                style="height:auto;display:block;opacity:0.85;" />
         </td></tr>
         <tr><td style="background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;">
           <tr><td style="height:3px;background:#a78bfa;font-size:0;">&nbsp;</td></tr>

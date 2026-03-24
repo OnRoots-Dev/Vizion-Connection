@@ -82,12 +82,13 @@ export function CTASection() {
 
       <CountdownTimer />
 
+      {/* ← 修正: 日程を 3/23〜3/31 に更新 */}
       <div className="bg-white/[0.02] px-8 py-6 border border-red-400/20">
         <p className="font-body text-[16px] font-bold uppercase tracking-[0.2em] text-red-400">
           Founding Member 枠 締切間近
         </p>
         <p className="mt-1 font-display text-[30px] font-bold text-white/70">
-          3/14 SAT 12:00 – 3/20 FRI 23:59
+          3/23 MON 17:00 – 3/31 TUE 23:59
         </p>
         <p className="mt-2 text-[11px] text-white/30 leading-relaxed">
           ※期間終了後はFoundingバッジの付与・特典解放は終了します（再開未定）。<br />
