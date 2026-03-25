@@ -1,6 +1,7 @@
 // app/api/og/[slug]/route.tsx
 
 import { ImageResponse } from "next/og";
+import { NextResponse } from "next/server";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { createElement as h } from "react";
 
@@ -19,7 +20,7 @@ const ROLE_LABEL: Record<string, string> = {
 function withCache(r: ImageResponse): Response {
     const headers = new Headers(r.headers);
     headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return new Response(r.body, { headers, status: r.status });
+    return new NextResponse(r.body, { headers, status: r.status });
 }
 
 async function fetchBase64(url: string | null): Promise<string | null> {

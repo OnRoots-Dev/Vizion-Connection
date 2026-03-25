@@ -2,15 +2,26 @@ import { NextResponse } from "next/server";
 import { findUserByResetToken, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { validateCSRF } from "@/lib/security/csrf";
+import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 
 const schema = z.object({
-    token: z.string().min(1),
+    token: z.string().min(1).max(128),
     newPassword: z.string().min(8).max(100).regex(/^\S+$/, "スペースは使用できません"),
-});
+}).strict();
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
+        const csrfError = validateCSRF(req);
+        if (csrfError) return csrfError as unknown as NextResponse;
+
+        let body: unknown;
+        try {
+            body = await readLimitedJson(req);
+        } catch (e) {
+            if (e instanceof PayloadTooLargeError) return new NextResponse("Payload too large", { status: 413 });
+            return new NextResponse("Bad request", { status: 400 });
+        }
         const parsed = schema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message }, { status: 400 });
 

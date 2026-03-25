@@ -5,9 +5,13 @@ import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
 import { shareLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 
 export async function POST(req: Request) {
     try {
+        const csrfError = validateCSRF(req);
+        if (csrfError) return csrfError as unknown as NextResponse;
+
         const { success } = await shareLimiter.limit(getIp(req));
         if (!success) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 

@@ -5,11 +5,15 @@ import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/users";
 import { missionLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 
 const MISSION_BONUS_POINTS = 1000;
 
 export async function POST(req: Request): Promise<NextResponse> {
     try {
+        const csrfError = validateCSRF(req);
+        if (csrfError) return csrfError as unknown as NextResponse;
+
         const token = await getSessionCookie();
         if (!token) return NextResponse.json({ ok: false, error: "unauthenticated" }, { status: 401 });
 

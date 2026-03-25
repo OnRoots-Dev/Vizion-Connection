@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createContact } from "@/lib/supabase/contacts";
 import { z } from "zod";
 import { contactLimiter, getIp } from "@/lib/ratelimit";
+import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 
 const schema = z.object({
   category: z.enum(["広告・スポンサー", "取材・メディア", "不具合・バグ報告", "機能要望", "その他"]),
@@ -11,17 +12,23 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  try {
-    const ip = getIp(req);
-    const { success } = await contactLimiter.limit(ip);
-    if (!success) {
-      return NextResponse.json(
-        { ok: false, error: "しばらく時間をおいてから再度お試しください" },
+    try {
+        const ip = getIp(req);
+        const { success } = await contactLimiter.limit(ip);
+        if (!success) {
+            return NextResponse.json(
+                { ok: false, error: "しばらく時間をおいてから再度お試しください" },
         { status: 429 }
       );
     }
 
-    const body = await req.json();
+        let body: unknown;
+        try {
+            body = await readLimitedJson(req);
+        } catch (e) {
+            if (e instanceof PayloadTooLargeError) return NextResponse.json({ ok: false, error: "Payload too large" }, { status: 413 });
+            return e as NextResponse;
+        }
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message }, { status: 400 });

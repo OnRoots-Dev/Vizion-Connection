@@ -7,6 +7,13 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { hasAlreadyCheered } from "@/lib/supabase/cheers";
 import { cheerProfile } from "@/features/profile/server/cheer-profile";
 import { cheerLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
+import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { z } from "zod";
+
+const schema = z.object({
+    toSlug: z.string().min(1).max(50),
+}).strict();
 
 interface RequestBody {
     toSlug: string;
@@ -14,6 +21,9 @@ interface RequestBody {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
+        const csrfError = validateCSRF(req);
+        if (csrfError) return csrfError as unknown as NextResponse;
+
         const ip = getIp(req);
         const { success } = await cheerLimiter.limit(ip);
         if (!success) {
@@ -33,7 +43,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }
 
-        const body: unknown = await req.json();
+        let body: unknown;
+        try {
+            body = await readLimitedJson(req);
+        } catch (e) {
+            if (e instanceof PayloadTooLargeError) {
+                return new NextResponse("Payload too large", { status: 413 });
+            }
+            return new NextResponse("Bad request", { status: 400 });
+        }
 
         if (!body || typeof body !== "object") {
             return NextResponse.json(
@@ -42,7 +60,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             );
         }
 
-        const { toSlug } = body as RequestBody;
+        const parsed = schema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json(
+                { success: false, error: "リクエストが不正です" },
+                { status: 400 }
+            );
+        }
+        const { toSlug } = parsed.data;
 
         if (!toSlug || typeof toSlug !== "string") {
             return NextResponse.json(

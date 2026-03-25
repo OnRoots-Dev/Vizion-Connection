@@ -5,24 +5,35 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { findUserBySlug, updatePassword } from "@/lib/supabase/users";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { validateCSRF } from "@/lib/security/csrf";
+import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 
 const schema = z.object({
-    currentPassword: z.string().min(1),
+    currentPassword: z.string().min(1).max(100),
     newPassword: z.string()
         .min(8, "パスワードは8文字以上で入力してください")
         .max(100)
         .regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/, "使用できない文字が含まれています"),
-});
+}).strict();
 
 export async function POST(req: Request) {
     try {
+        const csrfError = validateCSRF(req);
+        if (csrfError) return csrfError as unknown as NextResponse;
+
         const cookieStore = await cookies();
         const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
         if (!token) return NextResponse.json({ ok: false, error: "ログインが必要です" }, { status: 401 });
         const session = verifySession(token);
         if (!session) return NextResponse.json({ ok: false, error: "セッションが無効です" }, { status: 401 });
 
-        const body = await req.json();
+        let body: unknown;
+        try {
+            body = await readLimitedJson(req);
+        } catch (e) {
+            if (e instanceof PayloadTooLargeError) return new NextResponse("Payload too large", { status: 413 });
+            return new NextResponse("Bad request", { status: 400 });
+        }
         const parsed = schema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message ?? "入力が不正です" }, { status: 400 });
 

@@ -1,6 +1,6 @@
 // app/(app)/ranking/page.tsx
 
-import { supabase } from "@/lib/supabase/client";
+import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -19,7 +19,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 async function getRanking(role?: string) {
-    let query = supabase
+    let query = supabaseServer
         .from("users")
         .select("slug, display_name, role, avatar_url, profile_image_url, cheer_count, is_founding_member, serial_id, sport, region")
         .eq("is_deleted", false)

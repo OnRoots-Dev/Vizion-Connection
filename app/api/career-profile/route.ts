@@ -1,15 +1,102 @@
 // app/api/career-profile/route.ts
-// 既存の認証パターン（getSessionCookie + verifySession）に完全準拠
+// セキュア版: CSRF, バリデーション, サイズ制限を追加
 
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import {
   getCareerProfile,
   upsertCareerProfile,
 } from "@/lib/supabase/career-profiles";
-// usersテーブルのsport/region/bioはウィザードから更新しない
-// （既存の /api/profile/update で管理）
+
+// ────────────────────────────────────────────────────────────
+// 設定
+const MAX_BODY_BYTES = 60 * 1024; // 60KB
+const MAX_EPISODES = 20;
+const MAX_SKILLS = 20;
+const MAX_STATS = 5;
+
+// 文字列に < > を含めない（簡易 XSS 防止）かつ長さ制限
+const safeString = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((v) => !/[<>]/.test(v), "HTML tags are not allowed");
+
+// Zod スキーマ
+const statSchema = z
+  .object({
+    value: safeString(50),
+    label: safeString(50),
+    color: z.enum(["default", "gold", "role"]),
+  })
+  .strict();
+
+const episodeSchema = z
+  .object({
+    id: safeString(64).optional(),
+    period: safeString(60),
+    role: safeString(120),
+    org: safeString(120),
+    desc: safeString(800),
+    milestone: safeString(120).optional(),
+    tags: z.array(safeString(32)).max(6),
+    isCurrent: z.boolean().optional(),
+  })
+  .strict();
+
+const skillSchema = z
+  .object({
+    name: safeString(80),
+    level: z.number().int().min(0).max(100),
+    isHighlight: z.boolean().optional(),
+  })
+  .strict();
+
+const bodySchema = z
+  .object({
+    tagline: safeString(140).optional(),
+    bioCareer: safeString(2000).optional(),
+    countryCode: safeString(10).optional(),
+    countryName: safeString(100).optional(),
+    stats: z.array(statSchema).max(MAX_STATS).optional(),
+    episodes: z.array(episodeSchema).max(MAX_EPISODES).optional(),
+    skills: z.array(skillSchema).max(MAX_SKILLS).optional(),
+    ctaTitle: safeString(140).optional(),
+    ctaSub: safeString(300).optional(),
+    ctaBtn: safeString(60).optional(),
+    snsX: safeString(200).optional(),
+    snsInstagram: safeString(200).optional(),
+    snsTiktok: safeString(200).optional(),
+    visibility: z.enum(["public", "members", "private"]).optional(),
+  })
+  .strict();
+
+// ────────────────────────────────────────────────────────────
+// 共通ヘルパー
+
+function originAllowed(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;
+  return origin === req.nextUrl.origin;
+}
+
+async function readLimitedJson(req: NextRequest): Promise<unknown> {
+  const lengthHeader = req.headers.get("content-length");
+  if (lengthHeader && Number(lengthHeader) > MAX_BODY_BYTES) {
+    throw new RequestEntityTooLargeError();
+  }
+
+  const text = await req.text();
+  if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) {
+    throw new RequestEntityTooLargeError();
+  }
+
+  return JSON.parse(text);
+}
+
+class RequestEntityTooLargeError extends Error {}
 
 // ── GET: 自分のキャリアプロフィール取得 ──────────────────────
 
@@ -25,13 +112,16 @@ export async function GET(): Promise<NextResponse> {
   }
 
   const data = await getCareerProfile(session.slug);
-  // 未作成の場合は null を返す（エラーではない）
   return NextResponse.json(data ?? null);
 }
 
 // ── POST: 保存（upsert） ──────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  if (!originAllowed(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const token = await getSessionCookie();
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,30 +132,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: Record<string, unknown>;
+  let parsed: z.infer<typeof bodySchema>;
   try {
-    body = await req.json();
-  } catch {
+    const json = await readLimitedJson(req);
+    const result = bodySchema.safeParse(json);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Validation failed", issues: result.error.format() },
+        { status: 400 }
+      );
+    }
+    parsed = result.data;
+  } catch (err) {
+    if (err instanceof RequestEntityTooLargeError) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const ok = await upsertCareerProfile(session.slug, {
-    tagline:      typeof body.tagline     === "string" ? body.tagline     : undefined,
-    bioCareer:    typeof body.bioCareer   === "string" ? body.bioCareer   : undefined,
-    countryCode:  typeof body.countryCode === "string" ? body.countryCode : undefined,
-    countryName:  typeof body.countryName === "string" ? body.countryName : undefined,
-    stats:        Array.isArray(body.stats)     ? body.stats     : undefined,
-    episodes:     Array.isArray(body.episodes)  ? body.episodes  : undefined,
-    skills:       Array.isArray(body.skills)    ? body.skills    : undefined,
-    ctaTitle:     typeof body.ctaTitle    === "string" ? body.ctaTitle    : undefined,
-    ctaSub:       typeof body.ctaSub      === "string" ? body.ctaSub      : undefined,
-    ctaBtn:       typeof body.ctaBtn      === "string" ? body.ctaBtn      : undefined,
-    snsX:         typeof body.snsX        === "string" ? body.snsX        : undefined,
-    snsInstagram: typeof body.snsInstagram === "string" ? body.snsInstagram : undefined,
-    snsTiktok:    typeof body.snsTiktok   === "string" ? body.snsTiktok   : undefined,
-    visibility: (body.visibility === "public" || body.visibility === "members" || body.visibility === "private")
-      ? body.visibility
-      : undefined,
+    ...parsed,
+    episodes: parsed.episodes?.map((ep) => ({
+      ...ep,
+      id: ep.id ?? "",
+    })),
   });
 
   if (!ok) {
@@ -74,3 +164,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ success: true, slug: session.slug });
 }
+
+// App Router 向けのリクエストサイズ制限（静的設定がないため注意喚起用）
+export const maxDuration = 30;

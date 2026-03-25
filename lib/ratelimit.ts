@@ -53,6 +53,14 @@ export const shareLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:share",
 });
 
+// パスワードリセット：IP 10分に5回, Email 10分に3回
+export const resetIpLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(5, "10 m"), prefix: "rl:reset:ip",
+});
+export const resetEmailLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(3, "10 m"), prefix: "rl:reset:email",
+});
+
 // IPを取得するヘルパー
 export function getIp(req: Request): string {
     const xff = req.headers.get("x-forwarded-for");

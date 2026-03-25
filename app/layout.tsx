@@ -1,12 +1,27 @@
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
-import { Bebas_Neue, Noto_Sans_JP } from "next/font/google";
+import localFont from "next/font/local";
 import type { Metadata } from "next";
 
-const bebas = Bebas_Neue({ weight: "400", subsets: ["latin"], display: "swap", variable: "--font-bebas" });
-const noto = Noto_Sans_JP({ weight: ["300", "400", "700", "900"], subsets: ["latin"], display: "swap", variable: "--font-noto" });
+const bebas = localFont({
+  src: "../public/fonts/BebasNeue-Regular.ttf",
+  variable: "--font-bebas",
+  display: "swap",
+});
+
+const noto = localFont({
+  src: [
+    { path: "../public/fonts/NotoSansJP-Light.ttf", weight: "300", style: "normal" },
+    { path: "../public/fonts/NotoSansJP-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../public/fonts/NotoSansJP-Bold.ttf", weight: "700", style: "normal" },
+    { path: "../public/fonts/NotoSansJP-Black.ttf", weight: "900", style: "normal" },
+  ],
+  variable: "--font-noto",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
+  // ← 既存のmetadataをそのまま残す（変更不要）
   metadataBase: new URL("https://vizion-connection.jp"),
   title: {
     default: "Vizion Connection | スポーツの信頼を可視化するプラットフォーム",
@@ -30,7 +45,7 @@ export const metadata: Metadata = {
       "アスリート・トレーナー・サポーター・企業をつなぐ、スポーツ特化型プロフィール＆信頼可視化プラットフォーム。",
     images: [
       {
-        url: "/images/og-image.png", // ← OGP画像を用意してください（後述）
+        url: "/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "Vizion Connection",
@@ -43,7 +58,6 @@ export const metadata: Metadata = {
     description:
       "アスリート・トレーナー・サポーター・企業をつなぐ、スポーツ特化型プロフィール＆信頼可視化プラットフォーム。",
     images: ["/images/og-image.png"],
-    // site: "@your_twitter_handle", // Xアカウントがあれば追加
   },
   robots: {
     index: true,
@@ -64,12 +78,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    return (
-        <html lang="ja" className={`${bebas.variable} ${noto.variable}`}>
-            <body>
-                {children}
-                <SpeedInsights />
-            </body>
-        </html>
-    );
+  return (
+    <html lang="ja" className={`${bebas.variable} ${noto.variable}`}>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
+    </html>
+  );
 }
