@@ -1,52 +1,41 @@
-// app/api/profile/me/route.ts
-// プロフィール編集後にダッシュボードの状態を更新するためのAPI
-
-import { NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { profileLimiter, getIp } from "@/lib/ratelimit";
 
-export async function GET(): Promise<NextResponse> {
-    const token = await getSessionCookie();
+export async function POST(req: NextRequest) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const session = verifySession(token);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = await findUserBySlug(session.slug);
-    if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    // ProfileData形式で返す
-    const profile = {
-        id: user.id,
-        slug: user.slug,
-        displayName: user.displayName,
-        email: user.email,
-        role: user.role,
-        isPublic: user.isPublic,
-        isFoundingMember: user.isFoundingMember,
-        verified: user.verified,
-        serialId: user.serialId,
-        avatarUrl: user.avatarUrl,
-        profileImageUrl: user.profileImageUrl,
-        bio: user.bio,
-        region: user.region,
-        prefecture: user.prefecture,
-        location: user.location,
-        sport: user.sport,
-        sportsCategory: user.sportsCategory,
-        stance: user.stance,
-        instagram: user.instagram,
-        xUrl: user.xUrl,
-        tiktok: user.tiktok,
-        cheerCount: user.cheerCount,
-        points: user.points,
-        missionBonusGiven: user.missionBonusGiven,
-        hasShared: user.hasShared,
-        referrerSlug: user.referrerSlug,
-        createdAt: user.createdAt,
-        lastLoginAt: user.lastLoginAt,
-    };
+    const { success } = await profileLimiter.limit(getIp(req));
+    if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
-    return NextResponse.json({ profile });
+    const body = await req.json();
+
+    await updateUserProfile(user.slug, {
+        displayName: body.displayName,
+        bio: body.bio,
+        region: body.region,
+        ...(user.prefecture ? {} : { prefecture: body.prefecture }),
+        sportsCategory: body.sportsCategory,
+        sport: body.sport,
+        stance: body.stance,
+        instagram: body.instagram,
+        xUrl: body.xUrl,
+        tiktok: body.tiktok,
+        profileImageUrl: body.profileImageUrl,
+        avatarUrl: body.avatarUrl,
+        ...(typeof body.isPublic === "boolean" ? { isPublic: body.isPublic } : {}),
+    });
+
+    return NextResponse.json({ ok: true });
 }
