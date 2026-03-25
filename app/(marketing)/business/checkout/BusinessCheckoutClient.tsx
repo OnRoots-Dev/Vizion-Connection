@@ -2,15 +2,14 @@
 
 "use client";
 
-import { useState, useEffect } from "react"; // ← 修正: useEffect追加
+import { useState, useEffect } from "react"; //
 import { HeaderLight } from "@/components/layout/HeaderLight";
 import { FooterLight } from "@/components/layout/FooterLight";
 import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
 
 type CheckoutState = "idle" | "loading" | "error";
 
-// ← 修正: カウントダウン用
-const DEADLINE = new Date("2026-03-28T12:00:00+09:00");
+const DEADLINE = new Date("2026-03-31T23:59:59+09:00");
 
 function calcTimeLeft() {
     const diff = DEADLINE.getTime() - Date.now();
@@ -38,14 +37,15 @@ export default function BusinessCheckoutClient({
     const [state, setState] = useState<CheckoutState>("idle");
     const [errorMessage, setErrorMessage] = useState("");
 
-    // ← 修正: カウントダウンタイマー（1秒ごと更新）
-    const [timeLeft, setTimeLeft] = useState(calcTimeLeft());
+    const [timeLeft, setTimeLeft] = useState<ReturnType<typeof calcTimeLeft> | null>(null); // ← null初期値
+
     useEffect(() => {
+        setTimeLeft(calcTimeLeft());
         const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
         return () => clearInterval(id);
     }, []);
 
-    const isExpired = DEADLINE.getTime() - Date.now() <= 0; // ← 修正
+    const isExpired = DEADLINE.getTime() - Date.now() <= 0;
 
     async function handleCheckout() {
         if (!selectedPlanId) return;
@@ -109,19 +109,26 @@ export default function BusinessCheckoutClient({
                         プランを選んで申し込みボタンを押すと、Square の安全な決済ページへ移動します
                     </p>
 
-                    {/* ← 修正: カウントダウンタイマー */}
+                    {/*カウントダウンタイマー */}
                     {!isExpired ? (
                         <div className="flex items-center gap-3 pt-1">
                             {[
-                                { label: "日", value: timeLeft.days },
-                                { label: "時間", value: timeLeft.hours },
-                                { label: "分", value: timeLeft.minutes },
-                                { label: "秒", value: timeLeft.seconds },
+                                { label: "日", value: timeLeft?.days },
+                                { label: "時間", value: timeLeft?.hours },
+                                { label: "分", value: timeLeft?.minutes },
+                                { label: "秒", value: timeLeft?.seconds },
                             ].map(({ label, value }) => (
                                 <div key={label} className="text-center">
-                                    <div className="rounded-xl px-3 py-2 text-xl font-black tabular-nums"
-                                        style={{ background: "#1d1d1f", color: "#fff", minWidth: "52px" }}>
-                                        {String(value).padStart(2, "0")}
+                                    <div className="rounded-xl px-3 py-2 tabular-nums"
+                                        style={{
+                                            background: "#1d1d1f",
+                                            color: "#fff",
+                                            minWidth: "52px",
+                                            fontFamily: "'BebasNeue', sans-serif",
+                                            fontSize: "26px",
+                                            lineHeight: 1.2,
+                                        }}>
+                                        {timeLeft ? String(value).padStart(2, "0") : "--"}
                                     </div>
                                     <div className="text-[10px] mt-1" style={{ color: "#aeaeb2" }}>{label}</div>
                                 </div>
