@@ -1,6 +1,6 @@
 // features/auth/server/register.ts
 import { hashPassword } from "@/lib/auth/hash";
-import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, countUsersByRole } from "@/lib/supabase/users";
+import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, countUsersByRole } from "@/lib/supabase/data/users.server";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { issueVerifyToken } from "@/features/auth/server/tokens";
 import { registerSchema } from "@/features/auth/validation/register-schema";

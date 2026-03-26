@@ -1,7 +1,7 @@
 // features/auth/server/verify.ts
 
-import { findUserByEmail, findUserBySlug, addPointsToUser, markUserVerified } from "@/lib/supabase/users";
-import { findVerifyToken, markTokenUsed } from "@/lib/supabase/verify-tokens";
+import { findUserByEmail, findUserBySlug, addPointsToUser, markUserVerified } from "@/lib/supabase/data/users.server";
+import { findVerifyToken, markTokenUsed } from "@/lib/supabase/data/tokens.server";
 import { findReferralByReferredSlug, createReferral } from "@/lib/supabase/referrals";
 import { sendVerifiedEmail } from "@/lib/resend/send-verified-email";
 import { signSession } from "@/lib/auth/session";

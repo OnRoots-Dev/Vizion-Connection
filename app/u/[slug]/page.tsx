@@ -1,5 +1,4 @@
 // app/(app)/u/[slug]/page.tsx
-// 既存コードにコレクト機能（CollectButtonClient + collectorCount）とCareerSectionを追加
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -7,6 +6,8 @@ import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by
 import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import CheerButtonClient from "./CheerButtonClient";
+import { getCareerProfile } from "@/lib/supabase/career-profiles";
+import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import CollectButtonClient from "./CollectButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
@@ -64,12 +65,13 @@ export default async function UserProfilePage({ params }: Props) {
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const session = token ? verifySession(token) : null;
     const isOwn = session?.slug === slug;
-    const viewerSlug = session?.slug ?? null; // ← 追加
+    const viewerSlug = session?.slug ?? null;
 
     if (!result.data.isPublic) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
-    const collectorCount = await getCollectorCount(slug); // ← 追加
+    const collectorCount = await getCollectorCount(slug);
+    const careerProfile = await getCareerProfile(slug);
 
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
@@ -193,7 +195,7 @@ export default async function UserProfilePage({ params }: Props) {
                                 <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,210,0,.45)" }}>CHEER</span>
                                 <span style={{ fontSize: 36, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1, letterSpacing: "-.025em", textShadow: "0 0 24px rgba(255,214,0,.5)" }}>{(profile.cheerCount ?? 0).toLocaleString()}</span>
                             </div>
-                            {/* ← 追加: コレクト数 */}
+                            {/* コレクト数 */}
                             {collectorCount > 0 && (
                                 <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                     <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: `${rl}88` }}>COLLECTED</span>
@@ -237,7 +239,7 @@ export default async function UserProfilePage({ params }: Props) {
                         </div>
                         <a href="/ranking" style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 18px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>⭐ ランキング</a>
                     </div>
-                    {/* ← 追加: コレクトボタン */}
+                    {/* コレクトボタン */}
                     <div className="u5">
                         <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} />
                     </div>
@@ -245,7 +247,7 @@ export default async function UserProfilePage({ params }: Props) {
                         <ProfileCardSection profile={profile as unknown as ProfileData} t={cardTheme} roleColor={rl} />
                     </div>
                     <div className="u7">
-                        <CareerSection roleColor={rl} bio={profile.bio} sport={profile.sport} region={profile.region} prefecture={profile.prefecture} joinedAt={joinedAt} roleLabel={ROLE_LABEL[profile.role]} cheerCount={profile.cheerCount ?? 0} isPublic={profile.isPublic} slug={slug} />
+                        <CareerSection roleColor={rl} bio={profile.bio} sport={profile.sport} region={profile.region} prefecture={profile.prefecture} joinedAt={joinedAt} roleLabel={ROLE_LABEL[profile.role]} cheerCount={profile.cheerCount ?? 0} isPublic={profile.isPublic} slug={slug} careerProfile={careerProfile} />
                     </div>
                     <div className="u7" style={{ position: "relative", borderRadius: 20, padding: "32px 24px", background: `linear-gradient(135deg, ${bg1} 0%, rgba(8,8,15,.6) 100%)`, border: `1px solid ${rl}22`, textAlign: "center", overflow: "hidden" }}>
                         <div style={{ position: "absolute", top: "-50%", right: "-10%", width: 240, height: 240, background: `radial-gradient(circle, ${rl}18, transparent 68%)`, pointerEvents: "none" }} />

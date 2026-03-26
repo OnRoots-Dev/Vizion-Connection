@@ -6,7 +6,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-// ← 修正: 目アイコン共通コンポーネント
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
         <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>

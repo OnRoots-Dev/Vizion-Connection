@@ -27,6 +27,7 @@ interface Props {
     avatarUrl: string | null;
   };
   careerProfile: CareerProfileRow | null;
+  onBack?: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────
@@ -51,14 +52,14 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
   useEffect(() => {
     // usersテーブルのデータ
     initFromUser({
-      role:      role,
-      name:      user.displayName,
-      slug:      user.slug,
-      sport:     user.sport,
-      region:    user.region,
+      role: role,
+      name: user.displayName,
+      slug: user.slug,
+      sport: user.sport,
+      region: user.region,
       instagram: user.instagram,
-      xUrl:      user.xUrl,
-      tiktok:    user.tiktok,
+      xUrl: user.xUrl,
+      tiktok: user.tiktok,
     });
 
     // career_profilesのデータ（あれば上書き）
@@ -74,12 +75,16 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
 
   const completeness = [
     { icon: "💬", label: "キャッチコピー", ok: !!(careerProfile?.tagline || data.tagline) },
-    { icon: "📝", label: "自己紹介",       ok: !!(careerProfile?.bio_career || data.bioCareer) },
-    { icon: "📅", label: "キャリア年表",   ok: (careerProfile?.episodes?.length ?? data.episodes.length) > 0 },
-    { icon: "💪", label: "スキル",         ok: (careerProfile?.skills?.length ?? data.skills.length) > 0 },
+    { icon: "📝", label: "自己紹介", ok: !!(careerProfile?.bio_career || data.bioCareer) },
+    { icon: "📅", label: "キャリア年表", ok: (careerProfile?.episodes?.length ?? data.episodes.length) > 0 },
+    { icon: "💪", label: "スキル", ok: (careerProfile?.skills?.length ?? data.skills.length) > 0 },
   ];
   const completedCount = completeness.filter((c) => c.ok).length;
   const completePct = Math.round((completedCount / completeness.length) * 100);
+
+  function onBack(): void {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <div
@@ -95,15 +100,16 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
           backdropFilter: "blur(20px)",
         }}
       >
-        <Link
-          href="/dashboard"
+        <button
+          onClick={() => onBack?.()}
           className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors"
+          style={{ background: "none", border: "none", cursor: "pointer" }}
         >
           <ArrowLeft size={14} />
-          <span className="font-mono text-[10px] tracking-[0.18em] uppercase">
+          <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-white/40">
             Dashboard
           </span>
-        </Link>
+        </button>
         <span
           className="font-mono text-[9px] tracking-[0.28em] uppercase"
           style={{ color }}
@@ -234,7 +240,7 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
                 </div>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                   stroke="rgba(255,255,255,0.2)" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </motion.button>
 

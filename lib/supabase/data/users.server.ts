@@ -1,6 +1,6 @@
 // lib/supabase/users.ts
 
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "@/lib/supabase/server";
 
 type UserRow = {
     id: number;

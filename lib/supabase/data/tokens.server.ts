@@ -1,5 +1,5 @@
 // lib/supabase/verify-tokens.ts
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "@/lib/supabase/server";
 
 // トークン保存
 export async function saveVerifyToken(token: string, email: string, slug: string): Promise<boolean> {

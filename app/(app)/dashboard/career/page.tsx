@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { getCareerProfile } from "@/lib/supabase/career-profiles";
 import CareerDashboardClient from "./CareerDashboardClient";
 

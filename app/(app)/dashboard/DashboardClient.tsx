@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { Sidebar } from "./components/Sidebar";
+import CareerDashboardClient from "@/app/(app)/dashboard/career/CareerDashboardClient";
 import type { ProfileData } from "@/features/profile/types";
 import { ProfileCardSection } from "./components/ProfileCard";
 import { EditProfileClient } from "./edit/EditProfileClient";
@@ -86,14 +87,6 @@ export default function DashboardClient({
         window.location.href = "/login";
     }, []);
 
-    const router = useRouter();
-
-    useEffect(() => {
-        if (view === "career") {
-            router.push("/dashboard/career");
-        }
-    }, [view, router]);
-
     const handleProfileUpdate = useCallback((updated: ProfileData) => {
         setProfile(updated);
         setView("home");
@@ -145,21 +138,21 @@ export default function DashboardClient({
             case "cheer":
                 return <CheerView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
             case "career":
-                return null;
+                return (
+                    <CareerSPAWrapper
+                        profile={profile}
+                        t={t}
+                        roleColor={roleColor}
+                        setView={setView}
+                    />
+                );
             case "discovery":
                 return null;
             case "business":
                 return <BusinessView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
             case "referral":
                 return (
-                    <ReferralView
-                        profile={profile}
-                        referralUrl={referralUrl}
-                        referralCount={referralCount}
-                        t={t}
-                        roleColor={roleColor}
-                        setView={setView}
-                    />
+                    <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} />
                 );
             case "settings":
                 return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} onLogout={handleLogout} />;
@@ -239,14 +232,13 @@ export default function DashboardClient({
                                     overflowY: "auto",
                                 }}
                             >
-                                <DashboardSidebar
+                                <Sidebar
                                     profile={profile}
                                     view={view}
                                     setView={(v) => { setView(v); setSidebarOpen(false); }}
                                     theme={theme}
                                     setTheme={setTheme}
                                     t={t}
-                                    roleColor={roleColor}
                                     onLogout={handleLogout}
                                     onClose={() => setSidebarOpen(false)}
                                 />
@@ -320,169 +312,6 @@ export default function DashboardClient({
                 </div>
             </div>
         </>
-    );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// SIDEBAR
-// ════════════════════════════════════════════════════════════════════════════
-function DashboardSidebar({ profile, view, setView, theme, setTheme, t, roleColor, onLogout, onClose }: {
-    profile: ProfileData;
-    view: DashboardView;
-    setView: (v: DashboardView) => void;
-    theme: Theme;
-    setTheme: (t: Theme) => void;
-    t: ThemeColors;
-    roleColor: string;
-    onLogout: () => void;
-    onClose: () => void;
-}) {
-    const ROLE_LABEL: Record<string, string> = { Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS" };
-
-    const navGroups = [
-        {
-            group: "メイン",
-            items: [
-                { id: "home" as DashboardView, label: "ダッシュボード", icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" },
-                { id: "profile" as DashboardView, label: "プロフィール", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
-                { id: "career" as DashboardView, label: "Career", icon: "M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2" },
-                { id: "cheer" as DashboardView, label: "Cheer", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
-                { id: "referral" as DashboardView, label: "招待リンク", icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" },
-                { id: "missions" as DashboardView, label: "ミッション", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-            ],
-        },
-        {
-            group: "探索",
-            items: [
-                { id: "discovery" as DashboardView, label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
-                { id: "roadmap" as DashboardView, label: "ロードマップ", icon: "M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" },
-            ],
-        },
-        ...(profile.role === "Business" ? [{
-            group: "ビジネス",
-            items: [
-                { id: "business" as DashboardView, label: "Businessページ", icon: "M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" },
-                { id: "business-checkout" as DashboardView, label: "先行ポジション", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" },
-            ],
-        }] : []),
-    ];
-
-    return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            {/* ロゴ */}
-            <div style={{ padding: "16px 14px 12px", borderBottom: `1px solid ${t.border}` }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" style={{ height: 34, width: "auto" }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                        <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }}
-                            style={{ width: 5, height: 5, borderRadius: "50%", background: roleColor }} />
-                        <span style={{ fontSize: 7, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.15em", color: roleColor, textTransform: "uppercase" }}>
-                            Pre-Register
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* ユーザーカード */}
-            <div style={{ padding: "10px 10px 0" }}>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
-                    style={{
-                        padding: "10px 12px", borderRadius: 12,
-                        background: `${roleColor}10`, border: `1px solid ${roleColor}25`,
-                        display: "flex", alignItems: "center", gap: 9,
-                    }}
-                >
-                    <div style={{
-                        width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                        background: `${roleColor}20`, border: `2px solid ${roleColor}50`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 13, fontWeight: 900, color: roleColor, overflow: "hidden",
-                    }}>
-                        {profile.avatarUrl
-                            ? <img src={profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : profile.displayName[0].toUpperCase()
-                        }
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 700, color: t.text, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {profile.displayName}
-                        </p>
-                        <p style={{ fontSize: 9, fontFamily: "monospace", color: t.sub, margin: "1px 0 0", opacity: 0.6 }}>@{profile.slug}</p>
-                    </div>
-                    <span style={{ fontSize: 7, fontWeight: 900, padding: "2px 6px", borderRadius: 4, background: `${roleColor}22`, color: roleColor, border: `1px solid ${roleColor}35`, flexShrink: 0, letterSpacing: "0.08em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                        {ROLE_LABEL[profile.role] ?? profile.role}
-                    </span>
-                </motion.div>
-            </div>
-
-            {/* ナビ */}
-            <nav style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
-                {navGroups.map(({ group, items }, gi) => (
-                    <div key={group} style={{ marginBottom: 20 }}>
-                        <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub, opacity: 0.35, padding: "0 8px", marginBottom: 4, fontFamily: "monospace" }}>
-                            {group}
-                        </p>
-                        {items.map(({ id, label, icon }) => {
-                            const active = view === id;
-                            return (
-                                <button key={id} onClick={() => setView(id)} className="vz-nav-item" style={{
-                                    display: "flex", alignItems: "center", gap: 9,
-                                    padding: "9px 10px", borderRadius: 10, marginBottom: 2,
-                                    width: "100%", textAlign: "left",
-                                    background: active ? `${roleColor}15` : "transparent",
-                                    color: active ? roleColor : t.sub,
-                                    fontSize: 12, fontWeight: active ? 700 : 500,
-                                    border: active ? `1px solid ${roleColor}30` : "1px solid transparent",
-                                    cursor: "pointer",
-                                    opacity: active ? 1 : 0.7,
-                                    position: "relative",
-                                }}>
-                                    {active && <div style={{ position: "absolute", left: 0, top: "25%", bottom: "25%", width: 2, borderRadius: 99, background: roleColor, boxShadow: `0 0 6px ${roleColor}` }} />}
-                                    <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.75}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
-                                    </svg>
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                ))}
-            </nav>
-
-            {/* フッター */}
-            <div style={{ padding: 10, borderTop: `1px solid ${t.border}` }}>
-                {/* テーマ */}
-                <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, opacity: 0.3, padding: "0 8px", marginBottom: 6, fontFamily: "monospace" }}>Theme</p>
-                <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
-                    {([["dark", "🌑", "Dark"], ["dim", "🌒", "Dim"], ["light", "☀️", "Light"]] as const).map(([val, emoji, lbl]) => (
-                        <button key={val} onClick={() => setTheme(val)} title={lbl} className="vz-btn" style={{
-                            flex: 1, padding: "6px 4px", borderRadius: 8, border: "none",
-                            cursor: "pointer", fontSize: 12,
-                            background: theme === val ? `${roleColor}20` : "rgba(255,255,255,0.04)",
-                            color: theme === val ? roleColor : t.sub,
-                            fontWeight: theme === val ? 700 : 400,
-                            outline: theme === val ? `1px solid ${roleColor}40` : "none",
-                        }}>
-                            {emoji}
-                        </button>
-                    ))}
-                </div>
-                <div style={{ height: 1, background: t.border, margin: "0 2px 8px" }} />
-                <button onClick={() => setView("edit")} className="vz-btn" style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: `1px solid ${t.border}`, color: t.sub, fontSize: 12, fontWeight: 600, marginBottom: 2, background: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
-                    <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
-                    プロフィール編集
-                </button>
-                <button onClick={() => setView("settings")} className="vz-btn" style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: `1px solid ${t.border}`, color: t.sub, fontSize: 12, fontWeight: 600, marginBottom: 6, background: "none", cursor: "pointer", width: "100%", textAlign: "left" }}>
-                    <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    設定
-                </button>
-                <div style={{ height: 1, background: t.border, margin: "0 2px 6px" }} />
-                <button onClick={onLogout} className="vz-btn" style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "8px 10px", borderRadius: 9, background: "none", border: "none", cursor: "pointer", color: "rgba(255,80,80,0.5)", fontSize: 12 }}>
-                    <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
-                    ログアウト
-                </button>
-            </div>
-        </div>
     );
 }
 
@@ -892,61 +721,179 @@ function RoadmapMini({ roleColor, t }: { roleColor: string; t: ThemeColors }) {
     );
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// CHEER VIEW
-// ════════════════════════════════════════════════════════════════════════════
 function CheerView({ profile, t, roleColor, setView }: { profile: ProfileData; t: ThemeColors; roleColor: string; setView: (v: DashboardView) => void }) {
     const cheerCount = profile.cheerCount ?? 0;
+    const [rankingTab, setRankingTab] = useState<string>("all");
+    const [ranking, setRanking] = useState<any[]>([]);
+    const [rankingLoading, setRankingLoading] = useState(true);
+    const [myRank, setMyRank] = useState<number | null>(null);
+
+    const ROLE_COLOR_MAP: Record<string, string> = {
+        Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
+    };
+    const ROLE_LABEL_MAP: Record<string, string> = {
+        Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
+    };
+
+    useEffect(() => {
+        setRankingLoading(true);
+        const url = rankingTab === "all"
+            ? "/api/cheer/ranking"
+            : `/api/cheer/ranking?role=${rankingTab}`;
+        fetch(url)
+            .then((r) => r.json())
+            .then((d) => {
+                const users = d.users ?? [];
+                setRanking(users);
+                const idx = users.findIndex((u: any) => u.slug === profile.slug);
+                setMyRank(idx >= 0 ? idx + 1 : null);
+            })
+            .catch(() => setRanking([]))
+            .finally(() => setRankingLoading(false));
+    }, [rankingTab]);
+
+    const tabs = [
+        { label: "全体", value: "all" },
+        { label: "Athlete", value: "Athlete" },
+        { label: "Trainer", value: "Trainer" },
+        { label: "Members", value: "Members" },
+    ];
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <ViewHeader title="Cheer" sub="あなたへの応援" onBack={() => setView("home")} t={t} roleColor={roleColor} />
+            <ViewHeader title="Cheer" sub="あなたへの応援 & ランキング" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
-            {/* 大きなCheer数 */}
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                style={{ padding: "40px 0", textAlign: "center", position: "relative" }}
+            {/* 自分のCheer数 + 順位 */}
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+                style={{ padding: "28px 20px", textAlign: "center", borderRadius: 16, background: "rgba(255,214,0,0.04)", border: "1px solid rgba(255,214,0,0.12)", position: "relative" }}
             >
-                <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.4em", textTransform: "uppercase", color: "#FFD600", opacity: 0.6, fontFamily: "monospace", marginBottom: 8 }}>TOTAL CHEER</div>
-                    <div style={{ fontSize: 80, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace", textShadow: "0 0 40px rgba(255,214,0,0.4)" }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.4em", textTransform: "uppercase", color: "#FFD600", opacity: 0.6, fontFamily: "monospace", marginBottom: 6 }}>TOTAL CHEER</div>
+                <motion.div animate={{ scale: [1, 1.03, 1] }} transition={{ duration: 3, repeat: Infinity }}>
+                    <div style={{ fontSize: 72, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace", textShadow: "0 0 40px rgba(255,214,0,0.4)" }}>
                         {cheerCount}
                     </div>
-                    <div style={{ display: "flex", justifyContent: "center", gap: 4, marginTop: 8 }}>
-                        {Array.from({ length: Math.min(cheerCount, 10) }).map((_, i) => (
-                            <motion.span key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={{ fontSize: 16 }}>★</motion.span>
-                        ))}
-                    </div>
                 </motion.div>
+                {myRank && (
+                    <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 99, background: "rgba(255,214,0,0.1)", border: "1px solid rgba(255,214,0,0.25)" }}>
+                        <span style={{ fontSize: 13 }}>{myRank <= 3 ? ["👑", "🥈", "🥉"][myRank - 1] : "🏅"}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: "#FFD600", fontFamily: "monospace" }}>
+                            全体 {myRank}位
+                        </span>
+                    </div>
+                )}
             </motion.div>
 
-            {/* 応援の仕組み */}
+            {/* ランキング */}
             <SectionCard t={t}>
-                <SLabel text="Cheerとは" />
-                <p style={{ fontSize: 12, color: t.sub, lineHeight: 1.8, opacity: 0.7, margin: "0 0 14px" }}>
-                    他のメンバーがあなたのプロフィールページでCheerボタンを押すと、カウントが増えます。
-                    Cheerは信頼スコア（Trust Score）の基礎指標になります。
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    {[
-                        { label: "プロフィール公開", desc: "公開URLを広める", icon: "🔗" },
-                        { label: "SNSシェア", desc: "フォロワーにアピール", icon: "📢" },
-                        { label: "Beta版解放", desc: "Discovery機能で発見", icon: "🔍" },
-                        { label: "Trust Score", desc: "将来の信頼資産に", icon: "⚡" },
-                    ].map(({ label, desc, icon }) => (
-                        <div key={label} style={{ padding: "12px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: `1px solid ${t.border}` }}>
-                            <span style={{ fontSize: 18, display: "block", marginBottom: 5 }}>{icon}</span>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: t.text, margin: "0 0 3px" }}>{label}</p>
-                            <p style={{ fontSize: 10, color: t.sub, margin: 0, opacity: 0.55 }}>{desc}</p>
-                        </div>
+                <SLabel text="Cheer Ranking" />
+
+                {/* タブ */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+                    {tabs.map((tab) => (
+                        <button key={tab.value} onClick={() => setRankingTab(tab.value)}
+                            style={{
+                                padding: "5px 13px", borderRadius: 99, fontSize: 10, fontWeight: 700,
+                                cursor: "pointer", border: "none",
+                                background: rankingTab === tab.value ? `${roleColor}20` : "rgba(255,255,255,0.05)",
+                                color: rankingTab === tab.value ? roleColor : t.sub,
+                                outline: rankingTab === tab.value ? `1px solid ${roleColor}40` : "none",
+                                transition: "all 0.15s",
+                            }}
+                        >
+                            {tab.label}
+                        </button>
                     ))}
                 </div>
+
+                {rankingLoading ? (
+                    <div style={{ textAlign: "center", padding: "32px 0", color: t.sub, fontSize: 12 }}>読み込み中...</div>
+                ) : ranking.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "32px 0", color: t.sub, fontSize: 12 }}>データがありません</div>
+                ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {/* トップ3 */}
+                        {ranking.slice(0, 3).length > 0 && (
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
+                                {[ranking[1], ranking[0], ranking[2]].map((user, i) => {
+                                    if (!user) return <div key={i} />;
+                                    const rank = i === 1 ? 1 : i === 0 ? 2 : 3;
+                                    const rl = ROLE_COLOR_MAP[user.role] ?? "#aaa";
+                                    const isMe = user.slug === profile.slug;
+                                    return (
+                                        <a key={user.slug} href={`/u/${user.slug}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                                            <div style={{
+                                                display: "flex", flexDirection: "column", alignItems: "center",
+                                                padding: "14px 8px 12px", borderRadius: 14,
+                                                background: isMe ? `${roleColor}12` : rank === 1 ? `${rl}10` : "rgba(255,255,255,0.02)",
+                                                border: `1px solid ${isMe ? roleColor + "40" : rank === 1 ? rl + "25" : "rgba(255,255,255,0.06)"}`,
+                                            }}>
+                                                <div style={{ fontSize: rank === 1 ? 18 : 14, marginBottom: 6 }}>
+                                                    {rank === 1 ? "👑" : rank === 2 ? "🥈" : "🥉"}
+                                                </div>
+                                                <div style={{ width: rank === 1 ? 44 : 36, height: rank === 1 ? 44 : 36, borderRadius: "50%", overflow: "hidden", background: `${rl}20`, border: `2px solid ${rl}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: rl, marginBottom: 6, flexShrink: 0 }}>
+                                                    {user.avatar_url
+                                                        ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                        : user.display_name?.[0]?.toUpperCase()}
+                                                </div>
+                                                <p style={{ fontSize: 10, fontWeight: 800, color: t.text, margin: "0 0 2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%", width: "100%" }}>{user.display_name}</p>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                                                    <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                                    <span style={{ fontSize: 14, fontWeight: 900, color: "#FFD600", fontFamily: "monospace" }}>{user.cheer_count}</span>
+                                                </div>
+                                                {isMe && <span style={{ fontSize: 7, fontFamily: "monospace", color: roleColor, marginTop: 3, letterSpacing: "0.1em" }}>YOU</span>}
+                                            </div>
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* 4位以下 */}
+                        {ranking.slice(3).map((user, i) => {
+                            const rank = i + 4;
+                            const rl = ROLE_COLOR_MAP[user.role] ?? "#aaa";
+                            const isMe = user.slug === profile.slug;
+                            return (
+                                <a key={user.slug} href={`/u/${user.slug}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                                    <div style={{
+                                        display: "flex", alignItems: "center", gap: 10,
+                                        padding: "10px 12px", borderRadius: 12,
+                                        background: isMe ? `${roleColor}08` : "rgba(255,255,255,0.02)",
+                                        border: `1px solid ${isMe ? roleColor + "35" : "rgba(255,255,255,0.05)"}`,
+                                        transition: "border-color 0.15s",
+                                    }}>
+                                        <span style={{ width: 28, fontSize: 12, fontWeight: 900, fontFamily: "monospace", color: "rgba(255,255,255,0.2)", textAlign: "center", flexShrink: 0 }}>{rank}</span>
+                                        <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", background: `${rl}20`, border: `1.5px solid ${rl}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: rl, flexShrink: 0 }}>
+                                            {user.avatar_url
+                                                ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                : user.display_name?.[0]?.toUpperCase()}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                                <p style={{ fontSize: 12, fontWeight: 700, color: t.text, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
+                                                <span style={{ fontSize: 7, fontWeight: 800, padding: "1px 5px", borderRadius: 3, background: `${rl}18`, color: rl, fontFamily: "monospace", flexShrink: 0 }}>{ROLE_LABEL_MAP[user.role]}</span>
+                                                {isMe && <span style={{ fontSize: 7, fontFamily: "monospace", color: roleColor, flexShrink: 0 }}>YOU</span>}
+                                            </div>
+                                            <p style={{ fontSize: 9, fontFamily: "monospace", color: t.sub, margin: 0, opacity: 0.5 }}>@{user.slug}</p>
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                            <span style={{ fontSize: 14, fontWeight: 900, color: "#FFD600", fontFamily: "monospace" }}>{user.cheer_count}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            );
+                        })}
+                    </div>
+                )}
             </SectionCard>
 
-            {/* 公開URLシェアCTA */}
+            {/* Cheerを増やすCTA */}
             <SectionCard accentColor={roleColor} t={t}>
                 <SLabel text="Cheerを増やす" color={roleColor} />
                 <p style={{ fontSize: 12, color: t.sub, margin: "0 0 14px", opacity: 0.65 }}>公開プロフィールを広めてCheerを集めましょう。</p>
-                <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, background: `${roleColor}18`, border: `1px solid ${roleColor}35`, color: roleColor, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, background: `${roleColor}18`, border: `1px solid ${roleColor}35`, color: roleColor, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
                     <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                     公開プロフィールを開く
                 </a>
@@ -1583,17 +1530,91 @@ function SLabel({ text, color }: { text: string; color?: string }) {
     );
 }
 
-function ViewHeader({ title, sub, onBack, t, roleColor }: { title: string; sub: string; onBack: () => void; t: ThemeColors; roleColor: string }) {
+function ViewHeader({
+    title,
+    sub,
+    onBack,
+    t,
+    roleColor,
+}: {
+    title: string;
+    sub: string;
+    onBack: () => void;
+    t: ThemeColors;
+    roleColor: string;
+}) {
     return (
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-            <button onClick={onBack} className="vz-btn"
-                style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: t.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            <button
+                onClick={onBack}
+                className="vz-btn"
+                style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.09)",
+                    color: t.sub,
+                }}
+            >
+                ←
             </button>
             <div>
-                <h2 className="font-display" style={{ fontSize: "clamp(24px,4vw,40px)", fontWeight: 900, color: t.text, margin: 0, lineHeight: 1, textTransform: "uppercase", letterSpacing: "-0.01em" }}>{title}</h2>
-                <p style={{ fontSize: 10, color: t.sub, margin: "2px 0 0", opacity: 0.5 }}>{sub}</p>
+                <h2 style={{ fontSize: 28, fontWeight: 900 }}>{title}</h2>
+                <p style={{ fontSize: 10, color: t.sub }}>{sub}</p>
             </div>
+        </div>
+    );
+}
+
+function CareerSPAWrapper({
+    profile,
+    t,
+    roleColor,
+    setView,
+}: {
+    profile: ProfileData;
+    t: ThemeColors;
+    roleColor: string;
+    setView: (v: DashboardView) => void;
+}) {
+    const [careerProfile, setCareerProfile] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/career/me")
+            .then((r) => r.json())
+            .then((d) => setCareerProfile(d.careerProfile ?? null))
+            .catch(() => setCareerProfile(null))
+            .finally(() => setLoading(false));
+    }, []);
+
+    if (loading) {
+        return (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, color: t.sub, fontSize: 12 }}>
+                読み込み中...
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ margin: "0 -32px" }}> {/* ダッシュボードのpadding分を打ち消す */}
+            <CareerDashboardClient
+                user={{
+                    slug: profile.slug,
+                    displayName: profile.displayName,
+                    role: profile.role,
+                    sport: profile.sport ?? "",
+                    region: profile.region ?? "",
+                    instagram: profile.instagram ?? "",
+                    xUrl: profile.xUrl ?? "",
+                    tiktok: profile.tiktok ?? "",
+                    cheerCount: profile.cheerCount ?? 0,
+                    avatarUrl: profile.avatarUrl ?? null,
+                }}
+                careerProfile={careerProfile}
+                onBack={() => setView("home")}
+            />
         </div>
     );
 }

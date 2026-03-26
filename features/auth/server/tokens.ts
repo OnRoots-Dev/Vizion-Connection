@@ -1,7 +1,7 @@
 // features/auth/server/tokens.ts
 
 import { randomBytes } from "crypto";
-import { createVerifyToken } from "@/lib/supabase/verify-tokens";
+import { createVerifyToken } from "@/lib/supabase/data/tokens.server";
 import { env } from "@/lib/env";
 
 export function generateToken(): string {

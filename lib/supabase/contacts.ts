@@ -1,5 +1,5 @@
 // lib/supabase/contacts.ts
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 export async function createContact(params: {
     name: string;

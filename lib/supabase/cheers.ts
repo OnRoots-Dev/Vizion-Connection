@@ -1,5 +1,5 @@
 // lib/supabase/cheers.ts
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 export async function createCheer(toSlug: string, fromSlug: string | null): Promise<boolean> {
     const { error } = await supabase

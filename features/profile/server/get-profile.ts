@@ -2,7 +2,7 @@
 
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { countReferralsBySlug } from "@/lib/supabase/referrals";
 import { env } from "@/lib/env";
 import type { DashboardData } from "@/features/profile/types";

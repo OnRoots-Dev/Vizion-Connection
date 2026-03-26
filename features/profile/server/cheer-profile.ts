@@ -1,4 +1,4 @@
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { createCheer, hasAlreadyCheered } from "@/lib/supabase/cheers";
 
 export async function cheerProfile(toSlug: string, fromSlug: string) {

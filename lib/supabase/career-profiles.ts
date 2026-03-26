@@ -1,7 +1,7 @@
 // lib/supabase/career-profiles.ts
 // 既存の client.ts / users.ts と完全に同じパターンで実装
 
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 // ─── 型定義 ───────────────────────────────────────────────
 

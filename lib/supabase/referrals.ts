@@ -1,5 +1,5 @@
 // lib/supabase/referrals.ts
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 // 紹介レコード作成
 export async function createReferral(params: {

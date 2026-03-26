@@ -1,4 +1,4 @@
-// app/(app)/ranking/page.tsx
+// app/(app)/dashboard/ranking/page.tsx
 
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -34,9 +34,9 @@ async function getRanking(role?: string) {
 export default async function RankingPage({
     searchParams,
 }: {
-    searchParams: { role?: string };
+    searchParams: Promise<{ role?: string }>;
 }) {
-    const role = searchParams.role;
+    const { role } = await searchParams ;
     const users = await getRanking(role);
 
     const tabs = [

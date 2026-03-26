@@ -1,6 +1,6 @@
 // features/profile/server/get-profile-by-slug.ts
 
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import type { PublicProfileData } from "@/features/profile/types";
 
 export type GetPublicProfileResult =

@@ -1,5 +1,5 @@
 // lib/supabase/business-orders.ts
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 // 注文作成
 export async function createBusinessOrder(params: {

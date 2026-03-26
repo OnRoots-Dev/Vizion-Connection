@@ -19,6 +19,7 @@ export interface ProfileData {
     bio?: string;
     region?: string;
     prefecture?: string;
+    career?: string;
     sport?: string;
     sportsCategory?: string;
     stance?: string;
@@ -53,6 +54,7 @@ export interface PublicProfileData {
     bio?: string;
     region?: string;
     prefecture?: string;
+    career?: string;
     sport?: string;
     sportsCategory?: string;
     stance?: string;

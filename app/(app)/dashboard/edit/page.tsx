@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/users";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { EditProfileClient } from "./EditProfileClient";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 

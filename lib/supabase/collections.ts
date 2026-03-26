@@ -12,7 +12,7 @@
 // CREATE INDEX ON card_collections(collector_slug);
 // CREATE INDEX ON card_collections(target_slug);
 
-import { supabase } from "./client";
+import { supabaseServer as supabase } from "./server";
 
 export interface CollectedCard {
     targetSlug: string;
