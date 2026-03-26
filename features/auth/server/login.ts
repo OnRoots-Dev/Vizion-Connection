@@ -1,11 +1,11 @@
 // features/auth/server/login.ts
 
-import { findUserByEmail } from "@/lib/supabase/users";
+import { findUserByEmail } from "@/lib/supabase/data/users.server";
 import { verifyPassword } from "@/lib/auth/hash";
 import { signSession } from "@/lib/auth/session";
 import { loginSchema } from "@/features/auth/validation/login-schema";
 import type { LoginInput } from "@/features/auth/types";
-import { updateLastLogin } from "@/lib/supabase/users";
+import { updateLastLogin } from "@/lib/supabase/data/users.server";
 
 export type LoginResult =
     | { success: true; slug: string; role: string; token: string }

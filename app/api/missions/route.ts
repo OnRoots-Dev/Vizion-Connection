@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/users";
+import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/data/users.server";
 import { missionLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 

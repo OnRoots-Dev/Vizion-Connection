@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug, updatePassword } from "@/lib/supabase/users";
+import { findUserBySlug, updatePassword } from "@/lib/supabase/data/users.server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { validateCSRF } from "@/lib/security/csrf";

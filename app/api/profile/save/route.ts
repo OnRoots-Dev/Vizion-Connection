@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserProfile } from "@/lib/supabase/users";
+import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { profileLimiter, getIp } from "@/lib/ratelimit";
 

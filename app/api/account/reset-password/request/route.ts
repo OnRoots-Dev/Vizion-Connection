@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findUserByEmail, saveResetToken } from "@/lib/supabase/users";
+import { findUserByEmail, saveResetToken } from "@/lib/supabase/data/users.server";
 import { sendResetEmail } from "@/lib/resend/send-reset-email";
 import { env } from "@/lib/env";
 import crypto from "crypto";

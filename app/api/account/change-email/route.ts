@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug, findUserByEmail, updateUserProfile } from "@/lib/supabase/users";
+import { findUserBySlug, findUserByEmail, updateUserProfile } from "@/lib/supabase/data/users.server";
 import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { env } from "@/lib/env";
 import { z } from "zod";

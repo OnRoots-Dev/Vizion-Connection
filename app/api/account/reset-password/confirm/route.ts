@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findUserByResetToken, updatePassword } from "@/lib/supabase/users";
+import { findUserByResetToken, updatePassword } from "@/lib/supabase/data/users.server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { validateCSRF } from "@/lib/security/csrf";
