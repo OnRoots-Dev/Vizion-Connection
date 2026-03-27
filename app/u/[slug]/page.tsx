@@ -7,7 +7,6 @@ import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import CheerButtonClient from "./CheerButtonClient";
 import { getCareerProfile } from "@/lib/supabase/career-profiles";
-import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import CollectButtonClient from "./CollectButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
