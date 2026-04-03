@@ -61,6 +61,19 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* フォーム選択肢の可読性を常に担保 */
+select,
+option,
+optgroup {
+  color: #f3f6ff;
+  background-color: #0f121b;
+}
+
+select:focus {
+  outline: 1px solid rgba(255, 255, 255, 0.28);
+  outline-offset: 1px;
+}
+
 /* ─────────────────────────────────────────
    役割ごとのテーマカラー (Role Colors)
 ───────────────────────────────────────── */

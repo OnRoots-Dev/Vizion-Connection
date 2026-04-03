@@ -20,7 +20,7 @@ const STEP_COMPONENTS = [
   StepStats, StepEpisodes, StepSkills, StepContact, StepComplete,
 ];
 
-export default function CareerWizardModal({ onClose }: { onClose?: () => void }) {
+export default function CareerWizardModal({ onClose, contained = false }: { onClose?: () => void; contained?: boolean }) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
     data, isSaving, saveError, saveToApi,
@@ -46,22 +46,27 @@ export default function CareerWizardModal({ onClose }: { onClose?: () => void })
     nextStep();
   };
 
+  const backdropClass = contained ? "absolute inset-0 z-40" : "fixed inset-0 z-40";
+  const containerClass = contained
+    ? "absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+    : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4";
+
   return (
     <>
       {/* Backdrop */}
-      <motion.div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}
+      <motion.div className={backdropClass} style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose} />
 
-      {/* Modal — bottom sheet on mobile, centered on sm+ */}
-      <motion.div className="fixed inset-x-0 bottom-0 sm:inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
+      {/* Modal — centered on all breakpoints */}
+      <motion.div className={containerClass}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <motion.div
-          className="relative w-full sm:max-w-[480px] flex flex-col overflow-hidden"
+          className="relative w-full max-w-[480px] flex flex-col overflow-hidden"
           style={{
             background: "#0c0c16",
             border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: "28px 28px 0 0",
+            borderRadius: "28px",
             maxHeight: "92dvh",
           }}
           // sm以上は完全な角丸
@@ -83,9 +88,9 @@ export default function CareerWizardModal({ onClose }: { onClose?: () => void })
           <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
             style={{ background: color }} />
 
-          {/* Close (desktop) */}
+          {/* Close */}
           <button onClick={onClose}
-            className="hidden sm:flex absolute top-4 right-4 z-10 w-7 h-7 items-center justify-center rounded-full transition-all"
+            className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all"
             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "white"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>
@@ -94,7 +99,7 @@ export default function CareerWizardModal({ onClose }: { onClose?: () => void })
 
           {/* Progress header */}
           {!isCompleteStep && (
-            <div className="relative z-10 px-5 pt-4 pb-0 flex-shrink-0">
+            <div className="relative z-10 px-5 pt-4 pb-0 pr-14 flex-shrink-0">
               <div className="flex gap-1.5 mb-2">
                 {PHASE_LABELS.map((label, i) => (
                   <div key={label} className="h-[3px] flex-1 rounded-full transition-all duration-500"
@@ -187,3 +192,8 @@ export default function CareerWizardModal({ onClose }: { onClose?: () => void })
     </>
   );
 }
+
+
+
+
+

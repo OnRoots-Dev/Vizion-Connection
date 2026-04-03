@@ -58,13 +58,13 @@ export default function LoginForm() {
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
             style={{ background: "#07070e" }}>
 
-            <Link href="/" className="mb-10 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "20vw", width: "auto" }} />
+            <Link href="/" className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "13vw", width: "auto" }} />
             </Link>
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">
-                    <h1 className="text-2xl font-bold text-white">ログイン</h1>
+                    <h1 className="text-3xl font-bold text-white">LOGIN</h1>
                     <p className="text-sm text-white/40">アカウントにサインイン</p>
                 </div>
 

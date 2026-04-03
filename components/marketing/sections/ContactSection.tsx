@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { DynamicBackground } from "@/components/marketing/DynamicBackground";
 import { Header } from "@/components/layout/Header";
@@ -9,8 +10,35 @@ import { Footer } from "@/components/layout/Footer";
 const CATEGORIES = ["広告・スポンサー", "取材・メディア", "不具合・バグ報告", "機能要望", "その他"] as const;
 type Category = typeof CATEGORIES[number];
 
+const PLAN_LABELS: Record<string, string> = {
+    root: "Root（¥30,000）",
+    "roots+": "Roots+（¥50,000）",
+    signal: "Signal（¥100,000）",
+    presence: "Presence（¥500,000）",
+    legacy: "Legacy（¥1,000,000）",
+};
+
 export default function ContactSection() {
-    const [form, setForm] = useState({ category: "" as Category | "", name: "", email: "", message: "" });
+    const searchParams = useSearchParams();
+    const planParam = searchParams.get("plan")?.toLowerCase() ?? null;
+    const planLabel = planParam ? PLAN_LABELS[planParam] ?? null : null;
+
+    const defaultMessage = planLabel
+        ? `【振込・請求書払い希望】
+プラン：${planLabel}
+
+会社名：
+担当者名：
+電話番号：
+
+ご質問・備考：`
+        : "";
+
+    const [form, setForm] = useState({
+        category: (planParam ? "広告・スポンサー" : "") as Category | "",
+        name: "", email: "",
+        message: defaultMessage,
+    });
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState("");
@@ -49,12 +77,12 @@ export default function ContactSection() {
         transition: "border-color 0.2s",
     };
 
-    
+
     return (
         <section id="contact" style={{ padding: "80px 20px", background: "#07070e" }}>
             <div style={{ maxWidth: "560px", margin: "0 auto" }}>
 
-            <Header />
+                <Header />
                 {/* Heading */}
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
@@ -72,6 +100,14 @@ export default function ContactSection() {
                     <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7, margin: 0 }}>
                         広告・取材・不具合など、お気軽にご連絡ください。
                     </p>
+                    {planLabel && (
+                        <div style={{ marginTop: "16px", display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "99px", background: "rgba(0,210,255,0.07)", border: "1px solid rgba(0,210,255,0.2)" }}>
+                            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00d2ff", display: "inline-block", flexShrink: 0 }} />
+                            <span style={{ fontSize: "12px", fontWeight: 600, color: "#00d2ff", letterSpacing: "0.04em" }}>
+                                {planLabel} の振込・請求書払いについて
+                            </span>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Card */}
@@ -101,6 +137,22 @@ export default function ContactSection() {
                                         お問い合わせありがとうございます。<br />内容を確認の上、ご連絡いたします。
                                     </p>
                                 </div>
+                                <motion.a
+                                    href="/"
+                                    whileTap={{ scale: 0.97 }}
+                                    style={{
+                                        display: "inline-flex", alignItems: "center", gap: "6px",
+                                        marginTop: "8px", padding: "11px 24px", borderRadius: "12px",
+                                        background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                                        color: "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: 600,
+                                        textDecoration: "none", transition: "all 0.2s",
+                                    }}
+                                >
+                                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    トップページへ戻る
+                                </motion.a>
                             </motion.div>
                         ) : (
                             <motion.div key="form" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

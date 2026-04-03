@@ -15,7 +15,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         const message = parsed.error.issues[0]?.message ?? "入力内容が正しくありません";
         return { success: false, error: message };
     }
-    const { email, password, role, displayName, slug, referrerSlug } = parsed.data;
+    const { email, password, role, displayName, slug, region, referrerSlug } = parsed.data;
 
     // 2. メール重複チェック
     const existingByEmail = await findUserByEmail(email);
@@ -61,6 +61,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         role,
         displayName,
         slug,
+        region,
         referrerSlug: resolvedReferrerSlug,
         isFoundingMember,
     });

@@ -3,9 +3,9 @@
 import { useState, useEffect, type MouseEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
-import type { ProfileData } from "@/features/profile/types";
+import type { LatestCheerItem, ProfileData } from "@/features/profile/types";
 import QRCode from "qrcode";
-import { DashboardView } from "../DashboardClient";
+import { DashboardView } from "@/app/(app)/dashboard/DashboardClient";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -37,7 +37,6 @@ function SnsIconBtn({ label, href, color, path }: {
     );
 }
 
-// ── ★ Strava方式 Storiesキャンバス生成（純粋Canvas API・外部ライブラリ不要）──────
 async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTMLCanvasElement> {
     const W = 1080;
     const H = 1920;
@@ -73,7 +72,6 @@ async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTM
         });
     }
 
-    // 1. 背景：プロフィール写真をフル9:16にcover（Stravaスタイル）
     let profileImg: HTMLImageElement | null = null;
     if (profile.profileImageUrl) {
         try { profileImg = await loadImg(profile.profileImageUrl); } catch { profileImg = null; }
@@ -85,7 +83,6 @@ async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTM
         const dh = profileImg.height * scale;
         ctx.drawImage(profileImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
     } else {
-        // 写真なし：ロールカラーグラデーション
         const bgGrad = ctx.createLinearGradient(0, 0, W * 0.6, H);
         bgGrad.addColorStop(0, bg1);
         bgGrad.addColorStop(0.5, "#08080e");
@@ -99,7 +96,6 @@ async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTM
         ctx.fillRect(0, 0, W, H);
     }
 
-    // 2. ダークオーバーレイ（上下）
     const topGrad = ctx.createLinearGradient(0, 0, 0, H * 0.35);
     topGrad.addColorStop(0, "rgba(0,0,0,0.82)");
     topGrad.addColorStop(1, "rgba(0,0,0,0)");
@@ -265,6 +261,7 @@ export function ProfileCardSection({
 
     const [generated, setGenerated] = useState(false);
     const [showScan, setShowScan] = useState(false);
+    const [cheerModalOpen, setCheerModalOpen] = useState(false);
 
     useEffect(() => {
         const t1 = setTimeout(() => setShowScan(true), 300);
@@ -290,8 +287,10 @@ export function ProfileCardSection({
     const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "#a78bfa");
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-    const vzId = profile.serialId ?? "VZ00000-0000-00000";
+    const vzId = profile.serialId ?? "VZ-2026-000001";
     const cheerCount = profile.cheerCount ?? 0;
+    const latestCheers = profile.latestCheers ?? [];
+    const latestCheer = latestCheers[0];
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
 
@@ -385,6 +384,20 @@ export function ProfileCardSection({
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
+                                        {latestCheer ? (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setCheerModalOpen(true);
+                                                }}
+                                                style={{ marginTop: 5, padding: "4px 7px", borderRadius: 6, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.78)", fontSize: 8, lineHeight: 1.25, maxWidth: 170, textAlign: "left", cursor: "pointer" }}
+                                            >
+                                                "{latestCheer.comment}" - @{latestCheer.fromSlug}
+                                            </button>
+                                        ) : (
+                                            <span style={{ marginTop: 5, fontSize: 8, color: "rgba(255,255,255,0.35)" }}>コメント付きCheerはまだありません</span>
+                                        )}
                                     </div>
                                     <div>
                                         <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>{vzId}</div>
@@ -469,10 +482,52 @@ export function ProfileCardSection({
 
             <ShareMenu profile={profile} t={t} rl={rl} />
 
+            {cheerModalOpen && (
+                <CheerCommentsModal
+                    roleColor={rl}
+                    items={latestCheers}
+                    onClose={() => setCheerModalOpen(false)}
+                />
+            )}
+
             <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>
                 {vzId} · {joinDate}
             </p>
         </motion.div>
+    );
+}
+
+function CheerCommentsModal({
+    roleColor,
+    items,
+    onClose,
+}: {
+    roleColor: string;
+    items: LatestCheerItem[];
+    onClose: () => void;
+}) {
+    return (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.7)", padding: 16 }}>
+            <div style={{ width: "min(540px, 100%)", maxHeight: "80vh", overflowY: "auto", borderRadius: 16, border: `1px solid ${roleColor}55`, background: "#0b0b13", boxShadow: `0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px ${roleColor}25` }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>Latest Cheer</p>
+                    <button type="button" onClick={onClose} style={{ border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#fff", borderRadius: 8, fontSize: 12, fontWeight: 700, padding: "6px 10px", cursor: "pointer" }}>閉じる</button>
+                </div>
+                <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                    {items.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.5)" }}>コメント付きCheerはまだありません。</p>
+                    ) : (
+                        items.map((item) => (
+                            <div key={item.id} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", padding: "10px 12px" }}>
+                                <p style={{ margin: 0, color: "rgba(255,255,255,0.85)", fontSize: 13, lineHeight: 1.6 }}>"{item.comment}"</p>
+                                <p style={{ margin: "6px 0 0", fontSize: 11, color: roleColor, fontFamily: "monospace" }}>- @{item.fromSlug}</p>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+            <button type="button" onClick={onClose} aria-label="close" style={{ position: "fixed", inset: 0, zIndex: -1, border: "none", background: "transparent" }} />
+        </div>
     );
 }
 
@@ -504,7 +559,7 @@ function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; r
         setOpen(false);
     }
 
-    // ← 修正: Strava方式 — プロフィール写真フル背景 + Canvas直描画 + Web Share API
+    // ← Strava方式 — プロフィール写真フル背景 + Canvas直描画 + Web Share API
     async function handleStories() {
         setStoriesLoading(true);
         try {

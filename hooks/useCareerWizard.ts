@@ -198,9 +198,9 @@ export const useCareerWizard = create<WizardStore>()(
               slug: user.slug,
               sport: user.sport ?? "",
               existingRegion: user.region ?? "",
-              snsX:         user.xUrl      ?? s.data.snsX,
-              snsInstagram: user.instagram ?? s.data.snsInstagram,
-              snsTiktok:    "",
+              snsX:         user.xUrl      ?? "",
+              snsInstagram: user.instagram ?? "",
+              snsTiktok: "",
             },
           })),
 
@@ -378,3 +378,5 @@ export const useCareerWizard = create<WizardStore>()(
     { name: "CareerWizard" }
   )
 );
+
+

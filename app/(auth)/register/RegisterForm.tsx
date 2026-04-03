@@ -14,8 +14,9 @@ const ROLES: { value: Role; label: string; color: string; border: string; desc: 
     { value: "Members", label: "Members", color: "#FFC81E", border: "rgba(255,200,30,0.4)", desc: "メンバー" },
     { value: "Business", label: "Business", color: "#3C8CFF", border: "rgba(60,140,255,0.4)", desc: "ビジネス" },
 ];
+const REGIONS = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"] as const;
 
-// ← 修正: 目アイコン
+//目アイコン
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
         <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -41,9 +42,10 @@ export default function RegisterForm() {
         slug: "",
         email: "",
         password: "",
+        region: "",
         referrerSlug: refSlug,
     });
-    const [showPassword, setShowPassword] = useState(false); // ← 修正
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -80,13 +82,13 @@ export default function RegisterForm() {
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
             style={{ background: "#07070e" }}>
 
-            <Link href="/" className="mb-10 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="inline-block w-5 mr-1 -mt-0.5" />
+            <Link href="/" className="mb-4 tracking-[0.2em]">
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="inline-block w-auto h-20" />
             </Link>
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">
-                    <h1 className="text-2xl font-bold text-white">先行登録</h1>
+                    <h1 className="text-2xl font-bold text-white">新規登録</h1>
                     <p className="text-sm text-white/40">あなたのロールを選んで登録してください</p>
                     {refSlug && (
                         <p className="text-xs font-mono mt-2" style={{ color: "#a78bfa" }}>
@@ -117,6 +119,13 @@ export default function RegisterForm() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    <div
+                        className="rounded-xl px-4 py-3 text-[11px] font-medium leading-relaxed text-[#FFD600]"
+                        style={{ background: "rgba(255,214,0,0.08)", border: "1px solid rgba(255,214,0,0.45)" }}
+                    >
+                        ※ 登録フォームの入力項目はすべて必須です。
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-xs text-white/40 font-medium">表示名</label>
@@ -147,6 +156,28 @@ export default function RegisterForm() {
                     </div>
 
                     <div className="space-y-1.5">
+                        <label htmlFor="register-region" className="text-xs text-white/40 font-medium">活動エリア（region）</label>
+                        <select
+                            id="register-region"
+                            name="region"
+                            title="活動エリア（region）"
+                            aria-label="活動エリア（region）"
+                            required
+                            value={form.region}
+                            onChange={(e) => setForm({ ...form, region: e.target.value })}
+                            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                            style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
+                            onFocus={(e) => e.target.style.borderColor = selectedRole.color}
+                            onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                        >
+                            <option value="" disabled>選択してください</option>
+                            {REGIONS.map((region) => (
+                                <option key={region} value={region}>{region}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="space-y-1.5">
                         <label className="text-xs text-white/40 font-medium">メールアドレス</label>
                         <input type="email" required placeholder="you@example.com" value={form.email}
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -156,7 +187,7 @@ export default function RegisterForm() {
                             onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
                     </div>
 
-                    {/* ← 修正: パスワード入力 + 目マーク + 注意書き */}
+                    {/*パスワード入力 + 目マーク + 注意書き */}
                     <div className="space-y-1.5">
                         <label className="text-xs text-white/40 font-medium">パスワード</label>
                         <div className="relative">
@@ -179,7 +210,7 @@ export default function RegisterForm() {
                                 <EyeIcon open={showPassword} />
                             </button>
                         </div>
-                        {/* ← 修正: パスワード制限の注意書き */}
+                        {/*パスワード制限の注意書き */}
                         <p className="text-[10px] text-white/25 leading-relaxed pl-1">
                             8文字以上 ／ 半角英字・数字を含めてください
                         </p>
@@ -199,7 +230,7 @@ export default function RegisterForm() {
                             color: "#000",
                             boxShadow: loading ? "none" : `0 0 24px ${selectedRole.color}50`,
                         }}>
-                        {loading ? "登録中..." : "先行登録する"}
+                        {loading ? "登録中..." : "登録する"}
                     </button>
                 </form>
 

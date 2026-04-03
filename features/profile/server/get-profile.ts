@@ -4,6 +4,7 @@ import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { countReferralsBySlug } from "@/lib/supabase/referrals";
+import { getLatestCheers } from "@/lib/supabase/cheers";
 import { env } from "@/lib/env";
 import type { DashboardData } from "@/features/profile/types";
 
@@ -22,7 +23,10 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
         const user = await findUserBySlug(session.slug);
         if (!user) return { success: false, reason: "not_found" };
 
-        const referralCount = await countReferralsBySlug(user.slug);
+        const [referralCount, latestCheers] = await Promise.all([
+            countReferralsBySlug(user.slug),
+            getLatestCheers(user.id, 3),
+        ]);
         const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${user.slug}`;
 
         return {
@@ -33,6 +37,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     slug: user.slug,
                     displayName: user.displayName,
                     role: user.role,
+                    plan: user.plan ?? "free",
                     email: user.email,
                     verified: user.verified,
                     points: user.points,
@@ -53,6 +58,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     cheerCount: user.cheerCount ?? 0,
                     missionBonusGiven: user.missionBonusGiven ?? false,
                     isFoundingMember: (user.seq ?? 999) <= 100,
+                    latestCheers,
                 },
                 referralUrl,
                 referralCount,

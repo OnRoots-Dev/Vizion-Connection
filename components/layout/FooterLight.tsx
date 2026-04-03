@@ -23,7 +23,6 @@ export function FooterLight() {
                                 {[
                                     { href: "/register", label: "先行登録" },
                                     { href: "/business", label: "Business登録" },
-                                    { href: "/discover", label: "Discovery" },
                                 ].map(({ href, label }) => (
                                     <Link key={href} href={href}
                                         className="transition-colors"

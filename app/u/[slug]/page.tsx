@@ -17,6 +17,9 @@ import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard
 import CareerSection from "./CareerSection";
 import { getCollectorCount } from "@/lib/supabase/collections";
 import type { ProfileData } from "@/features/profile/types";
+import { getAdsForUser } from "@/lib/ads";
+import { isLocalPlan } from "@/lib/ads-shared";
+import AdCard from "@/components/AdCard";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -69,8 +72,12 @@ export default async function UserProfilePage({ params }: Props) {
     if (!result.data.isPublic) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
-    const collectorCount = await getCollectorCount(slug);
-    const careerProfile = await getCareerProfile(slug);
+    const [collectorCount, careerProfile, ads] = await Promise.all([
+        getCollectorCount(slug),
+        getCareerProfile(slug),
+        getAdsForUser(profile.prefecture ?? "", profile.sport ?? undefined),
+    ]);
+    const regionalAd = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
 
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
@@ -133,11 +140,12 @@ export default async function UserProfilePage({ params }: Props) {
             {/* Header */}
             <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.055)", background: "rgba(8,8,15,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
                 <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 20px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <a href="/"><img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 20, opacity: .72 }} /></a>
+                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 28, opacity: .82 }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <a href="/ranking" style={{ padding: "6px 12px", borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }}>⭐ ランキング</a>
-                        {isOwn && (
-                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 13px", borderRadius: 20, background: `${rl}14`, border: `1px solid ${rl}38`, color: rl, fontSize: 11, fontWeight: 800 }}>Dashboard</a>
+                        {session && (
+                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, background: `${rl}14`, border: `1px solid ${rl}38`, color: rl, fontSize: 11, fontWeight: 800 }}>
+                                BASEに戻る
+                            </a>
                         )}
                     </div>
                 </div>
@@ -232,15 +240,14 @@ export default async function UserProfilePage({ params }: Props) {
                             <p style={{ fontSize: 14, color: "rgba(255,255,255,.65)", lineHeight: 1.85, margin: 0, paddingLeft: 6 }}>{profile.bio}</p>
                         </div>
                     )}
-                    <div className="u5" style={{ display: "flex", alignItems: "stretch", gap: 10 }}>
-                        <div className="cheerb" style={{ flex: 1 }}>
+                    <div className="u5" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div className="cheerb">
                             <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
                         </div>
-                        <a href="/ranking" style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 18px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>⭐ ランキング</a>
-                    </div>
-                    {/* コレクトボタン */}
-                    <div className="u5">
-                        <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} />
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                            <a href="/ranking" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 44, padding: "0 12px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.78)", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>⭐ ランキング</a>
+                            <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
+                        </div>
                     </div>
                     <div className="u6" id="card" style={{ scrollMarginTop: 80 }}>
                         <ProfileCardSection profile={profile as unknown as ProfileData} t={cardTheme} roleColor={rl} />
@@ -248,6 +255,18 @@ export default async function UserProfilePage({ params }: Props) {
                     <div className="u7">
                         <CareerSection roleColor={rl} bio={profile.bio} sport={profile.sport} region={profile.region} prefecture={profile.prefecture} joinedAt={joinedAt} roleLabel={ROLE_LABEL[profile.role]} cheerCount={profile.cheerCount ?? 0} isPublic={profile.isPublic} slug={slug} careerProfile={careerProfile} />
                     </div>
+                    {regionalAd && (
+                        <div className="u7">
+                            <p style={{ margin: "0 0 8px", fontSize: 10, letterSpacing: ".18em", fontFamily: "monospace", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>あなたの地域のスポンサー</p>
+                            <AdCard ad={regionalAd} size="medium" />
+                        </div>
+                    )}
+                    {!regionalAd && (
+                        <div className="u7" style={{ borderRadius: 14, border: "1px dashed rgba(255,214,0,0.28)", background: "rgba(255,214,0,0.04)", padding: "12px 14px" }}>
+                            <p style={{ margin: "0 0 3px", fontSize: 10, letterSpacing: ".18em", fontFamily: "monospace", textTransform: "uppercase", color: "rgba(255,214,0,0.7)" }}>SPONSOR SLOT</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)" }}>あなたの地域のスポンサー広告枠（空き枠）</p>
+                        </div>
+                    )}
                     <div className="u7" style={{ position: "relative", borderRadius: 20, padding: "32px 24px", background: `linear-gradient(135deg, ${bg1} 0%, rgba(8,8,15,.6) 100%)`, border: `1px solid ${rl}22`, textAlign: "center", overflow: "hidden" }}>
                         <div style={{ position: "absolute", top: "-50%", right: "-10%", width: 240, height: 240, background: `radial-gradient(circle, ${rl}18, transparent 68%)`, pointerEvents: "none" }} />
                         <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, ${rl}60, transparent)` }} />

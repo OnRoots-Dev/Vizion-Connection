@@ -50,3 +50,45 @@ export async function getAllPlanOrderCounts(): Promise<Record<string, number>> {
     }
     return counts;
 }
+
+export async function completeLatestPendingOrderBySlug(slug: string): Promise<{
+    success: boolean;
+    planId?: string;
+    planName?: string;
+    error?: string;
+}> {
+    const { data: pendingOrder, error: findError } = await supabase
+        .from("business_orders")
+        .select("id, plan_id, plan_name")
+        .eq("slug", slug)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (findError) {
+        console.error("[completeLatestPendingOrderBySlug.find]", findError);
+        return { success: false, error: "pending_order_lookup_failed" };
+    }
+
+    if (!pendingOrder) {
+        return { success: false, error: "pending_order_not_found" };
+    }
+
+    const { error: updateError } = await supabase
+        .from("business_orders")
+        .update({ status: "completed" })
+        .eq("id", pendingOrder.id)
+        .eq("status", "pending");
+
+    if (updateError) {
+        console.error("[completeLatestPendingOrderBySlug.update]", updateError);
+        return { success: false, error: "pending_order_update_failed" };
+    }
+
+    return {
+        success: true,
+        planId: pendingOrder.plan_id,
+        planName: pendingOrder.plan_name,
+    };
+}

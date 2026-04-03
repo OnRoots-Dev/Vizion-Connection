@@ -28,14 +28,15 @@ interface Props {
   };
   careerProfile: CareerProfileRow | null;
   onBack?: () => void;
+  embedded?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────
 
-export default function CareerDashboardClient({ user, careerProfile }: Props) {
+export default function CareerDashboardClient({ user, careerProfile, onBack, embedded = false }: Props) {
   const {
     data,
-    setRole,
+    resetWizard,
     initFromUser,
     initFromCareerProfile,
     roleColor,
@@ -50,6 +51,7 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
 
   // ── サーバーデータをストアに読み込む ────────────────────────
   useEffect(() => {
+    resetWizard();
     // usersテーブルのデータ
     initFromUser({
       role: role,
@@ -80,19 +82,23 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
     { icon: "💪", label: "スキル", ok: (careerProfile?.skills?.length ?? data.skills.length) > 0 },
   ];
   const completedCount = completeness.filter((c) => c.ok).length;
-  const completePct = Math.round((completedCount / completeness.length) * 100);
 
-  function onBack(): void {
-    throw new Error("Function not implemented.");
-  }
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    window.location.href = "/dashboard";
+  };
+  const completePct = Math.round((completedCount / completeness.length) * 100);
 
   return (
     <div
-      className="min-h-screen text-white"
-      style={{ background: "#08080f" }}
+      className="relative text-white"
+      style={{ background: embedded ? "transparent" : "#08080f" }}
     >
       {/* ── Header ──────────────────────────────────────── */}
-      <header
+      {!embedded && <header
         className="sticky top-0 z-30 border-b px-5 py-3.5 flex items-center justify-between"
         style={{
           background: "rgba(8,8,15,0.88)",
@@ -101,7 +107,7 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
         }}
       >
         <button
-          onClick={() => onBack?.()}
+          onClick={handleBack}
           className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors"
           style={{ background: "none", border: "none", cursor: "pointer" }}
         >
@@ -116,9 +122,9 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
         >
           Career Page
         </span>
-      </header>
+      </header>}
 
-      <div className="max-w-[600px] mx-auto px-5 py-8">
+      <div className="max-w-[600px] mx-auto px-5 py-4">
 
         {/* ── Profile header ────────────────────────────── */}
         <motion.div
@@ -360,9 +366,12 @@ export default function CareerDashboardClient({ user, careerProfile }: Props) {
       {/* ── Wizard modal ────────────────────────────────── */}
       <AnimatePresence>
         {wizardOpen && (
-          <CareerWizardModal onClose={() => setWizardOpen(false)} />
+          <CareerWizardModal contained onClose={() => setWizardOpen(false)} />
         )}
       </AnimatePresence>
     </div>
   );
 }
+
+
+

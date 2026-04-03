@@ -2,7 +2,7 @@
 
 import { findUserByEmail, findUserBySlug, addPointsToUser, markUserVerified } from "@/lib/supabase/data/users.server";
 import { findVerifyToken, markTokenUsed } from "@/lib/supabase/data/tokens.server";
-import { findReferralByReferredSlug, createReferral } from "@/lib/supabase/referrals";
+import { findReferralByReferredSlug, createReferral, countReferralsBySlug } from "@/lib/supabase/referrals";
 import { sendVerifiedEmail } from "@/lib/resend/send-verified-email";
 import { signSession } from "@/lib/auth/session";
 import { env } from "@/lib/env";
@@ -130,16 +130,17 @@ async function handleReferralReward(user: {
     const existing = await findReferralByReferredSlug(user.slug);
     if (existing) return;
 
-    const estimatedCount = Math.floor((referrer.points ?? 0) / POINTS_PER_REFERRAL);
-    if (estimatedCount >= MAX_REFERRALS) return;
+    const currentCount = await countReferralsBySlug(referrer.slug);
+    if (currentCount >= MAX_REFERRALS) return;
 
-    await addPointsToUser(referrer.slug, POINTS_PER_REFERRAL);
-    await addPointsToUser(user.slug, POINTS_PER_REFERRAL);
-
-    await createReferral({
+    const referralCreated = await createReferral({
         referrerSlug,
         referredSlug: user.slug,
         referredEmail: user.email,
         referredRole: user.role,
     });
+    if (!referralCreated) return;
+
+    await addPointsToUser(referrer.slug, POINTS_PER_REFERRAL);
+    await addPointsToUser(user.slug, POINTS_PER_REFERRAL);
 }

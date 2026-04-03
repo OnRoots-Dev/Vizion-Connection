@@ -15,7 +15,6 @@ export function Header() {
 
         {/* Desktop */}
         <nav className="hidden items-center gap-8 md:flex">
-          <Link href="/discover" className="font-display text-[13px] uppercase tracking-[0.2em] text-white/50 hover:text-[#FFD600] transition-colors">Discovery</Link>
           <Link href="/contact" className="font-display text-[13px] uppercase tracking-[0.2em] text-white/50 hover:text-[#FFD600] transition-colors">Contact</Link>
           <Link href="/login" className="font-display text-[13px] uppercase tracking-[0.2em] text-[#FFD600] hover:text-white transition-colors">Login</Link>
         </nav>
@@ -31,7 +30,6 @@ export function Header() {
       {/* Mobile menu */}
       {open && (
         <div style={{ background: "rgba(11,11,15,0.97)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-          <Link href="/discover" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-white/60">Discovery</Link>
           <Link href="/contact" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-white/60">Contact</Link>
           <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-[#FFD600] font-bold">Login</Link>
           <Link href="/register" onClick={() => setOpen(false)}

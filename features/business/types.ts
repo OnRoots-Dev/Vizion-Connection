@@ -1,11 +1,11 @@
 // features/business/types.ts
 
 export type PlanId =
-    | "entry-supporter"
-    | "starter-position"
-    | "impact-partner"
-    | "prime-sponsor"
-    | "champion-partner";
+    | "roots"
+    | "roots-plus"
+    | "signal"
+    | "presence"
+    | "legacy";
 
 export interface BusinessPlan {
     id: PlanId;

@@ -9,9 +9,10 @@ interface Props {
     roleColor: string;
     isOwn: boolean;
     viewerSlug: string | null;
+    fullWidth?: boolean;
 }
 
-export default function CollectButtonClient({ slug, initialCollectorCount, roleColor: rl, isOwn, viewerSlug }: Props) {
+export default function CollectButtonClient({ slug, initialCollectorCount, roleColor: rl, isOwn, viewerSlug, fullWidth = false }: Props) {
     const [collected, setCollected] = useState(false);
     const [count, setCount] = useState(initialCollectorCount);
     const [loading, setLoading] = useState(false);
@@ -52,12 +53,12 @@ export default function CollectButtonClient({ slug, initialCollectorCount, roleC
     if (isOwn) return null;
 
     return (
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
             <button
                 onClick={handleCollect}
                 disabled={loading}
                 style={{
-                    display: "inline-flex", alignItems: "center", gap: 8,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     padding: "11px 22px", borderRadius: 12,
                     background: collected ? `${rl}18` : "rgba(255,255,255,0.06)",
                     border: `1.5px solid ${collected ? rl + "45" : "rgba(255,255,255,0.12)"}`,
@@ -65,6 +66,7 @@ export default function CollectButtonClient({ slug, initialCollectorCount, roleC
                     fontSize: 12, fontWeight: 700, cursor: loading ? "wait" : "pointer",
                     transition: "all 0.18s",
                     boxShadow: collected ? `0 0 20px ${rl}18` : "none",
+                    width: fullWidth ? "100%" : "auto",
                 }}
                 onMouseEnter={e => {
                     if (!collected) {
@@ -89,7 +91,7 @@ export default function CollectButtonClient({ slug, initialCollectorCount, roleC
             </button>
 
             {/* コレクト数 */}
-            {count > 0 && (
+            {!fullWidth && count > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                     <span style={{ fontSize: 15, fontWeight: 900, color: rl, fontFamily: "monospace", lineHeight: 1 }}>{count}</span>
                     <span style={{ fontSize: 8, fontFamily: "monospace", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>COLLECTED</span>

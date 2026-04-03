@@ -21,13 +21,6 @@ export function HeaderLight() {
 
                 {/* Desktop */}
                 <nav className="hidden items-center gap-8 md:flex">
-                    <Link href="/discover"
-                        className="text-[13px] uppercase tracking-[0.2em] font-semibold transition-colors"
-                        style={{ color: "rgba(0,0,0,0.4)" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#007aff")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(0,0,0,0.4)")}>
-                        Discovery
-                    </Link>
                     <Link href="/contact"
                         className="text-[13px] uppercase tracking-[0.2em] font-semibold transition-colors"
                         style={{ color: "rgba(0,0,0,0.4)" }}
@@ -63,11 +56,6 @@ export function HeaderLight() {
                     flexDirection: "column",
                     gap: 16,
                 }}>
-                    <Link href="/discover" onClick={() => setOpen(false)}
-                        className="text-[15px] uppercase tracking-[0.2em] font-semibold"
-                        style={{ color: "rgba(0,0,0,0.5)" }}>
-                        Discovery
-                    </Link>
                     <Link href="/contact" onClick={() => setOpen(false)}
                         className="text-[15px] uppercase tracking-[0.2em] font-semibold"
                         style={{ color: "rgba(0,0,0,0.5)" }}>

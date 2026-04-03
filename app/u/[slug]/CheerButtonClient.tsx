@@ -14,21 +14,24 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
     const [cheered, setCheered] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [comment, setComment] = useState("");
 
     async function handleCheer() {
         if (cheered || loading || isOwn) return;
         setLoading(true);
+        setErrorMsg("");
         try {
             const res = await fetch("/api/cheer", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ toSlug: slug }),
+                body: JSON.stringify({ toSlug: slug, comment: comment.trim() || undefined }),
             });
 
             const data: { success: boolean; cheerCount?: number; error?: string } = await res.json();
             if (data.success && data.cheerCount !== undefined) {
                 setCheerCount(data.cheerCount);
                 setCheered(true);
+                setComment("");
             } else {
                 setErrorMsg(data.error ?? "Cheerできませんでした");
             }
@@ -53,7 +56,26 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
     }
 
     return (
-        <>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value.slice(0, 120))}
+                placeholder="応援コメント（任意）"
+                style={{
+                    width: "100%",
+                    minHeight: 72,
+                    resize: "vertical",
+                    borderRadius: 12,
+                    padding: "10px 12px",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.11)",
+                    color: "rgba(255,255,255,0.92)",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                }}
+                disabled={cheered || loading}
+            />
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", textAlign: "right" }}>{comment.length}/120</div>
             <button
                 onClick={handleCheer}
                 disabled={cheered || loading}
@@ -97,6 +119,6 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                     {errorMsg}
                 </p>
             )}
-        </>
+        </div>
     );
 }

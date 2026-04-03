@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+import type { CSSProperties } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
 
@@ -20,6 +20,7 @@ interface Props {
     profile: ProfileData;
     view: DashboardView;
     setView: (v: DashboardView) => void;
+    notificationUnreadCount: number;
     theme: Theme;
     setTheme: (t: Theme) => void;
     t: ThemeColors;
@@ -27,14 +28,18 @@ interface Props {
     onClose: () => void;
 }
 
-export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, onClose }: Props) {
+export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, setTheme, t, onLogout, onClose }: Props) {
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
-    const router = useRouter();
+
+    // ── プランバッジ（FREEユーザーにのみ表示）──
+    const isPaidPlan = profile.plan === "paid";
+
     const navGroups = [
         {
             group: "メイン",
             items: [
                 { id: "home" as DashboardView, label: "ダッシュボード", icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" },
+                { id: "notifications" as DashboardView, label: "通知", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" },
                 { id: "profile" as DashboardView, label: "プロフィール", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
                 { id: "cheer" as DashboardView, label: "Cheer", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
                 { id: "career" as DashboardView, label: "Career", icon: "M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" },
@@ -46,15 +51,17 @@ export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, 
             group: "コミュニティ",
             items: [
                 { id: "discovery" as DashboardView, label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
-                { id: "roadmap" as DashboardView, label: "ロードマップ", icon: "M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" },
+                { id: "roadmap" as DashboardView, label: "ロードマップ", icon: "M3.75 3v17.25m0 0H21m-13.5-3.75v3.75m5.25-7.5v7.5m5.25-11.25v11.25" },
+                { id: "news" as DashboardView, label: "News Rooms", icon: "M19.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5zM6.75 8.25h10.5m-10.5 3h10.5m-10.5 3h6" },
+                { id: "voicelab" as DashboardView, label: "Voice Lab", icon: "M7.5 3.75h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3zm3 4.5h3m-4.5 4.5h6m-6 4.5h4.5" },
             ],
         },
+        // Businessロールのみ表示。「先行ポジション」は廃止し「Businessページ」1項目のみ。
         ...(profile.role === "Business"
             ? [{
                 group: "ビジネス",
                 items: [
                     { id: "business" as DashboardView, label: "Businessページ", icon: "M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" },
-                    { id: "business-checkout" as DashboardView, label: "先行ポジション", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" },
                 ],
             }]
             : []),
@@ -101,48 +108,67 @@ export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, 
                         {ROLE_LABEL[profile.role] ?? profile.role}
                     </span>
                 </motion.div>
+
+                {/* ── FREE プランのアップグレードバナー ── */}
+                {profile.role === "Business" && !isPaidPlan && (
+                    <motion.button
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        onClick={() => { setView("business"); onClose(); }}
+                        style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            width: "100%", marginTop: 8, padding: "9px 12px",
+                            borderRadius: 10, border: "1px solid rgba(60,140,255,0.35)",
+                            background: "linear-gradient(135deg, rgba(60,140,255,0.12), rgba(60,140,255,0.06))",
+                            cursor: "pointer", textAlign: "left",
+                        }}
+                    >
+                        <span style={{ fontSize: 14 }}>⚡</span>
+                        <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: 10, fontWeight: 800, color: "#3C8CFF", margin: 0 }}>有料プランにアップグレード</p>
+                            <p style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", margin: "1px 0 0", fontFamily: "monospace" }}>広告・分析・マッチングを解放</p>
+                        </div>
+                        <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="#3C8CFF" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </motion.button>
+                )}
             </div>
 
             {/* ── ナビゲーション ── */}
-            <nav style={{ flex: 1, overflowY: "auto", padding: "8px 8px" }}>
-                {navGroups.map(({ group, items }, gi) => (
+            <nav style={{ flex: 1, overflowY: "auto", padding: "10px 10px 0" }}>
+                {navGroups.map(({ group, items }) => (
                     <motion.div
                         key={group}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.4, delay: 0.08 + gi * 0.06 }}
-                        style={{ marginBottom: 20 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{ marginBottom: 16 }}
                     >
                         <p style={{ fontSize: 8, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub, opacity: 0.35, padding: "0 10px", marginBottom: 4, fontFamily: "monospace" }}>
                             {group}
                         </p>
                         {items.map(({ id, label, icon }) => {
                             const active = view === id;
+                            const baseStyle: CSSProperties = {
+                                display: "flex", alignItems: "center", gap: 9,
+                                padding: "9px 10px", borderRadius: 10, marginBottom: 2,
+                                width: "100%", textAlign: "left",
+                                background: active ? `${roleColor}15` : "transparent",
+                                color: active ? roleColor : t.sub,
+                                fontSize: 12, fontWeight: active ? 700 : 500,
+                                border: active ? `1px solid ${roleColor}30` : "1px solid transparent",
+                                cursor: "pointer",
+                                opacity: active ? 1 : 0.7,
+                                position: "relative",
+                                transition: "all 0.15s ease",
+                                textDecoration: "none",
+                            };
                             return (
                                 <button
                                     key={id}
-                                    onClick={() => {
-                                        if (id === "career") {
-                                            router.push("/dashboard/career");
-                                            onClose();
-                                        } else {
-                                            setView(id);
-                                            onClose();
-                                        }
-                                    }}
-                                    style={{
-                                        display: "flex", alignItems: "center", gap: 9,
-                                        padding: "9px 10px", borderRadius: 10, marginBottom: 2,
-                                        width: "100%", textAlign: "left",
-                                        background: active ? `${roleColor}15` : "transparent",
-                                        color: active ? roleColor : t.sub,
-                                        fontSize: 12, fontWeight: active ? 700 : 500,
-                                        border: active ? `1px solid ${roleColor}30` : "1px solid transparent",
-                                        cursor: "pointer",
-                                        opacity: active ? 1 : 0.7,
-                                        position: "relative",
-                                        transition: "all 0.15s ease",
-                                    }}
+                                    onClick={() => { setView(id); onClose(); }}
+                                    style={baseStyle}
                                 >
                                     {active && (
                                         <div style={{ position: "absolute", left: 0, top: "25%", bottom: "25%", width: 2, borderRadius: 99, background: roleColor, boxShadow: `0 0 6px ${roleColor}` }} />
@@ -150,7 +176,28 @@ export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, 
                                     <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.75}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                                     </svg>
-                                    {label}
+                                    <span>{label}</span>
+                                    {id === "notifications" && notificationUnreadCount > 0 && (
+                                        <span
+                                            style={{
+                                                marginLeft: "auto",
+                                                minWidth: 16,
+                                                height: 16,
+                                                borderRadius: 999,
+                                                padding: "0 5px",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: 9,
+                                                fontWeight: 900,
+                                                background: roleColor,
+                                                color: "#0B0B0F",
+                                                lineHeight: 1,
+                                            }}
+                                        >
+                                            {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -214,3 +261,5 @@ export function Sidebar({ profile, view, setView, theme, setTheme, t, onLogout, 
         </div>
     );
 }
+
+

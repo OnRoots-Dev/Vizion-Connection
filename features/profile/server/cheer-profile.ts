@@ -1,7 +1,7 @@
 import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { createCheer, hasAlreadyCheered } from "@/lib/supabase/cheers";
 
-export async function cheerProfile(toSlug: string, fromSlug: string) {
+export async function cheerProfile(toSlug: string, fromSlug: string, comment?: string) {
     try {
         const target = await findUserBySlug(toSlug);
         if (!target) return { success: false, error: "ユーザーが見つかりません" };
@@ -11,7 +11,7 @@ export async function cheerProfile(toSlug: string, fromSlug: string) {
         if (already) return { success: false, error: "すでにCheerしています" };
 
         // Cheer作成（cheers.ts内でcheer_countもインクリメント）
-        const ok = await createCheer(toSlug, fromSlug);
+        const ok = await createCheer(toSlug, fromSlug, comment);
         if (!ok) return { success: false, error: "Cheerに失敗しました" };
 
         const updated = await findUserBySlug(toSlug);

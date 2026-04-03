@@ -12,6 +12,7 @@ const schema = z.object({
     email: z.string().email().max(320),
     password: z.string().min(8).max(100),
     role: z.enum(["Athlete", "Trainer", "Members", "Business"]),
+    region: z.enum(["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"]),
     displayName: z.string().min(1).max(120),
     slug: z.string().min(1).max(64),
     referrerSlug: z.string().max(64).optional(),

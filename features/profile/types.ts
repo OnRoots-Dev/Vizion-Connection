@@ -2,12 +2,21 @@
 
 import type { UserRole } from "@/features/auth/types";
 
+export interface LatestCheerItem {
+    id: string;
+    comment: string;
+    fromSlug: string;
+    fromDisplayName: string;
+    createdAt: string;
+}
+
 export interface ProfileData {
     id: string;
     slug: string;
     displayName: string;
     role: UserRole;
     email: string;
+    plan?: "free" | "paid";
     verified: boolean;
     points: number;
     referrerSlug?: string;
@@ -32,10 +41,12 @@ export interface ProfileData {
     isPublic?: boolean;
     isDeleted?: boolean;
     hasShared?: boolean;
+    latestCheers?: LatestCheerItem[];
 }
 
 export interface DashboardData {
     profile: ProfileData;
+    plan?: "free" | "paid";
     referralUrl: string;
     referralCount: number;
     isFoundingMember: boolean;
@@ -45,6 +56,7 @@ export interface PublicProfileData {
     slug: string;
     displayName: string;
     role: UserRole;
+    plan?: "free" | "paid";
     verified: boolean;
     cheerCount: number;
     createdAt: string;

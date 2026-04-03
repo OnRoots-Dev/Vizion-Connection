@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors } from "../DashboardClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
+import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
@@ -18,9 +19,13 @@ const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 
 type Tab = "profile" | "career";
 
 export function DashboardProfileView({
-    profile, t, roleColor, onBack,
+    profile, t, roleColor, onBack, careerProfile,
 }: {
-    profile: ProfileData; t: ThemeColors; roleColor: string; onBack: () => void;
+    profile: ProfileData;
+    t: ThemeColors;
+    roleColor: string;
+    onBack: () => void;
+    careerProfile?: CareerProfileRow | null;
 }) {
     const [activeTab, setActiveTab] = useState<Tab>("profile");
 
@@ -121,16 +126,15 @@ export function DashboardProfileView({
             <div style={{ display: "flex", borderBottom: `1px solid ${t.border}`, background: "rgba(0,0,0,0.2)" }}>
                 {([
                     { key: "profile", label: "プロフィール" },
-                    { key: "career", label: "キャリア（近日公開）" },
+                    { key: "career", label: "キャリア" },
                 ] as { key: Tab; label: string }[]).map(tab => (
                     <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                         style={{
                             flex: 1, padding: "13px 16px", border: "none", background: "none",
-                            fontSize: 12, fontWeight: 800, cursor: tab.key === "career" ? "default" : "pointer",
+                            fontSize: 12, fontWeight: 800, cursor: "pointer",
                             color: activeTab === tab.key ? roleColor : "rgba(255,255,255,0.3)",
                             borderBottom: `2px solid ${activeTab === tab.key ? roleColor : "transparent"}`,
                             transition: "color 0.2s, border-color 0.2s",
-                            opacity: tab.key === "career" ? 0.5 : 1,
                         }}>
                         {tab.label}
                     </button>
@@ -200,17 +204,30 @@ export function DashboardProfileView({
                 )}
 
                 {activeTab === "career" && (
-                    <div style={{ padding: "40px 20px", textAlign: "center" }}>
-                        <div style={{ width: 56, height: 56, borderRadius: "50%", background: `${roleColor}15`, border: `1px solid ${roleColor}30`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                            <svg width={24} height={24} fill="none" viewBox="0 0 24 24" stroke={roleColor} strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
-                            </svg>
-                        </div>
-                        <p style={{ fontSize: 14, fontWeight: 800, color: roleColor, margin: "0 0 8px" }}>キャリアページ</p>
-                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.7, margin: 0 }}>
-                            実績・経歴・スキルタグを<br />プロフィールに追加できます。<br />
-                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 8, display: "block" }}>β版にて公開予定</span>
-                        </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {careerProfile?.tagline && (
+                            <div style={{ padding: "12px 14px", borderRadius: 10, background: `${roleColor}10`, border: `1px solid ${roleColor}30`, fontSize: 13, fontWeight: 700, color: roleColor }}>
+                                "{careerProfile.tagline}"
+                            </div>
+                        )}
+                        {careerProfile?.bio_career && (
+                            <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: `1px solid ${t.border}`, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>
+                                {careerProfile.bio_career}
+                            </div>
+                        )}
+                        {careerProfile?.episodes?.length ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                                {careerProfile.episodes.slice(0, 5).map((ep, i) => (
+                                    <div key={ep.id ?? i} style={{ borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", padding: "10px 12px" }}>
+                                        <p style={{ margin: "0 0 2px", fontSize: 12, color: t.text, fontWeight: 800 }}>{ep.role}</p>
+                                        <p style={{ margin: "0 0 4px", fontSize: 11, color: t.sub }}>{ep.org}</p>
+                                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{ep.period}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ margin: 0, fontSize: 12, color: t.sub }}>キャリア情報はまだ登録されていません。</p>
+                        )}
                     </div>
                 )}
             </div>

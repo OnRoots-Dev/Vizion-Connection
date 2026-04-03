@@ -5,10 +5,12 @@ import { verifySession } from "@/lib/auth/session";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
+import { setUserPlan } from "@/lib/supabase/data/users.server";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { notifyBusinessCheckoutSubmitted } from "@/lib/notifications/create-notification";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
@@ -56,6 +58,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "このプランは満席です" }, { status: 409 });
         }
 
+        if (plan.amount === 0) {
+            await createBusinessOrder({
+                email: session.email,
+                slug: session.slug,
+                planId: plan.id,
+                planName: plan.name,
+                amount: 0,
+                status: "completed",
+                squareLink: "",
+            });
+            await setUserPlan(session.slug, "paid");
+            return NextResponse.json({ success: true, squareUrl: "" });
+        }
+
         if (!plan.squareUrl) {
             return NextResponse.json({ success: false, error: "決済リンクが設定されていません" }, { status: 500 });
         }
@@ -68,6 +84,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             amount: plan.amount,
             status: "pending",
             squareLink: plan.squareUrl,
+        });
+        await notifyBusinessCheckoutSubmitted({
+            slug: session.slug,
+            planName: plan.name,
+            amount: plan.amount,
+        }).catch((err) => {
+            console.error("[notifyBusinessCheckoutSubmitted]", err);
         });
 
         return NextResponse.json({ success: true, squareUrl: plan.squareUrl });

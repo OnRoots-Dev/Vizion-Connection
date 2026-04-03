@@ -9,6 +9,7 @@ type UserRow = {
     password_hash: string;
     email: string;
     role: string;
+    plan: "free" | "paid";
     is_public: boolean;
     is_founding_member: boolean;
     verified: boolean;
@@ -54,6 +55,7 @@ function toProfile(row: UserRow) {
         passwordHash: row.password_hash,
         email: row.email,
         role: row.role as "Athlete" | "Trainer" | "Members" | "Business",
+        plan: row.plan,
         isPublic: row.is_public,
         isFoundingMember: row.is_founding_member,
         verified: row.verified,
@@ -147,6 +149,7 @@ export async function createUser(params: {
     passwordHash: string;
     email: string;
     role: string;
+    region: string;
     fromSlug?: string;
     referrerSlug?: string;
     isFoundingMember?: boolean;
@@ -164,6 +167,8 @@ export async function createUser(params: {
             password_hash: params.passwordHash,
             email: params.email,
             role: params.role,
+            plan: "free",
+            region: params.region,
             rand_a: randA,
             rand_b: randB,
             from_slug: params.fromSlug ?? null,
@@ -178,7 +183,8 @@ export async function createUser(params: {
     if (error || !data) { console.error("[createUser]", error); return null; }
 
     const seq = data.id;
-    const serialId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
+    const year = new Date().getFullYear();
+    const serialId = `VZ-${year}-${seq.toString().padStart(6, "0")}`;
     await supabase.from("users").update({ seq, serial_id: serialId }).eq("id", seq);
 
     return toProfile({ ...data, seq, serial_id: serialId });
@@ -224,6 +230,12 @@ export async function addPointsToUser(slug: string, amount: number): Promise<boo
 export async function updateUserPoints(slug: string, points: number): Promise<boolean> {
     const { error } = await supabase.from("users").update({ points }).eq("slug", slug);
     if (error) { console.error("[updateUserPoints]", error); return false; }
+    return true;
+}
+
+export async function setUserPlan(slug: string, plan: "free" | "paid"): Promise<boolean> {
+    const { error } = await supabase.from("users").update({ plan }).eq("slug", slug);
+    if (error) { console.error("[setUserPlan]", error); return false; }
     return true;
 }
 
