@@ -55,6 +55,7 @@ export interface UserRecord {
     points: number;
     missionBonusGiven: boolean;
     hasShared: boolean;
+    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     resetToken: string | null;
     resetTokenExpires: string | null;
     isDeleted: boolean;

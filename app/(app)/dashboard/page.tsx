@@ -4,10 +4,36 @@ import { redirect } from "next/navigation";
 import { getProfileFromSession } from "@/features/profile/server/get-profile";
 import DashboardClient from "./DashboardClient";
 import { getAdsForUser } from "@/lib/ads";
+import type { DashboardView } from "./types";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+function resolveInitialView(view?: string): DashboardView {
+    const allowed: DashboardView[] = [
+        "home",
+        "notifications",
+        "card",
+        "profile",
+        "news",
+        "voicelab",
+        "referral",
+        "career",
+        "discovery",
+        "roadmap",
+        "cheer",
+        "business",
+        "edit",
+        "settings",
+        "missions",
+    ];
+    return allowed.includes(view as DashboardView) ? (view as DashboardView) : "home";
+}
+
+export default async function DashboardPage({
+    searchParams,
+}: {
+    searchParams?: Promise<{ view?: string }>;
+}) {
     const result = await getProfileFromSession();
 
     if (!result.success) {
@@ -17,6 +43,8 @@ export default async function DashboardPage() {
 
     const { profile, referralUrl, referralCount } = result.data;
     const ads = await getAdsForUser(profile.prefecture ?? "", profile.sport);
+    const params = await searchParams;
+    const initialView = resolveInitialView(params?.view);
 
     return (
         <DashboardClient
@@ -24,6 +52,7 @@ export default async function DashboardPage() {
             referralUrl={referralUrl}
             referralCount={referralCount}
             ads={ads}
+            initialView={initialView}
         />
     );
 }

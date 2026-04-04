@@ -66,11 +66,28 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads }: {
     }, [q, role, region, prefecture, sort]);
 
     useEffect(() => {
+        const visitKey = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Tokyo",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(new Date());
+        const storageKey = `vz:discovery_visit:${visitKey}`;
+        if (typeof window !== "undefined" && window.sessionStorage.getItem(storageKey) === "done") {
+            return;
+        }
+
         fetch("/api/missions/progress", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ required_action: "discovery_visit" }),
-        }).catch(() => undefined);
+        })
+            .then(() => {
+                if (typeof window !== "undefined") {
+                    window.sessionStorage.setItem(storageKey, "done");
+                }
+            })
+            .catch(() => undefined);
     }, []);
 
     useEffect(() => {

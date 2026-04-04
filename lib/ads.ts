@@ -81,3 +81,35 @@ export async function getAdsForUser(prefecture?: string | null, sport?: string):
         return [];
     }
 }
+
+export async function getAdsForRegion(userRegion: string) {
+    try {
+        const { data: nationalAds } = await supabaseServer
+            .from("ads")
+            .select("*")
+            .eq("ad_scope", "national")
+            .eq("is_active", true)
+            .order("plan_priority", { ascending: false })
+            .limit(1);
+
+        const { data: regionalAds } = await supabaseServer
+            .from("ads")
+            .select("*")
+            .eq("ad_scope", "regional")
+            .eq("region", userRegion)
+            .eq("is_active", true)
+            .order("plan_priority", { ascending: false })
+            .limit(1);
+
+        return {
+            nationalAds: (nationalAds ?? []).map((row) => toAd(row as Record<string, unknown>)),
+            regionalAds: (regionalAds ?? []).map((row) => toAd(row as Record<string, unknown>)),
+        };
+    } catch (err) {
+        console.error("[getAdsForRegion]", err);
+        return {
+            nationalAds: [] as AdItem[],
+            regionalAds: [] as AdItem[],
+        };
+    }
+}

@@ -23,6 +23,17 @@ import { NewsView } from "./views/NewsView";
 import { VoiceLabView } from "./views/VoiceLabView";
 import { NotificationsView } from "./views/NotificationsView";
 
+type DashboardNewsPost = {
+    id: string;
+    category: "announce" | "column" | "interview";
+    title: string;
+    body: string;
+    author: string;
+    publishedAt: string;
+    imageUrl: string | null;
+    viewCount: number;
+};
+
 export type { Theme, DashboardView, ThemeColors } from "./types";
 const NOTIFICATION_POLL_MS = 5 * 60 * 1000;
 
@@ -31,21 +42,26 @@ export default function DashboardClient({
     referralUrl,
     referralCount: initialReferralCount,
     ads,
+    initialView = "home",
 }: {
     profile: ProfileData;
     referralUrl: string;
     referralCount: number;
     ads: AdItem[];
+    initialView?: DashboardView;
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
     const [theme, setTheme] = useState<Theme>("dark");
-    const [view, setView] = useState<DashboardView>("home");
+    const [view, setView] = useState<DashboardView>(initialView);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+    const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
+    const [featuredNewsTop, setFeaturedNewsTop] = useState<DashboardNewsPost[]>([]);
 
     const careerCacheRef = useRef<any>(undefined);
+    const contentRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         fetch("/api/career/me")
             .then((r) => r.json())
@@ -75,6 +91,22 @@ export default function DashboardClient({
     useEffect(() => {
         localStorage.setItem("vz-theme", theme);
     }, [theme]);
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+        contentRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    }, [view]);
+
+    useEffect(() => {
+        fetch("/api/news/posts", { cache: "no-store" })
+            .then((res) => res.json())
+            .then((json) => {
+                setFeaturedNewsTop(Array.isArray(json.featuredTop) ? json.featuredTop : []);
+            })
+            .catch(() => {
+                setFeaturedNewsTop([]);
+            });
+    }, []);
 
     const refreshNotificationUnread = useCallback(async () => {
         try {
@@ -127,15 +159,15 @@ export default function DashboardClient({
     const renderView = () => {
         switch (view) {
             case "home":
-                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
+                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={(newsId) => { setSelectedNewsId(newsId); setView("news"); }} />;
             case "notifications":
                 return <NotificationsView t={t} roleColor={roleColor} setView={setView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "card":
                 return <CardView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
             case "profile":
-                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} careerProfile={careerCacheRef.current} />;
+                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} setView={setView} careerProfile={careerCacheRef.current} />;
             case "news":
-                return <NewsView t={t} roleColor={roleColor} setView={setView} ads={ads} />;
+                return <NewsView t={t} roleColor={roleColor} setView={setView} ads={ads} selectedNewsId={selectedNewsId} onSelectNews={setSelectedNewsId} />;
             case "voicelab":
                 return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} />;
             case "edit":
@@ -147,7 +179,7 @@ export default function DashboardClient({
             case "discovery":
                 return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
             case "business":
-                return <BusinessView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
+                return <BusinessView profile={profile} t={t} roleColor={roleColor} setView={setView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "referral":
                 return <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} />;
             case "settings":
@@ -221,7 +253,7 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        <div style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px" }}>
+                        <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}

@@ -57,6 +57,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     tiktok: user.tiktok ?? undefined,
                     cheerCount: user.cheerCount ?? 0,
                     missionBonusGiven: user.missionBonusGiven ?? false,
+                    sponsorPlan: user.sponsorPlan ?? null,
                     isFoundingMember: (user.seq ?? 999) <= 100,
                     latestCheers,
                 },

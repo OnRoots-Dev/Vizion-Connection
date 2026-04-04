@@ -22,6 +22,27 @@ type CollectedCard = {
     isFoundingMember: boolean;
 };
 
+type FeaturedNewsItem = {
+    id: string;
+    category: "announce" | "column" | "interview";
+    title: string;
+};
+
+type DiscoveryPreviewUser = {
+    slug: string;
+    display_name: string;
+    role: string;
+    cheer_count: number;
+    region?: string | null;
+    sport?: string | null;
+};
+
+const NEWS_CATEGORY_LABEL: Record<FeaturedNewsItem["category"], string> = {
+    announce: "お知らせ",
+    column: "コラム",
+    interview: "インタビュー",
+};
+
 let collectedCardsCache: CollectedCard[] | null = null;
 let collectedCardsInFlight: Promise<CollectedCard[]> | null = null;
 
@@ -46,7 +67,7 @@ const ROLE_BG: Record<string, string> = {
     Business: "#000A24",
 };
 
-export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, ads }: {
+export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, ads, featuredNewsTop, onOpenNews }: {
     profile: ProfileData;
     referralUrl: string;
     referralCount: number;
@@ -54,11 +75,14 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     roleColor: string;
     setView: (v: DashboardView) => void;
     ads: AdItem[];
+    featuredNewsTop: FeaturedNewsItem[];
+    onOpenNews: (newsId: string) => void;
 }) {
     const REFERRAL_LIMIT = 30;
     const progress = Math.min((referralCount / REFERRAL_LIMIT) * 100, 100);
     const [copied, setCopied] = useState(false);
     const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
+    const [discoveryPreview, setDiscoveryPreview] = useState<DiscoveryPreviewUser[]>([]);
     const titleBaseStyle = {
         fontSize: 8,
         fontWeight: 900,
@@ -116,7 +140,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         } catch {}
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-        await fetch("/api/share/complete", { method: "POST" });
     }
 
     useEffect(() => {
@@ -124,6 +147,21 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         fetchCollectedCardsOnce().then((cards) => {
             if (!cancelled) setCollectedCards(cards);
         });
+        return () => { cancelled = true; };
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/discovery?sort=all")
+            .then((r) => r.json())
+            .then((d) => {
+                if (!cancelled) {
+                    setDiscoveryPreview(Array.isArray(d.users) ? d.users.slice(0, 4) : []);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setDiscoveryPreview([]);
+            });
         return () => { cancelled = true; };
     }, []);
 
@@ -151,6 +189,48 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 
             <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={setView} />
 
+            {featuredNewsTop.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+                    <SectionCard t={t} accentColor="#FFD600">
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                            <SLabel text="Featured News" color="#FFD600" />
+                            <button onClick={() => setView("news")} style={{ ...detailBaseStyle, background: "rgba(255,214,0,0.08)", outline: "1px solid rgba(255,214,0,0.2)", color: "#FFD600" }}>
+                                News Rooms →
+                            </button>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {featuredNewsTop.slice(0, 5).map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => onOpenNews(item.id)}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 10,
+                                        width: "100%",
+                                        padding: "10px 12px",
+                                        borderRadius: 12,
+                                        border: `1px solid ${t.border}`,
+                                        background: "rgba(255,255,255,0.02)",
+                                        color: t.text,
+                                        textAlign: "left",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: roleColor, padding: "4px 8px", borderRadius: 999, background: `${roleColor}18`, border: `1px solid ${roleColor}25`, flexShrink: 0 }}>
+                                        {NEWS_CATEGORY_LABEL[item.category]}
+                                    </span>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {item.title}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </SectionCard>
+                </motion.div>
+            )}
+
             <DailyLogCard t={t} roleColor={roleColor} />
 
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
@@ -162,8 +242,9 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     {collectedCards.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションはまだありません。公開プロフィールでカードをコレクトするとここに表示されます。</p>
                     ) : (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-                            {collectedCards.map((card) => {
+                        <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "stretch", minWidth: "max-content", paddingLeft: 2, paddingRight: 20 }}>
+                            {collectedCards.map((card, index) => {
                                 const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
                                 return (
                                     <a
@@ -175,10 +256,15 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                             borderRadius: 14,
                                             border: `1px solid ${t.border}`,
                                             background: `linear-gradient(145deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, #050508 100%)`,
+                                            width: 232,
                                             aspectRatio: "400 / 240",
                                             overflow: "hidden",
                                             textDecoration: "none",
                                             color: "#fff",
+                                            marginLeft: index === 0 ? 0 : -78,
+                                            zIndex: collectedCards.length - index,
+                                            boxShadow: `0 14px 34px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
+                                            transform: `translateY(${index % 2 === 0 ? 0 : 8}px)`,
                                         }}
                                     >
                                         {card.profileImageUrl ? (
@@ -217,6 +303,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                     </a>
                                 );
                             })}
+                            </div>
                         </div>
                     )}
                 </SectionCard>
@@ -265,15 +352,57 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <SectionCard t={t}>
+                <SectionCard t={t} accentColor={roleColor}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                         <SLabel text="Discovery" />
-                        <span style={{ fontSize: 9, color: t.sub, opacity: 0.4, fontFamily: "monospace" }}>3/20 (金・祝) 12:00 解放</span>
+                        <button onClick={() => setView("discovery")} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}28`, color: roleColor }}>
+                            詳細 →
+                        </button>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 0", gap: 8 }}>
-                        <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2.4, repeat: Infinity }} style={{ fontSize: 9, fontWeight: 900, fontFamily: "monospace", letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", margin: 0 }}>COMING SOON</motion.p>
-                        <p style={{ fontSize: 11, color: t.sub, opacity: 0.4, margin: 0 }}>3月16日（月）正午に解放予定</p>
-                    </div>
+                    {discoveryPreview.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: 12, color: t.sub }}>公開プロフィールからおすすめのユーザーを表示します。</p>
+                    ) : (
+                        <div style={{ display: "grid", gap: 8 }}>
+                            {discoveryPreview.map((user) => {
+                                const previewRoleColor = ROLE_COLOR[user.role] ?? roleColor;
+                                return (
+                                    <button
+                                        key={user.slug}
+                                        type="button"
+                                        onClick={() => setView("discovery")}
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateColumns: "1fr auto",
+                                            gap: 10,
+                                            alignItems: "center",
+                                            width: "100%",
+                                            padding: "12px 14px",
+                                            borderRadius: 14,
+                                            border: `1px solid ${previewRoleColor}22`,
+                                            background: `linear-gradient(135deg, ${previewRoleColor}14, rgba(255,255,255,0.02))`,
+                                            color: t.text,
+                                            textAlign: "left",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        <div style={{ minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                                                <span style={{ fontSize: 10, fontWeight: 800, color: previewRoleColor, padding: "3px 8px", borderRadius: 999, background: `${previewRoleColor}18`, border: `1px solid ${previewRoleColor}25` }}>
+                                                    {ROLE_LABEL[user.role] ?? user.role}
+                                                </span>
+                                                <span style={{ fontSize: 10, color: t.sub }}>
+                                                    {user.region ?? "地域未設定"}{user.sport ? ` · ${user.sport}` : ""}
+                                                </span>
+                                            </div>
+                                            <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: t.text }}>{user.display_name}</p>
+                                            <p style={{ margin: 0, fontSize: 10, color: "#FFD600", fontFamily: "monospace" }}>★ {user.cheer_count ?? 0}</p>
+                                        </div>
+                                        <span style={{ fontSize: 10, color: t.sub }}>見る →</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </SectionCard>
             </motion.div>
 

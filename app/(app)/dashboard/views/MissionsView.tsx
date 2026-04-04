@@ -9,6 +9,14 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { DailyMissionWithProgress, OnetimeMission } from "@/features/missions/types";
 
+type MissionsSnapshot = {
+    onetime: OnetimeMission[];
+    daily: DailyMissionWithProgress[];
+};
+
+let missionsSnapshotCache: MissionsSnapshot | null = null;
+let missionsSnapshotInFlight: Promise<MissionsSnapshot> | null = null;
+
 function buildFallbackOnetimeMissions(params: {
     verified: boolean;
     hasShared: boolean;
@@ -52,12 +60,31 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
     useEffect(() => {
         let cancelled = false;
         setLoadingDaily(true);
-        fetch("/api/missions", { cache: "no-store" })
-            .then((res) => res.json())
-            .then((json) => {
+        if (missionsSnapshotCache) {
+            setOnetimeMissions(missionsSnapshotCache.onetime);
+            setDailyMissions(missionsSnapshotCache.daily);
+            setLoadingDaily(false);
+            return;
+        }
+
+        if (!missionsSnapshotInFlight) {
+            missionsSnapshotInFlight = fetch("/api/missions", { cache: "no-store" })
+                .then((res) => res.json())
+                .then((json) => ({
+                    onetime: Array.isArray(json.onetime) ? json.onetime : fallbackOnetime,
+                    daily: Array.isArray(json.daily) ? json.daily : [],
+                }))
+                .finally(() => {
+                    missionsSnapshotInFlight = null;
+                });
+        }
+
+        missionsSnapshotInFlight
+            .then((snapshot) => {
+                missionsSnapshotCache = snapshot;
                 if (cancelled) return;
-                setOnetimeMissions(Array.isArray(json.onetime) ? json.onetime : fallbackOnetime);
-                setDailyMissions(Array.isArray(json.daily) ? json.daily : []);
+                setOnetimeMissions(snapshot.onetime);
+                setDailyMissions(snapshot.daily);
             })
             .catch(() => {
                 if (cancelled) return;
@@ -83,10 +110,12 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                 return;
             }
             const added = Number(json.pointsAdded ?? 0);
+            const currentPoints = Number(json.currentPoints ?? (profile.points ?? 0) + added);
             onProfilePatch({
-                points: (profile.points ?? 0) + added,
+                points: currentPoints,
                 missionBonusGiven: true,
             });
+            missionsSnapshotCache = null;
             setMessage(`+${added.toLocaleString()}pt を受け取りました。`);
         } catch {
             setMessage("受け取りに失敗しました。");
@@ -102,7 +131,7 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
             <SectionCard t={t} accentColor={roleColor}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <SLabel text="ポイント残高" color={roleColor} />
-                    <span style={{ fontSize: 10, color: t.sub, opacity: 0.6, fontFamily: "monospace" }}>CURRENT BALANCE</span>
+                    <span style={{ fontSize: 10, color: t.sub, opacity: 0.6, fontFamily: "monospace" }}>現在の合計ポイント</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                     <span className="font-display" style={{ fontSize: 36, color: roleColor, lineHeight: 1 }}>

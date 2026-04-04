@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { getNewsPosts } from "@/lib/news";
+import { getFeaturedNewsPost, getFeaturedNewsPosts, getNewsPosts } from "@/lib/news";
 
 export async function GET() {
-    const posts = await getNewsPosts();
-    return NextResponse.json({ posts });
+    const [posts, featured, featuredTop] = await Promise.all([
+        getNewsPosts(),
+        getFeaturedNewsPost(),
+        getFeaturedNewsPosts(5),
+    ]);
+    return NextResponse.json({ posts, featured, featuredTop });
 }

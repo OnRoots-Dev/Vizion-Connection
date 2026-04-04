@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
+import { BUSINESS_PLANS } from "@/features/business/constants";
+import type { PlanId } from "@/features/business/types";
 
-export function BusinessView({ profile, t, roleColor, setView }: {
+export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }: {
     profile: ProfileData;
     t: ThemeColors;
     roleColor: string;
     setView: (v: DashboardView) => void;
+    onProfilePatch: (patch: Partial<ProfileData>) => void;
 }) {
     const bizColor = roleColor || "#3C8CFF";
-    const isPaid = profile.plan === "paid";
+    const isPaid = profile.plan === "paid" || Boolean(profile.sponsorPlan);
     const [activeTab, setActiveTab] = useState<"ads" | "analytics" | "matching">("ads");
+    const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(null);
+    const [checkoutLoading, setCheckoutLoading] = useState(false);
+    const [checkoutMessage, setCheckoutMessage] = useState("");
+    const [checkoutError, setCheckoutError] = useState("");
+
+    const selectedPlan = BUSINESS_PLANS.find((plan) => plan.id === selectedPlanId) ?? null;
 
     const mockAds = [
         { id: "ad_1", title: "Summer Camp 2025", status: "active", impressions: 12480, clicks: 342, ctr: 2.74, budget: 30000, spent: 18200 },
@@ -27,6 +36,56 @@ export function BusinessView({ profile, t, roleColor, setView }: {
         avgCtr: 2.58,
         weeklyTrend: [210, 340, 290, 420, 380, 510, 490],
     };
+
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState !== "visible") return;
+            fetch("/api/profile/save/me", { cache: "no-store" })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data?.profile) {
+                        onProfilePatch(data.profile as Partial<ProfileData>);
+                    }
+                })
+                .catch(() => undefined);
+        };
+
+        document.addEventListener("visibilitychange", handleVisibility);
+        return () => document.removeEventListener("visibilitychange", handleVisibility);
+    }, [onProfilePatch]);
+
+    async function handleCheckout() {
+        if (!selectedPlanId || checkoutLoading) return;
+        setCheckoutLoading(true);
+        setCheckoutError("");
+        setCheckoutMessage("");
+
+        try {
+            const res = await fetch("/api/business-checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ planId: selectedPlanId }),
+            });
+            const data = await res.json() as { success?: boolean; squareUrl?: string; error?: string };
+
+            if (!res.ok || !data.success) {
+                setCheckoutError(data.error ?? "申込処理に失敗しました。");
+                return;
+            }
+
+            if (data.squareUrl) {
+                window.open(data.squareUrl, "_blank", "noopener,noreferrer");
+                setCheckoutMessage("Squareの決済ページを新しいタブで開きました。決済完了後、この画面へ戻るとプランが自動反映されます。");
+                return;
+            }
+
+            setCheckoutMessage("プランを有効化しました。");
+        } catch {
+            setCheckoutError("通信エラーが発生しました。時間をおいて再度お試しください。");
+        } finally {
+            setCheckoutLoading(false);
+        }
+    }
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -83,26 +142,90 @@ export function BusinessView({ profile, t, roleColor, setView }: {
                         </div>
                     </SectionCard>
 
-                    <div style={{ padding: "20px", borderRadius: 16, background: "linear-gradient(135deg, rgba(60,140,255,0.1), rgba(60,140,255,0.04))", border: "1px solid rgba(60,140,255,0.3)" }}>
-                        <p style={{ fontSize: 15, fontWeight: 800, color: t.text, margin: "0 0 6px" }}>今すぐアップグレード</p>
-                        <p style={{ fontSize: 11, color: t.sub, lineHeight: 1.7, margin: "0 0 16px", opacity: 0.7 }}>ダッシュボードからそのままプラン選択ページへ進み、決済後に有効化できます。</p>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, marginBottom: 10 }}>
-                            {[{ id: "roots", label: "Roots" }, { id: "roots-plus", label: "Roots+" }, { id: "signal", label: "Signal" }, { id: "presence", label: "Presence" }, { id: "legacy", label: "Legacy" }].map((plan) => (
-                                <button
-                                    key={plan.id}
-                                    onClick={() => { window.location.href = `/business/checkout?plan=${plan.id}`; }}
-                                    className="vz-btn"
-                                    style={{ padding: "8px 10px", borderRadius: 8, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: t.text, fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center" }}
-                                >
-                                    {plan.label} を選択
-                                </button>
-                            ))}
+                    <SectionCard t={t} accentColor={bizColor}>
+                        <SLabel text="プラン選択" color={bizColor} />
+                        <p style={{ fontSize: 11, color: t.sub, lineHeight: 1.7, margin: "0 0 16px", opacity: 0.7 }}>
+                            プラン選択はこの画面内で完結します。決済だけSquareの安全なページを新しいタブで開きます。
+                        </p>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 16 }}>
+                            {BUSINESS_PLANS.map((plan) => {
+                                const selected = selectedPlanId === plan.id;
+                                return (
+                                    <button
+                                        key={plan.id}
+                                        type="button"
+                                        onClick={() => setSelectedPlanId(plan.id)}
+                                        className="vz-btn"
+                                        style={{
+                                            textAlign: "left",
+                                            padding: "14px",
+                                            borderRadius: 14,
+                                            border: `1px solid ${selected ? "rgba(60,140,255,0.4)" : "rgba(255,255,255,0.1)"}`,
+                                            background: selected ? "rgba(60,140,255,0.12)" : "rgba(255,255,255,0.03)",
+                                            color: t.text,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                                            <p style={{ fontSize: 13, fontWeight: 800, margin: 0 }}>{plan.name}</p>
+                                            {plan.highlight && (
+                                                <span style={{ fontSize: 8, fontWeight: 900, padding: "3px 7px", borderRadius: 999, background: "rgba(60,140,255,0.18)", color: bizColor, border: "1px solid rgba(60,140,255,0.28)" }}>
+                                                    おすすめ
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p style={{ fontSize: 11, color: t.sub, margin: "0 0 10px", opacity: 0.75 }}>{plan.tagline}</p>
+                                        <p style={{ fontSize: 18, fontWeight: 900, color: bizColor, margin: "0 0 10px", fontFamily: "monospace" }}>{plan.priceLabel}</p>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                            {plan.benefits.slice(0, 3).map((benefit) => (
+                                                <div key={benefit} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                                                    <span style={{ color: bizColor, fontSize: 10, lineHeight: 1.6 }}>●</span>
+                                                    <span style={{ fontSize: 10, color: t.sub, lineHeight: 1.6 }}>{benefit}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
+
+                        {selectedPlan && (
+                            <div style={{ padding: "16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: `1px solid ${t.border}`, marginBottom: 12 }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+                                    <div>
+                                        <p style={{ fontSize: 15, fontWeight: 800, color: t.text, margin: "0 0 4px" }}>{selectedPlan.name}</p>
+                                        <p style={{ fontSize: 11, color: t.sub, margin: 0, opacity: 0.75 }}>{selectedPlan.tagline}</p>
+                                    </div>
+                                    <p style={{ fontSize: 18, fontWeight: 900, color: bizColor, margin: 0, fontFamily: "monospace" }}>{selectedPlan.priceLabel}</p>
+                                </div>
+                                <div style={{ display: "grid", gap: 6 }}>
+                                    {selectedPlan.benefits.map((benefit) => (
+                                        <div key={benefit} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                            <span style={{ color: bizColor, fontSize: 10, lineHeight: 1.7 }}>●</span>
+                                            <span style={{ fontSize: 11, color: t.sub, lineHeight: 1.7 }}>{benefit}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {checkoutError && <p style={{ fontSize: 11, color: "#ff8b8b", margin: "0 0 10px" }}>{checkoutError}</p>}
+                        {checkoutMessage && <p style={{ fontSize: 11, color: bizColor, margin: "0 0 10px", lineHeight: 1.7 }}>{checkoutMessage}</p>}
+
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            <a href="/business/checkout" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, background: bizColor, color: "#000", fontSize: 12, fontWeight: 800, textDecoration: "none" }}>⚡ プラン選択へ進む</a>
+                            <button
+                                type="button"
+                                onClick={handleCheckout}
+                                disabled={!selectedPlanId || checkoutLoading}
+                                className="vz-btn"
+                                style={{ padding: "10px 18px", borderRadius: 10, background: selectedPlanId ? bizColor : "rgba(255,255,255,0.06)", color: selectedPlanId ? "#000" : t.sub, fontSize: 12, fontWeight: 800, cursor: selectedPlanId ? "pointer" : "not-allowed", border: "none" }}
+                            >
+                                {checkoutLoading ? "申込処理中..." : "このプランで決済へ進む"}
+                            </button>
                             <button onClick={() => setView("home")} className="vz-btn" style={{ padding: "10px 16px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: t.sub, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>後で確認する</button>
                         </div>
-                    </div>
+                    </SectionCard>
                 </motion.div>
             )}
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors } from "../DashboardClient";
+import type { DashboardView } from "../DashboardClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 
@@ -19,12 +20,13 @@ const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 
 type Tab = "profile" | "career";
 
 export function DashboardProfileView({
-    profile, t, roleColor, onBack, careerProfile,
+    profile, t, roleColor, onBack, setView, careerProfile,
 }: {
     profile: ProfileData;
     t: ThemeColors;
     roleColor: string;
     onBack: () => void;
+    setView?: (view: DashboardView) => void;
     careerProfile?: CareerProfileRow | null;
 }) {
     const [activeTab, setActiveTab] = useState<Tab>("profile");
@@ -146,6 +148,28 @@ export function DashboardProfileView({
 
                 {activeTab === "profile" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                            <button
+                                type="button"
+                                onClick={() => setView?.("edit")}
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    padding: "9px 14px",
+                                    borderRadius: 10,
+                                    border: `1px solid ${roleColor}35`,
+                                    background: `${roleColor}14`,
+                                    color: roleColor,
+                                    fontSize: 12,
+                                    fontWeight: 800,
+                                    cursor: setView ? "pointer" : "default",
+                                    opacity: setView ? 1 : 0.6,
+                                }}
+                            >
+                                プロフィールを編集する
+                            </button>
+                        </div>
 
                         {/* Bio */}
                         {profile.bio && (
@@ -205,6 +229,28 @@ export function DashboardProfileView({
 
                 {activeTab === "career" && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                            <button
+                                type="button"
+                                onClick={() => setView?.("career")}
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    padding: "9px 14px",
+                                    borderRadius: 10,
+                                    border: `1px solid ${roleColor}35`,
+                                    background: `${roleColor}14`,
+                                    color: roleColor,
+                                    fontSize: 12,
+                                    fontWeight: 800,
+                                    cursor: setView ? "pointer" : "default",
+                                    opacity: setView ? 1 : 0.6,
+                                }}
+                            >
+                                キャリアページを編集する
+                            </button>
+                        </div>
                         {careerProfile?.tagline && (
                             <div style={{ padding: "12px 14px", borderRadius: 10, background: `${roleColor}10`, border: `1px solid ${roleColor}30`, fontSize: 13, fontWeight: 700, color: roleColor }}>
                                 "{careerProfile.tagline}"

@@ -39,6 +39,7 @@ type UserRow = {
     points: number;
     mission_bonus_given: boolean;
     has_shared: boolean;
+    sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     reset_token: string | null;
     reset_token_expires: string | null;
     is_deleted: boolean;
@@ -85,6 +86,7 @@ function toProfile(row: UserRow) {
         points: row.points,
         missionBonusGiven: row.mission_bonus_given,
         hasShared: row.has_shared,
+        sponsorPlan: row.sponsor_plan,
         resetToken: row.reset_token,
         resetTokenExpires: row.reset_token_expires,
         isDeleted: row.is_deleted,
@@ -236,6 +238,19 @@ export async function updateUserPoints(slug: string, points: number): Promise<bo
 export async function setUserPlan(slug: string, plan: "free" | "paid"): Promise<boolean> {
     const { error } = await supabase.from("users").update({ plan }).eq("slug", slug);
     if (error) { console.error("[setUserPlan]", error); return false; }
+    return true;
+}
+
+export async function setUserSponsorPlanByEmail(
+    email: string,
+    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy",
+): Promise<boolean> {
+    const { error } = await supabase
+        .from("users")
+        .update({ sponsor_plan: sponsorPlan, plan: "paid" })
+        .eq("email", email)
+        .eq("is_deleted", false);
+    if (error) { console.error("[setUserSponsorPlanByEmail]", error); return false; }
     return true;
 }
 

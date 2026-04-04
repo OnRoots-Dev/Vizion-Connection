@@ -37,6 +37,7 @@ export async function getPublicProfileBySlug(
                 xUrl: user.xUrl ?? undefined,
                 tiktok: user.tiktok ?? undefined,
                 missionBonusGiven: user.missionBonusGiven ?? false,
+                sponsorPlan: user.sponsorPlan ?? null,
                 isFoundingMember: user.isFoundingMember,
                 isPublic: user.isPublic ?? true,
                 isDeleted: user.isDeleted ?? false,

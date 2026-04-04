@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { AdItem } from "@/lib/ads-shared";
@@ -14,6 +14,8 @@ type NewsPost = {
     body: string;
     author: string;
     publishedAt: string;
+    imageUrl: string | null;
+    viewCount: number;
 };
 
 const CATEGORY_LABEL: Record<NewsPost["category"], string> = {
@@ -22,19 +24,29 @@ const CATEGORY_LABEL: Record<NewsPost["category"], string> = {
     interview: "インタビュー",
 };
 
+function excerpt(text: string) {
+    return text.replace(/\s+/g, " ").trim().slice(0, 88);
+}
+
 export function NewsView({
     t,
     roleColor,
     setView,
     ads,
+    selectedNewsId,
+    onSelectNews,
 }: {
     t: ThemeColors;
     roleColor: string;
     setView: (v: DashboardView) => void;
     ads: AdItem[];
+    selectedNewsId: string | null;
+    onSelectNews: (newsId: string | null) => void;
 }) {
     const [posts, setPosts] = useState<NewsPost[]>([]);
+    const [featured, setFeatured] = useState<NewsPost | null>(null);
     const [loading, setLoading] = useState(true);
+    const viewedIdsRef = useRef<Set<string>>(new Set());
     const nationalAd = ads.find((ad) => !isLocalPlan(ad.plan)) ?? null;
     const localAd = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
 
@@ -42,14 +54,39 @@ export function NewsView({
         setLoading(true);
         fetch("/api/news/posts")
             .then((r) => r.json())
-            .then((d) => setPosts(d.posts ?? []))
-            .catch(() => setPosts([]))
+            .then((d) => {
+                setPosts(d.posts ?? []);
+                setFeatured(d.featured ?? null);
+            })
+            .catch(() => {
+                setPosts([]);
+                setFeatured(null);
+            })
             .finally(() => setLoading(false));
     }, []);
 
+    useEffect(() => {
+        if (!selectedNewsId) return;
+        if (viewedIdsRef.current.has(selectedNewsId)) return;
+        const target = posts.find((post) => post.id === selectedNewsId);
+        if (!target) return;
+        viewedIdsRef.current.add(selectedNewsId);
+
+        setPosts((prev) =>
+            prev.map((post) =>
+                post.id === selectedNewsId
+                    ? { ...post, viewCount: post.viewCount + 1 }
+                    : post,
+            ),
+        );
+        setFeatured((prev) => (prev?.id === selectedNewsId ? { ...prev, viewCount: prev.viewCount + 1 } : prev));
+    }, [selectedNewsId, posts]);
+
+    const selectedPost = selectedNewsId ? posts.find((post) => post.id === selectedNewsId) ?? null : null;
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <ViewHeader title="News Rooms" sub="最新ニュース" onBack={() => setView("home")} t={t} roleColor={roleColor} />
+            <ViewHeader title="News Rooms" sub={selectedPost ? "記事詳細" : "最新ニュース"} onBack={() => selectedPost ? onSelectNews(null) : setView("home")} t={t} roleColor={roleColor} />
             <div
                 style={{
                     display: "grid",
@@ -68,23 +105,128 @@ export function NewsView({
                 )}
 
                 <SectionCard t={t} accentColor={roleColor}>
-                    <SLabel text="Latest Posts" color={roleColor} />
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+                        <SLabel text={selectedPost ? "Article Detail" : "Latest Posts"} color={roleColor} />
+                        {selectedPost ? (
+                            <button
+                                type="button"
+                                onClick={() => onSelectNews(null)}
+                                style={{
+                                    padding: "5px 10px",
+                                    borderRadius: 999,
+                                    border: `1px solid ${t.border}`,
+                                    background: "rgba(255,255,255,0.04)",
+                                    color: t.sub,
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                記事一覧へ戻る
+                            </button>
+                        ) : null}
+                    </div>
                     <div style={{ maxHeight: "100%", overflowY: "auto", paddingRight: 4 }}>
                         {loading ? (
                             <p style={{ margin: 0, color: t.sub, fontSize: 12 }}>読み込み中...</p>
+                        ) : selectedPost ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                                {selectedPost.imageUrl ? (
+                                    <img src={selectedPost.imageUrl} alt={selectedPost.title} style={{ width: "100%", height: 220, objectFit: "cover", borderRadius: 14, display: "block" }} />
+                                ) : null}
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: roleColor }}>{CATEGORY_LABEL[selectedPost.category]}</span>
+                                    <span style={{ fontSize: 10, color: t.sub }}>{new Date(selectedPost.publishedAt).toLocaleString("ja-JP")}</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: t.text, lineHeight: 1.4 }}>{selectedPost.title}</p>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, color: t.sub, fontSize: 11 }}>
+                                    <span>{selectedPost.author || "運営"}</span>
+                                    <span>閲覧 {selectedPost.viewCount.toLocaleString()}</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: 13, color: t.sub, lineHeight: 1.9, whiteSpace: "pre-wrap" }}>{selectedPost.body}</p>
+                            </div>
                         ) : posts.length === 0 ? (
                             <p style={{ margin: 0, color: t.sub, fontSize: 12 }}>公開中のニュースはまだありません。</p>
                         ) : (
                             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                                {posts.map((post) => (
-                                    <article key={post.id} style={{ borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", padding: "12px 14px" }}>
-                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                                            <span style={{ fontSize: 10, fontWeight: 800, color: roleColor }}>{CATEGORY_LABEL[post.category]}</span>
-                                            <span style={{ fontSize: 10, color: t.sub }}>{new Date(post.publishedAt).toLocaleString("ja-JP")}</span>
+                                {featured ? (
+                                    <div
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateColumns: featured.imageUrl ? "132px 1fr" : "1fr",
+                                            gap: 0,
+                                            overflow: "hidden",
+                                            borderRadius: 16,
+                                            border: "1px solid rgba(255,214,0,0.18)",
+                                            background: "linear-gradient(135deg, rgba(255,214,0,0.08), rgba(255,255,255,0.03))",
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {featured.imageUrl ? (
+                                            <img src={featured.imageUrl} alt={featured.title} style={{ width: "100%", height: "100%", minHeight: 144, objectFit: "cover", display: "block" }} />
+                                        ) : null}
+                                        <div style={{ padding: "14px 16px" }}>
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+                                                <span style={{ fontSize: 10, fontWeight: 900, color: "#FFD600" }}>注目記事</span>
+                                                <span style={{ fontSize: 10, color: t.sub }}>閲覧 {featured.viewCount.toLocaleString()}</span>
+                                            </div>
+                                            <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 900, color: t.text }}>{featured.title}</p>
+                                            <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>{excerpt(featured.body)}</p>
+                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onSelectNews(featured.id)}
+                                                    style={{
+                                                        padding: "5px 10px",
+                                                        borderRadius: 999,
+                                                        border: "1px solid rgba(255,214,0,0.22)",
+                                                        background: "rgba(255,214,0,0.08)",
+                                                        color: "#FFD600",
+                                                        fontSize: 10,
+                                                        fontWeight: 800,
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    詳細を見る
+                                                </button>
+                                            </div>
                                         </div>
-                                        <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: t.text }}>{post.title}</p>
-                                        <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{post.body}</p>
-                                    </article>
+                                    </div>
+                                ) : null}
+                                {posts.map((post) => (
+                                    <button
+                                        key={post.id}
+                                        type="button"
+                                        onClick={() => onSelectNews(post.id)}
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateColumns: post.imageUrl ? "120px 1fr" : "1fr",
+                                            gap: 0,
+                                            overflow: "hidden",
+                                            borderRadius: 12,
+                                            border: `1px solid ${t.border}`,
+                                            background: "rgba(255,255,255,0.02)",
+                                            color: t.text,
+                                            textAlign: "left",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        {post.imageUrl ? (
+                                            <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "100%", minHeight: 120, objectFit: "cover" }} />
+                                        ) : null}
+                                        <div style={{ padding: "12px 14px" }}>
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+                                                <span style={{ fontSize: 10, fontWeight: 800, color: roleColor }}>{CATEGORY_LABEL[post.category]}</span>
+                                                <span style={{ fontSize: 10, color: t.sub }}>{new Date(post.publishedAt).toLocaleString("ja-JP")}</span>
+                                            </div>
+                                            <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: t.text }}>{post.title}</p>
+                                            <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>{excerpt(post.body)}</p>
+                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 10 }}>
+                                                <span style={{ fontSize: 10, color: t.sub }}>{post.author || "運営"}</span>
+                                                <span style={{ fontSize: 10, color: t.sub }}>閲覧 {post.viewCount.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    </button>
                                 ))}
                             </div>
                         )}

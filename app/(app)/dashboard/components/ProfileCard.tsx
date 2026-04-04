@@ -6,6 +6,7 @@ import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/Founding
 import type { LatestCheerItem, ProfileData } from "@/features/profile/types";
 import QRCode from "qrcode";
 import { DashboardView } from "@/app/(app)/dashboard/DashboardClient";
+import { SponsorPlanBadge } from "@/features/business/sponsor-badge";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -321,7 +322,13 @@ export function ProfileCardSection({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            style={{ borderRadius: 16, padding: 20, background: t.surface, border: `1px solid ${t.border}` }}
+            style={{
+                borderRadius: 16,
+                padding: 20,
+                background: `linear-gradient(145deg, ${rl}12 0%, ${bg1}88 18%, ${t.surface} 100%)`,
+                border: `1px solid ${rl}28`,
+                boxShadow: `0 14px 40px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.03)`,
+            }}
         >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>Profile Card</p>
@@ -429,7 +436,10 @@ export function ProfileCardSection({
                                         <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
                                     </div>
                                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
-                                        <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</div>
+                                    <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</div>
+                                        <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                            <SponsorPlanBadge plan={profile.sponsorPlan} />
+                                        </div>
                                         <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>@{profile.slug}{profile.region ? ` · ${profile.region}` : ""}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.sport}</div>}
                                     </div>

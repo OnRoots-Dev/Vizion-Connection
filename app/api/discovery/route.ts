@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { PLAN_PRIORITY } from "@/features/business/plan-features";
 
 export async function GET(req: NextRequest) {
     const q = (req.nextUrl.searchParams.get("q") ?? "").trim();
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabaseServer
         .from("users")
-        .select("slug,display_name,role,avatar_url,cheer_count,region,prefecture,sport,created_at")
+        .select("slug,display_name,role,avatar_url,cheer_count,region,prefecture,sport,created_at,sponsor_plan")
         .eq("is_deleted", false)
         .eq("is_public", true)
         .limit(200);
@@ -48,17 +49,26 @@ export async function GET(req: NextRequest) {
         prefecture: u.prefecture,
         sport: u.sport,
         created_at: u.created_at,
+        sponsor_plan: u.sponsor_plan ?? null,
+        plan_priority: PLAN_PRIORITY[String(u.sponsor_plan ?? "")] ?? 0,
     }));
 
     const sorted = [...mapped].sort((a, b) => {
+        if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
         if (sort === "cheer") return b.cheer_count - a.cheer_count;
         if (sort === "referral") return b.referral_count - a.referral_count;
         if (sort === "new") return String(b.created_at).localeCompare(String(a.created_at));
         return (b.cheer_count + b.referral_count * 4) - (a.cheer_count + a.referral_count * 4);
     });
 
-    const byCheer = [...mapped].sort((a, b) => b.cheer_count - a.cheer_count).slice(0, 5);
-    const byReferral = [...mapped].sort((a, b) => b.referral_count - a.referral_count).slice(0, 5);
+    const byCheer = [...mapped].sort((a, b) => {
+        if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
+        return b.cheer_count - a.cheer_count;
+    }).slice(0, 5);
+    const byReferral = [...mapped].sort((a, b) => {
+        if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
+        return b.referral_count - a.referral_count;
+    }).slice(0, 5);
 
     return NextResponse.json({
         users: sorted.slice(0, 24),

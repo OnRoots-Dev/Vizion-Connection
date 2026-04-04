@@ -20,6 +20,7 @@ import type { ProfileData } from "@/features/profile/types";
 import { getAdsForUser } from "@/lib/ads";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
+import { SponsorPlanBadge } from "@/features/business/sponsor-badge";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -189,6 +190,9 @@ export default async function UserProfilePage({ params }: Props) {
                                     VERIFIED
                                 </span>
                             )}
+                        </div>
+                        <div className="u2" style={{ marginBottom: 10 }}>
+                            <SponsorPlanBadge plan={profile.sponsorPlan} prominent />
                         </div>
                         <div className="u2" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
                             <span style={{ fontSize: 12, fontFamily: "monospace", color: "rgba(255,255,255,.32)", letterSpacing: ".04em" }}>@{profile.slug}</span>

@@ -15,6 +15,14 @@ const CONDITION_OPTIONS = [
   { score: 5, emoji: "💪", label: "かなり良い" },
 ] as const;
 
+const QUICK_SAMPLES = [
+  "朝に軽く走って、体を整えた。",
+  "今日はフォーム確認を中心に取り組んだ。",
+  "新しいつながりを探してDiscoveryを見た。",
+  "無理せず、できる範囲で継続できた。",
+  "次につながる気づきを1つ残せた。",
+] as const;
+
 function getConditionMeta(score: number | null | undefined) {
   return CONDITION_OPTIONS.find((option) => option.score === score) ?? null;
 }
@@ -55,18 +63,18 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <SectionCard t={t} accentColor={roleColor}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
           <div>
-            <p style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 900, color: t.text }}>今日のログ</p>
-            <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 900, color: t.text }}>今日のログ</p>
+            <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.6 }}>
               毎日の記録が、あなたの成長を証明する。
             </p>
           </div>
           <div
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 14,
+              width: 36,
+              height: 36,
+              borderRadius: 12,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -76,7 +84,7 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
               flexShrink: 0,
             }}
           >
-            <MessageSquareText size={18} />
+            <MessageSquareText size={16} />
           </div>
         </div>
 
@@ -114,8 +122,8 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  marginBottom: 14,
-                  padding: "10px 12px",
+                  marginBottom: 10,
+                  padding: "8px 10px",
                   borderRadius: 12,
                   background: `${roleColor}12`,
                   border: `1px solid ${roleColor}25`,
@@ -131,8 +139,8 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
               <div style={{ display: "grid", gap: 10 }}>
                 <div
                   style={{
-                    padding: "14px 14px 12px",
-                    borderRadius: 14,
+                    padding: "12px 12px 10px",
+                    borderRadius: 12,
                     background: "rgba(255,255,255,0.03)",
                     border: `1px solid ${t.border}`,
                   }}
@@ -149,8 +157,8 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 12,
-                    padding: "12px 14px",
-                    borderRadius: 14,
+                    padding: "10px 12px",
+                    borderRadius: 12,
                     background: "rgba(255,255,255,0.03)",
                     border: `1px solid ${t.border}`,
                     flexWrap: "wrap",
@@ -176,7 +184,7 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              style={{ display: "grid", gap: 12 }}
+              style={{ display: "grid", gap: 10 }}
             >
               <div>
                 <textarea
@@ -184,17 +192,17 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                   onChange={(event) => setContent(event.target.value.slice(0, 200))}
                   maxLength={200}
                   placeholder="今日の一言・取り組みを記録しよう"
-                  rows={4}
+                  rows={3}
                   style={{
                     width: "100%",
                     resize: "none",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     border: `1px solid ${t.border}`,
                     background: "rgba(255,255,255,0.03)",
                     color: t.text,
-                    padding: "14px 14px 40px",
-                    fontSize: 13,
-                    lineHeight: 1.7,
+                    padding: "12px 12px 34px",
+                    fontSize: 12,
+                    lineHeight: 1.65,
                     outline: "none",
                   }}
                 />
@@ -202,6 +210,30 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                   <span style={{ fontSize: 10, color: remaining >= 0 ? t.sub : "rgba(255,80,80,0.9)" }}>
                     残り{remaining}文字
                   </span>
+                </div>
+              </div>
+
+              <div>
+                <p style={{ margin: "0 0 7px", fontSize: 11, color: t.sub }}>ワンタップ入力</p>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {QUICK_SAMPLES.map((sample) => (
+                    <button
+                      key={sample}
+                      type="button"
+                      onClick={() => setContent(sample)}
+                      style={{
+                        padding: "7px 10px",
+                        borderRadius: 999,
+                        border: `1px solid ${t.border}`,
+                        background: "rgba(255,255,255,0.03)",
+                        color: t.sub,
+                        fontSize: 10,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {sample}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -224,11 +256,11 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                         animate={{ scale: selected ? 1.05 : 1 }}
                         onClick={() => setConditionScore(option.score)}
                         style={{
-                          borderRadius: 14,
+                          borderRadius: 12,
                           border: `1px solid ${selected ? `${roleColor}44` : t.border}`,
                           background: selected ? `${roleColor}18` : "rgba(255,255,255,0.03)",
                           color: selected ? t.text : t.sub,
-                          padding: "10px 6px",
+                          padding: "8px 6px",
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
@@ -238,7 +270,7 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                         }}
                         aria-label={option.label}
                       >
-                        <span style={{ fontSize: 22, lineHeight: 1 }}>{option.emoji}</span>
+                        <span style={{ fontSize: 20, lineHeight: 1 }}>{option.emoji}</span>
                         <span style={{ fontSize: 9, lineHeight: 1.2 }}>{option.score}</span>
                       </motion.button>
                     );
@@ -254,11 +286,11 @@ export function DailyLogCard({ t, roleColor }: { t: ThemeColors; roleColor: stri
                 style={{
                   width: "100%",
                   border: "none",
-                  borderRadius: 14,
-                  padding: "14px 16px",
+                  borderRadius: 12,
+                  padding: "12px 14px",
                   background: canSubmit ? roleColor : "rgba(255,255,255,0.08)",
                   color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)",
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 800,
                   cursor: canSubmit ? "pointer" : "not-allowed",
                 }}

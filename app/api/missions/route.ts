@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserPoints, setMissionBonusGiven } from "@/lib/supabase/data/users.server";
+import { addPointsToUser, findUserBySlug, setMissionBonusGiven } from "@/lib/supabase/data/users.server";
 import { countReferralsBySlug } from "@/lib/supabase/referrals";
 import { missionLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -76,7 +76,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         // ポイント付与 + フラグ更新
-        const pointOk = await updateUserPoints(user.slug, user.points + MISSION_BONUS_POINTS);
+        const pointOk = await addPointsToUser(user.slug, MISSION_BONUS_POINTS);
         const flagOk = await setMissionBonusGiven(user.slug);
         if (!pointOk || !flagOk) {
             return NextResponse.json({ ok: false, error: "update_failed" }, { status: 500 });
@@ -88,7 +88,11 @@ export async function POST(req: Request): Promise<NextResponse> {
             console.error("[notifyMissionRewardGranted]", err);
         });
 
-        return NextResponse.json({ ok: true, pointsAdded: MISSION_BONUS_POINTS });
+        return NextResponse.json({
+            ok: true,
+            pointsAdded: MISSION_BONUS_POINTS,
+            currentPoints: user.points + MISSION_BONUS_POINTS,
+        });
 
     } catch (err) {
         console.error("[missions/complete]", err);

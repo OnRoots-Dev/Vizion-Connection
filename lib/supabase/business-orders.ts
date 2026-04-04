@@ -92,3 +92,53 @@ export async function completeLatestPendingOrderBySlug(slug: string): Promise<{
         planName: pendingOrder.plan_name,
     };
 }
+
+export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
+    id: string;
+    email: string;
+    slug: string;
+    status: string;
+} | null> {
+    const { data, error } = await supabase
+        .from("business_orders")
+        .select("id, email, slug, status")
+        .eq("email", email)
+        .neq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+        console.error("[findLatestIncompleteOrderByEmail]", error);
+        return null;
+    }
+
+    return data ? {
+        id: String(data.id),
+        email: String(data.email),
+        slug: String(data.slug),
+        status: String(data.status),
+    } : null;
+}
+
+export async function markBusinessOrderCompletedById(params: {
+    id: string;
+    planId: string;
+    planName: string;
+}): Promise<boolean> {
+    const { error } = await supabase
+        .from("business_orders")
+        .update({
+            status: "completed",
+            plan_id: params.planId,
+            plan_name: params.planName,
+        })
+        .eq("id", params.id);
+
+    if (error) {
+        console.error("[markBusinessOrderCompletedById]", error);
+        return false;
+    }
+
+    return true;
+}

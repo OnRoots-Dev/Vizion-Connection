@@ -37,6 +37,7 @@ export interface ProfileData {
     tiktok?: string;
     cheerCount?: number;
     missionBonusGiven?: boolean;
+    sponsorPlan?: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     isFoundingMember: boolean;
     isPublic?: boolean;
     isDeleted?: boolean;
@@ -74,6 +75,7 @@ export interface PublicProfileData {
     xUrl?: string;
     tiktok?: string;
     missionBonusGiven?: boolean;
+    sponsorPlan?: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     isFoundingMember: boolean;
     isPublic?: boolean;
     isDeleted?: boolean;
