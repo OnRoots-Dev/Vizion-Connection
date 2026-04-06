@@ -83,16 +83,22 @@ export function NewsView({
     }, [selectedNewsId, posts]);
 
     const selectedPost = selectedNewsId ? posts.find((post) => post.id === selectedNewsId) ?? null : null;
+    const listCardMinWidth = featured ? 200 : 220;
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <style>{`
+                .vz-news-card:hover .vz-news-card-image {
+                    transform: scale(1.03);
+                }
+            `}</style>
             <ViewHeader title="News Rooms" sub={selectedPost ? "記事詳細" : "最新ニュース"} onBack={() => selectedPost ? onSelectNews(null) : setView("home")} t={t} roleColor={roleColor} />
             <div
                 style={{
                     display: "grid",
-                    gridTemplateRows: "auto minmax(280px, 1fr) auto",
+                    gridTemplateRows: "auto minmax(0, 1fr) auto",
                     gap: 10,
-                    height: "min(78vh, calc(100vh - 180px))",
+                    minHeight: "min(74vh, calc(100vh - 180px))",
                 }}
             >
                 {nationalAd ? (
@@ -126,7 +132,7 @@ export function NewsView({
                             </button>
                         ) : null}
                     </div>
-                    <div style={{ maxHeight: "100%", overflowY: "auto", paddingRight: 4 }}>
+                    <div style={{ maxHeight: "100%", overflowY: "auto", paddingRight: 2 }}>
                         {loading ? (
                             <p style={{ margin: 0, color: t.sub, fontSize: 12 }}>読み込み中...</p>
                         ) : selectedPost ? (
@@ -148,23 +154,33 @@ export function NewsView({
                         ) : posts.length === 0 ? (
                             <p style={{ margin: 0, color: t.sub, fontSize: 12 }}>公開中のニュースはまだありません。</p>
                         ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                                 {featured ? (
-                                    <div
+                                    <button
+                                        type="button"
+                                        onClick={() => onSelectNews(featured.id)}
                                         style={{
                                             display: "grid",
-                                            gridTemplateColumns: featured.imageUrl ? "132px 1fr" : "1fr",
+                                            gridTemplateColumns: "1fr",
                                             gap: 0,
                                             overflow: "hidden",
-                                            borderRadius: 16,
+                                            borderRadius: 20,
                                             border: "1px solid rgba(255,214,0,0.18)",
                                             background: "linear-gradient(135deg, rgba(255,214,0,0.08), rgba(255,255,255,0.03))",
                                             marginBottom: 2,
+                                            padding: 0,
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                            color: t.text,
                                         }}
                                     >
                                         {featured.imageUrl ? (
-                                            <img src={featured.imageUrl} alt={featured.title} style={{ width: "100%", height: "100%", minHeight: 144, objectFit: "cover", display: "block" }} />
-                                        ) : null}
+                                            <div style={{ overflow: "hidden" }}>
+                                                <img src={featured.imageUrl} alt={featured.title} style={{ width: "100%", height: 200, objectFit: "cover", display: "block" }} />
+                                            </div>
+                                        ) : (
+                                            <div style={{ height: 180, background: "linear-gradient(135deg, rgba(255,214,0,0.28), rgba(255,255,255,0.05))" }} />
+                                        )}
                                         <div style={{ padding: "14px 16px" }}>
                                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                                                 <span style={{ fontSize: 10, fontWeight: 900, color: "#FFD600" }}>注目記事</span>
@@ -173,9 +189,7 @@ export function NewsView({
                                             <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 900, color: t.text }}>{featured.title}</p>
                                             <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>{excerpt(featured.body)}</p>
                                             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onSelectNews(featured.id)}
+                                                <span
                                                     style={{
                                                         padding: "5px 10px",
                                                         borderRadius: 999,
@@ -184,50 +198,64 @@ export function NewsView({
                                                         color: "#FFD600",
                                                         fontSize: 10,
                                                         fontWeight: 800,
-                                                        cursor: "pointer",
                                                     }}
                                                 >
                                                     詳細を見る
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : null}
-                                {posts.map((post) => (
-                                    <button
-                                        key={post.id}
-                                        type="button"
-                                        onClick={() => onSelectNews(post.id)}
-                                        style={{
-                                            display: "grid",
-                                            gridTemplateColumns: post.imageUrl ? "120px 1fr" : "1fr",
-                                            gap: 0,
-                                            overflow: "hidden",
-                                            borderRadius: 12,
-                                            border: `1px solid ${t.border}`,
-                                            background: "rgba(255,255,255,0.02)",
-                                            color: t.text,
-                                            textAlign: "left",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        {post.imageUrl ? (
-                                            <img src={post.imageUrl} alt={post.title} style={{ width: "100%", height: "100%", minHeight: 120, objectFit: "cover" }} />
-                                        ) : null}
-                                        <div style={{ padding: "12px 14px" }}>
-                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                                                <span style={{ fontSize: 10, fontWeight: 800, color: roleColor }}>{CATEGORY_LABEL[post.category]}</span>
-                                                <span style={{ fontSize: 10, color: t.sub }}>{new Date(post.publishedAt).toLocaleString("ja-JP")}</span>
-                                            </div>
-                                            <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: t.text }}>{post.title}</p>
-                                            <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>{excerpt(post.body)}</p>
-                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 10 }}>
-                                                <span style={{ fontSize: 10, color: t.sub }}>{post.author || "運営"}</span>
-                                                <span style={{ fontSize: 10, color: t.sub }}>閲覧 {post.viewCount.toLocaleString()}</span>
+                                                </span>
                                             </div>
                                         </div>
                                     </button>
-                                ))}
+                                ) : null}
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: `repeat(auto-fit, minmax(${listCardMinWidth}px, 1fr))`,
+                                        gap: 12,
+                                        alignItems: "stretch",
+                                    }}
+                                >
+                                    {posts.map((post) => (
+                                        <button
+                                            key={post.id}
+                                            type="button"
+                                            onClick={() => onSelectNews(post.id)}
+                                            className="vz-news-card"
+                                            style={{
+                                                overflow: "hidden",
+                                                borderRadius: 18,
+                                                border: `1px solid ${t.border}`,
+                                                background: "rgba(255,255,255,0.02)",
+                                                color: t.text,
+                                                textAlign: "left",
+                                                cursor: "pointer",
+                                                padding: 0,
+                                                width: "100%",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            <div style={{ overflow: "hidden" }}>
+                                                {post.imageUrl ? (
+                                                    <img src={post.imageUrl} alt={post.title} className="vz-news-card-image" style={{ width: "100%", height: 148, objectFit: "cover", display: "block", transition: "transform 0.28s ease" }} />
+                                                ) : (
+                                                    <div className="vz-news-card-image" style={{ width: "100%", height: 148, background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03))", transition: "transform 0.28s ease" }} />
+                                                )}
+                                            </div>
+                                            <div style={{ padding: "13px 13px 15px", display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+                                                    <span style={{ fontSize: 10, fontWeight: 800, color: roleColor, padding: "3px 8px", borderRadius: 999, background: `${roleColor}18`, border: `1px solid ${roleColor}25` }}>{CATEGORY_LABEL[post.category]}</span>
+                                                    <span style={{ fontSize: 10, color: t.sub }}>{new Date(post.publishedAt).toLocaleDateString("ja-JP")}</span>
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: t.text, lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                                    {post.title}
+                                                </p>
+                                                <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.7, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{excerpt(post.body)}</p>
+                                                <span style={{ marginTop: "auto", fontSize: 10, fontWeight: 800, color: roleColor }}>記事を読む</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
