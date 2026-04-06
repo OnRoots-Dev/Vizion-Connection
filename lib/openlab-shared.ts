@@ -27,7 +27,7 @@ export const OPENLAB_CATEGORY_LABEL: Record<OpenlabCategory, string> = {
 
 export const OPENLAB_STATUS_LABEL: Record<OpenlabStatus, string> = {
     open: "受付中",
-    reviewing: "検討中",
+    reviewing: "対応中",
     planned: "実装予定",
-    done: "完了",
+    done: "対応完了",
 };

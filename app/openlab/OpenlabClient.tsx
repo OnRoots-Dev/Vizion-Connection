@@ -13,6 +13,16 @@ const STATUS_CLASS: Record<OpenlabStatus, string> = {
     planned: "border-amber-300/30 bg-amber-300/10 text-amber-200",
     done: "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-200",
 };
+const BODY_MAX_LENGTH = 300;
+const BODY_PREVIEW_LENGTH = 80;
+
+function truncateBody(text: string) {
+    if (text.length <= BODY_PREVIEW_LENGTH) {
+        return text;
+    }
+
+    return `${text.slice(0, BODY_PREVIEW_LENGTH).trimEnd()}...`;
+}
 
 export default function OpenlabClient({
     initialPosts,
@@ -30,6 +40,7 @@ export default function OpenlabClient({
     const [upvotedIds, setUpvotedIds] = useState<Set<string>>(new Set(initialUpvotedIds));
     const [submitting, setSubmitting] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
     const [form, setForm] = useState({
         category: "feature" as OpenlabCategory,
         title: "",
@@ -145,11 +156,16 @@ export default function OpenlabClient({
                         </div>
                         <textarea
                             value={form.body}
-                            onChange={(e) => setForm((p) => ({ ...p, body: e.target.value }))}
+                            onChange={(e) => setForm((p) => ({ ...p, body: e.target.value.slice(0, BODY_MAX_LENGTH) }))}
                             placeholder="内容"
                             rows={4}
+                            maxLength={BODY_MAX_LENGTH}
                             className="mt-3 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
                         />
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-white/45">
+                            <span>本文は最大{BODY_MAX_LENGTH}文字まで投稿できます</span>
+                            <span>{form.body.length}/{BODY_MAX_LENGTH}</span>
+                        </div>
                         <button
                             type="submit"
                             disabled={creating}
@@ -185,22 +201,35 @@ export default function OpenlabClient({
                                     </span>
                                 </div>
                                 <h3 className="text-base font-extrabold">{post.title}</h3>
-                                <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-white/75">{post.body}</p>
+                                <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-white/75">
+                                    {expandedIds[post.id] ? post.body : truncateBody(post.body)}
+                                </p>
+                                {post.body.length > BODY_PREVIEW_LENGTH && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedIds((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
+                                        className="mt-2 text-xs font-bold text-cyan-200"
+                                    >
+                                        {expandedIds[post.id] ? "閉じる" : "もっと見る"}
+                                    </button>
+                                )}
                                 <div className="mt-4 flex items-center justify-between">
                                     <p className="text-xs text-white/45">
                                         {post.user ? `@${post.user.slug} (${post.user.displayName})` : "匿名"}
                                     </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => onToggleUpvote(post.id)}
-                                        className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
-                                            isUpvoted
-                                                ? "border-amber-300/40 bg-amber-300/15 text-amber-200"
-                                                : "border-white/15 bg-white/[0.03] text-white/65 hover:bg-white/[0.08]"
-                                        }`}
-                                    >
-                                        ▲ {post.upvotes}
-                                    </button>
+                                    <div className="flex flex-wrap items-center justify-end gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => onToggleUpvote(post.id)}
+                                            className={`rounded-full border px-3 py-1 text-xs font-bold transition ${
+                                                isUpvoted
+                                                    ? "border-amber-300/40 bg-amber-300/15 text-amber-200"
+                                                    : "border-white/15 bg-white/[0.03] text-white/65 hover:bg-white/[0.08]"
+                                            }`}
+                                        >
+                                            ▲ {post.upvotes}
+                                        </button>
+                                    </div>
                                 </div>
                             </article>
                         );

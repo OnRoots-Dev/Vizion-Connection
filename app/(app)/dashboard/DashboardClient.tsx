@@ -22,6 +22,8 @@ import type { AdItem } from "@/lib/ads-shared";
 import { NewsView } from "./views/NewsView";
 import { VoiceLabView } from "./views/VoiceLabView";
 import { NotificationsView } from "./views/NotificationsView";
+import { CollectionsView } from "./views/CollectionsView";
+import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 
 type DashboardNewsPost = {
     id: string;
@@ -59,6 +61,7 @@ export default function DashboardClient({
     const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
     const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
     const [featuredNewsTop, setFeaturedNewsTop] = useState<DashboardNewsPost[]>([]);
+    const [selectedProfileSlug, setSelectedProfileSlug] = useState<string | null>(null);
 
     const careerCacheRef = useRef<any>(undefined);
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -96,6 +99,21 @@ export default function DashboardClient({
         window.scrollTo({ top: 0, behavior: "auto" });
         contentRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }, [view]);
+
+    const refreshProfile = useCallback(async () => {
+        const res = await fetch("/api/profile/save/me", { cache: "no-store" });
+        if (!res.ok) {
+            throw new Error("Failed to refresh profile");
+        }
+
+        const json = await res.json() as { profile?: ProfileData };
+        if (json.profile) {
+            setProfile(json.profile);
+            return json.profile;
+        }
+
+        throw new Error("Profile payload missing");
+    }, []);
 
     useEffect(() => {
         fetch("/api/news/posts", { cache: "no-store" })
@@ -146,20 +164,39 @@ export default function DashboardClient({
         };
     }, [refreshNotificationUnread]);
 
+    useEffect(() => {
+        const onVisible = () => {
+            if (document.visibilityState === "visible") {
+                refreshProfile().catch(() => undefined);
+            }
+        };
+
+        document.addEventListener("visibilitychange", onVisible);
+        return () => {
+            document.removeEventListener("visibilitychange", onVisible);
+        };
+    }, [refreshProfile]);
+
     const handleLogout = useCallback(async () => {
         await fetch("/api/logout", { method: "POST" });
         window.location.href = "/login";
     }, []);
 
-    const handleProfileUpdate = useCallback((updated: ProfileData) => {
-        setProfile(updated);
+    const handleProfileUpdate = useCallback(async (updated?: ProfileData) => {
+        if (updated) {
+            setProfile(updated);
+        } else {
+            await refreshProfile();
+        }
         setView("home");
-    }, []);
+    }, [refreshProfile]);
 
     const renderView = () => {
         switch (view) {
             case "home":
-                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={(newsId) => { setSelectedNewsId(newsId); setView("news"); }} />;
+                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={(newsId) => { setSelectedNewsId(newsId); setView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
+            case "collections":
+                return <CollectionsView t={t} roleColor={roleColor} setView={setView} onOpenProfile={setSelectedProfileSlug} />;
             case "notifications":
                 return <NotificationsView t={t} roleColor={roleColor} setView={setView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "card":
@@ -169,7 +206,7 @@ export default function DashboardClient({
             case "news":
                 return <NewsView t={t} roleColor={roleColor} setView={setView} ads={ads} selectedNewsId={selectedNewsId} onSelectNews={setSelectedNewsId} />;
             case "voicelab":
-                return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} />;
+                return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} currentUserId={profile.id} />;
             case "edit":
                 return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} onSave={handleProfileUpdate} />;
             case "cheer":
@@ -177,7 +214,7 @@ export default function DashboardClient({
             case "career":
                 return <CareerSPAWrapper profile={profile} t={t} roleColor={roleColor} setView={setView} careerCache={careerCacheRef.current} />;
             case "discovery":
-                return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
+                return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
             case "business":
                 return <BusinessView profile={profile} t={t} roleColor={roleColor} setView={setView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "referral":
@@ -214,6 +251,7 @@ export default function DashboardClient({
             `}</style>
 
             <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s" }}>
+                <ProfilePreviewModal slug={selectedProfileSlug} onClose={() => setSelectedProfileSlug(null)} />
                 <AnimatePresence>
                     {sidebarOpen && isMobile && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 40, backdropFilter: "blur(4px)" }} />
