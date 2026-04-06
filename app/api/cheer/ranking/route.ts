@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabaseServer
         .from("users")
-        .select("slug, display_name, role, avatar_url, cheer_count, is_founding_member, sport, region")
+        .select("slug, display_name, role, avatar_url, profile_image_url, cheer_count, is_founding_member, sport, region")
         .eq("is_deleted", false)
         .eq("is_public", true)
         .order("cheer_count", { ascending: false })

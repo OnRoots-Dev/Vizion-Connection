@@ -44,6 +44,7 @@ export default async function RankingPage({
         { label: "Athlete", value: "Athlete", color: "#C1272D" },
         { label: "Trainer", value: "Trainer", color: "#1A7A4A" },
         { label: "Members", value: "Members", color: "#B8860B" },
+        { label: "Business", value: "Business", color: "#1B3A8C" },
     ];
 
     return (
