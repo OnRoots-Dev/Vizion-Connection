@@ -20,6 +20,10 @@ export interface CollectedCard {
     role: string;
     avatarUrl: string | null;
     profileImageUrl: string | null;
+    bio: string | null;
+    region: string | null;
+    sport: string | null;
+    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     serialId: string | null;
     cheerCount: number;
     isFoundingMember: boolean;
@@ -70,6 +74,7 @@ export async function getCollectedCards(collectorSlug: string): Promise<Collecte
             created_at,
             users!card_collections_target_slug_fkey (
                 display_name, role, avatar_url, profile_image_url,
+                bio, region, sport, sponsor_plan,
                 serial_id, cheer_count, is_founding_member
             )
         `)
@@ -84,6 +89,10 @@ export async function getCollectedCards(collectorSlug: string): Promise<Collecte
         role: row.users?.role ?? "",
         avatarUrl: row.users?.avatar_url ?? null,
         profileImageUrl: row.users?.profile_image_url ?? null,
+        bio: row.users?.bio ?? null,
+        region: row.users?.region ?? null,
+        sport: row.users?.sport ?? null,
+        sponsorPlan: row.users?.sponsor_plan ?? null,
         serialId: row.users?.serial_id ?? null,
         cheerCount: row.users?.cheer_count ?? 0,
         isFoundingMember: row.users?.is_founding_member ?? false,
