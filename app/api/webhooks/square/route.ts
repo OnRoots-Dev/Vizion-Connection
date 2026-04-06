@@ -43,7 +43,6 @@ function verifySquareSignature(signature: string | null, body: string): boolean 
 
 function resolvePlanByAmount(amount: number) {
   const normalizedAmount = amount >= 100_000 ? Math.round(amount / 100) : amount;
-  // TODO: Square Japan が円で返すか銭で返すかは、テスト決済で実額を確認する。
   const mapping: Record<number, { plan_id: "roots" | "roots_plus" | "signal" | "presence" | "legacy"; plan_name: string }> = {
     30000: { plan_id: "roots", plan_name: "Roots" },
     50000: { plan_id: "roots_plus", plan_name: "Roots+" },

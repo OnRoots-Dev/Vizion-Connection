@@ -77,7 +77,7 @@ const JapanMap: React.FC = () => {
     fetch('/data/prefectures.json')
       .then(r => r.json())
       .then(setGeoData)
-      .catch(err => console.error(err));
+      .catch(() => setGeoData(null));
   }, []);
 
   // ── viewBox（地図の周りに余白を多めに確保）

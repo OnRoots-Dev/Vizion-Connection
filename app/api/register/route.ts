@@ -42,34 +42,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return new NextResponse("Bad request", { status: 400 });
         }
 
-    if (!body || typeof body !== "object") {
-      return NextResponse.json(
-        { success: false, error: "リクエストが不正です" },
-        { status: 400 }
-      );
-    }
+        if (!body || typeof body !== "object") {
+            return NextResponse.json(
+                { success: false, error: "リクエストが不正です" },
+                { status: 400 }
+            );
+        }
 
         const parsed = schema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ success: false, error: "リクエストが不正です" }, { status: 400 });
         const input = parsed.data as RegisterInput;
-    const result = await registerUser(input);
+        const result = await registerUser(input);
 
-    if (!result.success) {
-      return NextResponse.json(result, { status: 400 });
+        if (!result.success) {
+            return NextResponse.json(result, { status: 400 });
+        }
+
+        return NextResponse.json(result, { status: 201 });
+    } catch (err) {
+        console.error("[POST /api/register]", err);
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: err instanceof Error ? err.message : "サーバーエラーが発生しました",
+            },
+            { status: 500 }
+        );
     }
-
-    return NextResponse.json(result, { status: 201 });
-  } catch (err) {
-    // 詳細エラーをログに出す
-    console.error("[POST /api/register] 詳細エラー:", err);
-    console.error("[POST /api/register] スタック:", err instanceof Error ? err.stack : err);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: err instanceof Error ? err.message : "サーバーエラーが発生しました",
-      },
-      { status: 500 }
-    );
-  }
 }
