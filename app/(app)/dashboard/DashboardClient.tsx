@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
@@ -68,14 +69,25 @@ export default function DashboardClient({
     const careerCacheRef = useRef<any>(undefined);
     const contentRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
-        fetch("/api/career/me")
-            .then((r) => r.json())
-            .then((d) => {
-                careerCacheRef.current = d.careerProfile ?? null;
-            })
-            .catch(() => {
-                careerCacheRef.current = null;
-            });
+        let cancelled = false;
+
+        Promise.all([
+            fetch("/api/career/me").then((r) => r.json()).catch(() => ({ careerProfile: null })),
+            fetch("/api/news/posts", { cache: "no-store" }).then((res) => res.json()).catch(() => ({ featuredTop: [] })),
+            fetch("/api/notifications/unread").then((res) => res.json()).catch(() => ({ success: false, unreadCount: 0 })),
+        ]).then(([careerData, newsData, unreadData]) => {
+            if (cancelled) return;
+
+            careerCacheRef.current = careerData.careerProfile ?? null;
+            setFeaturedNewsTop(Array.isArray(newsData.featuredTop) ? newsData.featuredTop : []);
+            if (unreadData.success) {
+                setNotificationUnreadCount(unreadData.unreadCount ?? 0);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const t = THEME_MAP[theme];
@@ -117,17 +129,6 @@ export default function DashboardClient({
         throw new Error("Profile payload missing");
     }, []);
 
-    useEffect(() => {
-        fetch("/api/news/posts", { cache: "no-store" })
-            .then((res) => res.json())
-            .then((json) => {
-                setFeaturedNewsTop(Array.isArray(json.featuredTop) ? json.featuredTop : []);
-            })
-            .catch(() => {
-                setFeaturedNewsTop([]);
-            });
-    }, []);
-
     const refreshNotificationUnread = useCallback(async () => {
         try {
             const res = await fetch("/api/notifications/unread");
@@ -141,7 +142,6 @@ export default function DashboardClient({
     }, []);
 
     useEffect(() => {
-        refreshNotificationUnread();
         const onFocus = () => {
             refreshNotificationUnread();
         };
@@ -285,7 +285,7 @@ export default function DashboardClient({
                                 <button onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
-                                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" style={{ height: 32, width: "auto" }} />
+                                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" width={120} height={32} priority style={{ height: 32, width: "auto" }} />
                                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                                     <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: "50%", background: roleColor }} />
                                     <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.12em", color: roleColor, textTransform: "uppercase" }}>Live</span>

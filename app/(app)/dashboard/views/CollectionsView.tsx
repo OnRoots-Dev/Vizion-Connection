@@ -28,6 +28,8 @@ export function CollectionsView({
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<(typeof ROLE_FILTERS)[number]["value"]>("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
 
   useEffect(() => {
     setLoading(true);
@@ -48,6 +50,13 @@ export function CollectionsView({
       return matchRole && matchSearch;
     });
   }, [cards, roleFilter, search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [roleFilter, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCards.length / PAGE_SIZE));
+  const pagedCards = filteredCards.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -102,7 +111,32 @@ export function CollectionsView({
         {loading ? (
           <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションを読み込み中...</p>
         ) : (
-          <CollectionCarousel cards={filteredCards} t={t} roleColor={roleColor} onOpenProfile={onOpenProfile} />
+          <>
+            <CollectionCarousel cards={pagedCards} t={t} roleColor={roleColor} onOpenProfile={onOpenProfile} />
+            {filteredCards.length > PAGE_SIZE ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14 }}>
+                <span style={{ fontSize: 11, color: t.sub }}>ページ {page} / {totalPages}</span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    disabled={page === 1}
+                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: page === 1 ? t.sub : t.text, cursor: page === 1 ? "not-allowed" : "pointer" }}
+                  >
+                    前へ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={page === totalPages}
+                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: `${roleColor}16`, color: page === totalPages ? t.sub : roleColor, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+                  >
+                    次へ
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </>
         )}
       </SectionCard>
     </div>

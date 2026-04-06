@@ -46,6 +46,7 @@ export function NewsView({
     const [posts, setPosts] = useState<NewsPost[]>([]);
     const [featured, setFeatured] = useState<NewsPost | null>(null);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
     const viewedIdsRef = useRef<Set<string>>(new Set());
     const nationalAd = ads.find((ad) => !isLocalPlan(ad.plan)) ?? null;
     const localAd = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
@@ -84,6 +85,13 @@ export function NewsView({
 
     const selectedPost = selectedNewsId ? posts.find((post) => post.id === selectedNewsId) ?? null : null;
     const listCardMinWidth = featured ? 200 : 220;
+    const PAGE_SIZE = 6;
+    const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
+    const pagedPosts = posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    useEffect(() => {
+        setPage(1);
+    }, [posts.length]);
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -214,7 +222,7 @@ export function NewsView({
                                         alignItems: "stretch",
                                     }}
                                 >
-                                    {posts.map((post) => (
+                                    {pagedPosts.map((post) => (
                                         <button
                                             key={post.id}
                                             type="button"
@@ -256,6 +264,29 @@ export function NewsView({
                                         </button>
                                     ))}
                                 </div>
+                                {posts.length > PAGE_SIZE ? (
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                                        <span style={{ fontSize: 11, color: t.sub }}>ページ {page} / {totalPages}</span>
+                                        <div style={{ display: "flex", gap: 8 }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                                                disabled={page === 1}
+                                                style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: page === 1 ? t.sub : t.text, cursor: page === 1 ? "not-allowed" : "pointer" }}
+                                            >
+                                                前へ
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                                                disabled={page === totalPages}
+                                                style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: `${roleColor}16`, color: page === totalPages ? t.sub : roleColor, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+                                            >
+                                                次へ
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : null}
                             </div>
                         )}
                     </div>

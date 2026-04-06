@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 export function Header() {
@@ -10,7 +11,7 @@ export function Header() {
     <header className="fixed top-0 left-0 z-[100] w-full bg-[#0B0B0F]/20 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2 md:px-10">
         <Link href="/">
-          <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
+          <Image src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={180} height={48} priority className="h-12 w-auto" />
         </Link>
 
         {/* Desktop */}
@@ -34,7 +35,7 @@ export function Header() {
           <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-[#FFD600] font-bold">Login</Link>
           <Link href="/register" onClick={() => setOpen(false)}
             style={{ marginTop: 8, padding: "12px 20px", background: "#FFD600", color: "#000", fontWeight: 900, fontSize: 13, textAlign: "center", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            先行登録する
+            今すぐ登録する
           </Link>
         </div>
       )}

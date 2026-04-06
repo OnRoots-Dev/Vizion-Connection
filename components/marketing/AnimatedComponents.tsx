@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, type ReactNode } from "react";
 import { motion, useInView } from "framer-motion";
 import { MockupPlaceholder } from "../ui";
@@ -73,7 +74,9 @@ export function FeatureCard({
         {title}
       </h3>
       {image && (
-        <img src={image} alt={label} className="mb-6 h-full w-full object-cover rounded-lg lg:h-60" />
+        <div className="relative mb-6 h-56 w-full overflow-hidden rounded-lg lg:h-60">
+          <Image src={image} alt={label} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+        </div>
       )}
       <p className="mt-auto font-body text-[3.5vw] leading-relaxed text-white/50 md:text-[1.8vw] lg:text-[1.05vw]">
         {desc}

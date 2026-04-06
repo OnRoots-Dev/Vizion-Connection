@@ -2,9 +2,11 @@
 
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { registerSchema } from "@/features/auth/validation/register-schema";
 
 type Role = "Athlete" | "Trainer" | "Members" | "Business";
 
@@ -53,6 +55,15 @@ export default function RegisterForm() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        const parsed = registerSchema.safeParse({
+            ...form,
+            role,
+            redirectTo: undefined,
+        });
+        if (!parsed.success) {
+            setError(parsed.error.issues[0]?.message ?? "入力内容を確認してください");
+            return;
+        }
         setLoading(true);
         setError("");
 
@@ -83,7 +94,7 @@ export default function RegisterForm() {
             style={{ background: "#07070e" }}>
 
             <Link href="/" className="mb-4 tracking-[0.2em]">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="inline-block w-auto h-20" />
+                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={300} height={80} priority className="inline-block w-auto h-20" />
             </Link>
 
             <div className="w-full max-w-md">

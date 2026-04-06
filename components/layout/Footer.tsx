@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -8,9 +9,9 @@ export function Footer() {
       <div className="mx-auto">
         <div className="mb-10 grid gap-8 border-b border-white/5 pb-10 lg:grid-cols-[1.2fr_1fr] lg:items-end">
           <div className="max-w-[460px]">
-            <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-24 w-auto sm:h-28" />
+            <Image src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={280} height={112} className="h-24 w-auto sm:h-28" />
             <p className="mt-2 font-body text-[12px] leading-relaxed text-white/35">
-              スポーツ業界の信頼ネットワークを広げるための先行登録を受け付けています。
+              スポーツ業界の信頼ネットワークを広げるための登録受付を行っています。
             </p>
           </div>
 
@@ -20,7 +21,7 @@ export function Footer() {
               className="inline-flex items-center justify-center bg-[#FFD600] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#0B0B0F] transition-opacity hover:opacity-90"
               style={{ borderRadius: "2px" }}
             >
-              今すぐ先行登録する
+              今すぐ登録する
             </Link>
             <Link
               href="/business"
@@ -36,7 +37,7 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <p className="font-display text-[10px] uppercase tracking-[0.35em] text-white/30">Service</p>
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-[13px] text-white/45">
-              <Link href="/register" className="hover:text-[#FFD600] transition-colors">先行登録</Link>
+              <Link href="/register" className="hover:text-[#FFD600] transition-colors">登録</Link>
               <Link href="/business" className="hover:text-[#FFD600] transition-colors">Business登録</Link>
               <Link href="/roadmap" className="hover:text-[#FFD600] transition-colors">Road Map</Link>
             </div>

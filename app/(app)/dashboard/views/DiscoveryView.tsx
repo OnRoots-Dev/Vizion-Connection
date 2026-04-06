@@ -112,6 +112,8 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
     const [loading, setLoading] = useState(true);
     const [users, setUsers] = useState<DiscoveryUser[]>([]);
     const [picks, setPicks] = useState<{ cheer: DiscoveryUser[]; referral: DiscoveryUser[] }>({ cheer: [], referral: [] });
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 12;
 
     function trackDiscoveryEvent(payload: { eventType: "impression" | "detail_open" | "search"; targetSlug?: string; queryText?: string }) {
         const body = JSON.stringify({ ...payload, source: "dashboard" });
@@ -142,6 +144,10 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
         sp.set("sort", sort);
         return sp.toString();
     }, [q, role, region, prefecture, sort]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [query]);
 
     useEffect(() => {
         const visitKey = new Intl.DateTimeFormat("en-CA", {
@@ -194,6 +200,9 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
             trackDiscoveryEvent({ eventType: "impression", targetSlug: user.slug });
         });
     }, [users]);
+
+    const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+    const pagedUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new"; label: string }> = [
         { id: "all", label: "総合レーダー" },
@@ -292,20 +301,22 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                 ) : users.length === 0 ? (
                     <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
                 ) : (
+                    <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
-                        {users.flatMap((u, i) => {
+                        {pagedUsers.flatMap((u, i) => {
+                            const absoluteIndex = (page - 1) * PAGE_SIZE + i;
                             const rc = ROLE_COLORS[u.role] ?? roleColor;
                             const locationLabel = [formatLocationLabel(u.region), u.prefecture ? formatLocationLabel(u.prefecture) : null].filter((value, index, arr) => value && (index === 0 || value !== arr[0])).join(" / ");
                             const nodes: ReactNode[] = [];
-                            if (i > 0 && i % 8 === 0 && mediumInline) {
+                            if (absoluteIndex > 0 && absoluteIndex % 8 === 0 && mediumInline) {
                                 nodes.push(
-                                    <div key={`ad-inline-${i}`} style={{ gridColumn: "1 / -1" }}>
+                                    <div key={`ad-inline-${absoluteIndex}`} style={{ gridColumn: "1 / -1" }}>
                                         <AdCard ad={mediumInline} size="medium" />
                                     </div>,
                                 );
                             }
                             nodes.push(
-                                <motion.button key={`user-${u.slug}-${i}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
+                                <motion.button key={`user-${u.slug}-${absoluteIndex}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
                                     <div style={{ position: "relative", overflow: "hidden", borderRadius: 16, padding: "14px", minHeight: 204, background: u.discovery_fixed ? `linear-gradient(155deg, ${rc}16, rgba(255,255,255,0.02))` : "linear-gradient(155deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))", border: `1px solid ${rc}40` }}>
                                         <div style={{ position: "absolute", right: -24, top: -24, width: 90, height: 90, borderRadius: "50%", background: `radial-gradient(circle, ${rc}28, transparent 70%)`, pointerEvents: "none" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -343,6 +354,30 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                             return nodes;
                         })}
                     </div>
+                    {users.length > PAGE_SIZE ? (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14 }}>
+                            <span style={{ fontSize: 11, color: t.sub }}>ページ {page} / {totalPages}</span>
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                                    disabled={page === 1}
+                                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: page === 1 ? t.sub : t.text, cursor: page === 1 ? "not-allowed" : "pointer" }}
+                                >
+                                    前へ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                                    disabled={page === totalPages}
+                                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: `${roleColor}16`, color: page === totalPages ? t.sub : roleColor, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+                                >
+                                    次へ
+                                </button>
+                            </div>
+                        </div>
+                    ) : null}
+                    </>
                 )}
                 <p style={{ margin: "10px 0 0", fontSize: 10, color: t.sub, opacity: 0.55 }}>
                     将来的に、ユーザー方針・目的に合わせたパーソナライズ推薦へ拡張します。
