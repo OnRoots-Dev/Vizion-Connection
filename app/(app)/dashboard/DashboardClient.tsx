@@ -45,12 +45,14 @@ export default function DashboardClient({
     referralCount: initialReferralCount,
     ads,
     initialView = "home",
+    canManageOpenlab,
 }: {
     profile: ProfileData;
     referralUrl: string;
     referralCount: number;
     ads: AdItem[];
     initialView?: DashboardView;
+    canManageOpenlab: boolean;
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
@@ -206,7 +208,7 @@ export default function DashboardClient({
             case "news":
                 return <NewsView t={t} roleColor={roleColor} setView={setView} ads={ads} selectedNewsId={selectedNewsId} onSelectNews={setSelectedNewsId} />;
             case "voicelab":
-                return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} currentUserId={profile.id} />;
+                return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} canManageOpenlab={canManageOpenlab} />;
             case "edit":
                 return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} onSave={handleProfileUpdate} />;
             case "cheer":

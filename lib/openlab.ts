@@ -72,7 +72,6 @@ export async function createOpenlabPost(
 
 export async function updateOpenlabPostStatus(
     postId: string,
-    userId: number,
     status: OpenlabStatus,
 ): Promise<boolean> {
     try {
@@ -80,7 +79,6 @@ export async function updateOpenlabPostStatus(
             .from("openlab_posts")
             .update({ status })
             .eq("id", postId)
-            .eq("user_id", userId);
 
         if (error) {
             console.error("[updateOpenlabPostStatus]", error);

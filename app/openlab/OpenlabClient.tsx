@@ -15,6 +15,7 @@ const STATUS_CLASS: Record<OpenlabStatus, string> = {
 };
 const BODY_MAX_LENGTH = 300;
 const BODY_PREVIEW_LENGTH = 80;
+const STATUS_OPTIONS: OpenlabStatus[] = ["open", "reviewing", "done"];
 
 function truncateBody(text: string) {
     if (text.length <= BODY_PREVIEW_LENGTH) {
@@ -29,17 +30,20 @@ export default function OpenlabClient({
     initialUpvotedIds,
     canPost,
     ads,
+    canManageOpenlab,
 }: {
     initialPosts: OpenlabPost[];
     initialUpvotedIds: string[];
     canPost: boolean;
     ads: AdItem[];
+    canManageOpenlab: boolean;
 }) {
     const [posts, setPosts] = useState(initialPosts);
     const [selectedCategory, setSelectedCategory] = useState<OpenlabCategory | "all">("all");
     const [upvotedIds, setUpvotedIds] = useState<Set<string>>(new Set(initialUpvotedIds));
     const [submitting, setSubmitting] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [statusPostId, setStatusPostId] = useState<string | null>(null);
     const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
     const [form, setForm] = useState({
         category: "feature" as OpenlabCategory,
@@ -98,6 +102,24 @@ export default function OpenlabClient({
             await refreshPosts();
         }
         setCreating(false);
+    }
+
+    async function onStatusChange(postId: string, status: OpenlabStatus) {
+        if (statusPostId) return;
+        setStatusPostId(postId);
+        try {
+            const res = await fetch("/api/openlab/posts", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, status }),
+            });
+
+            if (res.ok) {
+                await refreshPosts();
+            }
+        } finally {
+            setStatusPostId(null);
+        }
     }
 
     return (
@@ -193,9 +215,30 @@ export default function OpenlabClient({
                                     <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/75">
                                         {OPENLAB_CATEGORY_LABEL[post.category]}
                                     </span>
-                                    <span className={`rounded-full border px-3 py-1 text-[11px] font-bold ${STATUS_CLASS[post.status]}`}>
-                                        {OPENLAB_STATUS_LABEL[post.status]}
-                                    </span>
+                                    {canManageOpenlab ? (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {STATUS_OPTIONS.map((statusOption) => {
+                                                const active = post.status === statusOption;
+                                                return (
+                                                    <button
+                                                        key={statusOption}
+                                                        type="button"
+                                                        disabled={statusPostId === post.id}
+                                                        onClick={() => onStatusChange(post.id, statusOption)}
+                                                        className={`rounded-full border px-3 py-1 text-[11px] font-bold transition ${
+                                                            active ? STATUS_CLASS[statusOption] : "border-white/15 bg-white/[0.03] text-white/55 hover:bg-white/[0.08]"
+                                                        }`}
+                                                    >
+                                                        {OPENLAB_STATUS_LABEL[statusOption]}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <span className={`rounded-full border px-3 py-1 text-[11px] font-bold ${STATUS_CLASS[post.status]}`}>
+                                            {OPENLAB_STATUS_LABEL[post.status]}
+                                        </span>
+                                    )}
                                     <span className="ml-auto text-xs text-white/40">
                                         {new Date(post.createdAt).toLocaleDateString("ja-JP")}
                                     </span>

@@ -26,13 +26,13 @@ export function VoiceLabView({
     roleColor,
     setView,
     ads,
-    currentUserId,
+    canManageOpenlab,
 }: {
     t: ThemeColors;
     roleColor: string;
     setView: (v: DashboardView) => void;
     ads: AdItem[];
-    currentUserId: string;
+    canManageOpenlab: boolean;
 }) {
     const [posts, setPosts] = useState<OpenlabPost[]>([]);
     const [category, setCategory] = useState<OpenlabCategory | "all">("all");
@@ -182,9 +182,8 @@ export function VoiceLabView({
                             <div key={post.id} style={{ borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", padding: "10px 12px" }}>
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
                                     <span style={{ fontSize: 10, color: roleColor }}>{OPENLAB_CATEGORY_LABEL[post.category]}</span>
-                                    {String(post.userId ?? "") === currentUserId ? (
+                                    {canManageOpenlab ? (
                                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                                            {/* TODO: 管理側の権限設計が固まったら owner 以外の更新導線も追加する */}
                                             {STATUS_OPTIONS.map((statusOption) => {
                                                 const active = post.status === statusOption;
                                                 return (

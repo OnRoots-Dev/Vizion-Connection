@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { createOpenlabPost, getOpenlabPosts, updateOpenlabPostStatus } from "@/lib/openlab";
+import { canManageOpenlabByEmail } from "@/lib/auth/openlab-admin";
 
 const createSchema = z.object({
     category: z.enum(["feature", "bug", "idea", "other"]),
@@ -58,6 +59,9 @@ export async function PATCH(req: NextRequest) {
 
         const session = verifySession(token);
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!canManageOpenlabByEmail(session.email)) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
 
         const parsed = updateStatusSchema.safeParse(await req.json());
         if (!parsed.success) {
@@ -66,15 +70,11 @@ export async function PATCH(req: NextRequest) {
 
         const ok = await updateOpenlabPostStatus(
             parsed.data.postId,
-            Number(session.userId),
             parsed.data.status,
         );
 
         if (!ok) {
-            return NextResponse.json(
-                { error: "ステータス更新に失敗しました", todo: "TODO: 管理者権限での更新要件が固まったら owner 判定以外も追加する" },
-                { status: 500 },
-            );
+            return NextResponse.json({ error: "ステータス更新に失敗しました" }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });

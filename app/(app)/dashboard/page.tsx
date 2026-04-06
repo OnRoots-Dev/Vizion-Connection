@@ -5,6 +5,7 @@ import { getProfileFromSession } from "@/features/profile/server/get-profile";
 import DashboardClient from "./DashboardClient";
 import { getAdsForUser } from "@/lib/ads";
 import type { DashboardView } from "./types";
+import { canManageOpenlabByEmail } from "@/lib/auth/openlab-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ function resolveInitialView(view?: string): DashboardView {
     const allowed: DashboardView[] = [
         "home",
         "notifications",
+        "collections",
         "card",
         "profile",
         "news",
@@ -45,6 +47,7 @@ export default async function DashboardPage({
     const ads = await getAdsForUser(profile.prefecture ?? "", profile.sport);
     const params = await searchParams;
     const initialView = resolveInitialView(params?.view);
+    const canManageOpenlab = canManageOpenlabByEmail(profile.email);
 
     return (
         <DashboardClient
@@ -53,6 +56,7 @@ export default async function DashboardPage({
             referralCount={referralCount}
             ads={ads}
             initialView={initialView}
+            canManageOpenlab={canManageOpenlab}
         />
     );
 }
