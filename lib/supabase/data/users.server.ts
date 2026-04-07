@@ -9,7 +9,6 @@ type UserRow = {
     password_hash: string;
     email: string;
     role: string;
-    plan: "free" | "paid";
     is_public: boolean;
     is_founding_member: boolean;
     verified: boolean;
@@ -56,7 +55,7 @@ function toProfile(row: UserRow) {
         passwordHash: row.password_hash,
         email: row.email,
         role: row.role as "Athlete" | "Trainer" | "Members" | "Business",
-        plan: row.plan,
+        plan: (row.sponsor_plan ? "paid" : "free") as "free" | "paid",
         isPublic: row.is_public,
         isFoundingMember: row.is_founding_member,
         verified: row.verified,
@@ -169,7 +168,6 @@ export async function createUser(params: {
             password_hash: params.passwordHash,
             email: params.email,
             role: params.role,
-            plan: "free",
             region: params.region,
             rand_a: randA,
             rand_b: randB,
@@ -236,8 +234,10 @@ export async function updateUserPoints(slug: string, points: number): Promise<bo
 }
 
 export async function setUserPlan(slug: string, plan: "free" | "paid"): Promise<boolean> {
-    const { error } = await supabase.from("users").update({ plan }).eq("slug", slug);
-    if (error) { console.error("[setUserPlan]", error); return false; }
+    if (plan === "free") {
+        const { error } = await supabase.from("users").update({ sponsor_plan: null }).eq("slug", slug);
+        if (error) { console.error("[setUserPlan]", error); return false; }
+    }
     return true;
 }
 
@@ -247,7 +247,7 @@ export async function setUserSponsorPlanByEmail(
 ): Promise<boolean> {
     const { error } = await supabase
         .from("users")
-        .update({ sponsor_plan: sponsorPlan, plan: "paid" })
+        .update({ sponsor_plan: sponsorPlan })
         .eq("email", email)
         .eq("is_deleted", false);
     if (error) { console.error("[setUserSponsorPlanByEmail]", error); return false; }

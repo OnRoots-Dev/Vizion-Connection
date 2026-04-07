@@ -5,7 +5,7 @@ import { getProfileFromSession } from "@/features/profile/server/get-profile";
 import DashboardClient from "./DashboardClient";
 import { getAdsForUser } from "@/lib/ads";
 import type { DashboardView } from "./types";
-import { canManageOpenlabByEmail } from "@/lib/auth/openlab-admin";
+import { canManageVoiceLabByEmail } from "@/lib/auth/voicelab-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function DashboardPage({
     const ads = await getAdsForUser(profile.prefecture ?? "", profile.sport);
     const params = await searchParams;
     const initialView = resolveInitialView(params?.view);
-    const canManageOpenlab = canManageOpenlabByEmail(profile.email);
+    const canManageVoiceLab = canManageVoiceLabByEmail(profile.email);
 
     return (
         <DashboardClient
@@ -56,7 +56,7 @@ export default async function DashboardPage({
             referralCount={referralCount}
             ads={ads}
             initialView={initialView}
-            canManageOpenlab={canManageOpenlab}
+            canManageVoiceLab={canManageVoiceLab}
         />
     );
 }

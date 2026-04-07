@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
-// ─── Next Phase Section ───────────────────────────────────────────────────────
 export function NextPhaseSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
@@ -25,9 +24,18 @@ export function NextPhaseSection() {
             </div>
             <h3 className="mb-6 font-display text-[clamp(22px,2.5vw,32px)] font-black text-white">現在利用できる機能</h3>
             <ul className="space-y-3">
-              {["プロフィール作成", "プロフィールカード", "公開プロフィール"].map((item, i) => (
+              {[
+                "プロフィール作成・公開",
+                "プロフィールカード発行・共有",
+                "Discovery（アスリート検索・一覧）",
+                "ランキングページ",
+                "collectカード機能",
+                "Cheerによる応援・信頼の可視化",
+                "ミッション・ポイントシステム",
+                "Business Hub（企業向け広告・効果測定）",
+              ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 font-body text-[clamp(13px,1.2vw,15px)] text-white/65">
-                  <span className="text-[#FFD600] font-bold">✔</span>
+                  <span className="font-bold text-[#FFD600]">✔</span>
                   {item}
                 </li>
               ))}
@@ -47,21 +55,21 @@ export function NextPhaseSection() {
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="inline-block h-2 w-2 rounded-full bg-white/40"
               />
-              <p className="font-display text-[10px] uppercase tracking-[0.5em] text-white/30">Next Phase</p>
+              <p className="font-display text-[10px] uppercase tracking-[0.5em] text-white/30">Coming Next</p>
             </div>
-            <h3 className="mb-2 font-display text-[clamp(22px,2.5vw,32px)] font-black text-white">明日12:00解放</h3>
-            <p className="mb-6 font-mono text-[11px] text-white/30 tracking-wider">UNLOCKING TOMORROW 12:00</p>
+            <h3 className="mb-2 font-display text-[clamp(22px,2.5vw,32px)] font-black text-white">次に広がる機能</h3>
+            <p className="mb-6 font-mono text-[11px] tracking-wider text-white/30">ROLLING RELEASES</p>
             <ul className="space-y-3">
-              {["Discovery", "Openlab", "Cheerコメント"].map((item, i) => (
+              {["Voice Lab", "Cheerコメント", "Trainer Hub", "Members Hub"].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 font-body text-[clamp(13px,1.2vw,15px)] text-white/40">
-                  <span className="h-[5px] w-[5px] rounded-full bg-white/20 shrink-0" />
+                  <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-white/20" />
                   {item}
                 </li>
               ))}
             </ul>
             <div className="mt-6 border-t border-white/5 pt-4">
-              <p className="font-body text-[12px] text-white/25 leading-relaxed">
-                Foundingメンバーはこれらを<span className="text-[#FFD600]/70">最初に体験</span>できます。
+              <p className="font-body text-[12px] leading-relaxed text-white/25">
+                Founding Memberはこれらを<span className="text-[#FFD600]/70">最初に体験</span>できます。
               </p>
             </div>
           </motion.div>
@@ -71,13 +79,12 @@ export function NextPhaseSection() {
   );
 }
 
-// ─── Founding Business Partners ───────────────────────────────────────────────
 export function FoundingBusinessPartnersSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section ref={ref} className="bg-[#020b18] border-t border-[#3282FF]/10 px-5 py-24 md:px-10 lg:px-16 xl:px-20">
+    <section ref={ref} className="border-t border-[#3282FF]/10 bg-[#020b18] px-5 py-24 md:px-10 lg:px-16 xl:px-20">
       <div className="mx-auto max-w-[1200px]">
         <motion.p
           initial={{ opacity: 0, y: 14 }}
@@ -93,7 +100,7 @@ export function FoundingBusinessPartnersSection() {
           transition={{ delay: 0.1, duration: 0.8 }}
           className="mb-8 font-display text-[clamp(28px,4vw,56px)] font-black uppercase tracking-tight text-white"
         >
-          Founding Business<br />Partners
+          Business Plans
         </motion.h2>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -101,36 +108,59 @@ export function FoundingBusinessPartnersSection() {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="mb-14 max-w-[60ch] space-y-4 font-body text-[clamp(13px,1.4vw,16px)] leading-relaxed text-white/55"
         >
-          <p>Vizion Connectionでは、創業期の企業パートナーを<strong className="text-white/80">限定募集</strong>しています。</p>
-          <p>スポーツコミュニティに直接つながるスポンサー体験。アスリート・トレーナー・コミュニティとの<span className="text-[#3282FF]">共創の機会</span>を提供します。</p>
+          <p>Vizion Connectionでは、企業・チーム・スポンサー向けに実運用ベースのBusinessプランを提供しています。</p>
+          <p><span className="text-[#3282FF]">Roots / Roots+</span> は地域密着型、<span className="text-[#3282FF]">Signal以上</span> は全国展開向けです。広告掲載、Discovery露出、効果測定、Business Hub を段階的に解放します。</p>
         </motion.div>
       </div>
     </section>
   );
 }
 
-// ─── Sponsor Comparison Table ─────────────────────────────────────────────────
 export function SponsorComparisonTable() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   const plans = [
-    { name: "Entry Supporter", price: "5万円", color: "#ffffff" },
-    { name: "Starter Position", price: "10万円", color: "#28D26E" },
-    { name: "Impact Partner", price: "30万円", color: "#FFD600" },
-    { name: "Prime Sponsor", price: "50万円", color: "#FF8C00" },
-    { name: "Champion Partner", price: "100万円", color: "#FF4646" },
-  ];
-
-  const rows = [
-    { label: "掲載ロゴサイズ", values: ["小", "中", "中〜大", "大", "最大"] },
-    { label: "掲載場所", values: ["一覧枠", "一覧＋詳細", "一覧＋特集", "特集", "最上位"] },
-    { label: "PR掲載", values: ["社名", "ロゴ", "ロゴ＋紹介", "特集掲載", "プレス枠"] },
-    { label: "アプリ内特典", values: ["バッジ", "先行表示", "インパクト枠", "主要スポンサー", "チャンピオン"] },
-    { label: "アスリート連携", values: ["任意", "任意", "軽い連携", "コラボ可能", "コラボ保証"] },
-    { label: "紹介導線", values: ["なし", "あり", "強化", "強化", "最大"] },
-    { label: "紹介インセンティブ", values: ["20%", "20%", "20%", "20%", "20%"] },
-    { label: "枠数", values: ["30", "20", "15", "10", "5"] },
+    {
+      name: "Roots",
+      price: "¥30,000",
+      color: "#FFD600",
+      scope: "地域密着型",
+      features: "地方ブロック内表示（small） / ロゴ＋キャッチコピー / PRバッジ",
+      seats: "各ブロック20枠（全国120枠）",
+    },
+    {
+      name: "Roots+",
+      price: "¥50,000",
+      color: "#E2FF7A",
+      scope: "地域密着型",
+      features: "地方ブロック優先表示（medium） / 画像＋テキスト / Discovery優先表示 / PRバッジ",
+      seats: "各ブロック10枠（全国60枠）",
+    },
+    {
+      name: "Signal",
+      price: "¥100,000",
+      color: "#7EB6FF",
+      scope: "全国展開向け",
+      features: "全国露出 / ロゴ掲載 / Discovery表示 / Founding Memberへの優先露出",
+      seats: "全国30枠",
+    },
+    {
+      name: "Presence",
+      price: "¥500,000",
+      color: "#42D7A6",
+      scope: "全国展開向け",
+      features: "Discovery優先表示 / 地域ターゲット広告（1ブロック） / 月次レポート / Business Hub / A/Bテスト",
+      seats: "全国10枠",
+    },
+    {
+      name: "Legacy",
+      price: "¥1,000,000",
+      color: "#FF7A52",
+      scope: "全国最上位",
+      features: "全国最優先 / 全ブロック地域ターゲット / 月次レポート＋戦略MTG / Legacy認定 / コラボ優先権",
+      seats: "全国5枠",
+    },
   ];
 
   return (
@@ -152,51 +182,36 @@ export function SponsorComparisonTable() {
         >
           Business Plan Comparison
         </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.15, duration: 0.8 }}
+          className="mb-8 max-w-[72ch] font-body text-[clamp(13px,1.3vw,15px)] leading-relaxed text-white/55"
+        >
+          すべてのプランに「正式版3ヶ月間 月額料金で利用可能」の注記が付きます。Roots / Roots+ は地域密着型、Signal以上は全国展開向けの設計です。
+        </motion.p>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.2, duration: 0.8 }}
-          className="overflow-x-auto pb-2"
-          style={{ WebkitOverflowScrolling: "touch" }}
+          className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5"
         >
-          <table className="w-full min-w-[700px] border-collapse">
-            <thead>
-              <tr>
-                <th className="sticky left-0 z-10 bg-[#020b18] p-4 text-left">
-                  <span className="font-display text-[9px] uppercase tracking-[0.4em] text-white/20">項目</span>
-                </th>
-                {plans.map((plan, i) => (
-                  <th key={i} className="p-4 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="h-[2px] w-8 mx-auto mb-2" style={{ background: plan.color }} />
-                      <p className="font-display text-[10px] uppercase tracking-[0.15em] text-white/50">{plan.name}</p>
-                      <p className="font-display text-[18px] font-black" style={{ color: plan.color }}>{plan.price}</p>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, ri) => (
-                <tr key={ri} className={ri % 2 === 0 ? "bg-white/[0.02]" : "bg-transparent"}>
-                  <td className="sticky left-0 z-10 bg-inherit p-4">
-                    <span className="font-body text-[12px] text-white/40 whitespace-nowrap">{row.label}</span>
-                  </td>
-                  {row.values.map((val, vi) => (
-                    <td key={vi} className="p-4 text-center">
-                      <span
-                        className="font-mono text-[11px] font-bold"
-                        style={{ color: val === "20%" ? "#FFD600" : plans[vi].color + "cc" }}
-                      >
-                        {val}
-                      </span>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {plans.map((plan) => (
+            <div key={plan.name} className="border border-white/10 bg-white/[0.02] p-6">
+              <div className="mb-4">
+                <div className="mb-3 h-[2px] w-10" style={{ background: plan.color }} />
+                <p className="font-display text-[11px] uppercase tracking-[0.25em] text-white/45">{plan.scope}</p>
+                <h3 className="mt-1 font-display text-[28px] font-black uppercase tracking-tight text-white">{plan.name}</h3>
+                <p className="mt-1 font-display text-[22px] font-black" style={{ color: plan.color }}>{plan.price}</p>
+              </div>
+              <ul className="space-y-3 font-body text-[13px] leading-relaxed text-white/65">
+                <li>✔ {plan.features}</li>
+                <li>✔ 対象枠: {plan.seats}</li>
+                <li>✔ 正式版3ヶ月間 月額料金で利用可能</li>
+              </ul>
+            </div>
+          ))}
         </motion.div>
 
         <motion.div
@@ -218,7 +233,7 @@ export function SponsorComparisonTable() {
               </div>
             ))}
           </div>
-          <p className="mt-4 font-mono text-[10px] text-white/20 tracking-wider">※現金化不可</p>
+          <p className="mt-4 font-mono text-[10px] tracking-wider text-white/20">※現金化不可</p>
         </motion.div>
 
         <motion.div
@@ -234,7 +249,7 @@ export function SponsorComparisonTable() {
           >
             Business登録はこちら
           </Link>
-          <p className="font-mono text-[10px] text-white/25 tracking-wider">※ 枠数限定 / 先着順</p>
+          <p className="font-mono text-[10px] tracking-wider text-white/25">※ 枠数限定 / 受付中 / 現在の実プランに準拠</p>
         </motion.div>
       </div>
     </section>

@@ -5,7 +5,6 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { RevealLine, FeatureCard } from "../AnimatedComponents";
 
-// ─── Now / Next Section ───────────────────────────────────────────────────────
 export function NowNextSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
@@ -23,30 +22,34 @@ export function NowNextSection() {
         </motion.h2>
 
         <p className="mt-4 max-w-[75ch] text-[clamp(14px,1.5vw,18px)] leading-relaxed text-black/70">
-          先行登録期間は「役割を名乗り、見つけ合い、信頼を積み上げる」ための土台作り。
-          今できることは絞ります。その代わり、次の解放が明確に見える状態にします。
+          登録したその日から、役割を名乗り、見つけ合い、信頼を積み上げられます。
+          待機ではなく、すでに使える場所としてアップデートを続けています。
         </p>
 
         <div className="mt-10 flex flex-col gap-6">
           <div className="rounded-3xl border border-black/10 bg-white p-7">
             <p className="text-xs font-bold tracking-[0.35em] text-black/50">NOW</p>
-            <p className="mt-3 text-lg font-bold">先行登録期間にできること</p>
+            <p className="mt-3 text-lg font-bold">現在利用できる機能</p>
             <ul className="mt-4 space-y-2 text-black/75">
-              <li>・プロフィールカードを作る（役割を名乗る）</li>
-              <li>・公開プロフィールを共有する（SNS導線）</li>
-              <li>・Discoveryで参加者を見つける</li>
-              <li>・Cheerで信頼を積み上げる</li>
+              <li>・プロフィール作成・公開</li>
+              <li>・プロフィールカード発行・共有</li>
+              <li>・Discovery（アスリート検索・一覧）</li>
+              <li>・ランキングページ</li>
+              <li>・collectカード機能</li>
+              <li>・Cheerによる応援・信頼の可視化</li>
+              <li>・ミッション・ポイントシステム</li>
+              <li>・Business Hub（企業向け広告・効果測定）</li>
             </ul>
             <div className="flex items-center justify-between">
-              <p className="mt-3 text-lg font-bold">先行登録で、今すぐ手に入る4つ</p>
-              <span className="rounded-full bg-[#FFD600] px-3 py-1 text-[10px] font-bold">先行限定特典あり</span>
+              <p className="mt-3 text-lg font-bold">Founding Memberで得られること</p>
+              <span className="rounded-full bg-[#FFD600] px-3 py-1 text-[10px] font-bold">先着100名限定</span>
             </div>
-            <ul className="mt-4 space-y-3 text-black/75 font-medium">
+            <ul className="mt-4 space-y-3 font-medium text-black/75">
               {[
-                { title: "デジタル・パスポート発行", desc: "役割を証明するプロフィールカードと専用URL。" },
-                { title: "Founding Member 称号", desc: "初期参加者のみに与えられる永続的な証明。【先着100名様 限定】" },
-                { title: "信頼（Cheer）の早期蓄積", desc: "公開初日から支援や評価を可視化。" },
-                { title: "β機能の優先解放", desc: "共創募集やスポンサー接続への優先参加権。" },
+                { title: "Founding Member認定バッジ", desc: "プロフィールと公開カードに通し番号つきで永続表示。" },
+                { title: "Founder価格保証", desc: "将来の有料プランも登録時点の価格で永久固定。" },
+                { title: "Discovery永続優先表示", desc: "検索・一覧で長期的な優位性を確保。" },
+                { title: "新機能への最優先アクセス", desc: "Trainer Hub / Members Hubなどの新機能を最初に利用可能。" },
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-[#FFD600]">✔</span>
@@ -76,7 +79,7 @@ export function NowNextSection() {
                 </svg>
               </Link>
             </motion.div>
-            <p className="mt-4 text-sm text-black/50">※順次追加。先行参加者は優先案内。</p>
+            <p className="mt-4 text-sm text-black/50">Voice Lab や各Hub機能も順次追加予定です。</p>
           </div>
         </div>
       </div>
@@ -84,20 +87,19 @@ export function NowNextSection() {
   );
 }
 
-// ─── Early Members Section ────────────────────────────────────────────────────
 export function EarlyMembersSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   const stats = [
-    { label: "Athletes", count: "Targeting 1000+", roles: "Pro / Amateur / Student" },
-    { label: "Trainers", count: "Targeting 300+", roles: "S&C / Medical / Mental" },
-    { label: "Business", count: "Limited", roles: "Sponsors / Teams" },
-    { label: "Members", count: "Waitlist", roles: "Fans / Supporters" },
+    { label: "Founding", count: "100", roles: "先着100名限定" },
+    { label: "Badge", count: "#001", roles: "小さい番号ほど希少" },
+    { label: "Access", count: "Priority", roles: "新機能へ最優先アクセス" },
+    { label: "Card", count: "Limited", roles: "限定デザインを付与" },
   ];
 
   return (
-    <section ref={ref} className="bg-[#0B0B0F] py-24 border-y border-white/5">
+    <section ref={ref} className="border-y border-white/5 bg-[#0B0B0F] py-24">
       <div className="mx-auto max-w-[1200px] px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -105,14 +107,14 @@ export function EarlyMembersSection() {
           className="mb-16 flex flex-col items-center justify-between gap-6 md:flex-row md:items-end"
         >
           <div className="text-center md:text-left">
-            <p className="font-display text-[12px] uppercase tracking-[0.4em] text-[#FFD600] mb-2">Early Members</p>
-            <h2 className="whitespace-nowrap font-display text-[40px] md:text-[56px] font-black uppercase leading-none text-white">
-              共に歩む、<br />最初の仲間。
+            <p className="mb-2 font-display text-[12px] uppercase tracking-[0.4em] text-[#FFD600]">Founding Member</p>
+            <h2 className="whitespace-nowrap font-display text-[40px] leading-none font-black uppercase text-white md:text-[56px]">
+              残り100名。<br />番号を刻む。
             </h2>
           </div>
-          <p className="max-w-90 text-center md:text-left text-[13px] leading-relaxed text-white/40">
-            先行登録期間中、既に多様な役割を持つプレイヤーが参加を表明しています。
-            あなたの「役割」も、このコミュニティの一部になります。
+          <p className="max-w-90 text-center text-[13px] leading-relaxed text-white/40 md:text-left">
+            登録するほど番号が埋まっていく。
+            #001に近いほど、最初にいた証明になる。今すぐ登録して、あなたの番号を確保する。
           </p>
         </motion.div>
 
@@ -126,24 +128,24 @@ export function EarlyMembersSection() {
               className="bg-[#0B0B0F] p-8"
             >
               <p className="font-display text-[12px] uppercase tracking-widest text-white/30">{s.label}</p>
-              <p className="font-display text-[32px] font-black text-[#FFD600] my-1">{s.count}</p>
-              <p className="text-[10px] text-white/20 font-medium">{s.roles}</p>
+              <p className="my-1 font-display text-[32px] font-black text-[#FFD600]">{s.count}</p>
+              <p className="text-[10px] font-medium text-white/20">{s.roles}</p>
             </motion.div>
           ))}
         </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
           {[
-            "「自分の実績だけでなく『役割』を証明できる場所に期待している」",
-            "「支援したいアスリートをCheerで可視化できるのは新しい」",
-            "「スポンサーとして、数字以外の信頼を元にパートナーを探したい」",
+            "「最初にいた証明を、プロフィールに残したい」",
+            "「Founding MemberとしてDiscoveryで存在感を持ちたい」",
+            "「今のタイミングで入るからこそ、将来の価値がある」",
           ].map((voice, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: 0.6 + i * 0.1 }}
-              className="rounded-sm border border-white/5 bg-white/[0.02] p-6 italic text-white/50 text-[12px] leading-relaxed"
+              className="rounded-sm border border-white/5 bg-white/[0.02] p-6 text-[12px] italic leading-relaxed text-white/50"
             >
               {voice}
             </motion.div>
@@ -154,7 +156,6 @@ export function EarlyMembersSection() {
   );
 }
 
-// ─── Why Now Section ──────────────────────────────────────────────────────────
 export function WhyNowSection() {
   const lines = [
     { text: "もう、観客ではいられない。", accent: true },
@@ -189,11 +190,10 @@ export function WhyNowSection() {
   );
 }
 
-// ─── What You Can Do ──────────────────────────────────────────────────────────
 export function WhatSection() {
   const cards = [
     { label: "ROLE", title: "名乗れ。", desc: "自分の役割を知らせる。スポーツに関わるすべての人が、自らの立場を宣言できる場所。", image: "/images/roll-demo.png" },
-    { label: "DISCOVER", title: "見つけろ。", desc: "信頼できる人や仕事と出会う。構造化された情報が、偶然ではなく必然のつながりを生む。※こちらは開発中の画面をAI生成したものです。", image: "/images/discovery-demo.png" },
+    { label: "DISCOVER", title: "見つけろ。", desc: "信頼できる人や仕事と出会う。構造化された情報が、偶然ではなく必然のつながりを生む。現在はDiscoveryが稼働中で、公開中ユーザーを検索・一覧表示できます。", image: "/images/discovery-demo.png" },
     { label: "CHEER", title: "積み上げろ。", desc: "Cheerは単なる『いいね』ではありません。誰がいつ応援・推薦したかの『関与の記録』です。不正連打を防ぐ構造化データにより、積み重なるほどあなたの純粋な信頼証明となります。", image: "/images/cheer-demo.png" },
   ];
 
@@ -212,13 +212,12 @@ export function WhatSection() {
         ))}
       </div>
       <p className="mt-8 px-5 font-body text-[3vw] text-white/25 md:px-10 md:text-[1.4vw] lg:px-16 lg:text-[0.9vw] xl:px-20">
-        ※ 機能は先行登録期間中に順次追加。
+        ※ 稼働中機能に加えて、今後も新機能を順次追加予定です。
       </p>
     </section>
   );
 }
 
-// ─── Founding Section ─────────────────────────────────────────────────────────
 export function FoundingSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
@@ -239,18 +238,17 @@ export function FoundingSection() {
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
         className="relative z-10 mb-20 font-display text-[5vw] font-light leading-loose tracking-widest text-white/40 md:text-[2.5vw] lg:mb-28 lg:text-[1.8vw]"
       >
-        未完成の今だからこそ、<br />共に創る価値がある。
+        最初の100名だけが、<br />この番号を持てる。
       </motion.p>
 
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center gap-16 lg:gap-28">
-        {/* Founding Member */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.25, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col items-center gap-4"
         >
-          <span className="font-display text-[11px] uppercase tracking-[0.55em] text-white/25">For Individual</span>
+          <span className="font-display text-[11px] uppercase tracking-[0.55em] text-white/25">Founding Member Benefits</span>
           <div className="flex flex-col items-center leading-none">
             <h2 className="font-display text-[14vw] font-black uppercase tracking-tight text-white md:text-[8vw] lg:text-[7vw]">Founding</h2>
             <h2 className="font-display text-[14vw] font-black uppercase tracking-tight text-[#FFD600] md:text-[8vw] lg:text-[7vw]">Member</h2>
@@ -262,69 +260,19 @@ export function FoundingSection() {
             className="mt-8 grid grid-cols-1 gap-4 text-left md:grid-cols-2"
           >
             {[
-              { t: "創業バッジ", d: "初期参加者の証をプロフィールに永続表示" },
-              { t: "価格固定保証", d: "将来の有料機能はFounder価格に固定（値上げなし）" },
-              { t: "優先アクセス権", d: "先行限定イベント・βテストへの優先招待" },
-              { t: "参加履歴の証明", d: "「最初に立った」記録をAI構造データで不変に証明" },
+              { t: "1. Founding Member 認定バッジ", d: "プロフィールと公開カードに「Founding Member #001」形式の通し番号バッジが永続表示。番号が小さいほど希少。" },
+              { t: "2. 有料プラン 永久Founder価格保証", d: "将来導入される全ユーザー向け有料プランが、登録時点の価格で永久固定。" },
+              { t: "3. Discovery 永続優先表示", d: "登録者が増えるほど価値が上がる、検索・一覧での永続的な優位性。" },
+              { t: "4. 新機能への最優先アクセス", d: "Trainer Hub / Members Hubなど新機能リリース時に最初に解放。" },
+              { t: "5. 創設者名簿への永続掲載", d: "アプリ内およびLP上の「Founding Members」セクションに永続掲載。" },
+              { t: "6. 限定カードデザイン", d: "通常会員とは異なるFounding専用カードデザイン。100名のみ。" },
             ].map((b, i) => (
               <div key={i} className="border-l border-[#FFD600]/30 pl-4">
                 <p className="text-[18px] font-bold text-[#FFD600]">{b.t}</p>
-                <p className="text-[16px] text-white/40 leading-relaxed">{b.d}</p>
+                <p className="text-[16px] leading-relaxed text-white/40">{b.d}</p>
               </div>
             ))}
           </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={inView ? { scaleX: 1 } : {}}
-          transition={{ delay: 0.5, duration: 0.7, ease: "easeOut" }}
-          className="h-px w-20 origin-center bg-white/15"
-        />
-
-        {/* Founding Sponsor */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.45, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-center gap-4"
-        >
-          <span className="font-display text-[11px] uppercase tracking-[0.55em] text-white/25">For Business</span>
-          <div className="flex flex-col items-center leading-none">
-            <h2 className="font-display text-[14vw] font-black uppercase tracking-tight text-white md:text-[8vw] lg:text-[7vw]">Founding</h2>
-            <h2 className="font-display text-[14vw] font-black uppercase tracking-tight text-[#FFD600] md:text-[8vw] lg:text-[7vw]">Sponsor</h2>
-          </div>
-          <div className="mt-8 grid grid-cols-1 gap-4 text-left md:grid-cols-2">
-            {[
-              { t: "アプリ内広告枠", d: "Discovery・カード面への優先露出（Founding枠限定）" },
-              { t: "コア認知の獲得", d: "アスリート/トレーナー/サポーター層へのダイレクト接触" },
-              { t: "広告効果の可視化（β）", d: "表示 / クリック / 共有 / Cheer連動 / 滞在 / セグメント別データ" },
-              { t: "Founding Sponsor刻印", d: "創設スポンサーとして名前が残る・永続表示" },
-            ].map((b, i) => (
-              <div key={i} className="border-l border-[#3282FF]/30 pl-4">
-                <p className="text-[18px] font-bold text-[#3282FF]">{b.t}</p>
-                <p className="text-[16px] text-white/40">{b.d}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 w-full">
-            <p className="mb-4 font-display text-[10px] uppercase tracking-[0.4em] text-white/25">Founding Sponsor Plan</p>
-            <div className="grid grid-cols-3 gap-px bg-white/5">
-              {[
-                { name: "Starter", price: "¥100,000", note: "露出・刻印" },
-                { name: "Growth", price: "¥300,000", note: "+ 優先枠・データ" },
-                { name: "Partner", price: "¥500,000", note: "+ カスタム連携" },
-              ].map((plan, i) => (
-                <div key={i} className="flex flex-col items-center gap-1 bg-[#0B0B0F] py-5 px-3 text-center">
-                  <p className="font-display text-[11px] uppercase tracking-[0.3em] text-[#3282FF]">{plan.name}</p>
-                  <p className="font-display text-[22px] font-black text-white">{plan.price}</p>
-                  <p className="font-mono text-[9px] text-white/25">{plan.note}</p>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-right font-mono text-[9px] uppercase tracking-[0.2em] text-white/20">※ 枠数限定</p>
-          </div>
         </motion.div>
       </div>
 
@@ -334,7 +282,7 @@ export function FoundingSection() {
         transition={{ delay: 0.85, duration: 0.9 }}
         className="relative z-10 mt-20 font-display text-[4.5vw] font-bold tracking-widest text-white/60 md:text-[2.2vw] lg:mt-28 lg:text-[1.6vw]"
       >
-        最初に立つ者だけが、未来を選べる。
+        最初に立つ者だけが、未来の証明を持てる。
       </motion.p>
     </section>
   );
