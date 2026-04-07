@@ -17,8 +17,8 @@ const FAQS = [
   { q: "Q. 地方プランはどのブロックを選べますか？", a: "北海道・東北 / 関東 / 中部 / 近畿 / 中国・四国 / 九州・沖縄の6ブロックから選択できます。申し込み後の確認メールにてご希望ブロックをお知らせください。" },
   { q: "Q. 複数ブロックに出稿できますか？", a: "可能です。ブロックごとに1プランとしてお申し込みください。" },
   { q: "Q. 決済方法は？", a: "Square決済（クレジットカード）または銀行振込に対応しています。法人請求書が必要な場合は銀行振込をお選びください。" },
-  { q: "Q. 先行特典の詳細は？", a: "正式版リリース後3ヶ月間、追加料金なしで同プランを継続利用できます。" },
-  { q: "Q. キャンセルはできますか？", a: "先行登録期間中のキャンセルは原則承っておりません。詳細はお問い合わせください。" },
+  { q: "Q. 特典の詳細は？", a: "全プランで正式版3ヶ月間を月額料金のまま利用できます。" },
+  { q: "Q. キャンセルはできますか？", a: "決済後の扱いはプランや決済方法によって異なります。詳細はお問い合わせください。" },
   { q: "Q. 紹介制度はありますか？", a: "紹介いただいた企業が成約した場合、決済額の15%相当のVizion Pointを付与します。" },
 ];
 
@@ -27,11 +27,11 @@ const TABLE_ROWS = [
   ["枠数", "120枠", "60枠", "30枠", "10枠", "5枠"],
   ["表示エリア", "地方ブロック", "地方ブロック", "全国", "全国", "全国"],
   ["表示サイズ", "small", "medium", "medium", "large", "hero"],
-  ["Discovery表示", "—", "優先", "通常", "優先", "最優先"],
+  ["Discovery表示", "—", "優先", "表示", "優先", "最優先"],
   ["地域広告枠", "—", "—", "—", "1ブロック", "全ブロック"],
   ["月次レポート", "—", "—", "—", "✓", "✓"],
   ["戦略MTG", "—", "—", "—", "—", "✓"],
-  ["正式版3ヶ月無料", "✓", "✓", "✓", "✓", "✓"],
+  ["正式版3ヶ月間 月額料金で利用可能", "✓", "✓", "✓", "✓", "✓"],
 ];
 
 // セルの強調判定
@@ -99,13 +99,13 @@ export default function BusinessPage() {
               </h1>
               <p className="anim-fade-up max-w-xl text-[.9rem] font-light leading-[1.9] text-[#5a6070] [animation-delay:.2s]">
                 Vizion Connection は、アスリート・トレーナー・メンバーの信頼ネットワークインフラです。
-                先行ポジションを確保した企業は、正式リリース後も最優先で露出され続けます。
+                Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
               <Link
                 href="/business/checkout"
                 className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)] [animation-delay:.3s]"
               >
-                先行ポジションを確認する
+                Businessプランを見る
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -139,13 +139,13 @@ export default function BusinessPage() {
             <section className="relative overflow-hidden rounded-xl border border-[#00d2ff]/14 bg-gradient-to-br from-[#00d2ff]/7 to-[#7c82ff]/4 p-9 md:p-11">
               {/* glow blob */}
               <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#00d2ff]/7 blur-3xl" />
-              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#00d2ff]">Early Benefit</p>
+              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#00d2ff]">Plan Benefit</p>
               <h2 className="text-[clamp(1.4rem,3.5vw,2.2rem)] font-extrabold leading-[1.2] tracking-[-0.01em] text-white">
-                正式版リリース後 3ヶ月間を<br />初回料金のみで利用可能。
+                正式版3ヶ月間を<br />月額料金で利用可能。
               </h2>
               <p className="mt-4 max-w-2xl text-[.85rem] font-light leading-[1.9] text-[#5a6070]">
-                先行登録期間内に購入したすべてのプランに適用されます。
-                早期参加ほど、より長期間・より低コストで Vizion Connection の成長と共に走ることができます。
+                Roots から Legacy まで、現在提供中のすべてのBusinessプランに適用されます。
+                地域密着で始めたい企業も、全国で存在感を取りたい企業も、現状に合うプランから参加できます。
               </p>
             </section>
 
@@ -153,7 +153,7 @@ export default function BusinessPage() {
             <section className="space-y-5">
               <div>
                 <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[.22em] text-[#3a3f50]">Plans</p>
-                <h2 className="text-[clamp(1.6rem,4vw,2.6rem)] font-extrabold tracking-[-0.02em] text-white">先行ポジション</h2>
+                <h2 className="text-[clamp(1.6rem,4vw,2.6rem)] font-extrabold tracking-[-0.02em] text-white">Businessプラン</h2>
                 <p className="mt-1 font-mono text-[.78rem] tracking-[.05em] text-[#3a3f50]">全プラン一括払い — 座席数限定</p>
               </div>
               <div className="flex flex-col gap-3">
@@ -260,9 +260,9 @@ export default function BusinessPage() {
               <div className="pointer-events-none absolute -bottom-12 left-1/2 h-32 w-72 -translate-x-1/2 rounded-full bg-[#00d2ff]/10 blur-3xl" />
               <p className="mb-4 font-mono text-[10px] uppercase tracking-[.2em] text-[#00d2ff]">Limited Seats Available</p>
               <h2 className="mb-4 text-[clamp(1.6rem,4vw,2.4rem)] font-extrabold tracking-[-0.02em] text-white">
-                先行ポジションを申し込む
+                Businessプランを申し込む
               </h2>
-              <p className="mb-8 text-[.82rem] font-light text-[#5a6070]">締切を過ぎると先行特典は失効します。</p>
+              <p className="mb-8 text-[.82rem] font-light text-[#5a6070]">現在受付中です。プランを選択してそのままお申し込みいただけます。</p>
               <Link
                 href="/business/checkout"
                 className="inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)]"

@@ -6,7 +6,7 @@ import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/Founding
 import type { LatestCheerItem, ProfileData } from "@/features/profile/types";
 import QRCode from "qrcode";
 import { DashboardView } from "@/app/(app)/dashboard/DashboardClient";
-import { SponsorPlanBadge } from "@/features/business/sponsor-badge";
+import SponsorBadge from "@/components/SponsorBadge";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -438,7 +438,7 @@ export function ProfileCardSection({
                                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
                                     <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</div>
                                         <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                                            <SponsorPlanBadge plan={profile.sponsorPlan} />
+                                            <SponsorBadge plan={profile.sponsorPlan} />
                                         </div>
                                         <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>@{profile.slug}{profile.region ? ` · ${profile.region}` : ""}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.sport}</div>}

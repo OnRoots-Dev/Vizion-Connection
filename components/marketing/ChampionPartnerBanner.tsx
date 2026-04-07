@@ -20,7 +20,7 @@ export function ChampionPartnerBanner() {
         <div className="flex items-center gap-2">
           <div className="h-[2px] w-5 bg-[#FF4646]/60" />
           <p className="font-mono text-[9px] uppercase tracking-[0.45em] text-white/25">
-            Champion Partner <span className="text-[#FF4646]/60">— Top Sponsor</span>
+            Legacy Partner <span className="text-[#FF4646]/60">- Top Sponsor</span>
           </p>
         </div>
         <span className="rounded-[2px] border border-[#FF4646]/25 px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider text-[#FF4646]/50">
@@ -64,7 +64,7 @@ export function ChampionPartnerBanner() {
                   <svg viewBox="0 0 24 24" className="h-2.5 w-2.5 fill-current">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                   </svg>
-                  スポンサー枠を確認する
+                  Legacy枠を確認する
                 </span>
               </Link>
             )}

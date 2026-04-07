@@ -20,7 +20,8 @@ import type { ProfileData } from "@/features/profile/types";
 import { getAdsForUser } from "@/lib/ads";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
-import { SponsorPlanBadge } from "@/features/business/sponsor-badge";
+import SponsorBadge from "@/components/SponsorBadge";
+import PublicProfileRealtime from "./PublicProfileRealtime";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -43,7 +44,7 @@ interface Props { params: Promise<{ slug: string }>; }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     const result = await getPublicProfileBySlug(slug);
-    if (!result.success || !result.data.isPublic) {
+    if (!result.success) {
         return { title: "Vizion Connection", robots: { index: false, follow: false } };
     }
     const { displayName, role } = result.data;
@@ -61,16 +62,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function UserProfilePage({ params }: Props) {
     const { slug } = await params;
-    const result = await getPublicProfileBySlug(slug);
-    if (!result.success) notFound();
-
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     const session = token ? verifySession(token) : null;
+    const result = await getPublicProfileBySlug(slug, session?.slug ?? null);
+    if (!result.success) {
+        if (result.reason === "forbidden") {
+            return <PrivateProfilePage displayName={slug} />;
+        }
+        notFound();
+    }
     const isOwn = session?.slug === slug;
     const viewerSlug = session?.slug ?? null;
-
-    if (!result.data.isPublic) return <PrivateProfilePage displayName={result.data.displayName} />;
+    if (result.data.isPublic === false && !isOwn) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
     const [collectorCount, careerProfile, ads] = await Promise.all([
@@ -78,7 +82,7 @@ export default async function UserProfilePage({ params }: Props) {
         getCareerProfile(slug),
         getAdsForUser(profile.prefecture ?? "", profile.sport ?? undefined),
     ]);
-    const regionalAd = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
+    const regionalAd = ads.find((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan)) ?? null;
 
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
@@ -95,6 +99,7 @@ export default async function UserProfilePage({ params }: Props) {
 
     return (
         <div style={{ minHeight: "100vh", background: "#08080f", color: "#fff", overflowX: "hidden" }}>
+            <PublicProfileRealtime slug={slug} />
             <style>{`
                 *, *::before, *::after { box-sizing: border-box; }
                 a { text-decoration: none; }
@@ -192,7 +197,7 @@ export default async function UserProfilePage({ params }: Props) {
                             )}
                         </div>
                         <div className="u2" style={{ marginBottom: 10 }}>
-                            <SponsorPlanBadge plan={profile.sponsorPlan} prominent />
+                            <SponsorBadge plan={profile.sponsorPlan} prominent />
                         </div>
                         <div className="u2" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
                             <span style={{ fontSize: 12, fontFamily: "monospace", color: "rgba(255,255,255,.32)", letterSpacing: ".04em" }}>@{profile.slug}</span>

@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 
 const ALLOWED_ORIGINS = [
   process.env.NEXT_PUBLIC_APP_URL,
+  process.env.NEXT_PUBLIC_BASE_URL,
   "http://localhost:3000",
-].filter(Boolean) as string[];
+].filter(Boolean).map((value) => {
+  try {
+    return new URL(value as string).origin;
+  } catch {
+    return value as string;
+  }
+}) as string[];
 
 function extractOrigin(req: Request): string | null {
   const origin = req.headers.get("origin");

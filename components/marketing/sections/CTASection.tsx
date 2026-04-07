@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { CountdownTimer } from "../CountdownTimer";
 
 // ─── CTA Section ──────────────────────────────────────────────────────────────
 export function CTASection() {
@@ -21,7 +20,7 @@ export function CTASection() {
         transition={{ duration: 0.7 }}
         className="font-display text-[clamp(12px,1.1vw,14px)] uppercase tracking-[0.4em] text-white/30"
       >
-        先行登録受付中
+        登録受付中
       </motion.p>
 
       <motion.div
@@ -41,7 +40,7 @@ export function CTASection() {
             whileHover={{ opacity: 0.15, scale: 2 }}
             transition={{ duration: 0.4 }}
           />
-          <span className="relative">先行登録する</span>
+          <span className="relative">今すぐ登録する</span>
         </Link>
       </motion.div>
 
@@ -80,19 +79,15 @@ export function CTASection() {
         ↑ 企業・チーム・スポンサーの方はこちら ↑
       </motion.p>
 
-      <CountdownTimer />
-
-      {/* ← 修正: 日程を 3/23〜3/31 に更新 */}
-      <div className="bg-white/[0.02] px-8 py-6 border border-red-400/20">
-        <p className="font-body text-[16px] font-bold uppercase tracking-[0.2em] text-red-400">
-          Founding Member 枠 締切間近
+      <div className="max-w-[680px] border border-[#FFD600]/20 bg-white/[0.02] px-8 py-6">
+        <p className="font-body text-[16px] font-bold uppercase tracking-[0.2em] text-[#FFD600]">
+          Founding Member 残り100名
         </p>
-        <p className="mt-1 font-display text-[30px] font-bold text-white/70">
-          3/23 MON 17:00 – 3/31 TUE 23:59
+        <p className="mt-2 font-display text-[24px] font-bold text-white/80">
+          登録は無料。今すぐ参加できます。
         </p>
-        <p className="mt-2 text-[11px] text-white/30 leading-relaxed">
-          ※期間終了後はFoundingバッジの付与・特典解放は終了します（再開未定）。<br />
-          先行登録は無料。登録後、いつでもアカウントは削除可能です。
+        <p className="mt-3 text-[12px] leading-relaxed text-white/35">
+          登録後すぐにプロフィール作成・公開、Discovery、Cheer、ミッション、Business Hub など現在稼働中の機能をご利用いただけます。
         </p>
       </div>
     </section>
@@ -140,7 +135,7 @@ export function FloatingCTA() {
             className="group flex items-center justify-center gap-3 overflow-hidden bg-[#FFD600] px-7 py-3.5 font-display text-[13px] font-black uppercase tracking-[0.18em] text-[#0B0B0F] shadow-[0_8px_40px_rgba(255,214,0,0.35)] transition-all hover:bg-white w-full"
             style={{ borderRadius: "2px", maxWidth: 360 }}
           >
-            <span>先行登録はこちら</span>
+            <span>今すぐ登録する</span>
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current transition-transform group-hover:translate-x-1">
               <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
             </svg>

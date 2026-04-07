@@ -160,7 +160,7 @@ export default function ContactSection() {
                                 {/* カテゴリ */}
                                 <div>
                                     <label style={{ fontSize: "11px", fontWeight: 600, color: "rgba(200,200,200,0.4)", display: "block", marginBottom: "6px" }}>
-                                        カテゴリ <span style={{ color: "ff5050" }}>*</span>
+                                        カテゴリ <span style={{ color: "#ff5050" }}>*</span>
                                     </label>
                                     <select
                                         value={form.category}

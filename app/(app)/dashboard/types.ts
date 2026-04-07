@@ -7,6 +7,7 @@ export type Theme = "dark" | "dim" | "light";
 export type DashboardView =
     | "home"
     | "notifications"
+    | "collections"
     | "card"
     | "profile"
     | "news"

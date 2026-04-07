@@ -15,6 +15,7 @@ type DiscoveryUser = {
     display_name: string;
     role: string;
     avatar_url?: string | null;
+    profile_image_url?: string | null;
     cheer_count: number;
     referral_count: number;
     region?: string | null;
@@ -94,6 +95,98 @@ function formatLocationLabel(value?: string | null) {
     const trimmed = value.trim();
     const normalized = trimmed.toLowerCase().replace(/\s+/g, "").replace(/[-_]/g, "");
     return LOCATION_LABEL_MAP[trimmed] ?? LOCATION_LABEL_MAP[normalized] ?? trimmed;
+}
+
+function getUserLocation(user: DiscoveryUser) {
+    return [formatLocationLabel(user.region), user.prefecture ? formatLocationLabel(user.prefecture) : null]
+        .filter((value, index, arr) => value && (index == 0 || value !== arr[0]))
+        .join(" / ");
+}
+
+function getCardBackground(user: DiscoveryUser, color: string) {
+    const overlays = [
+        `linear-gradient(180deg, rgba(5,10,20,0.18) 0%, rgba(5,10,20,0.72) 55%, rgba(5,10,20,0.94) 100%)`,
+        `linear-gradient(135deg, ${color}55 0%, rgba(8,12,22,0.18) 40%, rgba(8,12,22,0.88) 100%)`,
+    ];
+
+    if (user.profile_image_url) {
+        return `${overlays.join(",")}, url(${user.profile_image_url})`;
+    }
+
+    return `linear-gradient(145deg, ${color}40, rgba(13,17,27,0.96) 60%, rgba(7,10,18,1) 100%)`;
+}
+
+function ProfileAvatar({ user, color, size = 48 }: { user: DiscoveryUser; color: string; size?: number }) {
+    return (
+        <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden", background: `${color}25`, border: `1px solid ${color}55`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: color, flexShrink: 0, boxShadow: `0 10px 24px ${color}30` }}>
+            {user.avatar_url ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : user.display_name?.[0]?.toUpperCase()}
+        </div>
+    );
+}
+
+function DiscoveryFeatureCard({
+    user,
+    index,
+    label,
+    statLabel,
+    statValue,
+    accentColor,
+    t,
+    onOpen,
+}: {
+    user: DiscoveryUser;
+    index: number;
+    label: string;
+    statLabel: string;
+    statValue: string;
+    accentColor: string;
+    t: ThemeColors;
+    onOpen: () => void;
+}) {
+    const roleColor = ROLE_COLORS[user.role] ?? accentColor;
+    const locationLabel = getUserLocation(user) || "全国";
+
+    return (
+        <motion.button
+            type="button"
+            onClick={onOpen}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}
+        >
+            <div style={{ position: "relative", overflow: "hidden", borderRadius: 18, minHeight: 166, padding: 14, display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundImage: getCardBackground(user, roleColor), backgroundSize: "cover", backgroundPosition: "center", border: `1px solid ${roleColor}55`, boxShadow: `0 18px 38px ${roleColor}18` }}>
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.06), transparent 24%, rgba(0,0,0,0.14) 100%)", pointerEvents: "none" }} />
+                <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ minWidth: 34, textAlign: "center", padding: "5px 8px", borderRadius: 999, background: "rgba(6,10,18,0.62)", border: `1px solid ${accentColor}55`, color: accentColor, fontSize: 10, fontFamily: "monospace", fontWeight: 800 }}>
+                            #{String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span style={{ padding: "5px 9px", borderRadius: 999, background: "rgba(6,10,18,0.56)", border: `1px solid ${roleColor}44`, color: "#F7FAFC", fontSize: 10, fontWeight: 700 }}>
+                            {label}
+                        </span>
+                    </div>
+                    <SponsorBadge plan={user.sponsor_plan ?? null} />
+                </div>
+
+                <div style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 12 }}>
+                    <ProfileAvatar user={user} color={roleColor} size={54} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                            <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 999, background: "rgba(6,10,18,0.56)", color: roleColor, border: `1px solid ${roleColor}40` }}>{user.role}</span>
+                            <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 999, background: "rgba(6,10,18,0.56)", color: "rgba(255,255,255,0.76)" }}>{locationLabel}</span>
+                        </div>
+                        <p style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 900, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 2px 12px rgba(0,0,0,0.35)" }}>{user.display_name}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.72)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ID: {user.slug}</p>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}>{statLabel}</div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: "#FFFFFF", textShadow: "0 2px 16px rgba(0,0,0,0.4)" }}>{statValue}</div>
+                    </div>
+                </div>
+            </div>
+        </motion.button>
+    );
 }
 
 export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfile }: {
@@ -205,7 +298,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
     const pagedUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new"; label: string }> = [
-        { id: "all", label: "総合レーダー" },
+        { id: "all", label: "全アカウント" },
         { id: "cheer", label: "Cheer急上昇" },
         { id: "referral", label: "紹介加速" },
         { id: "new", label: "新着" },
@@ -262,33 +355,47 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                 </div>
             </SectionCard>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12 }}>
                 <SectionCard t={t}>
                     <SLabel text="本日の推し / Cheer" color="#FFD600" />
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    <div style={{ display: "grid", gap: 10 }}>
                         {picks.cheer.slice(0, 5).map((u, i) => (
-                            <motion.button key={`c-${u.slug}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10, background: "rgba(255,214,0,0.04)", border: "1px solid rgba(255,214,0,0.2)" }}>
-                                    <span style={{ fontSize: 9, fontFamily: "monospace", color: "#FFD600" }}>{String(i + 1).padStart(2, "0")}</span>
-                                    <span style={{ fontSize: 11, color: t.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.display_name}</span>
-                                    <span style={{ fontSize: 10, color: "#FFD600", fontFamily: "monospace" }}>★{u.cheer_count}</span>
-                                </div>
-                            </motion.button>
+                            <DiscoveryFeatureCard
+                                key={`c-${u.slug}`}
+                                user={u}
+                                index={i}
+                                label="Cheer Boost"
+                                statLabel="Cheer"
+                                statValue={`★ ${u.cheer_count}`}
+                                accentColor="#FFD600"
+                                t={t}
+                                onOpen={() => {
+                                    trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug });
+                                    onOpenProfile?.(u.slug);
+                                }}
+                            />
                         ))}
                     </div>
                 </SectionCard>
 
                 <SectionCard t={t}>
                     <SLabel text="本日の推し / Referral" color={roleColor} />
-                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                    <div style={{ display: "grid", gap: 10 }}>
                         {picks.referral.slice(0, 5).map((u, i) => (
-                            <motion.button key={`r-${u.slug}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10, background: `${roleColor}08`, border: `1px solid ${roleColor}25` }}>
-                                    <span style={{ fontSize: 9, fontFamily: "monospace", color: roleColor }}>{String(i + 1).padStart(2, "0")}</span>
-                                    <span style={{ fontSize: 11, color: t.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.display_name}</span>
-                                    <span style={{ fontSize: 10, color: roleColor, fontFamily: "monospace" }}>紹介{u.referral_count}</span>
-                                </div>
-                            </motion.button>
+                            <DiscoveryFeatureCard
+                                key={`r-${u.slug}`}
+                                user={u}
+                                index={i}
+                                label="Referral Pulse"
+                                statLabel="紹介数"
+                                statValue={String(u.referral_count)}
+                                accentColor={roleColor}
+                                t={t}
+                                onOpen={() => {
+                                    trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug });
+                                    onOpenProfile?.(u.slug);
+                                }}
+                            />
                         ))}
                     </div>
                 </SectionCard>
@@ -302,81 +409,89 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                     <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
                 ) : (
                     <>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
-                        {pagedUsers.flatMap((u, i) => {
-                            const absoluteIndex = (page - 1) * PAGE_SIZE + i;
-                            const rc = ROLE_COLORS[u.role] ?? roleColor;
-                            const locationLabel = [formatLocationLabel(u.region), u.prefecture ? formatLocationLabel(u.prefecture) : null].filter((value, index, arr) => value && (index === 0 || value !== arr[0])).join(" / ");
-                            const nodes: ReactNode[] = [];
-                            if (absoluteIndex > 0 && absoluteIndex % 8 === 0 && mediumInline) {
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14 }}>
+                            {pagedUsers.flatMap((u, i) => {
+                                const absoluteIndex = (page - 1) * PAGE_SIZE + i;
+                                const rc = ROLE_COLORS[u.role] ?? roleColor;
+                                const locationLabel = getUserLocation(u) || "全国";
+                                const nodes: ReactNode[] = [];
+                                if (absoluteIndex > 0 && absoluteIndex % 8 === 0 && mediumInline) {
+                                    nodes.push(
+                                        <div key={`ad-inline-${absoluteIndex}`} style={{ gridColumn: "1 / -1" }}>
+                                            <AdCard ad={mediumInline} size="medium" />
+                                        </div>,
+                                    );
+                                }
                                 nodes.push(
-                                    <div key={`ad-inline-${absoluteIndex}`} style={{ gridColumn: "1 / -1" }}>
-                                        <AdCard ad={mediumInline} size="medium" />
-                                    </div>,
+                                    <motion.button key={`user-${u.slug}-${absoluteIndex}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
+                                        <div style={{ position: "relative", overflow: "hidden", borderRadius: 20, minHeight: 280, padding: 16, display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundImage: getCardBackground(u, rc), backgroundSize: "cover", backgroundPosition: "center", border: `1px solid ${rc}55`, boxShadow: `0 22px 50px ${rc}18` }}>
+                                            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 18%, rgba(8,12,22,0.18) 42%, rgba(7,10,18,0.96) 100%)", pointerEvents: "none" }} />
+                                            <div style={{ position: "absolute", right: -36, top: -36, width: 136, height: 136, borderRadius: "50%", background: `radial-gradient(circle, ${rc}50, transparent 68%)`, filter: "blur(2px)", pointerEvents: "none" }} />
+
+                                            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                                                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                                    <span style={{ padding: "5px 9px", borderRadius: 999, background: "rgba(8,12,22,0.56)", color: rc, border: `1px solid ${rc}48`, fontSize: 10, fontWeight: 800, fontFamily: "monospace" }}>{u.role}</span>
+                                                    <span style={{ padding: "5px 9px", borderRadius: 999, background: "rgba(8,12,22,0.56)", color: "rgba(255,255,255,0.76)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 10 }}>{locationLabel}</span>
+                                                    {u.sport ? <span style={{ padding: "5px 9px", borderRadius: 999, background: "rgba(8,12,22,0.56)", color: "rgba(255,255,255,0.76)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 10 }}>{u.sport}</span> : null}
+                                                </div>
+                                                <SponsorBadge plan={u.sponsor_plan ?? null} />
+                                            </div>
+
+                                            <div style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 14 }}>
+                                                <ProfileAvatar user={u} color={rc} size={60} />
+                                                <div style={{ minWidth: 0, flex: 1 }}>
+                                                    <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 900, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 4px 18px rgba(0,0,0,0.42)" }}>{u.display_name}</p>
+                                                    <p style={{ margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.72)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ユーザーID: {u.slug}</p>
+                                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                                                        <div style={{ padding: "10px 12px", borderRadius: 14, background: "rgba(7,10,18,0.54)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+                                                            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.56)", marginBottom: 3 }}>Cheer</div>
+                                                            <div style={{ fontSize: 15, fontWeight: 900, color: "#FFD600" }}>★ {u.cheer_count}</div>
+                                                        </div>
+                                                        <div style={{ padding: "10px 12px", borderRadius: 14, background: "rgba(7,10,18,0.54)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+                                                            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.56)", marginBottom: 3 }}>紹介数</div>
+                                                            <div style={{ fontSize: 15, fontWeight: 900, color: "#FFFFFF" }}>{u.referral_count}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ position: "relative", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                                                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 999, background: "rgba(7,10,18,0.54)", border: `1px solid ${rc}38`, color: "rgba(255,255,255,0.86)", fontSize: 10 }}>
+                                                    {u.discovery_fixed ? "優先表示アカウント" : "プロフィールカードを見る"}
+                                                </div>
+                                                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 999, background: `${rc}24`, border: `1px solid ${rc}45`, color: "#FFFFFF", fontSize: 10, fontWeight: 800, boxShadow: `0 10px 24px ${rc}18` }}>
+                                                    Open Profile →
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.button>,
                                 );
-                            }
-                            nodes.push(
-                                <motion.button key={`user-${u.slug}-${absoluteIndex}`} type="button" onClick={() => { trackDiscoveryEvent({ eventType: "detail_open", targetSlug: u.slug }); onOpenProfile?.(u.slug); }} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} style={{ textDecoration: "none", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
-                                    <div style={{ position: "relative", overflow: "hidden", borderRadius: 16, padding: "14px", minHeight: 204, background: u.discovery_fixed ? `linear-gradient(155deg, ${rc}16, rgba(255,255,255,0.02))` : "linear-gradient(155deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))", border: `1px solid ${rc}40` }}>
-                                        <div style={{ position: "absolute", right: -24, top: -24, width: 90, height: 90, borderRadius: "50%", background: `radial-gradient(circle, ${rc}28, transparent 70%)`, pointerEvents: "none" }} />
-                                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                                            <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: `${rc}25`, border: `1px solid ${rc}40`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: rc, flexShrink: 0 }}>
-                                                {u.avatar_url ? <img src={u.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : u.display_name?.[0]?.toUpperCase()}
-                                            </div>
-                                            <div style={{ minWidth: 0, flex: 1 }}>
-                                                <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.display_name}</p>
-                                                <p style={{ margin: 0, fontSize: 9, color: t.sub, opacity: 0.7 }}>ユーザーID: {u.slug}</p>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                                            <SponsorBadge plan={u.sponsor_plan ?? null} />
-                                            {u.discovery_fixed ? (
-                                                <span style={{ fontSize: 8, fontFamily: "monospace", padding: "2px 6px", borderRadius: 999, background: `${rc}20`, color: rc }}>
-                                                    固定表示
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                                            <span style={{ fontSize: 8, fontFamily: "monospace", padding: "2px 6px", borderRadius: 999, background: `${rc}20`, color: rc }}>{u.role}</span>
-                                            <span style={{ fontSize: 8, fontFamily: "monospace", padding: "2px 6px", borderRadius: 999, background: "rgba(255,255,255,0.06)", color: t.sub }}>{locationLabel || "-"}</span>
-                                            {u.sport ? <span style={{ fontSize: 8, fontFamily: "monospace", padding: "2px 6px", borderRadius: 999, background: "rgba(255,255,255,0.06)", color: t.sub }}>{u.sport}</span> : null}
-                                        </div>
-                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
-                                            <span style={{ fontSize: 10, color: "#FFD600", fontFamily: "monospace" }}>★ {u.cheer_count}</span>
-                                            <span style={{ fontSize: 10, color: t.sub, opacity: 0.75, fontFamily: "monospace" }}>紹介 {u.referral_count}</span>
-                                        </div>
-                                        <div style={{ marginTop: 8, display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 8px", borderRadius: 99, background: `${rc}18`, border: `1px solid ${rc}35`, color: rc, fontSize: 9, fontWeight: 800 }}>
-                                            プロフィールを見る →
-                                        </div>
-                                    </div>
-                                </motion.button>,
-                            );
-                            return nodes;
-                        })}
-                    </div>
-                    {users.length > PAGE_SIZE ? (
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14 }}>
-                            <span style={{ fontSize: 11, color: t.sub }}>ページ {page} / {totalPages}</span>
-                            <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                                    disabled={page === 1}
-                                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: page === 1 ? t.sub : t.text, cursor: page === 1 ? "not-allowed" : "pointer" }}
-                                >
-                                    前へ
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                                    disabled={page === totalPages}
-                                    style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: `${roleColor}16`, color: page === totalPages ? t.sub : roleColor, cursor: page === totalPages ? "not-allowed" : "pointer" }}
-                                >
-                                    次へ
-                                </button>
-                            </div>
+                                return nodes;
+                            })}
                         </div>
-                    ) : null}
+                        {users.length > PAGE_SIZE ? (
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14 }}>
+                                <span style={{ fontSize: 11, color: t.sub }}>ページ {page} / {totalPages}</span>
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                                        disabled={page === 1}
+                                        style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: page === 1 ? t.sub : t.text, cursor: page === 1 ? "not-allowed" : "pointer" }}
+                                    >
+                                        前へ
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                                        disabled={page === totalPages}
+                                        style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: `${roleColor}16`, color: page === totalPages ? t.sub : roleColor, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+                                    >
+                                        次へ
+                                    </button>
+                                </div>
+                            </div>
+                        ) : null}
                     </>
                 )}
                 <p style={{ margin: "10px 0 0", fontSize: 10, color: t.sub, opacity: 0.55 }}>

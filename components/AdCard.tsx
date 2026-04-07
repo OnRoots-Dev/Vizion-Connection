@@ -27,7 +27,7 @@ interface AdCardProps {
 
 export default function AdCard({ ad, size, plan }: AdCardProps) {
     const resolvedPlan = plan ?? ad.plan;
-    const resolvedSize = resolveSize(resolvedPlan, size);
+    const resolvedSize = size ?? ad.adSize ?? resolveSize(resolvedPlan, size);
 
     const rootClass = (() => {
         if (resolvedSize === "small") return "overflow-hidden rounded-xl border border-amber-300/20 bg-black/40";

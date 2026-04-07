@@ -33,7 +33,7 @@ export const dynamic_config = "force-static";
 export const metadata: Metadata = {
   title: "Vizion Connection | Beyond the Limit, Connect the Trust.",
   description:
-    "スポーツの「信頼」を新しい時代の資産に。アスリート・トレーナー・スポンサーが役割と信頼でつながるプラットフォーム。先行登録受付中。",
+    "スポーツの「信頼」を新しい時代の資産に。アスリート・トレーナー・スポンサーが役割と信頼でつながるプラットフォーム。登録受付中。",
   alternates: {
     canonical: "https://vizion-connection.jp",
   },
@@ -52,7 +52,7 @@ export default function Page() {
           style={{ background: "#3C8CFF", display: "flex" }}
         >
           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
-          <span>🏢 ビジネス先行枠 受付中 — 3/31 TUE 23:59 締切</span> {/* ← 修正 */}
+          <span>🏢 Businessプラン 受付中</span>
           <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
         </Link>
         <HeroSection />

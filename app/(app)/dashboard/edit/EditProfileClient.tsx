@@ -48,7 +48,7 @@ const BIO_PLACEHOLDER: Record<string, string> = {
     Business: "例）若手選手を応援したい",
 };
 
-export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?: () => void }) {
+export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord; onBack?: () => void; onSaved?: () => void | Promise<void> }) {
     const router = useRouter();
     const role = user.role;
     const rl = ROLE_COLOR[role] ?? "#a78bfa";
@@ -117,6 +117,7 @@ export function EditProfileClient({ user, onBack }: { user: UserRecord; onBack?:
                 }),
             });
             if (!res.ok) throw new Error("保存に失敗しました");
+            await onSaved?.();
             setSaved(true);
             setTimeout(() => { setSaved(false); onBack ? onBack() : router.push("/dashboard"); }, 1500);
         } catch (e: unknown) {

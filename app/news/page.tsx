@@ -19,8 +19,8 @@ export default async function NewsPage() {
         getFeaturedNewsPost(),
         getAdsForUser(user?.prefecture ?? "", user?.sport ?? undefined),
     ]);
-    const nationalMedium = ads.find((ad) => !isLocalPlan(ad.plan)) ?? null;
-    const localSmall = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
+    const nationalMedium = ads.find((ad) => ad.adScope === "national" || !isLocalPlan(ad.plan)) ?? null;
+    const localSmall = ads.find((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan)) ?? null;
 
     return (
         <main className="min-h-screen bg-[#07070c] px-4 py-10 text-white sm:px-6">

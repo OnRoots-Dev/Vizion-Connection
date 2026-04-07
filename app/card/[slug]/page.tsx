@@ -5,6 +5,9 @@ import { env } from "@/lib/env";
 import CardPageClient from "./CardPageClient";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import type { UserRole } from "@/features/auth/types";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { verifySession } from "@/lib/auth/session";
 
 const ROLE_LABEL_JA: Record<UserRole, string> = {
     Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス",
@@ -17,7 +20,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     const result = await getPublicProfileBySlug(slug);
-    if (!result.success || !result.data.isPublic) {
+    if (!result.success) {
         return { title: "Vizion Connection", robots: { index: false, follow: false } };
     }
     const { displayName, role } = result.data;
@@ -38,9 +41,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CardPage({ params }: Props) {
     const { slug } = await params;
-    const result = await getPublicProfileBySlug(slug);
-    if (!result.success) notFound();
-    if (!result.data.isPublic) return <PrivateProfilePage displayName={result.data.displayName} />;
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+    const session = token ? verifySession(token) : null;
+    const result = await getPublicProfileBySlug(slug, session?.slug ?? null);
+    if (!result.success) {
+        if (result.reason === "forbidden") {
+            return <PrivateProfilePage displayName={slug} />;
+        }
+        notFound();
+    }
+    if (result.data.isPublic === false && session?.slug !== slug) {
+        return <PrivateProfilePage displayName={result.data.displayName} />;
+    }
 
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     return (

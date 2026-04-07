@@ -2,6 +2,10 @@ export interface AdItem {
     id: string;
     businessId: number;
     plan: string;
+    adSize: "small" | "medium" | "large" | "hero" | null;
+    adScope: "regional" | "national" | null;
+    region: string | null;
+    planPriority: number;
     prefecture: string | null;
     sportCategory: string | null;
     imageUrl: string | null;
@@ -14,13 +18,10 @@ export interface AdItem {
     createdAt: string;
 }
 
-export const LOCAL_AD_PLANS = ["local", "local_premium"] as const;
-export const NATIONAL_AD_PLANS = ["entry", "starter", "impact", "prime", "champion", "executive", "title"] as const;
-
 export function isLocalPlan(plan: string): boolean {
-    return (LOCAL_AD_PLANS as readonly string[]).includes(plan);
+    return plan === "regional" || plan === "roots" || plan === "roots_plus" || plan === "local" || plan === "local_premium";
 }
 
 export function isNationalPlan(plan: string): boolean {
-    return (NATIONAL_AD_PLANS as readonly string[]).includes(plan);
+    return !isLocalPlan(plan);
 }

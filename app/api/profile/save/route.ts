@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { profileLimiter, getIp } from "@/lib/ratelimit";
+import { rewardOnetimeMission } from "@/lib/onetime-missions";
 
 export async function POST(req: NextRequest) {
     const cookieStore = await cookies();
@@ -36,6 +37,11 @@ export async function POST(req: NextRequest) {
         avatarUrl: body.avatarUrl,
         ...(typeof body.isPublic === "boolean" ? { isPublic: body.isPublic } : {}),
     });
+
+    const hasProfileDetails = Boolean(body.bio || body.sport || body.region);
+    if (hasProfileDetails) {
+        await rewardOnetimeMission(user.slug, "profile_completed");
+    }
 
     return NextResponse.json({ ok: true });
 }

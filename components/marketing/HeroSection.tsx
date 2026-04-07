@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
 import {
   motion,
@@ -32,7 +31,6 @@ export function HeroSection() {
           style={{ scale, opacity }}
           className="relative z-10 flex flex-col items-center text-center"
         >
-          {/* ← 修正: 先行登録期間バッジ */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -47,7 +45,7 @@ export function HeroSection() {
               style={{ background: "#FFD600" }}
             />
             <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#FFD600" }}>
-              先行登録期間: 3/23 MON 15:00 〜 3/31 TUE 23:59
+              Founding Member 残り100名 - 登録受付中
             </span>
           </motion.div>
 

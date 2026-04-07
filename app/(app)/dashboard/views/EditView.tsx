@@ -9,22 +9,13 @@ export function EditView({ profile, t: _t, roleColor: _rc, onBack, onSave }: {
     t: ThemeColors;
     roleColor: string;
     onBack: () => void;
-    onSave: (p: ProfileData) => void;
+    onSave: (p?: ProfileData) => void | Promise<void>;
 }) {
     return (
         <EditProfileClient
             user={profile as any}
-            onBack={async () => {
-                try {
-                    const res = await fetch("/api/profile/me");
-                    if (res.ok) {
-                        const data = await res.json();
-                        onSave(data.profile);
-                        return;
-                    }
-                } catch {}
-                onBack();
-            }}
+            onSaved={onSave}
+            onBack={onBack}
         />
     );
 }

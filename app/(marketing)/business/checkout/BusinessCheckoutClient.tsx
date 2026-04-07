@@ -1,33 +1,18 @@
 // app/(marketing)/business/checkout/BusinessCheckoutClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
 
 type CheckoutState = "idle" | "loading" | "error";
 
-const DEADLINE = new Date("2026-04-09T12:00:00+09:00");
-
-function calcTimeLeft() {
-  const diff = DEADLINE.getTime() - Date.now();
-  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
-  };
-}
-
 export default function BusinessCheckoutClient({
   plans,
-  deadlineText,
   initialPlanId,
 }: {
   plans: BusinessPlanWithAvailability[];
-  deadlineText: string;
   initialPlanId: string | null;
 }) {
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(
@@ -35,15 +20,6 @@ export default function BusinessCheckoutClient({
   );
   const [state, setState] = useState<CheckoutState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [timeLeft, setTimeLeft] = useState<ReturnType<typeof calcTimeLeft> | null>(null);
-
-  useEffect(() => {
-    setTimeLeft(calcTimeLeft());
-    const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const isExpired = DEADLINE.getTime() - Date.now() <= 0;
 
   async function handleCheckout() {
     if (!selectedPlanId) return;
@@ -122,44 +98,19 @@ export default function BusinessCheckoutClient({
             {/* ── Header block ── */}
             <div className="anim-fade-up mb-11">
 
-              {/* Deadline badge */}
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#ff6b5b]/25 bg-[#ff6b5b]/7 px-3.5 py-1.5">
-                <span className="anim-blink h-1.5 w-1.5 rounded-full bg-[#ff6b5b]" />
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[.12em] text-[#ff6b5b]">
-                  {deadlineText}
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#00d2ff]/25 bg-[#00d2ff]/7 px-3.5 py-1.5">
+                <span className="anim-blink h-1.5 w-1.5 rounded-full bg-[#00d2ff]" />
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[.12em] text-[#00d2ff]">
+                  Business Plans Available
                 </span>
               </div>
 
               <h1 className="mb-3 text-[clamp(1.8rem,5vw,2.6rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-white">
-                先行ポジションを選択
+                Businessプランを選択
               </h1>
               <p className="text-[.84rem] font-light leading-relaxed text-[#5a6070]">
                 プランを選んで申し込みボタンを押すと、Square の安全な決済ページへ移動します
               </p>
-
-              {/* Countdown */}
-              {!isExpired ? (
-                <div className="flex items-center gap-2 pt-6 pb-2">
-                  {([["Days", timeLeft?.days], ["Hours", timeLeft?.hours], ["Min", timeLeft?.minutes], ["Sec", timeLeft?.seconds]] as [string, number | undefined][])
-                    .map(([label, value], i) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <div className="flex flex-col items-center gap-1">
-                          <div
-                            key={`${label}-${value}`}
-                            className="anim-flip min-w-[58px] rounded-lg border border-[#00d2ff]/12 bg-[#13151f] px-2 py-2.5 text-center font-mono text-[1.8rem] font-extrabold leading-none tracking-tight text-white"
-                          >
-                            {timeLeft ? String(value).padStart(2, "0") : "--"}
-                          </div>
-                          <span className="font-mono text-[8px] uppercase tracking-[.15em] text-[#3a3f50]">{label}</span>
-                        </div>
-                        {i < 3 && <span className="pb-4 text-[1.6rem] font-extrabold leading-none text-[#3a3f50]">:</span>}
-                      </div>
-                    ))
-                  }
-                </div>
-              ) : (
-                <p className="mt-4 text-[.85rem] font-bold text-[#ff6b5b]">申込受付は終了しました</p>
-              )}
             </div>
 
             {/* ── Plan cards (ChatGPT-style comparison) ── */}
@@ -322,7 +273,7 @@ export default function BusinessCheckoutClient({
                     </div>
                     <button
                       onClick={handleCheckout}
-                      disabled={state === "loading" || isExpired}
+                      disabled={state === "loading"}
                       className="shrink-0 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.8rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white hover:shadow-[0_0_32px_rgba(0,210,255,0.45)] disabled:cursor-not-allowed disabled:opacity-45"
                     >
                       {state === "loading" ? "処理中..." : `${selectedPlan.priceLabel} で申し込む →`}
@@ -333,7 +284,7 @@ export default function BusinessCheckoutClient({
                     <p className="text-center font-mono text-[.68rem] tracking-[.06em] text-[#3a3f50]">
                       請求書払い・振込をご希望の方は{" "}
                       <a
-                        href={`/business/contact?plan=${selectedPlan.id}`}
+                        href={`/contact?plan=${selectedPlan.id}`}
                         className="text-[#00d2ff]/70 underline underline-offset-2 hover:text-[#00d2ff] transition-colors"
                       >
                         こちら
@@ -341,16 +292,6 @@ export default function BusinessCheckoutClient({
                       {" "}からお問い合わせください
                     </p>
                   )}
-                  <p className="text-center font-mono text-[.66rem] tracking-[.06em] text-[#3a3f50]">
-                    決済完了後は{" "}
-                    <a
-                      href="/business/checkout/complete"
-                      className="text-[#00d2ff]/70 underline underline-offset-2 hover:text-[#00d2ff] transition-colors"
-                    >
-                      完了ページ
-                    </a>
-                    {" "}でプラン有効化を行ってください
-                  </p>
                 </div>
               ) : (
                 <p className="py-1 text-center font-mono text-[.78rem] tracking-[.08em] text-[#3a3f50]">

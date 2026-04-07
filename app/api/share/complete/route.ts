@@ -6,6 +6,7 @@ import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
 import { shareLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
+import { rewardOnetimeMission } from "@/lib/onetime-missions";
 
 export async function POST(req: Request) {
     try {
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
 
         if (!user.hasShared) {
             await updateUserProfile(user.slug, { hasShared: true });
+            await rewardOnetimeMission(user.slug, "profile_shared");
         }
 
         return NextResponse.json({ success: true });

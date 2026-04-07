@@ -1,115 +1,75 @@
 import { supabaseServer } from "@/lib/supabase/server";
-import { LOCAL_AD_PLANS, NATIONAL_AD_PLANS } from "@/lib/ads-shared";
 import type { AdItem } from "@/lib/ads-shared";
 
 function shuffle<T>(input: T[]): T[] {
-    const arr = [...input];
-    for (let i = arr.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function nowIso(): string {
-    return new Date().toISOString();
+  const arr = [...input];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
 function toAd(row: Record<string, unknown>): AdItem {
-    return {
-        id: String(row.id),
-        businessId: Number(row.business_id),
-        plan: String(row.plan ?? ""),
-        prefecture: row.prefecture ? String(row.prefecture) : null,
-        sportCategory: row.sport_category ? String(row.sport_category) : null,
-        imageUrl: row.image_url ? String(row.image_url) : null,
-        linkUrl: row.link_url ? String(row.link_url) : null,
-        headline: String(row.headline ?? ""),
-        bodyText: row.body_text ? String(row.body_text) : null,
-        isActive: Boolean(row.is_active),
-        startsAt: String(row.starts_at ?? ""),
-        endsAt: row.ends_at ? String(row.ends_at) : null,
-        createdAt: String(row.created_at ?? ""),
-    };
+  const adScopeValue = row.ad_scope ?? row.adScope;
+  const planValue = row.plan ?? row.plan_id ?? "";
+  const regionValue = row.region ?? row.prefecture ?? null;
+
+  return {
+    id: String(row.id),
+    businessId: Number(row.business_id ?? 0),
+    plan: String(planValue),
+    adSize: row.ad_size
+      ? (String(row.ad_size) as AdItem["adSize"])
+      : null,
+    adScope: adScopeValue
+      ? (String(adScopeValue) as AdItem["adScope"])
+      : null,
+    region: regionValue ? String(regionValue) : null,
+    planPriority: Number(row.plan_priority ?? 0),
+    prefecture: row.prefecture ? String(row.prefecture) : regionValue ? String(regionValue) : null,
+    sportCategory: row.sport_category ? String(row.sport_category) : null,
+    imageUrl: row.image_url ? String(row.image_url) : null,
+    linkUrl: row.link_url ? String(row.link_url) : null,
+    headline: String(row.headline ?? ""),
+    bodyText: row.body_text ? String(row.body_text) : null,
+    isActive: Boolean(row.is_active),
+    startsAt: String(row.starts_at ?? ""),
+    endsAt: row.ends_at ? String(row.ends_at) : null,
+    createdAt: String(row.created_at ?? ""),
+  };
 }
 
-export async function getAdsForUser(prefecture?: string | null, sport?: string): Promise<AdItem[]> {
-    try {
-        const now = nowIso();
-        const normalizedPrefecture = prefecture?.trim() ?? "";
+export async function getAdsForUser(userRegion?: string | null, _sport?: string): Promise<AdItem[]> {
+  try {
+    const normalizedRegion = userRegion?.trim() ?? "";
 
-        const nationalPromise = supabaseServer
-            .from("ads")
-            .select("*")
-            .eq("is_active", true)
-            .in("plan", [...NATIONAL_AD_PLANS])
-            .is("prefecture", null)
-            .lte("starts_at", now)
-            .or(`ends_at.is.null,ends_at.gte.${now}`);
+    const nationalPromise = supabaseServer
+      .from("ads")
+      .select("*")
+      .eq("ad_scope", "national")
+      .is("region", null)
+      .eq("is_active", true)
+      .order("plan_priority", { ascending: false })
+      .limit(1);
 
-        const localPromise = normalizedPrefecture
-            ? supabaseServer
-                .from("ads")
-                .select("*")
-                .eq("is_active", true)
-                .in("plan", [...LOCAL_AD_PLANS])
-                .eq("prefecture", normalizedPrefecture)
-                .lte("starts_at", now)
-                .or(`ends_at.is.null,ends_at.gte.${now}`)
-            : Promise.resolve({ data: [], error: null } as { data: any[]; error: null });
+    const regionalPromise = normalizedRegion
+      ? supabaseServer
+          .from("ads")
+          .select("*")
+          .eq("ad_scope", "regional")
+          .eq("region", normalizedRegion)
+          .eq("is_active", true)
+      : Promise.resolve({ data: [], error: null } as { data: any[]; error: null });
 
-        const [localRes, nationalRes] = await Promise.all([localPromise, nationalPromise]);
+    const [nationalRes, regionalRes] = await Promise.all([nationalPromise, regionalPromise]);
 
-        // 広告テーブル未作成・RLS・一時的障害時は静かにフォールバック
-        // （UI側ではプレースホルダーを表示するため、ここでのコンソール出力は抑制）
+    const nationalAds = nationalRes.error ? [] : (nationalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
+    const regionalAds = regionalRes.error ? [] : (regionalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
 
-        let localAds = localRes.error ? [] : (localRes.data ?? []).map((r) => toAd(r as Record<string, unknown>));
-        const nationalAds = nationalRes.error ? [] : (nationalRes.data ?? []).map((r) => toAd(r as Record<string, unknown>));
-
-        if (sport) {
-            const matched = localAds.filter((ad) => ad.sportCategory === sport);
-            const fallback = localAds.filter((ad) => ad.sportCategory !== sport);
-            localAds = [...matched, ...fallback];
-        }
-
-        const pickedLocal = shuffle(localAds).slice(0, 2);
-        const pickedNational = shuffle(nationalAds).slice(0, 1);
-
-        return [...pickedLocal, ...pickedNational];
-    } catch (err) {
-        console.error("[getAdsForUser]", err);
-        return [];
-    }
-}
-
-export async function getAdsForRegion(userRegion: string) {
-    try {
-        const { data: nationalAds } = await supabaseServer
-            .from("ads")
-            .select("*")
-            .eq("ad_scope", "national")
-            .eq("is_active", true)
-            .order("plan_priority", { ascending: false })
-            .limit(1);
-
-        const { data: regionalAds } = await supabaseServer
-            .from("ads")
-            .select("*")
-            .eq("ad_scope", "regional")
-            .eq("region", userRegion)
-            .eq("is_active", true)
-            .order("plan_priority", { ascending: false })
-            .limit(1);
-
-        return {
-            nationalAds: (nationalAds ?? []).map((row) => toAd(row as Record<string, unknown>)),
-            regionalAds: (regionalAds ?? []).map((row) => toAd(row as Record<string, unknown>)),
-        };
-    } catch (err) {
-        console.error("[getAdsForRegion]", err);
-        return {
-            nationalAds: [] as AdItem[],
-            regionalAds: [] as AdItem[],
-        };
-    }
+    return [...nationalAds, ...shuffle(regionalAds).slice(0, 2)];
+  } catch (err) {
+    console.error("[getAdsForUser]", err);
+    return [];
+  }
 }

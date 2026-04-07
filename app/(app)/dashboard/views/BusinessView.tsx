@@ -7,6 +7,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { BUSINESS_PLANS } from "@/features/business/constants";
 import type { PlanId } from "@/features/business/types";
+import { getPlanFeatures } from "@/features/business/plan-features";
 
 export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }: {
     profile: ProfileData;
@@ -17,6 +18,7 @@ export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }:
 }) {
     const bizColor = roleColor || "#3C8CFF";
     const isPaid = profile.plan === "paid" || Boolean(profile.sponsorPlan);
+    const currentPlanLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
     const [activeTab, setActiveTab] = useState<"ads" | "analytics" | "matching">("ads");
     const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(null);
     const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -89,7 +91,7 @@ export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }:
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <ViewHeader title="Business" sub="Vizion Businessポータル" onBack={() => setView("home")} t={t} roleColor={bizColor} />
+            <ViewHeader title="Business Hub" sub="Vizion Businessポータル" onBack={() => setView("home")} t={t} roleColor={bizColor} />
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 14, background: isPaid ? "rgba(60,140,255,0.07)" : "rgba(255,255,255,0.025)", border: `1px solid ${isPaid ? "rgba(60,140,255,0.25)" : t.border}` }}>
                 <div style={{ width: 40, height: 40, borderRadius: 11, background: isPaid ? "rgba(60,140,255,0.15)" : "rgba(255,255,255,0.06)", border: `1px solid ${isPaid ? "rgba(60,140,255,0.3)" : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
@@ -103,7 +105,7 @@ export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }:
                         </span>
                     </div>
                     <p style={{ fontSize: 10, color: t.sub, margin: "2px 0 0", opacity: 0.55 }}>
-                        {isPaid ? "広告・分析・マッチング機能が利用可能です" : "FREEプラン — 基本機能のみ利用可能"}
+                        {isPaid ? `現在のプラン: ${currentPlanLabel ?? "契約中"}` : "FREEプラン — 基本機能のみ利用可能"}
                     </p>
                 </div>
             </motion.div>
@@ -115,7 +117,7 @@ export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }:
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                             <div style={{ padding: "14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
                                 <p style={{ fontSize: 11, fontWeight: 900, color: t.sub, margin: "0 0 10px", fontFamily: "monospace", letterSpacing: "0.1em" }}>FREE</p>
-                                {[{ label: "Businessページ", ok: true }, { label: "公開プロフィール", ok: true }, { label: "ミッション参加", ok: true }, { label: "広告掲載", ok: false }, { label: "効果測定", ok: false }, { label: "マッチング", ok: false }].map(({ label, ok }) => (
+                                {[{ label: "Business Hub", ok: true }, { label: "公開プロフィール", ok: true }, { label: "ミッション参加", ok: true }, { label: "広告掲載", ok: false }, { label: "効果測定", ok: false }, { label: "マッチング", ok: false }].map(({ label, ok }) => (
                                     <div key={label} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
                                         <div style={{ width: 14, height: 14, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: ok ? "rgba(50,210,120,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${ok ? "rgba(50,210,120,0.3)" : "rgba(255,255,255,0.08)"}` }}>
                                             {ok ? <svg width={8} height={8} fill="none" viewBox="0 0 24 24" stroke="#32D278" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> : <div style={{ width: 4, height: 1.5, background: "rgba(255,255,255,0.2)", borderRadius: 1 }} />}
@@ -130,7 +132,7 @@ export function BusinessView({ profile, t, roleColor, setView, onProfilePatch }:
                                     <p style={{ fontSize: 11, fontWeight: 900, color: bizColor, margin: 0, fontFamily: "monospace", letterSpacing: "0.1em" }}>PAID</p>
                                     <span style={{ fontSize: 7, fontWeight: 900, padding: "1px 5px", borderRadius: 3, background: "rgba(60,140,255,0.2)", color: bizColor, fontFamily: "monospace" }}>推奨</span>
                                 </div>
-                                {["Businessページ", "公開プロフィール", "ミッション参加", "広告掲載", "効果測定", "マッチング"].map((label) => (
+                                {["Business Hub", "公開プロフィール", "ミッション参加", "広告掲載", "効果測定", "マッチング"].map((label) => (
                                     <div key={label} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
                                         <div style={{ width: 14, height: 14, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(60,140,255,0.15)", border: "1px solid rgba(60,140,255,0.3)" }}>
                                             <svg width={8} height={8} fill="none" viewBox="0 0 24 24" stroke={bizColor} strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

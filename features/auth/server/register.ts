@@ -5,6 +5,7 @@ import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
 import { issueVerifyToken } from "@/features/auth/server/tokens";
 import { registerSchema } from "@/features/auth/validation/register-schema";
 import type { RegisterInput, RegisterResponse } from "@/features/auth/types";
+import { rewardOnetimeMission } from "@/lib/onetime-missions";
 
 const FOUNDING_MEMBER_LIMIT = 100;
 
@@ -68,6 +69,8 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     if (!user) {
         return { success: false, error: "ユーザー作成に失敗しました" };
     }
+
+    await rewardOnetimeMission(user.slug, "register_complete");
 
     // 8. 認証トークン発行
     const { verifyUrl } = await issueVerifyToken(email, slug, input.redirectTo); // ← 修正

@@ -2,18 +2,26 @@
 
 import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import type { PublicProfileData } from "@/features/profile/types";
+import { canViewPrivateProfile } from "@/lib/supabase/follows";
 
 export type GetPublicProfileResult =
     | { success: true; data: PublicProfileData }
-    | { success: false; reason: "not_found" | "error" };
+    | { success: false; reason: "not_found" | "forbidden" | "error" };
 
 export async function getPublicProfileBySlug(
-    slug: string
+    slug: string,
+    viewerSlug?: string | null,
 ): Promise<GetPublicProfileResult> {
     try {
         const user = await findUserBySlug(slug);
         if (!user) return { success: false, reason: "not_found" };
         if (user.isDeleted) return { success: false, reason: "not_found" };
+        if (user.isPublic === false) {
+            const allowed = await canViewPrivateProfile(viewerSlug ?? null, user.slug);
+            if (!allowed) {
+                return { success: false, reason: "forbidden" };
+            }
+        }
 
         return {
             success: true,

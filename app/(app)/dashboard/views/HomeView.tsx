@@ -10,17 +10,10 @@ import type { AdItem } from "@/lib/ads-shared";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard, { AD_SIZE_MAP } from "@/components/AdCard";
 import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
+import { getPlanFeatures } from "@/features/business/plan-features";
+import { CollectionCarousel, type CollectionCardItem } from "@/components/collections/CollectionCarousel";
 
-type CollectedCard = {
-    targetSlug: string;
-    displayName: string;
-    role: string;
-    avatarUrl: string | null;
-    profileImageUrl: string | null;
-    serialId: string | null;
-    cheerCount: number;
-    isFoundingMember: boolean;
-};
+type CollectedCard = CollectionCardItem;
 
 type FeaturedNewsItem = {
     id: string;
@@ -60,14 +53,7 @@ const ROLE_LABEL: Record<string, string> = {
     Business: "BUSINESS",
 };
 
-const ROLE_BG: Record<string, string> = {
-    Athlete: "#2D0000",
-    Trainer: "#001A0A",
-    Members: "#1A0F00",
-    Business: "#000A24",
-};
-
-export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, ads, featuredNewsTop, onOpenNews }: {
+export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, ads, featuredNewsTop, onOpenNews, onOpenProfile }: {
     profile: ProfileData;
     referralUrl: string;
     referralCount: number;
@@ -77,12 +63,14 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     ads: AdItem[];
     featuredNewsTop: FeaturedNewsItem[];
     onOpenNews: (newsId: string) => void;
+    onOpenProfile: (slug: string) => void;
 }) {
     const REFERRAL_LIMIT = 30;
     const progress = Math.min((referralCount / REFERRAL_LIMIT) * 100, 100);
     const [copied, setCopied] = useState(false);
     const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
     const [discoveryPreview, setDiscoveryPreview] = useState<DiscoveryPreviewUser[]>([]);
+    const sponsorPlanLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
     const titleBaseStyle = {
         fontSize: 8,
         fontWeight: 900,
@@ -237,74 +225,17 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 <SectionCard t={t} accentColor={roleColor}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                         <SLabel text="Collection" color={roleColor} />
-                        <span style={{ fontSize: 10, color: t.sub }}>{collectedCards.length} cards</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, color: t.sub }}>{collectedCards.length} cards</span>
+                            <button onClick={() => setView("collections" as DashboardView)} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor }}>
+                                一覧 →
+                            </button>
+                        </div>
                     </div>
                     {collectedCards.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションはまだありません。公開プロフィールでカードをコレクトするとここに表示されます。</p>
                     ) : (
-                        <div style={{ overflowX: "auto", paddingBottom: 4 }}>
-                            <div style={{ display: "flex", alignItems: "stretch", minWidth: "max-content", paddingLeft: 2, paddingRight: 20 }}>
-                            {collectedCards.map((card, index) => {
-                                const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
-                                return (
-                                    <a
-                                        key={card.targetSlug}
-                                        href={`/u/${card.targetSlug}`}
-                                        style={{
-                                            position: "relative",
-                                            display: "block",
-                                            borderRadius: 14,
-                                            border: `1px solid ${t.border}`,
-                                            background: `linear-gradient(145deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, #050508 100%)`,
-                                            width: 232,
-                                            aspectRatio: "400 / 240",
-                                            overflow: "hidden",
-                                            textDecoration: "none",
-                                            color: "#fff",
-                                            marginLeft: index === 0 ? 0 : -78,
-                                            zIndex: collectedCards.length - index,
-                                            boxShadow: `0 14px 34px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
-                                            transform: `translateY(${index % 2 === 0 ? 0 : 8}px)`,
-                                        }}
-                                    >
-                                        {card.profileImageUrl ? (
-                                            <img src={card.profileImageUrl} alt={card.displayName} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.4 }} />
-                                        ) : null}
-                                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.82) 64%, rgba(0,0,0,0.95) 100%)" }} />
-                                        <div style={{ position: "absolute", top: 0, right: 0, width: 160, height: 160, background: `radial-gradient(circle, ${cardRoleColor}2f, transparent 70%)` }} />
-
-                                        <div style={{ position: "relative", zIndex: 1, height: "100%", padding: 12, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                                                <span style={{ fontSize: 8, fontFamily: "monospace", letterSpacing: "0.16em", color: "rgba(255,255,255,0.78)" }}>
-                                                    {ROLE_LABEL[card.role] ?? card.role}
-                                                </span>
-                                                <span style={{ fontSize: 9, color: card.isFoundingMember ? "#FFD600" : "rgba(255,255,255,0.75)" }}>
-                                                    {card.isFoundingMember ? "FOUNDING" : "EARLY"}
-                                                </span>
-                                            </div>
-
-                                            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                                                <div style={{ width: 34, height: 34, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 12, fontWeight: 800 }}>
-                                                    {card.avatarUrl ? <img src={card.avatarUrl} alt={card.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : card.displayName.slice(0, 1)}
-                                                </div>
-                                                <div style={{ minWidth: 0 }}>
-                                                    <p style={{ margin: 0, fontSize: 13, fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{card.displayName}</p>
-                                                    <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.7)" }}>@{card.targetSlug}</p>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                                                <p style={{ margin: 0, fontSize: 11, color: "#FFD600", fontFamily: "monospace", fontWeight: 900 }}>★ {card.cheerCount ?? 0}</p>
-                                                <p style={{ margin: 0, fontSize: 9, color: "rgba(255,255,255,0.66)", fontFamily: "monospace" }}>
-                                                    {card.serialId ? `#${String(card.serialId).padStart(4, "0")}` : "CARD"}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                );
-                            })}
-                            </div>
-                        </div>
+                        <CollectionCarousel cards={collectedCards} t={t} roleColor={roleColor} compact onOpenProfile={onOpenProfile} />
                     )}
                 </SectionCard>
             </motion.div>
@@ -369,7 +300,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                     <button
                                         key={user.slug}
                                         type="button"
-                                        onClick={() => setView("discovery")}
+                                        onClick={() => onOpenProfile(user.slug)}
                                         style={{
                                             display: "grid",
                                             gridTemplateColumns: "1fr auto",
@@ -408,14 +339,14 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 
             {profile.role === "Business" && (
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                    {profile.plan === "paid" ? (
+                    {profile.sponsorPlan ? (
                         <div style={{ borderRadius: 16, padding: "20px", background: "rgba(60,140,255,0.06)", border: "1px solid rgba(60,140,255,0.22)", position: "relative", overflow: "hidden" }}>
                             <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle,rgba(60,140,255,0.15),transparent 70%)", pointerEvents: "none" }} />
-                            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3C8CFF", margin: "0 0 5px", fontFamily: "monospace" }}>Business</p>
-                            <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: "0 0 4px" }}>広告・分析を管理する</p>
+                            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3C8CFF", margin: "0 0 5px", fontFamily: "monospace" }}>Business Hub</p>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: "0 0 4px" }}>現在のプラン: {sponsorPlanLabel ?? "契約中"}</p>
                             <p style={{ fontSize: 11, color: t.sub, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.7 }}>掲載中の広告や効果測定レポートを確認できます。</p>
                             <button onClick={() => setView("business")} className="vz-btn" style={{ padding: "8px 16px", borderRadius: 9, background: "rgba(60,140,255,0.15)", border: "1px solid rgba(60,140,255,0.3)", color: "#3C8CFF", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                                Businessページへ →
+                                Business Hubへ →
                             </button>
                         </div>
                     ) : (
@@ -458,6 +389,3 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         </div>
     );
 }
-
-
-

@@ -40,13 +40,10 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
     setView: (v: DashboardView) => void;
     onProfilePatch: (patch: Partial<ProfileData>) => void;
 }) {
-    const [claiming, setClaiming] = useState(false);
-    const [message, setMessage] = useState("");
     const [tab, setTab] = useState<"onetime" | "daily">("onetime");
     const [dailyMissions, setDailyMissions] = useState<DailyMissionWithProgress[]>([]);
     const [onetimeMissions, setOnetimeMissions] = useState<OnetimeMission[]>([]);
     const [loadingDaily, setLoadingDaily] = useState(true);
-    const canClaim = !profile.missionBonusGiven;
     const fallbackOnetime = useMemo(() => buildFallbackOnetimeMissions({
         verified: profile.verified,
         hasShared: profile.hasShared ?? false,
@@ -97,32 +94,6 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
 
         return () => { cancelled = true; };
     }, [fallbackOnetime]);
-
-    async function handleClaimBonus() {
-        if (claiming || !allDone || !canClaim) return;
-        setClaiming(true);
-        setMessage("");
-        try {
-            const res = await fetch("/api/missions", { method: "POST" });
-            const json = await res.json();
-            if (!res.ok || !json.ok) {
-                setMessage("達成条件を満たしていないか、受け取り済みです。");
-                return;
-            }
-            const added = Number(json.pointsAdded ?? 0);
-            const currentPoints = Number(json.currentPoints ?? (profile.points ?? 0) + added);
-            onProfilePatch({
-                points: currentPoints,
-                missionBonusGiven: true,
-            });
-            missionsSnapshotCache = null;
-            setMessage(`+${added.toLocaleString()}pt を受け取りました。`);
-        } catch {
-            setMessage("受け取りに失敗しました。");
-        } finally {
-            setClaiming(false);
-        }
-    }
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -192,23 +163,9 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                                 <motion.div initial={{ width: 0 }} animate={{ width: `${(completedCount / MISSIONS.length) * 100}%` }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                                     style={{ height: "100%", borderRadius: 99, background: allDone ? "linear-gradient(90deg,#FFD600,#FFD60066)" : `linear-gradient(90deg,${roleColor},${roleColor}66)`, boxShadow: allDone ? "0 0 10px rgba(255,214,0,0.4)" : `0 0 10px ${roleColor}40` }} />
                             </div>
-                            {allDone && (
-                                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: 12, padding: "10px 14px", borderRadius: 10, background: "rgba(255,214,0,0.07)", border: "1px solid rgba(255,214,0,0.22)", display: "flex", alignItems: "center", gap: 10 }}>
-                                    <span style={{ fontSize: 20 }}>🏆</span>
-                                    <p style={{ fontSize: 12, fontWeight: 800, color: "#FFD600", margin: 0 }}>全ミッション達成！ボーナス +1000pt</p>
-                                </motion.div>
-                            )}
-                            {allDone && (
-                                <button
-                                    type="button"
-                                    onClick={handleClaimBonus}
-                                    disabled={!canClaim || claiming}
-                                    style={{ marginTop: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,214,0,0.3)", background: canClaim ? "rgba(255,214,0,0.16)" : "rgba(255,255,255,0.06)", color: canClaim ? "#FFD600" : t.sub, fontSize: 12, fontWeight: 800, cursor: canClaim ? "pointer" : "not-allowed" }}
-                                >
-                                    {profile.missionBonusGiven ? "受け取り済み" : claiming ? "処理中..." : "ボーナスポイントを受け取る"}
-                                </button>
-                            )}
-                            {message && <p style={{ margin: "8px 0 0", fontSize: 11, color: "#FFD600" }}>{message}</p>}
+                            <p style={{ margin: "10px 0 0", fontSize: 11, color: allDone ? "#FFD600" : t.sub }}>
+                                初期ミッションのポイントは、達成したタイミングで自動反映されます。
+                            </p>
                         </SectionCard>
 
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

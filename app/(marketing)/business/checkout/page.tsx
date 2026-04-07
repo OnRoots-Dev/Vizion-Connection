@@ -26,7 +26,6 @@ export default async function BusinessCheckoutPage({
   return (
     <BusinessCheckoutClient
       plans={plansWithAvailability}
-      deadlineText="申込締切: 2026年4月9日 12:00まで"
       initialPlanId={resolvedSearchParams.plan ?? null}
     />
   );

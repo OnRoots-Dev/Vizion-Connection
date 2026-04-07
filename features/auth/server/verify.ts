@@ -7,6 +7,7 @@ import { sendVerifiedEmail } from "@/lib/resend/send-verified-email";
 import { signSession } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
+import { rewardOnetimeMission } from "@/lib/onetime-missions";
 
 type VerifyResult =
     | {
@@ -71,6 +72,7 @@ export async function verifyEmailToken(token: string): Promise<VerifyResult> {
     }
 
     await markUserVerified(user.slug);
+    await rewardOnetimeMission(user.slug, "email_verified");
 
     await sendVerifiedEmail({
         to: user.email,
@@ -143,4 +145,9 @@ async function handleReferralReward(user: {
 
     await addPointsToUser(referrer.slug, POINTS_PER_REFERRAL);
     await addPointsToUser(user.slug, POINTS_PER_REFERRAL);
+
+    const nextCount = currentCount + 1;
+    if (nextCount >= 3) {
+        await rewardOnetimeMission(referrer.slug, "invite_three");
+    }
 }
