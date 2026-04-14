@@ -26,8 +26,8 @@ export const VOICELAB_CATEGORY_LABEL: Record<VoiceLabCategory, string> = {
 };
 
 export const VOICELAB_STATUS_LABEL: Record<VoiceLabStatus, string> = {
-    open: "受付中",
+    open: "未対応",
     reviewing: "対応中",
-    planned: "実装予定",
-    done: "対応完了",
+    planned: "検討中",
+    done: "対応済み",
 };

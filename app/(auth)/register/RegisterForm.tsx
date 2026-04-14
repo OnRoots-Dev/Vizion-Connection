@@ -90,8 +90,7 @@ export default function RegisterForm() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
-            style={{ background: "#07070e" }}>
+        <div className="vc-auth-shell">
 
             <Link href="/" className="mb-4 tracking-[0.2em]">
                 <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={300} height={80} priority className="inline-block w-auto h-20" />
@@ -102,7 +101,7 @@ export default function RegisterForm() {
                     <h1 className="text-2xl font-bold text-white">新規登録</h1>
                     <p className="text-sm text-white/40">あなたのロールを選んで登録してください</p>
                     {refSlug && (
-                        <p className="text-xs font-mono mt-2" style={{ color: "#a78bfa" }}>
+                        <p className="mt-2 text-xs font-mono text-[#a78bfa]">
                             紹介コード: {refSlug}
                         </p>
                     )}
@@ -121,7 +120,7 @@ export default function RegisterForm() {
                                         border: `1.5px solid ${isSelected ? r.color : "#1e1e2a"}`,
                                         boxShadow: isSelected ? `0 0 16px ${r.color}30` : "none",
                                     }}>
-                                    <div className="text-xs font-bold mb-0.5" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
+                                    <div className="mb-0.5 text-xs font-bold" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
                                     <div className="text-[10px]" style={{ color: isSelected ? "rgba(255,255,255,0.5)" : "#333" }}>{r.desc}</div>
                                 </div>
                             </label>
@@ -131,8 +130,7 @@ export default function RegisterForm() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div
-                        className="rounded-xl px-4 py-3 text-[11px] font-medium leading-relaxed text-[#FFD600]"
-                        style={{ background: "rgba(255,214,0,0.08)", border: "1px solid rgba(255,214,0,0.45)" }}
+                        className="rounded-xl border border-[rgba(255,214,0,0.45)] bg-[rgba(255,214,0,0.08)] px-4 py-3 text-[11px] font-medium leading-relaxed text-[#FFD600]"
                     >
                         ※ 登録フォームの入力項目はすべて必須です。
                     </div>
@@ -142,10 +140,8 @@ export default function RegisterForm() {
                             <label className="text-xs text-white/40 font-medium">表示名</label>
                             <input type="text" required placeholder="Sho Tanaka" value={form.displayName}
                                 onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                                className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
-                                style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                                onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                                onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
+                                className="vc-auth-input"
+                                style={{ ["--vc-focus-color" as string]: selectedRole.color }} />
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-xs text-white/40 font-medium">ユーザーID</label>
@@ -153,15 +149,11 @@ export default function RegisterForm() {
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono select-none">@</span>
                                 <input type="text" required placeholder="tanaka10" value={form.slug}
                                     onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                                    className="w-full rounded-xl py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
+                                    className="vc-auth-input pr-4 pl-7"
                                     style={{
-                                        background: "#111118",
-                                        border: "1.5px solid #1e1e2a",
-                                        paddingLeft: "1.75rem",
-                                        paddingRight: "1rem",
+                                        ["--vc-focus-color" as string]: selectedRole.color,
                                     }}
-                                    onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                                    onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
+                                />
                             </div>
                         </div>
                     </div>
@@ -176,10 +168,8 @@ export default function RegisterForm() {
                             required
                             value={form.region}
                             onChange={(e) => setForm({ ...form, region: e.target.value })}
-                            className="w-full rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
-                            style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                            onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                            onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                            className="vc-auth-input"
+                            style={{ ["--vc-focus-color" as string]: selectedRole.color }}
                         >
                             <option value="" disabled>選択してください</option>
                             {REGIONS.map((region) => (
@@ -192,10 +182,8 @@ export default function RegisterForm() {
                         <label className="text-xs text-white/40 font-medium">メールアドレス</label>
                         <input type="email" required placeholder="you@example.com" value={form.email}
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
-                            style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                            onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                            onBlur={(e) => e.target.style.borderColor = "#1e1e2a"} />
+                            className="vc-auth-input"
+                            style={{ ["--vc-focus-color" as string]: selectedRole.color }} />
                     </div>
 
                     {/*パスワード入力 + 目マーク + 注意書き */}
@@ -208,10 +196,8 @@ export default function RegisterForm() {
                                 placeholder="8文字以上"
                                 value={form.password}
                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-white/20 outline-none transition-all"
-                                style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                                onFocus={(e) => e.target.style.borderColor = selectedRole.color}
-                                onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                                className="vc-auth-input pr-11"
+                                style={{ ["--vc-focus-color" as string]: selectedRole.color }}
                             />
                             <button
                                 type="button"
@@ -228,8 +214,7 @@ export default function RegisterForm() {
                     </div>
 
                     {error && (
-                        <div className="rounded-xl px-4 py-3 text-sm text-red-400"
-                            style={{ background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)" }}>
+                        <div className="rounded-xl border border-[rgba(255,80,80,0.2)] bg-[rgba(255,80,80,0.08)] px-4 py-3 text-sm text-red-400">
                             {error}
                         </div>
                     )}

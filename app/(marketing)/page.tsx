@@ -48,8 +48,7 @@ export default function Page() {
         {/* ビジネス動線バナー */}
         <Link
           href="/business"
-          className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-bold text-white hover:opacity-90 transition-opacity w-full"
-          style={{ background: "#3C8CFF", display: "flex" }}
+          className="flex w-full items-center justify-center gap-2 bg-[#3C8CFF] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
           <span>🏢 Businessプラン 受付中</span>

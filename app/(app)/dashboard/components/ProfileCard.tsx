@@ -32,7 +32,8 @@ function SnsIconBtn({ label, href, color, path }: {
     if (!href) return null;
     return (
         <a href={href} target="_blank" rel="noopener noreferrer" title={label}
-            style={{ width: 24, height: 24, borderRadius: 6, background: `${color}18`, border: `1px solid ${color}35`, display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", flexShrink: 0 }}>
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] no-underline"
+            style={{ background: `${color}18`, border: `1px solid ${color}35` }}>
             <svg viewBox="0 0 24 24" width={11} height={11} fill={color}><path d={path} /></svg>
         </a>
     );
@@ -245,30 +246,43 @@ export function ProfileCardSection({
     t,
     roleColor,
     setView,
+    preloadQr = false,
+    introAnimation = false,
+    mode = "full",
 }: {
     profile: ProfileData;
     t: ThemeColors;
     roleColor?: string;
     setView?: (view: DashboardView) => void;
+    preloadQr?: boolean;
+    introAnimation?: boolean;
+    mode?: "full" | "public";
 }) {
     const [isFlipped, setIsFlipped] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
     const [qrDataUrl, setQrDataUrl] = useState<string>("");
     useEffect(() => {
+        if (!preloadQr && !isFlipped) return;
+        let active = true;
         QRCode.toDataURL(
             `https://vizion-connection.jp/u/${profile.slug}`,
             { width: 88, margin: 1, color: { dark: "#111111", light: "#f0f0f0" } }
-        ).then(setQrDataUrl).catch(() => { });
-    }, [profile.slug]);
+        ).then((url) => {
+            if (active) setQrDataUrl(url);
+        }).catch(() => { });
+        return () => { active = false; };
+    }, [isFlipped, preloadQr, profile.slug]);
 
-    const [generated, setGenerated] = useState(false);
+    const [generated, setGenerated] = useState(!introAnimation);
     const [showScan, setShowScan] = useState(false);
     const [cheerModalOpen, setCheerModalOpen] = useState(false);
 
     useEffect(() => {
+        if (!introAnimation) return;
         const t1 = setTimeout(() => setShowScan(true), 300);
         const t2 = setTimeout(() => { setShowScan(false); setGenerated(true); }, 1400);
         return () => { clearTimeout(t1); clearTimeout(t2); };
-    }, [profile.slug]);
+    }, [introAnimation, profile.slug]);
 
     const mx = useMotionValue(0);
     const my = useMotionValue(0);
@@ -279,11 +293,12 @@ export function ProfileCardSection({
 
     function onMove(e: MouseEvent<HTMLDivElement>) {
         if (isFlipped) return;
+        setIsHovered(true);
         const r = e.currentTarget.getBoundingClientRect();
         mx.set((e.clientX - r.left) / r.width - 0.5);
         my.set((e.clientY - r.top) / r.height - 0.5);
     }
-    function onLeave() { mx.set(0); my.set(0); }
+    function onLeave() { setIsHovered(false); mx.set(0); my.set(0); }
 
     const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "#a78bfa");
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
@@ -294,6 +309,7 @@ export function ProfileCardSection({
     const latestCheer = latestCheers[0];
     const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
+    const isPublicMode = mode === "public";
 
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
@@ -323,33 +339,51 @@ export function ProfileCardSection({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             style={{
-                borderRadius: 16,
-                padding: 20,
-                background: `linear-gradient(145deg, ${rl}12 0%, ${bg1}88 18%, ${t.surface} 100%)`,
-                border: `1px solid ${rl}28`,
-                boxShadow: `0 14px 40px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.03)`,
+                borderRadius: isPublicMode ? 0 : 16,
+                padding: isPublicMode ? 0 : 20,
+                background: isPublicMode ? "transparent" : `linear-gradient(145deg, ${rl}12 0%, ${bg1}88 18%, ${t.surface} 100%)`,
+                border: isPublicMode ? "none" : `1px solid ${rl}28`,
+                boxShadow: isPublicMode
+                    ? "none"
+                    : isHovered
+                        ? `0 18px 48px rgba(0,0,0,0.34), 0 0 0 1px ${rl}18, 0 0 42px ${rl}28, inset 0 1px 0 rgba(255,255,255,0.05)`
+                        : `0 14px 40px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.03)`,
+                transition: isPublicMode ? undefined : "box-shadow 0.22s ease, border-color 0.22s ease, transform 0.22s ease",
             }}
         >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub, margin: 0, opacity: 0.6 }}>Profile Card</p>
-                <div style={{ display: "flex", gap: 6 }}>
-                    <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: `${rl}15`, color: rl, border: `1px solid ${rl}30`, fontWeight: 700 }}>{ROLE_LABEL[profile.role]}</span>
+            {!isPublicMode && <div className="mb-4 flex items-center justify-between">
+                <p className="m-0 text-[9px] font-extrabold uppercase tracking-[0.2em] opacity-60" style={{ color: t.sub }}>Profile Card</p>
+                <div className="flex gap-[6px]">
+                    <span className="rounded-[20px] px-2 py-[3px] text-[9px] font-bold" style={{ background: `${rl}15`, color: rl, border: `1px solid ${rl}30` }}>{ROLE_LABEL[profile.role]}</span>
                     {setView ? (
-                        <button onClick={() => setView("profile")} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 9, fontWeight: 800, cursor: "pointer" }}>
+                        <button onClick={() => setView("profile")} className="flex cursor-pointer items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
                             <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                             プロフィール表示
                         </button>
                     ) : (
-                        <a href={`/u/${profile.slug}`} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 9px", borderRadius: 20, background: `${rl}12`, border: `1px solid ${rl}30`, color: rl, fontSize: 9, fontWeight: 800, textDecoration: "none" }}>
+                        <a href={`/u/${profile.slug}`} className="flex items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold no-underline" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
                             <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                             公開ページ
                         </a>
                     )}
                 </div>
-            </div>
+            </div>}
 
             <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                    <div
+                        style={{
+                            position: "absolute",
+                            inset: "-10% -8%",
+                            borderRadius: 24,
+                            background: `radial-gradient(circle at 50% 50%, ${rl}20, transparent 65%)`,
+                            filter: "blur(22px)",
+                            opacity: isHovered ? 1 : 0.55,
+                            transform: isHovered ? "scale(1.04)" : "scale(0.98)",
+                            transition: "opacity 0.22s ease, transform 0.22s ease",
+                            pointerEvents: "none",
+                        }}
+                    />
                     <motion.div
                         onMouseMove={onMove} onMouseLeave={onLeave}
                         onClick={e => {
@@ -359,6 +393,7 @@ export function ProfileCardSection({
                         }}
                         animate={{ opacity: generated ? 1 : 0.15, filter: generated ? "brightness(1)" : "brightness(0.3) saturate(0.3)" }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="v12-wrap"
                         style={{ rotateX, rotateY, transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", cursor: generated ? "pointer" : "default", WebkitTapHighlightColor: "transparent" }}
                     >
                         <motion.div
@@ -367,29 +402,32 @@ export function ProfileCardSection({
                             style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d", width: "100%", height: "100%", position: "relative", WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)", transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
                         >
                             {/* FRONT */}
-                            <div style={faceBase}>
+                            <div className="v12-face" style={{ ...faceBase, ["--rg-val" as string]: rl }}>
                                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 40%, #000) 60%, #060606 100%)` }} />
                                 <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
-                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
+                                <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />
                                 {profile.profileImageUrl ? (
-                                    <img src={profile.profileImageUrl} alt={profile.displayName} style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", ...photoMask }} />
+                                    <img src={profile.profileImageUrl} alt={profile.displayName} style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", zIndex: 3, ...photoMask }} />
                                 ) : (
-                                    <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", ...photoMask }}>{initials}</div>
+                                    <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", zIndex: 3, ...photoMask }}>{initials}</div>
                                 )}
+                                <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
+                                <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 26px ${rl}14` : "inset 0 0 0 1px rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
-                                <div style={{ position: "absolute", inset: 0, zIndex: 6, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 0 12px 14px", width: "85%" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
+                                <div style={{ position: "absolute", inset: 0, zIndex: 7, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "16px 60% 14px 16px" }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start", paddingLeft: 10 }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                                        <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.05, letterSpacing: "-0.01em", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.5),0 -1px 0 rgba(0,0,0,0.75),0 2px 5px rgba(0,0,0,0.55)" }}>{profile.displayName}</div>
-                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>{profile.sport}</div>}
-                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                                    <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
+                                        <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
+                                        <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "normal", overflow: "visible", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
+                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 10.5, letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap" }}>{profile.sport}</div>}
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>Cheer</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
                                         {latestCheer ? (
                                             <button
@@ -400,16 +438,32 @@ export function ProfileCardSection({
                                                 }}
                                                 style={{ marginTop: 5, padding: "4px 7px", borderRadius: 6, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.78)", fontSize: 8, lineHeight: 1.25, maxWidth: 170, textAlign: "left", cursor: "pointer" }}
                                             >
-                                                "{latestCheer.comment}" - @{latestCheer.fromSlug}
+                                                &quot;{latestCheer.comment}&quot; - @{latestCheer.fromSlug}
                                             </button>
                                         ) : (
                                             <span style={{ marginTop: 5, fontSize: 8, color: "rgba(255,255,255,0.35)" }}>コメント付きCheerはまだありません</span>
                                         )}
                                     </div>
-                                    <div>
-                                        <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.3),0 -1px 0 rgba(0,0,0,0.6)" }}>{vzId}</div>
-                                        <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
-                                            <span style={{ display: "inline-block", width: 16, height: 1, background: "rgba(255,255,255,0.2)" }} />TAP TO SEE PROFILE
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                        <div
+                                            style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                padding: "2px 0",
+                                                fontFamily: "'SF Mono','Fira Code',monospace",
+                                                fontSize: 16,
+                                                fontWeight: 900,
+                                                letterSpacing: "0.13em",
+                                                textTransform: "uppercase",
+                                                color: "rgba(255,255,255,0.45)",
+                                                whiteSpace: "nowrap",
+                                                textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.45)",
+                                            }}
+                                        >
+                                            {vzId}
+                                        </div>
+                                        <div className="flip-hint" style={{ marginTop: 4, display: "flex", alignItems: "center", fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
+                                            TAP TO SEE PROFILE
                                         </div>
                                     </div>
                                 </div>
@@ -419,14 +473,16 @@ export function ProfileCardSection({
                             </div>
 
                             {/* BACK */}
-                            <div style={{ ...faceBase, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
-                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+                            <div className="v12-face" style={{ ...faceBase, ["--rg-val" as string]: rl, transform: "rotateY(180deg)", WebkitTransform: "rotateY(180deg)", background: `linear-gradient(145deg, ${bg1} 0%, #000 100%)` }}>
+                                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
+                                <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+                                <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
                                 {profile.profileImageUrl ? (
                                     <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
                                 ) : (
                                     <div style={{ position: "absolute", right: 0, top: 0, width: "60%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", pointerEvents: "none", userSelect: "none", ...photoMaskSoft }}>{initials}</div>
                                 )}
-                                <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "13px 12px 14px" }}>
+                                <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 13px 16px" }}>
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
                                         <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -436,7 +492,7 @@ export function ProfileCardSection({
                                         <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
                                     </div>
                                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
-                                    <div style={{ fontSize: 20, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.1, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</div>
+                                        <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.08, letterSpacing: "-0.01em", overflow: "visible", whiteSpace: "normal", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}>{profile.displayName}</div>
                                         <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                                             <SponsorBadge plan={profile.sponsorPlan} />
                                         </div>
@@ -490,7 +546,7 @@ export function ProfileCardSection({
                 </div>
             </div>
 
-            <ShareMenu profile={profile} t={t} rl={rl} />
+            <ShareMenu profile={profile} t={t} rl={rl} compact={isPublicMode} />
 
             {cheerModalOpen && (
                 <CheerCommentsModal
@@ -500,9 +556,9 @@ export function ProfileCardSection({
                 />
             )}
 
-            <p style={{ fontSize: 9, fontFamily: "monospace", textAlign: "center", letterSpacing: "0.1em", marginTop: 8, marginBottom: 0, opacity: 0.25, color: t.sub }}>
+            {!isPublicMode && <p className="mb-0 mt-2 text-center font-mono text-[9px] tracking-[0.1em] opacity-25" style={{ color: t.sub }}>
                 {vzId} · {joinDate}
-            </p>
+            </p>}
         </motion.div>
     );
 }
@@ -517,32 +573,32 @@ function CheerCommentsModal({
     onClose: () => void;
 }) {
     return (
-        <div style={{ position: "fixed", inset: 0, zIndex: 80, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.7)", padding: 16 }}>
-            <div style={{ width: "min(540px, 100%)", maxHeight: "80vh", overflowY: "auto", borderRadius: 16, border: `1px solid ${roleColor}55`, background: "#0b0b13", boxShadow: `0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px ${roleColor}25` }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>Latest Cheer</p>
-                    <button type="button" onClick={onClose} style={{ border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)", color: "#fff", borderRadius: 8, fontSize: 12, fontWeight: 700, padding: "6px 10px", cursor: "pointer" }}>閉じる</button>
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4">
+            <div className="max-h-[80vh] w-[min(540px,100%)] overflow-y-auto rounded-[16px]" style={{ border: `1px solid ${roleColor}55`, background: "#0b0b13", boxShadow: `0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px ${roleColor}25` }}>
+                <div className="flex items-center justify-between border-b border-white/8 px-4 py-[14px]">
+                    <p className="m-0 text-[13px] font-black text-white">Latest Cheer</p>
+                    <button type="button" onClick={onClose} className="cursor-pointer rounded-[8px] px-[10px] py-[6px] text-[12px] font-bold text-white" style={{ border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)" }}>閉じる</button>
                 </div>
-                <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="flex flex-col gap-2 p-3">
                     {items.length === 0 ? (
-                        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.5)" }}>コメント付きCheerはまだありません。</p>
+                        <p className="m-0 text-[13px]" style={{ color: "rgba(255,255,255,0.5)" }}>コメント付きCheerはまだありません。</p>
                     ) : (
                         items.map((item) => (
-                            <div key={item.id} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", padding: "10px 12px" }}>
-                                <p style={{ margin: 0, color: "rgba(255,255,255,0.85)", fontSize: 13, lineHeight: 1.6 }}>"{item.comment}"</p>
-                                <p style={{ margin: "6px 0 0", fontSize: 11, color: roleColor, fontFamily: "monospace" }}>- @{item.fromSlug}</p>
+                            <div key={item.id} className="rounded-[12px] px-3 py-[10px]" style={{ border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)" }}>
+                                <p className="m-0 text-[13px] leading-[1.6]" style={{ color: "rgba(255,255,255,0.85)" }}>&quot;{item.comment}&quot;</p>
+                                <p className="mb-0 mt-[6px] font-mono text-[11px]" style={{ color: roleColor }}>- @{item.fromSlug}</p>
                             </div>
                         ))
                     )}
                 </div>
             </div>
-            <button type="button" onClick={onClose} aria-label="close" style={{ position: "fixed", inset: 0, zIndex: -1, border: "none", background: "transparent" }} />
+            <button type="button" onClick={onClose} aria-label="close" className="fixed inset-0 z-[-1] border-none bg-transparent" />
         </div>
     );
 }
 
 // ── シェアメニュー ─────────────────────────────────────────────────────────────
-function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; rl: string }) {
+function ShareMenu({ profile, t, rl, compact = false }: { profile: ProfileData; t: ThemeColors; rl: string; compact?: boolean }) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [storiesLoading, setStoriesLoading] = useState(false);
@@ -638,16 +694,17 @@ function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; r
     ];
 
     return (
-        <div style={{ marginTop: 14, position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <p style={{ fontSize: 11, color: t.sub, opacity: 0.45, margin: 0 }}>タップ / クリックで裏返す</p>
+        <div className="relative" style={{ marginTop: compact ? 12 : 14 }}>
+            <div className="flex items-center justify-between gap-2">
+                <p className="m-0 text-[var(--share-hint-size)] opacity-45" style={{ ["--share-hint-size" as string]: `${compact ? 12 : 11}px`, color: t.sub }}>タップ / クリックで裏返す</p>
                 <button
                     onClick={() => setOpen(v => !v)}
-                    style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 10, background: open ? `${rl}18` : "rgba(255,255,255,0.06)", border: `1px solid ${open ? rl + "40" : "rgba(255,255,255,0.1)"}`, color: open ? rl : "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 700, cursor: "pointer", transition: "all 0.18s" }}
+                    className="flex cursor-pointer items-center gap-[6px] rounded-[10px] px-[14px] py-[var(--share-btn-y)] text-[var(--share-btn-size)] font-bold transition-all duration-200"
+                    style={{ ["--share-btn-y" as string]: compact ? "8px" : "7px", ["--share-btn-size" as string]: `${compact ? 13 : 12}px`, background: open ? `${rl}18` : "rgba(255,255,255,0.06)", border: `1px solid ${open ? rl + "40" : "rgba(255,255,255,0.1)"}`, color: open ? rl : "rgba(255,255,255,0.6)" }}
                 >
                     <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
                     シェア
-                    <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                    <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} className="transition-transform duration-200" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
@@ -655,25 +712,26 @@ function ShareMenu({ profile, t, rl }: { profile: ProfileData; t: ThemeColors; r
 
             {open && (
                 <>
-                    <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
-                    <div style={{ position: "absolute", right: 0, bottom: "calc(100% + 8px)", width: 260, zIndex: 50, background: "#0f0f1c", border: `1px solid ${rl}30`, borderRadius: 14, boxShadow: `0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px ${rl}15`, overflow: "hidden", animation: "shareMenuIn 0.18s cubic-bezier(0.16,1,0.3,1)" }}>
+                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+                    <div className="absolute bottom-[calc(100%+8px)] right-0 z-50 w-[260px] overflow-hidden rounded-[14px]" style={{ background: "#0f0f1c", border: `1px solid ${rl}30`, boxShadow: `0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px ${rl}15`, animation: "shareMenuIn 0.18s cubic-bezier(0.16,1,0.3,1)" }}>
                         <style>{`@keyframes shareMenuIn { from{opacity:0;transform:translateY(8px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }`}</style>
-                        <div style={{ padding: "11px 14px 9px", borderBottom: `1px solid ${rl}18` }}>
-                            <p style={{ margin: 0, fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>Share Card</p>
+                        <div className="border-b px-[14px] pb-[9px] pt-[11px]" style={{ borderBottomColor: `${rl}18` }}>
+                            <p className="m-0 font-mono text-[9px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.25)" }}>Share Card</p>
                         </div>
-                        <div style={{ padding: "6px" }}>
+                        <div className="p-[6px]">
                             {menuItems.map((item) => (
                                 <button key={item.label} onClick={item.onClick} disabled={item.loading}
-                                    style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, marginBottom: 4, background: item.bg, border: `1px solid ${item.border}`, color: item.color, cursor: item.loading ? "wait" : "pointer", textAlign: "left", transition: "filter 0.15s" }}
+                                    className="mb-1 flex w-full items-center gap-[10px] rounded-[9px] px-3 py-[10px] text-left transition-[filter] duration-150"
+                                    style={{ background: item.bg, border: `1px solid ${item.border}`, color: item.color, cursor: item.loading ? "wait" : "pointer" }}
                                 >
-                                    <span style={{ flexShrink: 0, width: 20, display: "flex", justifyContent: "center" }}>
+                                    <span className="flex w-5 shrink-0 justify-center">
                                         {item.loading
                                             ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: "spin .8s linear infinite" }}><path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" /></svg>
                                             : item.icon}
                                     </span>
-                                    <span style={{ flex: 1 }}>
-                                        <span style={{ display: "block", fontSize: 12, fontWeight: 700, lineHeight: 1.3 }}>{item.label}</span>
-                                        <span style={{ display: "block", fontSize: 10, opacity: 0.45, marginTop: 1 }}>{item.sub}</span>
+                                    <span className="flex-1">
+                                        <span className="block text-[12px] font-bold leading-[1.3]">{item.label}</span>
+                                        <span className="mt-px block text-[10px] opacity-45">{item.sub}</span>
                                     </span>
                                 </button>
                             ))}

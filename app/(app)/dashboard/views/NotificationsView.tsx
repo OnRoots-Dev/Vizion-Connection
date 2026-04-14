@@ -3,6 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader, ViewLoader } from "@/app/(app)/dashboard/components/ui";
+import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+
+type InlineAd = {
+  id: string;
+  headline: string;
+  image_url?: string;
+  link_url: string;
+  sponsor?: string;
+  business_id?: number;
+};
 
 interface NotificationItem {
   id: number;
@@ -79,6 +89,15 @@ export function NotificationsView({
   const [loadingMore, setLoadingMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
+
+  const [ads, setAds] = useState<InlineAd[]>([]);
+
+  useEffect(() => {
+    fetch("/api/ads", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => setAds(Array.isArray(data?.ads) ? data.ads : []))
+      .catch(() => setAds([]));
+  }, []);
 
   const unreadInList = useMemo(() => items.filter((i) => !i.isRead).length, [items]);
 
@@ -246,6 +265,15 @@ export function NotificationsView({
           </p>
         )}
       </SectionCard>
+
+      {ads.length > 0 ? (
+        <AdCard ad={ads[0]!} />
+      ) : (
+        <SectionCard t={t}>
+          <SLabel text="AD SLOT" color="#FFD600" />
+          <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（空き枠）</p>
+        </SectionCard>
+      )}
 
       {items.length === 0 ? (
         <SectionCard t={t}>

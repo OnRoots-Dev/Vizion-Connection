@@ -7,6 +7,9 @@ export type Theme = "dark" | "dim" | "light";
 export type DashboardView =
     | "home"
     | "notifications"
+    | "hub"
+    | "offers"
+    | "admin_posts"
     | "collections"
     | "card"
     | "profile"
@@ -31,9 +34,9 @@ export interface ThemeColors {
 }
 
 export const THEME_MAP: Record<Theme, ThemeColors> = {
-    dark: { bg: "#0B0B0F", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.07)", text: "#FFFFFF", sub: "rgba(255,255,255,0.45)" },
-    dim: { bg: "#13131A", surface: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.09)", text: "#F0F0F8", sub: "rgba(255,255,255,0.5)" },
-    light: { bg: "#F5F5F7", surface: "rgba(0,0,0,0.03)", border: "rgba(0,0,0,0.08)", text: "#111111", sub: "rgba(0,0,0,0.45)" },
+    dark: { bg: "#0B0B0F", surface: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.10)", text: "#FFFFFF", sub: "rgba(255,255,255,0.68)" },
+    dim: { bg: "#13131A", surface: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.12)", text: "#F7F7FC", sub: "rgba(255,255,255,0.72)" },
+    light: { bg: "#F5F5F7", surface: "rgba(255,255,255,0.82)", border: "rgba(17,17,17,0.12)", text: "#111111", sub: "rgba(17,17,17,0.68)" },
 };
 
 export const ROLE_COLOR: Record<string, string> = {

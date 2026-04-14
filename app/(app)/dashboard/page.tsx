@@ -5,7 +5,6 @@ import { getProfileFromSession } from "@/features/profile/server/get-profile";
 import DashboardClient from "./DashboardClient";
 import { getAdsForUser } from "@/lib/ads";
 import type { DashboardView } from "./types";
-import { canManageVoiceLabByEmail } from "@/lib/auth/voicelab-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +12,7 @@ function resolveInitialView(view?: string): DashboardView {
     const allowed: DashboardView[] = [
         "home",
         "notifications",
+        "hub",
         "collections",
         "card",
         "profile",
@@ -47,7 +47,7 @@ export default async function DashboardPage({
     const ads = await getAdsForUser(profile.prefecture ?? "", profile.sport);
     const params = await searchParams;
     const initialView = resolveInitialView(params?.view);
-    const canManageVoiceLab = canManageVoiceLabByEmail(profile.email);
+    const canManageVoiceLab = profile.role === "Admin";
 
     return (
         <DashboardClient

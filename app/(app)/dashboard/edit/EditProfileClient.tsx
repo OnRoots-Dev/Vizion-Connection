@@ -63,6 +63,7 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
     const [prefecture, setPrefecture] = useState(user.prefecture ?? "");
     const [sportsCategory, setSportsCategory] = useState(user.sportsCategory ?? "");
     const [sport, setSport] = useState(user.sport ?? "");
+    const [sports, setSports] = useState<string[]>(user.sports ?? []);
     const [stance, setStance] = useState(user.stance ?? "");
     const [instagram, setInstagram] = useState(user.instagram ?? "");
     const [xUrl, setXUrl] = useState(user.xUrl ?? "");
@@ -82,6 +83,13 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
         : role === "Trainer" ? TRAINER_SPORTS
             : role === "Members" ? MEMBERS_SPORTS
                 : BUSINESS_SPORTS;
+
+    const toggleSport = (value: string) => {
+        setSports((prev) => {
+            if (prev.includes(value)) return prev.filter((v) => v !== value);
+            return [...prev, value];
+        });
+    };
 
     async function handleImageUpload(type: "profile" | "avatar") {
         const inputMap = { profile: profileInputRef, avatar: avatarInputRef };
@@ -111,7 +119,10 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     displayName, bio, region, prefecture,
-                    sportsCategory, sport, stance,
+                    sportsCategory,
+                    sport: role === "Athlete" ? (sports[0] ?? sport) : sport,
+                    sports: role === "Athlete" ? sports : undefined,
+                    stance,
                     instagram, xUrl, tiktok,
                     profileImageUrl, avatarUrl, isPublic,
                 }),
@@ -270,10 +281,56 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
 
                 {card(<>
                     {sectionTitle(role === "Athlete" ? "Sport" : role === "Trainer" ? "Specialty" : role === "Business" ? "Industry" : "Area")}
-                    {role === "Athlete" && field("カテゴリー", select(sportsCategory, (v) => { setSportsCategory(v); setSport(""); }, Object.keys(SPORTS_BY_CATEGORY), "選択してください", "スポーツカテゴリー"))}
-                    {field(
-                        role === "Athlete" ? "競技名" : role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域",
-                        select(sport, setSport, sportOptions, "選択してください", "競技名")
+                    {role === "Athlete" && field(
+                        "カテゴリー",
+                        select(
+                            sportsCategory,
+                            (v) => {
+                                setSportsCategory(v);
+                                setSport("");
+                                setSports([]);
+                            },
+                            Object.keys(SPORTS_BY_CATEGORY),
+                            "選択してください",
+                            "スポーツカテゴリー",
+                        ),
+                    )}
+
+                    {role === "Athlete" ? field(
+                        "競技（複数選択）",
+                        <div style={{
+                            border: `1px solid ${t.border}`,
+                            borderRadius: "10px",
+                            padding: "10px 12px",
+                            background: "rgba(255,255,255,0.03)",
+                            maxHeight: "180px",
+                            overflow: "auto",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                        }}>
+                            {sportOptions.length === 0 ? (
+                                <span style={{ fontSize: "12px", color: t.sub }}>カテゴリーを選択してください</span>
+                            ) : (
+                                sportOptions.map((opt) => {
+                                    const checked = sports.includes(opt);
+                                    return (
+                                        <label key={opt} style={{ display: "flex", gap: "10px", alignItems: "center", cursor: "pointer" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={checked}
+                                                onChange={() => toggleSport(opt)}
+                                                style={{ width: "14px", height: "14px" }}
+                                            />
+                                            <span style={{ fontSize: "13px", color: t.text }}>{opt}</span>
+                                        </label>
+                                    );
+                                })
+                            )}
+                        </div>,
+                    ) : field(
+                        role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域",
+                        select(sport, setSport, sportOptions, "選択してください", "競技名"),
                     )}
                     {field(
                         role === "Athlete" ? "今の注力テーマ" : role === "Trainer" ? "指導スタンス" : role === "Business" ? "関わりたい目的" : "関わりたいスタンス",

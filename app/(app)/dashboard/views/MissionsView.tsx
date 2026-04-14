@@ -44,6 +44,7 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
     const [dailyMissions, setDailyMissions] = useState<DailyMissionWithProgress[]>([]);
     const [onetimeMissions, setOnetimeMissions] = useState<OnetimeMission[]>([]);
     const [loadingDaily, setLoadingDaily] = useState(true);
+    const [refreshingPoints, setRefreshingPoints] = useState(false);
     const fallbackOnetime = useMemo(() => buildFallbackOnetimeMissions({
         verified: profile.verified,
         hasShared: profile.hasShared ?? false,
@@ -109,6 +110,40 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                         {profile.points.toLocaleString()}
                     </span>
                     <span style={{ fontSize: 12, color: t.sub, opacity: 0.7 }}>pt</span>
+                </div>
+                <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                        type="button"
+                        disabled={refreshingPoints}
+                        onClick={async () => {
+                            if (refreshingPoints) return;
+                            setRefreshingPoints(true);
+                            try {
+                                const res = await fetch("/api/profile/save/me", { cache: "no-store" });
+                                if (!res.ok) return;
+                                const json = await res.json();
+                                if (json?.profile) {
+                                    onProfilePatch({ points: Number(json.profile.points ?? 0) });
+                                }
+                                missionsSnapshotCache = null;
+                                missionsSnapshotInFlight = null;
+                            } finally {
+                                setRefreshingPoints(false);
+                            }
+                        }}
+                        style={{
+                            borderRadius: 10,
+                            border: `1px solid ${roleColor}40`,
+                            background: `${roleColor}18`,
+                            color: roleColor,
+                            fontSize: 11,
+                            fontWeight: 900,
+                            padding: "8px 10px",
+                            cursor: refreshingPoints ? "wait" : "pointer",
+                        }}
+                    >
+                        {refreshingPoints ? "更新中..." : "ポイントを更新する"}
+                    </button>
                 </div>
             </SectionCard>
 

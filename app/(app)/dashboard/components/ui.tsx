@@ -19,42 +19,35 @@ export function SectionCard({
 }) {
     return (
         <div
-            className="vz-card-hover"
+            className="vz-card-hover relative overflow-hidden rounded-2xl px-5 py-[18px]"
             style={{
-                padding: "18px 20px",
-                borderRadius: 16,
                 background: accentColor
-                    ? `radial-gradient(circle at top right, ${accentColor}10, rgba(255,255,255,0.02))`
-                    : "rgba(255,255,255,0.025)",
-                border: `1px solid ${accentColor ? `${accentColor}22` : "rgba(255,255,255,0.07)"}`,
-                position: "relative",
-                overflow: "hidden",
+                    ? `radial-gradient(circle at top right, ${accentColor}10, ${t.surface})`
+                    : t.surface,
+                border: `1px solid ${accentColor ? `${accentColor}22` : t.border}`,
             }}
         >
             {accentColor && (
                 <div
+                    className="pointer-events-none absolute -top-[30px] -right-[30px] h-[120px] w-[120px] rounded-full"
                     style={{
-                        position: "absolute", top: -30, right: -30,
-                        width: 120, height: 120, borderRadius: "50%",
                         background: `radial-gradient(circle,${accentColor}15,transparent 70%)`,
-                        pointerEvents: "none",
                     }}
                 />
             )}
-            <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+            <div className="relative z-[1]">{children}</div>
         </div>
     );
 }
 
 // ── セクションラベル ──────────────────────────────────────────────────────────
-export function SLabel({ text, color }: { text: string; color?: string }) {
+export function SLabel({ text, color, size = 8 }: { text: string; color?: string; size?: number }) {
     return (
         <p
+            className="mb-[14px] font-mono text-[var(--slabel-size)] font-black uppercase tracking-[0.25em]"
             style={{
-                fontSize: 8, fontWeight: 900, letterSpacing: "0.25em",
-                textTransform: "uppercase",
+                ["--slabel-size" as string]: `${size}px`,
                 color: color ?? "rgba(255,255,255,0.2)",
-                margin: "0 0 14px", fontFamily: "monospace",
             }}
         >
             {text}
@@ -77,23 +70,21 @@ export function ViewHeader({
     roleColor: string;
 }) {
     return (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+        <div className="mb-1 flex items-center gap-3">
             <button
                 onClick={onBack}
-                className="vz-btn"
+                className="vz-btn h-9 w-9 cursor-pointer rounded-full"
                 style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.09)",
+                    background: t.surface,
+                    border: `1px solid ${t.border}`,
                     color: t.sub,
-                    cursor: "pointer",
                 }}
             >
                 ←
             </button>
             <div>
-                <h2 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>{title}</h2>
-                <p style={{ fontSize: 10, color: t.sub, margin: 0 }}>{sub}</p>
+                <h2 className="m-0 text-[28px] font-black" style={{ color: t.text }}>{title}</h2>
+                <p className="m-0 text-[10px]" style={{ color: t.sub }}>{sub}</p>
             </div>
         </div>
     );
@@ -103,9 +94,9 @@ export function ViewHeader({
 export function ViewLoader({ t }: { t: ThemeColors }) {
     return (
         <div
+            className="flex h-[200px] items-center justify-center text-[12px]"
             style={{
-                display: "flex", alignItems: "center", justifyContent: "center",
-                height: 200, color: t.sub, fontSize: 12,
+                color: t.sub,
             }}
         >
             読み込み中...

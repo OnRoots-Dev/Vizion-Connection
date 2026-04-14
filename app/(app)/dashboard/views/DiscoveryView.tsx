@@ -311,24 +311,24 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                 <AdCard ad={topHero} size="hero" />
             ) : (
                 <SectionCard t={t}>
-                    <SLabel text="AD SLOT" color="#FFD600" />
+                    <SLabel text="AD SLOT" color="#FFD600" size={10} />
                     <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（空き枠）</p>
                 </SectionCard>
             )}
 
             <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Vizion Radar" color={roleColor} />
-                <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${roleColor}25`, background: "linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))", padding: 14 }}>
-                    <div style={{ position: "absolute", top: -45, right: -45, width: 160, height: 160, borderRadius: "50%", background: `radial-gradient(circle, ${roleColor}20, transparent 70%)`, pointerEvents: "none" }} />
-                    <p style={{ margin: "0 0 10px", fontSize: 10, color: t.sub, opacity: 0.7 }}>検索条件を設定すると、ロール・地域・推し指標でユーザーを即抽出できます。</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                <SLabel text="Vizion Radar" color={roleColor} size={10} />
+                <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${roleColor}25`, background: "linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))", padding: 10 }}>
+                    <div style={{ position: "absolute", top: -55, right: -55, width: 140, height: 140, borderRadius: "50%", background: `radial-gradient(circle, ${roleColor}18, transparent 70%)`, pointerEvents: "none" }} />
+                    <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, opacity: 0.7 }}>検索条件を設定すると、ロール・地域・推し指標でユーザーを即抽出できます。</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 6 }}>
                         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <span style={{ fontSize: 9, color: t.sub, opacity: 0.8 }}>キーワード</span>
-                            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ユーザーID / アカウント名で検索" style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 12 }} />
+                            <span style={{ fontSize: 8, color: t.sub, opacity: 0.8 }}>キーワード</span>
+                            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ユーザーID / アカウント名で検索" style={{ width: "100%", padding: "9px 10px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }} />
                         </label>
                         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <span style={{ fontSize: 9, color: t.sub, opacity: 0.8 }}>ロール</span>
-                            <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 12 }}>
+                            <span style={{ fontSize: 8, color: t.sub, opacity: 0.8 }}>ロール</span>
+                            <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: "100%", padding: "9px 10px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }}>
                                 <option value="">全ロール</option>
                                 <option value="Athlete">Athlete</option>
                                 <option value="Trainer">Trainer</option>
@@ -337,17 +337,17 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                             </select>
                         </label>
                         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <span style={{ fontSize: 9, color: t.sub, opacity: 0.8 }}>地域</span>
-                            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="地域名で検索" style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 12 }} />
+                            <span style={{ fontSize: 8, color: t.sub, opacity: 0.8 }}>地域</span>
+                            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="地域名で検索" style={{ width: "100%", padding: "9px 10px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }} />
                         </label>
                         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            <span style={{ fontSize: 9, color: t.sub, opacity: 0.8 }}>都道府県</span>
-                            <input value={prefecture} onChange={(e) => setPrefecture(e.target.value)} placeholder="都道府県名で検索" style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 12 }} />
+                            <span style={{ fontSize: 8, color: t.sub, opacity: 0.8 }}>都道府県</span>
+                            <input value={prefecture} onChange={(e) => setPrefecture(e.target.value)} placeholder="都道府県名で検索" style={{ width: "100%", padding: "9px 10px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }} />
                         </label>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         {sortTabs.map((tab) => (
-                            <button key={tab.id} onClick={() => setSort(tab.id)} style={{ padding: "6px 12px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 11, background: sort === tab.id ? `${roleColor}22` : "rgba(255,255,255,0.05)", color: sort === tab.id ? roleColor : t.sub, outline: sort === tab.id ? `1px solid ${roleColor}40` : "none" }}>
+                            <button key={tab.id} onClick={() => setSort(tab.id)} style={{ padding: "5px 10px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 10, background: sort === tab.id ? `${roleColor}22` : "rgba(255,255,255,0.05)", color: sort === tab.id ? roleColor : t.sub, outline: sort === tab.id ? `1px solid ${roleColor}40` : "none" }}>
                                 {tab.label}
                             </button>
                         ))}
@@ -357,7 +357,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12 }}>
                 <SectionCard t={t}>
-                    <SLabel text="本日の推し / Cheer" color="#FFD600" />
+                    <SLabel text="本日の推し / Cheer" color="#FFD600" size={10} />
                     <div style={{ display: "grid", gap: 10 }}>
                         {picks.cheer.slice(0, 5).map((u, i) => (
                             <DiscoveryFeatureCard
@@ -379,7 +379,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                 </SectionCard>
 
                 <SectionCard t={t}>
-                    <SLabel text="本日の推し / Referral" color={roleColor} />
+                    <SLabel text="本日の推し / Referral" color={roleColor} size={10} />
                     <div style={{ display: "grid", gap: 10 }}>
                         {picks.referral.slice(0, 5).map((u, i) => (
                             <DiscoveryFeatureCard
@@ -402,7 +402,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
             </div>
 
             <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Discovery Results" color={roleColor} />
+                <SLabel text="Discovery Results" color={roleColor} size={10} />
                 {loading ? (
                     <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
                 ) : users.length === 0 ? (
@@ -455,10 +455,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
                                                 </div>
                                             </div>
 
-                                            <div style={{ position: "relative", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                                                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 999, background: "rgba(7,10,18,0.54)", border: `1px solid ${rc}38`, color: "rgba(255,255,255,0.86)", fontSize: 10 }}>
-                                                    {u.discovery_fixed ? "優先表示アカウント" : "プロフィールカードを見る"}
-                                                </div>
+                                            <div style={{ position: "relative", marginTop: 14, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10 }}>
                                                 <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 999, background: `${rc}24`, border: `1px solid ${rc}45`, color: "#FFFFFF", fontSize: 10, fontWeight: 800, boxShadow: `0 10px 24px ${rc}18` }}>
                                                     Open Profile →
                                                 </div>
@@ -500,7 +497,7 @@ export function DiscoveryView({ profile, t, roleColor, setView, ads, onOpenProfi
             </SectionCard>
 
             <SectionCard t={t}>
-                <SLabel text="Sponsored" color="#FFD600" />
+                <SLabel text="Sponsored" color="#FFD600" size={10} />
                 {sideSmallAds.length > 0 ? (
                     <div style={{ display: "grid", gap: 8 }}>
                         {sideSmallAds.map((ad) => (

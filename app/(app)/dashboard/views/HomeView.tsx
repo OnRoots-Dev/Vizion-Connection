@@ -10,8 +10,9 @@ import type { AdItem } from "@/lib/ads-shared";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard, { AD_SIZE_MAP } from "@/components/AdCard";
 import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
-import { getPlanFeatures } from "@/features/business/plan-features";
 import { CollectionCarousel, type CollectionCardItem } from "@/components/collections/CollectionCarousel";
+import { CATEGORY_CONFIG } from "@/types/schedule";
+import type { Schedule } from "@/types/schedule";
 
 type CollectedCard = CollectionCardItem;
 
@@ -70,7 +71,8 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const [copied, setCopied] = useState(false);
     const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
     const [discoveryPreview, setDiscoveryPreview] = useState<DiscoveryPreviewUser[]>([]);
-    const sponsorPlanLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
+    const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
+
     const titleBaseStyle = {
         fontSize: 8,
         fontWeight: 900,
@@ -153,6 +155,21 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         return () => { cancelled = true; };
     }, []);
 
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/schedules/upcoming?limit=3", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((d) => {
+                if (!cancelled) {
+                    setUpcomingSchedules(Array.isArray(d.schedules) ? (d.schedules as Schedule[]) : []);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setUpcomingSchedules([]);
+            });
+        return () => { cancelled = true; };
+    }, []);
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ position: "relative", overflow: "hidden", paddingBottom: 8 }}>
@@ -221,37 +238,20 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 
             <DailyLogCard t={t} roleColor={roleColor} />
 
-            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
-                <SectionCard t={t} accentColor={roleColor}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                        <SLabel text="Collection" color={roleColor} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 10, color: t.sub }}>{collectedCards.length} cards</span>
-                            <button onClick={() => setView("collections" as DashboardView)} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor }}>
-                                一覧 →
-                            </button>
-                        </div>
-                    </div>
-                    {collectedCards.length === 0 ? (
-                        <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションはまだありません。公開プロフィールでカードをコレクトするとここに表示されます。</p>
-                    ) : (
-                        <CollectionCarousel cards={collectedCards} t={t} roleColor={roleColor} compact onOpenProfile={onOpenProfile} />
-                    )}
-                </SectionCard>
-            </motion.div>
-
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
                 <button onClick={() => setView("cheer")} className="vz-btn vz-card-hover" style={{ width: "100%", padding: "18px 20px", borderRadius: 16, background: `radial-gradient(circle at top right, ${roleColor}15, rgba(255,255,255,0.02))`, border: `1px solid ${roleColor}25`, cursor: "pointer", textAlign: "left", position: "relative", overflow: "hidden" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                         <p style={{ ...titleBaseStyle, color: roleColor, marginBottom: 0 }}>Cheer</p>
-                        <span style={{ ...detailBaseStyle, background: `${roleColor}18`, outline: `1px solid ${roleColor}35`, color: roleColor }}>詳細 →</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
                         <span style={{ fontSize: 40, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace" }}>{profile.cheerCount ?? 0}</span>
                         <span style={{ fontSize: 12, color: t.sub }}>★ 応援数</span>
                     </div>
                     <p style={{ fontSize: 10, color: t.sub, margin: "6px 0 0", opacity: 0.45 }}>プロフィールを広めてCheerを集めよう</p>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+                        <span style={{ ...detailBaseStyle, background: `${roleColor}18`, outline: `1px solid ${roleColor}35`, color: roleColor }}>詳細 →</span>
+                    </div>
                 </button>
 
                 <SectionCard accentColor="#FFD600" t={t}>
@@ -280,9 +280,73 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     </div>
                     <p style={{ fontSize: 9, color: t.sub, opacity: 0.35, margin: "7px 0 0", fontFamily: "monospace" }}>1人招待ごとに 500pt 付与</p>
                 </SectionCard>
+
+                <SectionCard t={t} accentColor={roleColor}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
+                        <SLabel text="Upcoming" color={roleColor} />
+                        <a href="/schedule" style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor, textDecoration: "none" }}>
+                            すべて見る →
+                        </a>
+                    </div>
+                    {upcomingSchedules.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: 12, color: t.sub }}>直近の予定はありません。</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {upcomingSchedules.slice(0, 3).map((s) => {
+                                const cfg = CATEGORY_CONFIG[s.category];
+                                return (
+                                    <a
+                                        key={s.id}
+                                        href="/schedule"
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateColumns: "auto minmax(0, 1fr)",
+                                            gap: 10,
+                                            alignItems: "center",
+                                            padding: "10px 12px",
+                                            borderRadius: 12,
+                                            border: `1px solid ${t.border}`,
+                                            background: "rgba(255,255,255,0.02)",
+                                            color: t.text,
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span style={{ fontSize: 10, fontWeight: 800, color: cfg.color, padding: "4px 8px", borderRadius: 999, background: `${cfg.color}18`, border: `1px solid ${cfg.color}25`, flexShrink: 0 }}>
+                                            {cfg.label}
+                                        </span>
+                                        <div style={{ minWidth: 0 }}>
+                                            <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 800, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</p>
+                                            <p style={{ margin: 0, fontSize: 10, color: t.sub, fontFamily: "monospace", opacity: 0.65, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {new Date(s.start_at).toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                            </p>
+                                        </div>
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    )}
+                </SectionCard>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}
+                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                <SectionCard t={t} accentColor={roleColor}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                        <SLabel text="Collection" color={roleColor} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 10, color: t.sub }}>{collectedCards.length} cards</span>
+                            <button onClick={() => setView("collections" as DashboardView)} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor }}>
+                                一覧 →
+                            </button>
+                        </div>
+                    </div>
+                    {collectedCards.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションはまだありません。公開プロフィールでカードをコレクトするとここに表示されます。</p>
+                    ) : (
+                        <CollectionCarousel cards={collectedCards} t={t} roleColor={roleColor} compact onOpenProfile={onOpenProfile} />
+                    )}
+                </SectionCard>
+
                 <SectionCard t={t} accentColor={roleColor}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                         <SLabel text="Discovery" />
@@ -336,38 +400,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     )}
                 </SectionCard>
             </motion.div>
-
-            {profile.role === "Business" && (
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                    {profile.sponsorPlan ? (
-                        <div style={{ borderRadius: 16, padding: "20px", background: "rgba(60,140,255,0.06)", border: "1px solid rgba(60,140,255,0.22)", position: "relative", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle,rgba(60,140,255,0.15),transparent 70%)", pointerEvents: "none" }} />
-                            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3C8CFF", margin: "0 0 5px", fontFamily: "monospace" }}>Business Hub</p>
-                            <p style={{ fontSize: 14, fontWeight: 700, color: t.text, margin: "0 0 4px" }}>現在のプラン: {sponsorPlanLabel ?? "契約中"}</p>
-                            <p style={{ fontSize: 11, color: t.sub, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.7 }}>掲載中の広告や効果測定レポートを確認できます。</p>
-                            <button onClick={() => setView("business")} className="vz-btn" style={{ padding: "8px 16px", borderRadius: 9, background: "rgba(60,140,255,0.15)", border: "1px solid rgba(60,140,255,0.3)", color: "#3C8CFF", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                                Business Hubへ →
-                            </button>
-                        </div>
-                    ) : (
-                        <div style={{ borderRadius: 16, padding: "20px", background: "linear-gradient(135deg, rgba(60,140,255,0.08), rgba(60,140,255,0.03))", border: "1px solid rgba(60,140,255,0.28)", position: "relative", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle,rgba(60,140,255,0.18),transparent 70%)", pointerEvents: "none" }} />
-                            <span style={{ display: "inline-block", fontSize: 7, fontWeight: 900, padding: "2px 8px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: t.sub, border: "1px solid rgba(255,255,255,0.12)", fontFamily: "monospace", letterSpacing: "0.12em", marginBottom: 8 }}>FREE PLAN</span>
-                            <p style={{ fontSize: 15, fontWeight: 800, color: t.text, margin: "0 0 6px" }}>有料プランにアップグレード</p>
-                            <p style={{ fontSize: 11, color: t.sub, lineHeight: 1.7, margin: "0 0 14px", opacity: 0.7 }}>広告掲載・効果測定・アスリートマッチングなどの機能が利用可能になります。</p>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-                                {["広告掲載", "効果測定", "アスリートマッチング", "企業ページ"].map((f) => (
-                                    <span key={f} style={{ fontSize: 10, padding: "3px 10px", borderRadius: 20, background: "rgba(60,140,255,0.1)", border: "1px solid rgba(60,140,255,0.2)", color: "#3C8CFF" }}>{f}</span>
-                                ))}
-                            </div>
-                            <button onClick={() => setView("business")} className="vz-btn" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, background: "#3C8CFF", color: "#000", fontSize: 12, fontWeight: 800, cursor: "pointer", border: "none" }}>
-                                ⚡ アップグレードする
-                                <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                            </button>
-                        </div>
-                    )}
-                </motion.div>
-            )}
 
             <motion.div
                 initial={{ opacity: 0, y: 12 }}

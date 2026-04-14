@@ -11,7 +11,7 @@ import AdCard from "@/components/AdCard";
 
 const BODY_MAX_LENGTH = 300;
 const BODY_PREVIEW_LENGTH = 80;
-const STATUS_OPTIONS: VoiceLabStatus[] = ["open", "reviewing", "done"];
+const STATUS_OPTIONS: VoiceLabStatus[] = ["open", "reviewing", "planned", "done"];
 
 function truncateBody(text: string) {
     if (text.length <= BODY_PREVIEW_LENGTH) {

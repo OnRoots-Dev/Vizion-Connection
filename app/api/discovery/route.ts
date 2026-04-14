@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
         .select("slug,display_name,role,avatar_url,profile_image_url,cheer_count,region,prefecture,sport,created_at,sponsor_plan")
         .eq("is_deleted", false)
         .eq("is_public", true)
-        .limit(200);
+        .order("created_at", { ascending: false })
+        .limit(1000);
 
     if (role) query = query.eq("role", role);
     if (region) query = query.ilike("region", `%${region}%`);

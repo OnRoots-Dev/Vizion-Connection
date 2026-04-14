@@ -368,4 +368,63 @@ export const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
       "ボランティア活動に参加したい",
     ],
   },
+
+  Admin: {
+    color: "#7C3AED", gradient: "#1F0F2E",
+    icon: "🛠️", labelJa: "管理", labelEn: "ADMIN",
+    descJa: "運営・管理",
+
+    sportLabel: "担当領域",
+    sportOptions: ["プロダクト運営", "コミュニティ", "広告管理", "その他"],
+    taglinePlaceholder: "例：ユーザーの声を最短で改善につなげる",
+    taglineExamples: [
+      "ユーザーの声を最短で改善につなげる",
+      "運営と開発の橋渡しになる",
+      "プロダクト品質を守る",
+    ],
+
+    bioBullets: [
+      "担当領域（運営・開発・CSなど）",
+      "改善したいテーマ",
+      "ユーザーに約束したいこと",
+    ],
+    bioPlaceholder: "例：プロダクト運営。ユーザーの声を集め、改善を進めています。",
+
+    stats: [
+      { label: "改善数",      placeholder: "例：120", color: "role",    hint: "対応した改善・リリース数" },
+      { label: "対応速度",    placeholder: "例：24h",  color: "default", hint: "初動対応までの目安" },
+      { label: "Cheer",       placeholder: "自動",     color: "gold",    hint: "Vizionのチア数（自動取得）" },
+    ],
+
+    episodeRolePlaceholder:      "例：運営 / プロダクトマネージャー",
+    episodeOrgPlaceholder:       "例：Vizion Connection",
+    episodeDescPlaceholder:      "担当した改善や意思決定、学びを書いてください。",
+    episodeMilestonePlaceholder: "例：Voice Lab改善 / リリース対応",
+    episodeTips: [
+      { icon: "🧩", text: "課題→仮説→改善→結果の流れで書くと伝わる" },
+      { icon: "🧾", text: "ユーザーの声を引用すると温度感が出る" },
+      { icon: "🔁", text: "継続改善のループが見えると信頼が上がる" },
+    ],
+    chapterTitles:  ["課題", "仮説", "改善", "結果"],
+    chapterBgWords: ["ISSUE", "HYP",  "FIX",  "RESULT"],
+
+    skills: [
+      { name: "課題整理",       defaultLevel: 85, highlight: true },
+      { name: "コミュニケーション", defaultLevel: 88, highlight: true },
+      { name: "設計",           defaultLevel: 72 },
+      { name: "品質管理",       defaultLevel: 78 },
+      { name: "データ分析",     defaultLevel: 70 },
+      { name: "運用改善",       defaultLevel: 90 },
+    ],
+    skillsHint: "運営としての強みを強調しましょう",
+
+    ctaTitlePlaceholder: "例：運営へのご相談はこちら",
+    ctaSubPlaceholder:   "例：不具合報告・改善提案をお待ちしています",
+    ctaBtnPlaceholder:   "例：メッセージを送る",
+    ctaExamples: [
+      "不具合の相談",
+      "改善提案",
+      "連携・協業の相談",
+    ],
+  },
 };

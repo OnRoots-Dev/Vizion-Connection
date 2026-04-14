@@ -18,15 +18,13 @@ export function Footer() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center bg-[#FFD600] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#0B0B0F] transition-opacity hover:opacity-90"
-              style={{ borderRadius: "2px" }}
+              className="inline-flex items-center justify-center rounded-[2px] bg-[#FFD600] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#0B0B0F] transition-opacity hover:opacity-90"
             >
               今すぐ登録する
             </Link>
             <Link
               href="/business"
-              className="inline-flex items-center justify-center border border-[#3282FF] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#3282FF] transition-all hover:bg-[#3282FF] hover:text-white"
-              style={{ borderRadius: "2px" }}
+              className="inline-flex items-center justify-center rounded-[2px] border border-[#3282FF] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#3282FF] transition-all hover:bg-[#3282FF] hover:text-white"
             >
               Business登録はこちら
             </Link>

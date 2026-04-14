@@ -8,14 +8,14 @@ import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
 
 const STATUS_CLASS: Record<VoiceLabStatus, string> = {
-    open: "border-emerald-300/30 bg-emerald-300/10 text-emerald-200",
-    reviewing: "border-sky-300/30 bg-sky-300/10 text-sky-200",
-    planned: "border-amber-300/30 bg-amber-300/10 text-amber-200",
-    done: "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-200",
+    open: "border-rose-300/35 bg-rose-200/10 text-rose-100",
+    reviewing: "border-sky-300/35 bg-sky-200/10 text-sky-100",
+    planned: "border-amber-300/35 bg-amber-200/10 text-amber-100",
+    done: "border-emerald-300/35 bg-emerald-200/10 text-emerald-100",
 };
 const BODY_MAX_LENGTH = 300;
 const BODY_PREVIEW_LENGTH = 80;
-const STATUS_OPTIONS: VoiceLabStatus[] = ["open", "reviewing", "done"];
+const STATUS_OPTIONS: VoiceLabStatus[] = ["open", "reviewing", "planned", "done"];
 
 function truncateBody(text: string) {
     if (text.length <= BODY_PREVIEW_LENGTH) {
@@ -123,11 +123,59 @@ export default function VoiceLabClient({
     }
 
     return (
-        <main className="min-h-screen bg-[#07070c] px-4 py-10 text-white sm:px-6">
+        <main className="min-h-screen bg-gradient-to-b from-[#07070c] via-[#0b0906] to-[#07070c] px-4 py-10 text-white sm:px-6">
             <div className="mx-auto w-full max-w-5xl">
-                <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/45">Voice Lab</p>
-                    <h1 className="mt-1 text-2xl font-black">改善提案・要望ボード</h1>
+                <div className="mb-6 rounded-3xl border border-[#f5efe3]/15 bg-[#f5efe3]/[0.05] p-5">
+                    <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#f5efe3]/65">Voice Lab</p>
+                    <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">ご意見ボックス</h1>
+                    <p className="mt-2 text-sm leading-7 text-[#f5efe3]/70">ご意見・バグ報告・アイデアを投書してください。</p>
+                </div>
+
+                <div className="mb-6 rounded-3xl border border-amber-200/20 bg-amber-200/10 p-4">
+                    {canPost ? (
+                        <form onSubmit={onCreatePost} className="grid gap-3">
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                <select
+                                    value={form.category}
+                                    onChange={(e) => setForm((p) => ({ ...p, category: e.target.value as VoiceLabCategory }))}
+                                    className="rounded-2xl border border-amber-200/25 bg-black/25 px-4 py-3 text-sm font-bold"
+                                >
+                                    {(Object.keys(VOICELAB_CATEGORY_LABEL) as VoiceLabCategory[]).map((cat) => (
+                                        <option key={cat} value={cat}>{VOICELAB_CATEGORY_LABEL[cat]}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    value={form.title}
+                                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                                    placeholder="タイトル"
+                                    className="rounded-2xl border border-amber-200/25 bg-black/25 px-4 py-3 text-sm font-bold placeholder:text-white/40 sm:col-span-2"
+                                />
+                            </div>
+                            <textarea
+                                value={form.body}
+                                onChange={(e) => setForm((p) => ({ ...p, body: e.target.value.slice(0, BODY_MAX_LENGTH) }))}
+                                placeholder="内容"
+                                rows={5}
+                                maxLength={BODY_MAX_LENGTH}
+                                className="w-full rounded-2xl border border-amber-200/25 bg-black/25 px-4 py-3 text-sm placeholder:text-white/40"
+                            />
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+                                <span>本文は最大{BODY_MAX_LENGTH}文字まで投稿できます</span>
+                                <span className="font-mono">{form.body.length}/{BODY_MAX_LENGTH}</span>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={creating}
+                                className="w-fit rounded-2xl border border-amber-200/40 bg-amber-200/15 px-5 py-3 text-sm font-black text-amber-100 disabled:opacity-50"
+                            >
+                                {creating ? "投書中..." : "投書する"}
+                            </button>
+                        </form>
+                    ) : (
+                        <div className="rounded-2xl border border-amber-200/20 bg-black/20 px-4 py-4 text-sm text-white/70">
+                            ログインすると投書フォームが表示されます。
+                        </div>
+                    )}
                 </div>
 
                 <div className="mb-5 flex flex-wrap gap-2">
@@ -155,48 +203,6 @@ export default function VoiceLabClient({
                         <AdCard ad={topAd} size="medium" />
                     </div>
                 )}
-
-                {canPost && (
-                    <form onSubmit={onCreatePost} className="mb-6 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
-                        <h2 className="mb-3 text-sm font-extrabold">新規投稿</h2>
-                        <div className="grid gap-3 sm:grid-cols-3">
-                            <select
-                                value={form.category}
-                                onChange={(e) => setForm((p) => ({ ...p, category: e.target.value as VoiceLabCategory }))}
-                                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
-                            >
-                                {(Object.keys(VOICELAB_CATEGORY_LABEL) as VoiceLabCategory[]).map((cat) => (
-                                    <option key={cat} value={cat}>{VOICELAB_CATEGORY_LABEL[cat]}</option>
-                                ))}
-                            </select>
-                            <input
-                                value={form.title}
-                                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                                placeholder="タイトル"
-                                className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm sm:col-span-2"
-                            />
-                        </div>
-                        <textarea
-                            value={form.body}
-                            onChange={(e) => setForm((p) => ({ ...p, body: e.target.value.slice(0, BODY_MAX_LENGTH) }))}
-                            placeholder="内容"
-                            rows={4}
-                            maxLength={BODY_MAX_LENGTH}
-                            className="mt-3 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
-                        />
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-white/45">
-                            <span>本文は最大{BODY_MAX_LENGTH}文字まで投稿できます</span>
-                            <span>{form.body.length}/{BODY_MAX_LENGTH}</span>
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={creating}
-                            className="mt-3 rounded-lg border border-cyan-300/35 bg-cyan-300/15 px-4 py-2 text-sm font-bold text-cyan-100 disabled:opacity-50"
-                        >
-                            {creating ? "投稿中..." : "投稿する"}
-                        </button>
-                    </form>
-                )}
                 {localAd && (
                     <div className="mb-6">
                         <AdCard ad={localAd} size="small" />
@@ -215,30 +221,21 @@ export default function VoiceLabClient({
                                     <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] font-bold text-white/75">
                                         {VOICELAB_CATEGORY_LABEL[post.category]}
                                     </span>
+                                    <span className={`rounded-full border px-3 py-1 text-[11px] font-bold ${STATUS_CLASS[post.status]}`}>
+                                        {VOICELAB_STATUS_LABEL[post.status]}
+                                    </span>
                                     {canManageVoiceLab ? (
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            {STATUS_OPTIONS.map((statusOption) => {
-                                                const active = post.status === statusOption;
-                                                return (
-                                                    <button
-                                                        key={statusOption}
-                                                        type="button"
-                                                        disabled={statusPostId === post.id}
-                                                        onClick={() => onStatusChange(post.id, statusOption)}
-                                                        className={`rounded-full border px-3 py-1 text-[11px] font-bold transition ${
-                                                            active ? STATUS_CLASS[statusOption] : "border-white/15 bg-white/[0.03] text-white/55 hover:bg-white/[0.08]"
-                                                        }`}
-                                                    >
-                                                        {VOICELAB_STATUS_LABEL[statusOption]}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <span className={`rounded-full border px-3 py-1 text-[11px] font-bold ${STATUS_CLASS[post.status]}`}>
-                                            {VOICELAB_STATUS_LABEL[post.status]}
-                                        </span>
-                                    )}
+                                        <select
+                                            value={post.status}
+                                            disabled={statusPostId === post.id}
+                                            onChange={(e) => onStatusChange(post.id, e.target.value as VoiceLabStatus)}
+                                            className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[11px] font-bold text-white/70 disabled:opacity-50"
+                                        >
+                                            {STATUS_OPTIONS.map((st) => (
+                                                <option key={st} value={st}>{VOICELAB_STATUS_LABEL[st]}</option>
+                                            ))}
+                                        </select>
+                                    ) : null}
                                     <span className="ml-auto text-xs text-white/40">
                                         {new Date(post.createdAt).toLocaleDateString("ja-JP")}
                                     </span>

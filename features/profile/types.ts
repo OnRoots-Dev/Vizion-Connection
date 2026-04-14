@@ -30,8 +30,10 @@ export interface ProfileData {
     prefecture?: string;
     career?: string;
     sport?: string;
+    sports?: string[];
     sportsCategory?: string;
     stance?: string;
+    claim?: string;
     instagram?: string;
     xUrl?: string;
     tiktok?: string;
@@ -39,6 +41,7 @@ export interface ProfileData {
     missionBonusGiven?: boolean;
     sponsorPlan?: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     isFoundingMember: boolean;
+    foundingNumber?: number;
     isPublic?: boolean;
     isDeleted?: boolean;
     hasShared?: boolean;
@@ -69,14 +72,17 @@ export interface PublicProfileData {
     prefecture?: string;
     career?: string;
     sport?: string;
+    sports?: string[];
     sportsCategory?: string;
     stance?: string;
+    claim?: string;
     instagram?: string;
     xUrl?: string;
     tiktok?: string;
     missionBonusGiven?: boolean;
     sponsorPlan?: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     isFoundingMember: boolean;
+    foundingNumber?: number;
     isPublic?: boolean;
     isDeleted?: boolean;
     avatarUrl?: string;

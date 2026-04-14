@@ -56,6 +56,8 @@ export function CollectionCarousel({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const total = cards.length;
+  const cardMaxWidth = compact ? 316 : 336;
+  const cardMinHeight = compact ? 198 : 226;
 
   const orderedCards = useMemo(() => {
     if (cards.length === 0) return [];
@@ -70,60 +72,66 @@ export function CollectionCarousel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ position: "relative", minHeight: compact ? 188 : 276 }}>
-        {orderedCards.slice(0, 3).reverse().map((card, indexFromBack) => {
-          const displayIndex = 2 - indexFromBack;
-          const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
-          const scale = 1 - displayIndex * 0.04;
-          const y = displayIndex * 14;
-          const veilOpacity = displayIndex === 0 ? 0 : displayIndex === 1 ? 0.18 : 0.32;
-          return (
-            <motion.button
-              key={`${card.targetSlug}-${displayIndex}`}
-              type="button"
-              onClick={() => onOpenProfile?.(card.targetSlug)}
-              initial={{ opacity: 0, y: 18, scale: 0.96 }}
-              animate={{ opacity: 1, y, scale }}
-              transition={{ duration: 0.26 }}
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                borderRadius: 18,
-                border: `1px solid ${cardRoleColor}25`,
-                background: `linear-gradient(145deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, #050508 100%)`,
-                overflow: "hidden",
-                textAlign: "left",
-                cursor: "pointer",
-                boxShadow: `0 14px 34px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
-                padding: 0,
-                zIndex: 10 - displayIndex,
-                pointerEvents: displayIndex === 0 ? "auto" : "none",
-              }}
-            >
+      <div style={{ position: "relative", minHeight: cardMinHeight + 42, display: "flex", justifyContent: "center" }}>
+        <div style={{ position: "relative", width: "100%", maxWidth: cardMaxWidth, aspectRatio: "400 / 240" }}>
+          {orderedCards.slice(0, 3).reverse().map((card, indexFromBack) => {
+            const displayIndex = 2 - indexFromBack;
+            const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
+            const scale = compact ? 1 - displayIndex * 0.04 : 1 - displayIndex * 0.05;
+            const y = compact ? displayIndex * 14 : displayIndex * 16;
+            const x = compact ? displayIndex * 5 : displayIndex * 4;
+            const veilOpacity = displayIndex === 0 ? 0 : displayIndex === 1 ? 0.16 : 0.28;
+            return (
+              <motion.button
+                key={`${card.targetSlug}-${displayIndex}`}
+                type="button"
+                onClick={() => onOpenProfile?.(card.targetSlug)}
+                initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                animate={{ opacity: 1, y, x, scale }}
+                transition={{ duration: 0.26 }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  borderRadius: 18,
+                  border: `1px solid ${cardRoleColor}25`,
+                  background: `linear-gradient(145deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, #050508 100%)`,
+                  overflow: "hidden",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  boxShadow: compact
+                    ? `0 16px 38px rgba(0,0,0,0.42), 0 0 0 1px ${cardRoleColor}18`
+                    : `0 14px 34px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
+                  padding: 0,
+                  zIndex: 10 - displayIndex,
+                  pointerEvents: displayIndex === 0 ? "auto" : "none",
+                  transformOrigin: "center top",
+                }}
+              >
               {card.profileImageUrl ? (
                 <img src={card.profileImageUrl} alt={card.displayName} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.38 }} />
               ) : null}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.76) 58%, rgba(0,0,0,0.96) 100%)" }} />
               <div style={{ position: "absolute", top: 0, right: 0, width: 180, height: 180, background: `radial-gradient(circle, ${cardRoleColor}30, transparent 72%)` }} />
               <div style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${veilOpacity})` }} />
-              <div style={{ position: "relative", zIndex: 1, height: "100%", padding: compact ? 14 : 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <div style={{ position: "absolute", inset: 1, borderRadius: 17, border: "1px solid rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+              <div style={{ position: "relative", zIndex: 1, height: "100%", padding: compact ? 16 : 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.16em", color: "rgba(255,255,255,0.78)" }}>
                     {ROLE_LABEL[card.role] ?? card.role}
                   </span>
-                  <span style={{ fontSize: 10, color: card.isFoundingMember ? "#FFD600" : "rgba(255,255,255,0.75)" }}>
+                  <span style={{ fontSize: compact ? 9 : 10, color: card.isFoundingMember ? "#FFD600" : "rgba(255,255,255,0.75)" }}>
                     {card.isFoundingMember ? "FOUNDING" : "EARLY"}
                   </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: compact ? 42 : 52, height: compact ? 42 : 52, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                  <div style={{ width: compact ? 46 : 52, height: compact ? 46 : 52, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
                     {card.avatarUrl ? <img src={card.avatarUrl} alt={card.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : card.displayName.slice(0, 1)}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ margin: "0 0 4px", fontSize: compact ? 15 : 18, fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#fff" }}>{card.displayName}</p>
+                    <p style={{ margin: "0 0 4px", fontSize: compact ? 16 : 18, fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#fff", letterSpacing: "-0.01em" }}>{card.displayName}</p>
                     <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.7)" }}>@{card.targetSlug}</p>
-                    {!compact && (card.sport || card.region) ? (
+                    {((!compact && (card.sport || card.region)) || (compact && (card.sport || card.region))) ? (
                       <p style={{ margin: "4px 0 0", fontSize: 10, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {[card.sport, card.region].filter(Boolean).join(" / ")}
                       </p>
@@ -131,25 +139,26 @@ export function CollectionCarousel({
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: compact ? 8 : 10 }}>
-                  {!compact && card.bio ? (
+                  {(compact ? Boolean(card.bio) : Boolean(card.bio)) ? (
                     <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, minHeight: 34 }}>
-                      {card.bio.length > 44 ? `${card.bio.slice(0, 44)}...` : card.bio}
+                      {card.bio && (card.bio.length > (compact ? 52 : 44) ? `${card.bio.slice(0, compact ? 52 : 44)}...` : card.bio)}
                     </p>
                   ) : null}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 12, color: "#FFD600", fontFamily: "monospace", fontWeight: 900, whiteSpace: "nowrap" }}>★ {card.cheerCount ?? 0}</p>
-                      {!compact && card.sponsorPlan ? <SponsorBadge plan={card.sponsorPlan} /> : null}
+                      {card.sponsorPlan ? <SponsorBadge plan={card.sponsorPlan} /> : null}
                     </div>
                     <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.66)", fontFamily: "monospace", whiteSpace: "nowrap" }}>
                       {card.serialId ? `#${String(card.serialId).padStart(4, "0")}` : "CARD"}
                     </p>
                   </div>
+                  </div>
                 </div>
-              </div>
-            </motion.button>
-          );
-        })}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>

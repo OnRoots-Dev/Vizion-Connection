@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { createVoiceLabPost, getVoiceLabPosts, updateVoiceLabPostStatus } from "@/lib/voicelab";
-import { canManageVoiceLabByEmail } from "@/lib/auth/voicelab-admin";
 
 const createSchema = z.object({
     category: z.enum(["feature", "bug", "idea", "other"]),
@@ -13,8 +12,8 @@ const createSchema = z.object({
 });
 
 const updateStatusSchema = z.object({
-    postId: z.string().min(1),
-    status: z.enum(["open", "reviewing", "done"]),
+    postId: z.string().uuid(),
+    status: z.enum(["open", "reviewing", "planned", "done"]),
 });
 
 export async function GET() {
@@ -59,7 +58,7 @@ export async function PATCH(req: NextRequest) {
 
         const session = verifySession(token);
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        if (!canManageVoiceLabByEmail(session.email)) {
+        if (session.role !== "Admin") {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

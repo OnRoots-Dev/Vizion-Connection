@@ -22,19 +22,19 @@ export function Header() {
 
         {/* Mobile hamburger */}
         <button onClick={() => setOpen(o => !o)} className="flex md:hidden flex-col gap-1.5 p-2" aria-label="メニュー">
-          <span style={{ width: 22, height: 2, background: open ? "transparent" : "#fff", display: "block", transition: "all 0.2s" }} />
-          <span style={{ width: 22, height: 2, background: "#fff", display: "block", transform: open ? "rotate(45deg) translateY(5px)" : "none", transition: "all 0.2s" }} />
-          <span style={{ width: 22, height: 2, background: "#fff", display: "block", transform: open ? "rotate(-45deg) translateY(-5px)" : "none", transition: "all 0.2s" }} />
+          <span className={`vc-menu-line bg-white ${open ? "bg-transparent" : ""}`} />
+          <span className={`vc-menu-line bg-white ${open ? "translate-y-[5px] rotate-45" : ""}`} />
+          <span className={`vc-menu-line bg-white ${open ? "-translate-y-[5px] -rotate-45" : ""}`} />
         </button>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div style={{ background: "rgba(11,11,15,0.97)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="flex flex-col gap-4 border-t border-white/6 bg-[rgba(11,11,15,0.97)] px-6 pt-4 pb-6">
           <Link href="/contact" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-white/60">Contact</Link>
           <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-[#FFD600] font-bold">Login</Link>
           <Link href="/register" onClick={() => setOpen(false)}
-            style={{ marginTop: 8, padding: "12px 20px", background: "#FFD600", color: "#000", fontWeight: 900, fontSize: 13, textAlign: "center", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            className="mt-2 bg-[#FFD600] px-5 py-3 text-center text-[13px] font-black uppercase tracking-[0.1em] text-black">
             今すぐ登録する
           </Link>
         </div>

@@ -8,6 +8,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
     Trainer: "トレーナー",
     Members: "メンバー",
     Business: "ビジネス",
+    Admin: "管理",
 };
 
 const ROLE_COLOR: Record<UserRole, { bg: string; text: string; border: string }> = {
@@ -15,6 +16,7 @@ const ROLE_COLOR: Record<UserRole, { bg: string; text: string; border: string }>
     Trainer: { bg: "#14532d", text: "#4ade80", border: "#16a34a" },
     Members: { bg: "#1c1c1c", text: "#9ca3af", border: "#4b5563" },
     Business: { bg: "#451a03", text: "#fbbf24", border: "#d97706" },
+    Admin: { bg: "#2e1065", text: "#c4b5fd", border: "#7c3aed" },
 };
 
 export function buildOgImageElement(

@@ -2,14 +2,13 @@ import { getVoiceLabPosts, getVoiceLabUserUpvotes } from "@/lib/voicelab";
 import VoiceLabClient from "./VoiceLabClient";
 import { getOptionalSessionUser } from "@/lib/auth/get-optional-session-user";
 import { getAdsForUser } from "@/lib/ads";
-import { canManageVoiceLabByEmail } from "@/lib/auth/voicelab-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function VoiceLabPage() {
     const sessionUser = await getOptionalSessionUser();
     const session = sessionUser ? { userId: String(sessionUser.id) } : null;
-    const canManageVoiceLab = canManageVoiceLabByEmail(sessionUser?.email);
+    const canManageVoiceLab = sessionUser?.role === "Admin";
 
     const [posts, upvotedIds, ads] = await Promise.all([
         getVoiceLabPosts(),

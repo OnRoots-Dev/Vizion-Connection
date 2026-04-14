@@ -7,6 +7,16 @@ import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { ProfilePreviewModal } from "@/app/(app)/dashboard/components/ProfilePreviewModal";
+import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+
+type InlineAd = {
+    id: string;
+    headline: string;
+    image_url?: string;
+    link_url: string;
+    sponsor?: string;
+    business_id?: number;
+};
 
 const ROLE_COLOR_MAP: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
@@ -14,6 +24,33 @@ const ROLE_COLOR_MAP: Record<string, string> = {
 const ROLE_LABEL_MAP: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
 };
+
+function formatLocationLabel(value?: string | null) {
+    if (!value) return "-";
+    return value.trim() || "-";
+}
+
+function getCardBackground(user: any, color: string) {
+    const overlays = [
+        `linear-gradient(180deg, rgba(5,10,20,0.18) 0%, rgba(5,10,20,0.72) 55%, rgba(5,10,20,0.94) 100%)`,
+        `linear-gradient(135deg, ${color}55 0%, rgba(8,12,22,0.18) 40%, rgba(8,12,22,0.88) 100%)`,
+    ];
+
+    if (user.profile_image_url) {
+        return `${overlays.join(",")}, url(${user.profile_image_url})`;
+    }
+
+    return `linear-gradient(145deg, ${color}40, rgba(13,17,27,0.96) 60%, rgba(7,10,18,1) 100%)`;
+}
+
+function ProfileAvatar({ user, color, size }: { user: any; color: string; size: number }) {
+    const initials = user.display_name?.[0]?.toUpperCase() ?? "?";
+    return (
+        <div style={{ width: size, height: size, borderRadius: "50%", overflow: "hidden", background: `${color}25`, border: `1px solid ${color}55`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, color: color, flexShrink: 0, boxShadow: `0 10px 24px ${color}30` }}>
+            {user.avatar_url ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
+        </div>
+    );
+}
 
 export function CheerView({ profile, t, roleColor, setView }: {
     profile: ProfileData; t: ThemeColors; roleColor: string; setView: (v: DashboardView) => void;
@@ -24,6 +61,14 @@ export function CheerView({ profile, t, roleColor, setView }: {
     const [rankingLoading, setRankingLoading] = useState(true);
     const [myRank, setMyRank] = useState<number | null>(null);
     const [selectedProfileSlug, setSelectedProfileSlug] = useState<string | null>(null);
+    const [ads, setAds] = useState<InlineAd[]>([]);
+
+    useEffect(() => {
+        fetch("/api/ads", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((data) => setAds(Array.isArray(data?.ads) ? data.ads : []))
+            .catch(() => setAds([]));
+    }, []);
 
     useEffect(() => {
         setRankingLoading(true);
@@ -51,7 +96,56 @@ export function CheerView({ profile, t, roleColor, setView }: {
     const renderMiniCard = (user: any, rank: number, compact = false) => {
         const rl = ROLE_COLOR_MAP[user.role] ?? "#aaa";
         const isMe = user.slug === profile.slug;
-        const initials = user.display_name?.[0]?.toUpperCase() ?? "?";
+        const locationLabel = formatLocationLabel(user.region);
+
+        if (compact) {
+            return (
+                <button
+                    type="button"
+                    onClick={() => setSelectedProfileSlug(user.slug)}
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        width: "100%",
+                        borderRadius: 18,
+                        border: `1px solid ${isMe ? roleColor + "55" : rl + "40"}`,
+                        backgroundImage: getCardBackground(user, rl),
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        padding: 12,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        boxShadow: `0 18px 38px ${rl}18`,
+                    }}
+                >
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.58) 100%)", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", top: -24, right: -24, width: 92, height: 92, borderRadius: "50%", background: `radial-gradient(circle, ${rl}35, transparent 70%)`, pointerEvents: "none" }} />
+                    <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                            <span style={{ minWidth: 34, textAlign: "center", padding: "5px 8px", borderRadius: 999, background: "rgba(6,10,18,0.62)", border: `1px solid ${rl}55`, color: rl, fontSize: 10, fontFamily: "monospace", fontWeight: 900, flexShrink: 0 }}>
+                                #{String(rank).padStart(2, "0")}
+                            </span>
+                            <ProfileAvatar user={user} color={rl} size={44} />
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                                    <p style={{ fontSize: 13, fontWeight: 900, color: "#fff", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
+                                    <span style={{ fontSize: 8, fontWeight: 900, padding: "3px 7px", borderRadius: 999, background: "rgba(6,10,18,0.56)", color: rl, border: `1px solid ${rl}40`, fontFamily: "monospace", flexShrink: 0 }}>{ROLE_LABEL_MAP[user.role] ?? user.role}</span>
+                                    {isMe ? <span style={{ fontSize: 8, fontFamily: "monospace", color: roleColor, flexShrink: 0 }}>YOU</span> : null}
+                                </div>
+                                <p style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,0.55)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{user.slug}{locationLabel && locationLabel !== "-" ? ` · ${locationLabel}` : ""}</p>
+                            </div>
+                        </div>
+                        <div style={{ flexShrink: 0, textAlign: "right" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                                <span style={{ fontSize: 10, color: "#FFD600" }}>★</span>
+                                <span style={{ fontSize: 16, fontWeight: 900, color: "#FFD600", fontFamily: "monospace" }}>{user.cheer_count}</span>
+                            </div>
+                            <span style={{ fontSize: 10, color: rl, fontWeight: 900 }}>Open →</span>
+                        </div>
+                    </div>
+                </button>
+            );
+        }
 
         return (
             <button
@@ -61,77 +155,53 @@ export function CheerView({ profile, t, roleColor, setView }: {
                     position: "relative",
                     overflow: "hidden",
                     width: "100%",
-                    minHeight: compact ? 72 : 170,
-                    borderRadius: compact ? 14 : 16,
-                    border: `1px solid ${isMe ? roleColor + "40" : rl + "28"}`,
-                    background: `linear-gradient(145deg, rgba(8,8,14,0.94) 0%, rgba(6,6,10,1) 100%)`,
-                    padding: 0,
+                    minHeight: 170,
+                    borderRadius: 20,
+                    border: `1px solid ${isMe ? roleColor + "55" : rl + "40"}`,
+                    backgroundImage: getCardBackground(user, rl),
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    padding: 14,
                     cursor: "pointer",
                     textAlign: "left",
+                    boxShadow: `0 22px 50px ${rl}18`,
                 }}
             >
-                {user.profile_image_url ? (
-                    <img
-                        src={user.profile_image_url}
-                        alt=""
-                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: compact ? 0.22 : 0.32 }}
-                    />
-                ) : null}
-                <div style={{ position: "absolute", inset: 0, background: compact ? "linear-gradient(90deg, rgba(0,0,0,0.86) 0%, rgba(0,0,0,0.58) 100%)" : "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.94) 100%)" }} />
-                <div style={{ position: "absolute", top: -20, right: -10, width: compact ? 80 : 120, height: compact ? 80 : 120, background: `radial-gradient(circle, ${rl}35, transparent 70%)` }} />
-                <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: compact ? "row" : "column", justifyContent: compact ? "space-between" : "space-between", gap: compact ? 10 : 8, height: "100%", padding: compact ? "10px 12px" : "12px 10px 10px" }}>
-                    {compact ? (
-                        <>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                                <span style={{ width: 28, fontSize: 12, fontWeight: 900, fontFamily: "monospace", color: "rgba(255,255,255,0.3)", textAlign: "center", flexShrink: 0 }}>{rank}</span>
-                                <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
-                                    <div style={{ position: "absolute", inset: 0, borderRadius: "50%", overflow: "hidden", background: `${rl}25`, border: `2px solid ${rl}55`, display: "flex", alignItems: "center", justifyContent: "center", color: rl, fontWeight: 900 }}>
-                                        {user.avatar_url ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
-                                    </div>
-                                </div>
-                                <div style={{ minWidth: 0, flex: 1 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-                                        <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
-                                        <span style={{ fontSize: 7, fontWeight: 800, padding: "2px 5px", borderRadius: 999, background: `${rl}18`, color: rl, fontFamily: "monospace", flexShrink: 0 }}>{ROLE_LABEL_MAP[user.role]}</span>
-                                        {isMe ? <span style={{ fontSize: 7, fontFamily: "monospace", color: roleColor, flexShrink: 0 }}>YOU</span> : null}
-                                    </div>
-                                    <p style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.48)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                        @{user.slug}
-                                    </p>
-                                </div>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                                    <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                    <span style={{ fontSize: 14, fontWeight: 900, color: "#FFD600", fontFamily: "monospace" }}>{user.cheer_count}</span>
-                                </div>
-                                <span style={{ fontSize: 9, color: rl, fontWeight: 800 }}>見る →</span>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                                <div style={{ fontSize: rank === 1 ? 16 : 14 }}>{rank === 1 ? "👑" : rank === 2 ? "🥈" : "🥉"}</div>
-                                {isMe ? <span style={{ fontSize: 7, fontFamily: "monospace", color: roleColor, letterSpacing: "0.1em" }}>YOU</span> : null}
-                            </div>
-                            <div style={{ position: "relative", width: rank === 1 ? 56 : 48, height: rank === 1 ? 56 : 48, margin: "0 auto" }}>
-                                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", overflow: "hidden", background: `${rl}25`, border: `2px solid ${rl}55`, display: "flex", alignItems: "center", justifyContent: "center", color: rl, fontWeight: 900 }}>
-                                    {user.avatar_url ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
-                                </div>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 800, color: t.text, margin: "0 0 3px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>{user.display_name}</p>
-                                <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-                                    <span style={{ fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 999, background: `${rl}18`, color: rl, fontFamily: "monospace" }}>{ROLE_LABEL_MAP[user.role]}</span>
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                                    <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                    <span style={{ fontSize: 13, fontWeight: 900, color: "#FFD600", fontFamily: "monospace" }}>{user.cheer_count}</span>
-                                </div>
-                            </div>
-                            <span style={{ fontSize: 8, color: rl, fontWeight: 800, textAlign: "center" }}>プロフィールを見る →</span>
-                        </>
-                    )}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 18%, rgba(8,12,22,0.18) 42%, rgba(7,10,18,0.96) 100%)", pointerEvents: "none" }} />
+                <div style={{ position: "absolute", right: -36, top: -36, width: 136, height: 136, borderRadius: "50%", background: `radial-gradient(circle, ${rl}50, transparent 68%)`, filter: "blur(2px)", pointerEvents: "none" }} />
+
+                <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ minWidth: 34, textAlign: "center", padding: "5px 8px", borderRadius: 999, background: "rgba(6,10,18,0.62)", border: `1px solid ${rl}55`, color: rl, fontSize: 10, fontFamily: "monospace", fontWeight: 900 }}>
+                            #{String(rank).padStart(2, "0")}
+                        </span>
+                        <span style={{ padding: "5px 9px", borderRadius: 999, background: "rgba(6,10,18,0.56)", border: `1px solid ${rl}44`, color: "#F7FAFC", fontSize: 10, fontWeight: 700 }}>
+                            Cheer Ranking
+                        </span>
+                    </div>
+                    {isMe ? <span style={{ fontSize: 9, fontFamily: "monospace", color: roleColor, letterSpacing: "0.1em" }}>YOU</span> : null}
+                </div>
+
+                <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "flex-end", gap: 12, marginTop: 14 }}>
+                    <ProfileAvatar user={user} color={rl} size={58} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                            <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 999, background: "rgba(6,10,18,0.56)", color: rl, border: `1px solid ${rl}40` }}>{user.role}</span>
+                            {locationLabel && locationLabel !== "-" ? <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 999, background: "rgba(6,10,18,0.56)", color: "rgba(255,255,255,0.76)" }}>{locationLabel}</span> : null}
+                        </div>
+                        <p style={{ margin: "0 0 2px", fontSize: 15, fontWeight: 900, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 2px 12px rgba(0,0,0,0.35)" }}>{user.display_name}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.72)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ID: {user.slug}</p>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}>Cheer</div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: "#FFD600", textShadow: "0 2px 16px rgba(0,0,0,0.4)" }}>★ {user.cheer_count}</div>
+                    </div>
+                </div>
+
+                <div style={{ position: "relative", zIndex: 1, marginTop: 14, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 999, background: `${rl}24`, border: `1px solid ${rl}45`, color: "#FFFFFF", fontSize: 10, fontWeight: 800, boxShadow: `0 10px 24px ${rl}18` }}>
+                        Open Profile →
+                    </div>
                 </div>
             </button>
         );
@@ -159,9 +229,19 @@ export function CheerView({ profile, t, roleColor, setView }: {
                 )}
             </motion.div>
 
+            {ads.length > 0 ? (
+                <AdCard ad={ads[0]!} />
+            ) : (
+                <SectionCard t={t}>
+                    <SLabel text="AD SLOT" color="#FFD600" />
+                    <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（空き枠）</p>
+                </SectionCard>
+            )}
+
             {/* ランキング */}
             <SectionCard t={t}>
                 <SLabel text="Cheer Ranking" />
+
                 <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
                     {tabs.map(tab => (
                         <button key={tab.value} onClick={() => setRankingTab(tab.value)}

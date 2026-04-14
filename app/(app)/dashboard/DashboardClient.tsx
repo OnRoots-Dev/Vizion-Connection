@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardProfileView } from "./components/DashboardProfileView";
 import { THEME_MAP, ROLE_COLOR } from "./types";
-import type { Theme, DashboardView, ThemeColors } from "./types";
+import type { Theme, DashboardView } from "./types";
 import type { ProfileData } from "@/features/profile/types";
 import { HomeView } from "./views/HomeView";
 import { CardView } from "./views/CardView";
@@ -25,6 +25,9 @@ import { VoiceLabView } from "./views/VoiceLabView";
 import { NotificationsView } from "./views/NotificationsView";
 import { CollectionsView } from "./views/CollectionsView";
 import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
+import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import { AdminPostsView } from "./views/admin/AdminPostsView";
+import { OffersView } from "./views/OffersView";
 
 type DashboardNewsPost = {
     id: string;
@@ -57,29 +60,25 @@ export default function DashboardClient({
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
-    const [theme, setTheme] = useState<Theme>("dark");
     const [view, setView] = useState<DashboardView>(initialView);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
-    const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
     const [featuredNewsTop, setFeaturedNewsTop] = useState<DashboardNewsPost[]>([]);
     const [selectedProfileSlug, setSelectedProfileSlug] = useState<string | null>(null);
 
-    const careerCacheRef = useRef<any>(undefined);
     const contentRef = useRef<HTMLDivElement | null>(null);
+    const [careerProfileCache, setCareerProfileCache] = useState<CareerProfileRow | null | undefined>(undefined);
     useEffect(() => {
         let cancelled = false;
 
         Promise.all([
-            fetch("/api/career/me").then((r) => r.json()).catch(() => ({ careerProfile: null })),
-            fetch("/api/news/posts", { cache: "no-store" }).then((res) => res.json()).catch(() => ({ featuredTop: [] })),
+            fetch("/api/news/posts", { cache: "no-store" }).then((res) => res.json()).catch(() => []),
             fetch("/api/notifications/unread").then((res) => res.json()).catch(() => ({ success: false, unreadCount: 0 })),
-        ]).then(([careerData, newsData, unreadData]) => {
+        ]).then(([, unreadData]) => {
             if (cancelled) return;
 
-            careerCacheRef.current = careerData.careerProfile ?? null;
-            setFeaturedNewsTop(Array.isArray(newsData.featuredTop) ? newsData.featuredTop : []);
+            setFeaturedNewsTop([]);
             if (unreadData.success) {
                 setNotificationUnreadCount(unreadData.unreadCount ?? 0);
             }
@@ -88,6 +87,31 @@ export default function DashboardClient({
         return () => {
             cancelled = true;
         };
+    }, []);
+
+    const getThemeSnapshot = (): Theme => {
+        const saved = localStorage.getItem("vz-theme") as Theme | null;
+        return saved && THEME_MAP[saved] ? saved : "dark";
+    };
+
+    const getThemeServerSnapshot = (): Theme => "dark";
+
+    const theme = useSyncExternalStore<Theme>(
+        (listener) => {
+            const onStorage = (event: StorageEvent) => {
+                if (event.key === "vz-theme") listener();
+            };
+            window.addEventListener("storage", onStorage);
+            return () => window.removeEventListener("storage", onStorage);
+        },
+        getThemeSnapshot,
+        getThemeServerSnapshot,
+    );
+
+    const setTheme = useCallback((next: Theme) => {
+        if (!THEME_MAP[next]) return;
+        localStorage.setItem("vz-theme", next);
+        window.dispatchEvent(new StorageEvent("storage", { key: "vz-theme", newValue: next }));
     }, []);
 
     const t = THEME_MAP[theme];
@@ -99,15 +123,6 @@ export default function DashboardClient({
         window.addEventListener("resize", check);
         return () => window.removeEventListener("resize", check);
     }, []);
-
-    useEffect(() => {
-        const saved = localStorage.getItem("vz-theme") as Theme | null;
-        if (saved && THEME_MAP[saved]) setTheme(saved);
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem("vz-theme", theme);
-    }, [theme]);
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "auto" });
@@ -127,6 +142,18 @@ export default function DashboardClient({
         }
 
         throw new Error("Profile payload missing");
+    }, []);
+
+    const refreshCareerProfile = useCallback(async () => {
+        const res = await fetch("/api/career/me", { cache: "no-store" });
+        if (!res.ok) {
+            throw new Error("Failed to refresh career profile");
+        }
+
+        const json = await res.json() as { careerProfile?: CareerProfileRow | null };
+        const nextCareerProfile = json.careerProfile ?? null;
+        setCareerProfileCache(nextCareerProfile);
+        return nextCareerProfile;
     }, []);
 
     const refreshNotificationUnread = useCallback(async () => {
@@ -184,49 +211,63 @@ export default function DashboardClient({
         window.location.href = "/login";
     }, []);
 
+    const handleSetView = useCallback((nextView: DashboardView) => {
+        if ((nextView === "profile" || nextView === "career") && careerProfileCache === undefined) {
+            refreshCareerProfile().catch(() => {
+                setCareerProfileCache(null);
+            });
+        }
+        setView(nextView);
+    }, [careerProfileCache, refreshCareerProfile]);
+
     const handleProfileUpdate = useCallback(async (updated?: ProfileData) => {
         if (updated) {
             setProfile(updated);
         } else {
             await refreshProfile();
         }
-        setView("home");
-    }, [refreshProfile]);
+        handleSetView("home");
+    }, [handleSetView, refreshProfile]);
 
     const renderView = () => {
         switch (view) {
             case "home":
-                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={(newsId) => { setSelectedNewsId(newsId); setView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
+                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={() => { handleSetView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
             case "collections":
-                return <CollectionsView t={t} roleColor={roleColor} setView={setView} onOpenProfile={setSelectedProfileSlug} />;
+                return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "notifications":
-                return <NotificationsView t={t} roleColor={roleColor} setView={setView} onUnreadCountChange={setNotificationUnreadCount} />;
+                return <NotificationsView t={t} roleColor={roleColor} setView={handleSetView} onUnreadCountChange={setNotificationUnreadCount} />;
+            case "admin_posts":
+                return <AdminPostsView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "card":
-                return <CardView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
+                return <CardView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "profile":
-                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} setView={setView} careerProfile={careerCacheRef.current} />;
+                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} setView={handleSetView} careerProfile={careerProfileCache} />;
             case "news":
-                return <NewsView t={t} roleColor={roleColor} setView={setView} ads={ads} selectedNewsId={selectedNewsId} onSelectNews={setSelectedNewsId} />;
+                return <NewsView t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "offers":
+                return <OffersView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "voicelab":
-                return <VoiceLabView t={t} roleColor={roleColor} setView={setView} ads={ads} canManageVoiceLab={canManageVoiceLab} />;
+                return <VoiceLabView t={t} roleColor={roleColor} setView={handleSetView} ads={ads} canManageVoiceLab={canManageVoiceLab} />;
             case "edit":
-                return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} onSave={handleProfileUpdate} />;
+                return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} onSave={handleProfileUpdate} />;
             case "cheer":
-                return <CheerView profile={profile} t={t} roleColor={roleColor} setView={setView} />;
+                return <CheerView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "career":
-                return <CareerSPAWrapper profile={profile} t={t} roleColor={roleColor} setView={setView} careerCache={careerCacheRef.current} />;
+                return <CareerSPAWrapper profile={profile} t={t} roleColor={roleColor} setView={handleSetView} careerCache={careerProfileCache} />;
             case "discovery":
-                return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
+                return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
+            case "hub":
             case "business":
-                return <BusinessView profile={profile} t={t} roleColor={roleColor} setView={setView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
+                return <BusinessView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} ads={ads} canManageAdmin={canManageVoiceLab} />;
             case "referral":
-                return <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} />;
+                return <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "settings":
-                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={() => setView("home")} onLogout={handleLogout} />;
+                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} onLogout={handleLogout} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "missions":
-                return <MissionsView profile={profile} referralCount={referralCount} t={t} roleColor={roleColor} setView={setView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
+                return <MissionsView profile={profile} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "roadmap":
-                return <RoadmapView t={t} roleColor={roleColor} setView={setView} />;
+                return <RoadmapView t={t} roleColor={roleColor} setView={handleSetView} />;
             default:
                 return null;
         }
@@ -252,7 +293,7 @@ export default function DashboardClient({
                 .vz-card-hover:hover { border-color: rgba(255,255,255,0.12) !important; box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
             `}</style>
 
-            <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s" }}>
+            <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s", ["--vz-text" as string]: t.text, ["--vz-sub" as string]: t.sub, ["--vz-surface" as string]: t.surface, ["--vz-border" as string]: t.border }}>
                 <ProfilePreviewModal slug={selectedProfileSlug} onClose={() => setSelectedProfileSlug(null)} />
                 <AnimatePresence>
                     {sidebarOpen && isMobile && (
@@ -267,7 +308,7 @@ export default function DashboardClient({
                                 <Sidebar
                                     profile={profile}
                                     view={view}
-                                    setView={(v) => { setView(v); setSidebarOpen(false); }}
+                                    setView={(v) => { handleSetView(v); setSidebarOpen(false); }}
                                     notificationUnreadCount={notificationUnreadCount}
                                     theme={theme}
                                     setTheme={setTheme}
@@ -282,18 +323,33 @@ export default function DashboardClient({
                     <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
                         {isMobile && (
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: `1px solid ${t.border}`, position: "sticky", top: 0, zIndex: 30, background: t.bg, backdropFilter: "blur(12px)" }}>
-                                <button onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
+                                <button type="button" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
-                                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" width={120} height={32} priority style={{ height: 32, width: "auto" }} />
-                                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                                    <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: "50%", background: roleColor }} />
-                                    <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.12em", color: roleColor, textTransform: "uppercase" }}>Live</span>
+                                <Image src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"} alt="Vizion" width={120} height={32} priority style={{ height: 32, width: "auto" }} />
+                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
+                                    <motion.div
+                                        animate={profile.isPublic ? { opacity: [1, 0.3, 1] } : { opacity: 0.45 }}
+                                        transition={profile.isPublic ? { duration: 2, repeat: Infinity } : undefined}
+                                        style={{ width: 6, height: 6, borderRadius: "50%", background: profile.isPublic ? roleColor : t.sub }}
+                                    />
+                                    <span
+                                        style={{
+                                            fontSize: 9,
+                                            fontFamily: "monospace",
+                                            fontWeight: 700,
+                                            letterSpacing: "0.12em",
+                                            color: profile.isPublic ? roleColor : t.sub,
+                                            textTransform: "uppercase",
+                                        }}
+                                    >
+                                        {profile.isPublic ? "Live" : "Private"}
+                                    </span>
                                 </div>
                             </div>
                         )}
 
-                        <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "24px 32px" }}>
+                        <div ref={contentRef} style={{ flex: 1, maxWidth: 1180, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "20px 20px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}

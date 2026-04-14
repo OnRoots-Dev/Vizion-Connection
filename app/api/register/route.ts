@@ -16,7 +16,7 @@ const schema = z.object({
     displayName: z.string().min(1).max(120),
     slug: z.string().min(1).max(64),
     referrerSlug: z.string().max(64).optional(),
-    redirectTo: z.string().max(200).optional(),
+    redirectTo: z.string().max(500).optional(),
 }).strict();
 
 export async function POST(req: NextRequest): Promise<NextResponse> {

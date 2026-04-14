@@ -3,7 +3,8 @@ import { supabaseServer as supabase } from "./server";
 export type NotificationType =
   | "cheer_received"
   | "business_checkout_submitted"
-  | "mission_reward_granted";
+  | "mission_reward_granted"
+  | "news";
 
 interface NotificationRow {
   id: number;

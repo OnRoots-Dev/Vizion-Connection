@@ -23,6 +23,7 @@ type UserRow = {
     prefecture: string | null;
     location: string | null;
     sport: string | null;
+    sports: string[] | null;
     sports_category: string | null;
     stance: string | null;
     claim: string | null;
@@ -54,7 +55,7 @@ function toProfile(row: UserRow) {
         displayName: row.display_name,
         passwordHash: row.password_hash,
         email: row.email,
-        role: row.role as "Athlete" | "Trainer" | "Members" | "Business",
+        role: row.role as "Athlete" | "Trainer" | "Members" | "Business" | "Admin",
         plan: (row.sponsor_plan ? "paid" : "free") as "free" | "paid",
         isPublic: row.is_public,
         isFoundingMember: row.is_founding_member,
@@ -70,6 +71,7 @@ function toProfile(row: UserRow) {
         prefecture: row.prefecture,
         location: row.location,
         sport: row.sport,
+        sports: row.sports ?? [],
         sportsCategory: row.sports_category,
         stance: row.stance,
         claim: row.claim,
@@ -195,6 +197,7 @@ export async function createUser(params: {
 const CAMEL_TO_SNAKE: Record<string, string> = {
     displayName: "display_name", bio: "bio", region: "region",
     prefecture: "prefecture", location: "location", sport: "sport",
+    sports: "sports",
     sportsCategory: "sports_category", stance: "stance", claim: "claim",
     instagram: "instagram", xUrl: "x_url", tiktok: "tiktok",
     avatarUrl: "avatar_url", profileImageUrl: "profile_image_url",

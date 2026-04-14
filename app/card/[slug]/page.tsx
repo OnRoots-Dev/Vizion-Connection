@@ -10,7 +10,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 
 const ROLE_LABEL_JA: Record<UserRole, string> = {
-    Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス",
+    Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス", Admin: "管理",
 };
 
 interface Props {

@@ -2,6 +2,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 import localFont from "next/font/local";
 import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const bebas = localFont({
   src: "../public/fonts/BebasNeue-Regular.ttf",
@@ -79,7 +83,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={`${bebas.variable} ${noto.variable}`}>
+    <html lang="ja" className={cn(bebas.variable, noto.variable, "font-sans", geist.variable)}>
       <body>
         {children}
         <SpeedInsights />

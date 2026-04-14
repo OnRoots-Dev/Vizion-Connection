@@ -35,7 +35,7 @@ export async function GET(): Promise<NextResponse> {
             hasProfileDetails: Boolean(user.bio || user.sport || user.region),
         });
 
-        return NextResponse.json({ onetime, daily });
+        return NextResponse.json({ onetime, daily, currentPoints: user.points });
     } catch (err) {
         console.error("[GET /api/missions]", err);
         return NextResponse.json({ success: false, error: "server_error" }, { status: 500 });
@@ -81,6 +81,9 @@ export async function POST(req: Request): Promise<NextResponse> {
         if (!pointOk || !flagOk) {
             return NextResponse.json({ ok: false, error: "update_failed" }, { status: 500 });
         }
+
+        const updatedUser = await findUserBySlug(user.slug);
+
         await notifyMissionRewardGranted({
             slug: user.slug,
             points: MISSION_BONUS_POINTS,
@@ -91,7 +94,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({
             ok: true,
             pointsAdded: MISSION_BONUS_POINTS,
-            currentPoints: user.points + MISSION_BONUS_POINTS,
+            currentPoints: updatedUser ? updatedUser.points : user.points + MISSION_BONUS_POINTS,
         });
 
     } catch (err) {

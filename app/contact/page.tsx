@@ -9,7 +9,7 @@ const ContactSection = dynamic(
 
 export default function ContactPage() {
     return (
-        <main style={{ minHeight: "100vh", background: "#07070e" }}>
+        <main className="min-h-screen bg-[#07070e]">
             <ContactSection />
         </main>
     );

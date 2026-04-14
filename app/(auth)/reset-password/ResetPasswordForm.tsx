@@ -33,12 +33,6 @@ export default function ResetPasswordForm() {
     const [isError, setIsError] = useState(false);
     const [done, setDone] = useState(false);
 
-    const inputStyle: React.CSSProperties = {
-        width: "100%", padding: "12px 16px", borderRadius: "12px",
-        background: "#111118", border: "1.5px solid #1e1e2a",
-        color: "#fff", fontSize: "14px", outline: "none",
-    };
-
     async function handleRequest() {
         if (!email) return;
         setLoading(true); setMsg(""); setIsError(false);
@@ -89,16 +83,16 @@ export default function ResetPasswordForm() {
     }
 
     return (
-        <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
-            <Link href="/login" style={{ marginBottom: "40px" }}>
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "3vw", width: "auto", opacity: 0.8 }} />
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#07070e] px-5 py-10 text-white">
+            <Link href="/login" className="mb-10">
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="h-[3vw] w-auto opacity-80" />
             </Link>
-            <div style={{ width: "100%", maxWidth: "400px", background: "#0d0d1a", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "36px 32px", display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div className="vc-auth-card flex flex-col gap-5">
                 <div>
-                    <h1 style={{ fontSize: "20px", fontWeight: 800, margin: "0 0 6px" }}>
+                    <h1 className="mb-1.5 text-[20px] font-extrabold">
                         {token ? "新しいパスワードを設定" : "パスワードをリセット"}
                     </h1>
-                    <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
+                    <p className="m-0 text-[13px] leading-relaxed text-white/40">
                         {token ? "8文字以上の新しいパスワードを入力してください" : "登録済みのメールアドレスを入力してください"}
                     </p>
                 </div>
@@ -106,7 +100,7 @@ export default function ResetPasswordForm() {
                 {!token ? (
                     <>
                         <input type="email" placeholder="you@example.com" value={email}
-                            onChange={e => setEmail(e.target.value)} style={inputStyle} disabled={done} />
+                            onChange={e => setEmail(e.target.value)} className="vc-auth-input" disabled={done} />
                         <button onClick={handleRequest} disabled={loading || !email || done}
                             style={{ padding: "13px", borderRadius: "12px", background: done ? "rgba(50,210,120,0.1)" : "#a78bfa", color: done ? "#32D278" : "#000", fontSize: "14px", fontWeight: 700, border: done ? "1px solid rgba(50,210,120,0.3)" : "none", cursor: loading || done ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
                             {loading ? "送信中..." : done ? "✓ 送信しました" : "リセットメールを送信"}
@@ -115,26 +109,26 @@ export default function ResetPasswordForm() {
                 ) : (
                     <>
                         {/* ← 修正: パスワード入力 + 目マーク */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                            <div style={{ position: "relative" }}>
+                        <div className="flex flex-col gap-1.5">
+                            <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="新しいパスワード（8文字以上）"
                                     value={newPassword}
                                     onChange={e => setNewPassword(e.target.value)}
-                                    style={{ ...inputStyle, paddingRight: "44px" }}
+                                    className="vc-auth-input pr-11"
                                     disabled={done}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(v => !v)}
-                                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", display: "flex", alignItems: "center" }}
+                                    className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center border-none bg-transparent text-white/30"
                                 >
                                     <EyeIcon open={showPassword} />
                                 </button>
                             </div>
                             {/* ← 修正: パスワード制限の注意書き */}
-                            <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", margin: 0, paddingLeft: "4px", lineHeight: 1.6 }}>
+                            <p className="m-0 pl-1 text-[11px] leading-relaxed text-white/25">
                                 8文字以上 ／ 半角英字・数字を含めてください
                             </p>
                         </div>
@@ -150,7 +144,7 @@ export default function ResetPasswordForm() {
                         {msg}
                     </div>
                 )}
-                <Link href="/login" style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>
+                <Link href="/login" className="text-center text-[12px] text-white/30">
                     ← ログインに戻る
                 </Link>
             </div>

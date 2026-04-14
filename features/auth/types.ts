@@ -1,6 +1,6 @@
 // features/auth/types.ts
 
-export type UserRole = "Athlete" | "Trainer" | "Members" | "Business";
+export type UserRole = "Athlete" | "Trainer" | "Members" | "Business" | "Admin";
 
 export interface RegisterInput {
     email: string;
@@ -40,6 +40,7 @@ export interface UserRecord {
     prefecture: string | null;
     location: string | null;
     sport: string | null;
+    sports: string[] | null;
     sportsCategory: string | null;
     stance: string | null;
     claim: string | null;

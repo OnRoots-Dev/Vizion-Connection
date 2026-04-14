@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import type { AdItem } from "@/lib/ads-shared";
 
 export type AdSize = "small" | "medium" | "large" | "hero";
@@ -25,9 +28,45 @@ interface AdCardProps {
     plan?: string;
 }
 
+function recordAdEvent(body: { adId: string; eventType: "impression" | "click"; source: string }) {
+    const payload = JSON.stringify(body);
+    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        navigator.sendBeacon("/api/ads/events", new Blob([payload], { type: "application/json" }));
+        return;
+    }
+
+    fetch("/api/ads/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true,
+    }).catch(() => undefined);
+}
+
 export default function AdCard({ ad, size, plan }: AdCardProps) {
     const resolvedPlan = plan ?? ad.plan;
     const resolvedSize = size ?? ad.adSize ?? resolveSize(resolvedPlan, size);
+    const rootRef = useRef<HTMLElement | null>(null);
+    const impressionTrackedRef = useRef(false);
+
+    useEffect(() => {
+        const node = rootRef.current;
+        if (!node || impressionTrackedRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const entry = entries[0];
+                if (!entry?.isIntersecting || impressionTrackedRef.current) return;
+                impressionTrackedRef.current = true;
+                recordAdEvent({ adId: ad.id, eventType: "impression", source: "ad_card" });
+                observer.disconnect();
+            },
+            { threshold: 0.45 },
+        );
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, [ad.id]);
 
     const rootClass = (() => {
         if (resolvedSize === "small") return "overflow-hidden rounded-xl border border-amber-300/20 bg-black/40";
@@ -39,7 +78,7 @@ export default function AdCard({ ad, size, plan }: AdCardProps) {
     const bodyClamp = resolvedSize === "large" ? "line-clamp-3" : "line-clamp-2";
 
     return (
-        <article className={rootClass}>
+        <article ref={rootRef} className={rootClass}>
             <div className="flex items-center justify-between border-b border-amber-300/15 px-4 py-2">
                 <p className="text-xs font-bold tracking-[0.18em] text-amber-200">SPONSORED</p>
                 <span className="rounded-full border border-amber-300/30 bg-amber-300/15 px-2 py-0.5 text-[10px] font-black text-amber-200">
@@ -62,6 +101,7 @@ export default function AdCard({ ad, size, plan }: AdCardProps) {
                                 href={ad.linkUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => recordAdEvent({ adId: ad.id, eventType: "click", source: "ad_card" })}
                                 className="mt-4 inline-flex rounded-lg border border-amber-300/40 bg-amber-300/20 px-4 py-2 text-sm font-bold text-amber-100"
                             >
                                 スポンサー詳細
@@ -85,6 +125,7 @@ export default function AdCard({ ad, size, plan }: AdCardProps) {
                                 href={ad.linkUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={() => recordAdEvent({ adId: ad.id, eventType: "click", source: "ad_card" })}
                                 className="mt-4 inline-flex rounded-lg border border-amber-300/35 bg-amber-300/15 px-3 py-2 text-xs font-bold text-amber-100"
                             >
                                 詳細を見る

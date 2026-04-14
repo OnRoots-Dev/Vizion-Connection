@@ -55,11 +55,10 @@ export default function LoginForm() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
-            style={{ background: "#07070e" }}>
+        <div className="vc-auth-shell">
 
             <Link href="/" className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "13vw", width: "auto" }} />
+                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="h-[13vw] w-auto" />
             </Link>
 
             <div className="w-full max-w-md">
@@ -77,10 +76,7 @@ export default function LoginForm() {
                             placeholder="you@example.com"
                             value={form.email}
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all"
-                            style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                            onFocus={(e) => e.target.style.borderColor = "#a78bfa"}
-                            onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                            className="vc-auth-input"
                         />
                     </div>
 
@@ -94,10 +90,7 @@ export default function LoginForm() {
                                 placeholder="••••••••"
                                 value={form.password}
                                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-white/20 outline-none transition-all"
-                                style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                                onFocus={(e) => e.target.style.borderColor = "#a78bfa"}
-                                onBlur={(e) => e.target.style.borderColor = "#1e1e2a"}
+                                className="vc-auth-input pr-11"
                             />
                             <button
                                 type="button"
@@ -110,8 +103,7 @@ export default function LoginForm() {
                     </div>
 
                     {error && (
-                        <div className="rounded-xl px-4 py-3 text-sm text-red-400"
-                            style={{ background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)" }}>
+                        <div className="rounded-xl border border-[rgba(255,80,80,0.2)] bg-[rgba(255,80,80,0.08)] px-4 py-3 text-sm text-red-400">
                             {error}
                         </div>
                     )}

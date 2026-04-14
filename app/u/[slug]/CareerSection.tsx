@@ -22,6 +22,15 @@ interface CareerSectionProps {
 
 type Role = "ATHLETE" | "TRAINER" | "MEMBERS" | "BUSINESS";
 
+function normalizeSocialUrl(value?: string | null, base?: string) {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+    if (trimmed.startsWith("@")) return base ? `${base}${trimmed.slice(1)}` : trimmed;
+    return base ? `${base}${trimmed}` : trimmed;
+}
+
 export default function CareerSection({
     roleColor: rl,
     bio,
@@ -57,7 +66,6 @@ export default function CareerSection({
                 backdropFilter: "blur(12px)",
             }}
         >
-            {/* タブヘッダー */}
             <div style={{
                 display: "flex",
                 borderBottom: "1px solid rgba(255,255,255,0.07)",
@@ -112,7 +120,6 @@ export default function CareerSection({
                 ))}
             </div>
 
-            {/* タブコンテンツ */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={tab}
@@ -142,7 +149,6 @@ export default function CareerSection({
     );
 }
 
-// ── プロフィールタブ ──────────────────────────────────────────────
 function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, cheerCount }: {
     rl: string; bio?: string | null; sport?: string | null;
     region?: string | null; prefecture?: string | null;
@@ -165,60 +171,80 @@ function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, chee
                     marginBottom: 14, overflow: "hidden",
                 }}>
                     <div style={{ position: "absolute", left: 0, top: "15%", bottom: "15%", width: 2, borderRadius: "0 2px 2px 0", background: `linear-gradient(to bottom, transparent, ${rl}aa, transparent)` }} />
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, margin: 0, paddingLeft: 6 }}>{bio}</p>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.8, margin: 0, paddingLeft: 6 }}>{bio}</p>
                 </div>
             )}
             {items.map((item, i) => (
                 <motion.div key={item.label} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                     style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 6px", borderBottom: i < items.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
                     <span style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>{item.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: item.color ?? "rgba(255,255,255,0.7)", fontFamily: item.color ? "monospace" : "inherit" }}>{item.value}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: item.color ?? "rgba(255,255,255,0.78)", fontFamily: item.color ? "monospace" : "inherit" }}>{item.value}</span>
                 </motion.div>
             ))}
         </div>
     );
 }
 
-// ── キャリアタブ（実データ対応版）────────────────────────────────────────────
 function CareerTab({ role, rl, slug, careerProfile }: {
     role: Role; rl: string; slug: string;
     careerProfile: CareerProfileRow | null;
 }) {
-    // データがある場合は実表示
+    const snsLinks = [
+        { label: "X", href: normalizeSocialUrl(careerProfile?.sns_x, "https://x.com/") },
+        { label: "Instagram", href: normalizeSocialUrl(careerProfile?.sns_instagram, "https://instagram.com/") },
+        { label: "TikTok", href: normalizeSocialUrl(careerProfile?.sns_tiktok, "https://tiktok.com/@") },
+    ].filter((item) => item.href);
+
     if (careerProfile && (
         careerProfile.tagline ||
         careerProfile.bio_career ||
+        careerProfile.stats?.length > 0 ||
         careerProfile.episodes?.length > 0 ||
         careerProfile.skills?.length > 0
     )) {
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-                {/* キャッチコピー */}
                 {careerProfile.tagline && (
                     <div style={{ padding: "14px 16px", borderRadius: 12, background: `${rl}08`, border: `1px solid ${rl}20` }}>
                         <p style={{ fontSize: 14, fontWeight: 700, color: rl, margin: 0, lineHeight: 1.6 }}>
-                            "{careerProfile.tagline}"
+                            &quot;{careerProfile.tagline}&quot;
                         </p>
                     </div>
                 )}
 
-                {/* キャリア自己紹介 */}
                 {careerProfile.bio_career && (
                     <div style={{ position: "relative", padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
                         <div style={{ position: "absolute", left: 0, top: "15%", bottom: "15%", width: 2, borderRadius: "0 2px 2px 0", background: `linear-gradient(to bottom, transparent, ${rl}aa, transparent)` }} />
-                        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, margin: 0, paddingLeft: 6 }}>{careerProfile.bio_career}</p>
+                        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.9, margin: 0, paddingLeft: 6, whiteSpace: "pre-wrap" }}>{careerProfile.bio_career}</p>
                     </div>
                 )}
 
-                {/* キャリア年表 */}
+                {careerProfile.stats?.length > 0 && (
+                    <div>
+                        <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
+                            PERFORMANCE SNAPSHOT
+                        </p>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+                            {careerProfile.stats.filter((stat) => stat?.label || stat?.value).map((stat, index) => {
+                                const statColor = stat.color === "gold" ? "#FFD600" : stat.color === "role" ? rl : "rgba(255,255,255,0.88)";
+                                return (
+                                    <div key={`${stat.label}-${index}`} style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                                        <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.26)", marginBottom: 6 }}>{stat.label}</div>
+                                        <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: statColor }}>{stat.value || "-"}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {careerProfile.episodes?.length > 0 && (
                     <div>
                         <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
                             CAREER HISTORY
                         </p>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {(careerProfile.episodes as any[]).map((ep: any, i: number) => (
+                            {careerProfile.episodes.map((ep, i) => (
                                 <motion.div key={ep.id ?? i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                                     style={{ display: "flex", gap: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
                                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
@@ -230,8 +256,18 @@ function CareerTab({ role, rl, slug, careerProfile }: {
                                             <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", margin: 0 }}>{ep.role}</p>
                                             {ep.isCurrent && <span style={{ fontSize: 8, fontFamily: "monospace", padding: "1px 6px", borderRadius: 4, background: `${rl}18`, color: rl, letterSpacing: "0.1em" }}>NOW</span>}
                                         </div>
-                                        {ep.org && <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 4px" }}>{ep.org}</p>}
+                                        {ep.org && <p style={{ fontSize: 11, color: "rgba(255,255,255,0.44)", margin: "0 0 4px" }}>{ep.org}</p>}
                                         <p style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,0.25)", margin: 0 }}>{ep.period}</p>
+                                        {ep.desc ? <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.62)", margin: "8px 0 0", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{ep.desc}</p> : null}
+                                        {ep.tags?.length ? (
+                                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                                                {ep.tags.map((tag) => (
+                                                    <span key={tag} style={{ padding: "4px 8px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: "rgba(255,255,255,0.55)" }}>
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : null}
                                         {ep.milestone && (
                                             <p style={{ fontSize: 11, color: rl, margin: "6px 0 0", padding: "4px 8px", borderRadius: 6, background: `${rl}08`, border: `1px solid ${rl}18`, display: "inline-block" }}>⭐ {ep.milestone}</p>
                                         )}
@@ -242,14 +278,13 @@ function CareerTab({ role, rl, slug, careerProfile }: {
                     </div>
                 )}
 
-                {/* スキル */}
                 {careerProfile.skills?.length > 0 && (
                     <div>
                         <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
                             SKILLS
                         </p>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {(careerProfile.skills as any[]).map((sk: any) => (
+                            {careerProfile.skills.map((sk) => (
                                 <div key={sk.name}>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                                         <span style={{ fontSize: 12, color: sk.isHighlight ? rl : "rgba(255,255,255,0.55)", fontWeight: sk.isHighlight ? 700 : 400 }}>
@@ -266,11 +301,29 @@ function CareerTab({ role, rl, slug, careerProfile }: {
                         </div>
                     </div>
                 )}
+
+                {(careerProfile.cta_title || careerProfile.cta_sub || careerProfile.cta_btn || snsLinks.length > 0) && (
+                    <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}22`, display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div>
+                            {careerProfile.cta_title ? <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.92)" }}>{careerProfile.cta_title}</p> : null}
+                            {careerProfile.cta_sub ? <p style={{ margin: 0, fontSize: 12, lineHeight: 1.8, color: "rgba(255,255,255,0.66)" }}>{careerProfile.cta_sub}</p> : null}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <Link href={`/r/${slug}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 16px", borderRadius: 12, background: rl, color: "#050508", fontSize: 12, fontWeight: 800 }}>
+                                {careerProfile.cta_btn || "つながる"}
+                            </Link>
+                            {snsLinks.map((item) => (
+                                <a key={item.label} href={item.href!} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.78)", fontSize: 11, fontWeight: 700 }}>
+                                    {item.label}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
 
-    // データなし → Coming Soon（既存の表示）
     const comingSoonItems: Record<Role, string[]> = {
         ATHLETE: ["競技歴（年月・実績・大会結果）", "所属チーム・クラブ", "現在の目標・ビジョン", "受賞歴・メディア掲載", "サポートしてほしいこと"],
         TRAINER: ["保有資格（NSCA-CPT / NESTA など）", "専門分野・対応競技", "指導経歴・実績", "対応エリア / オンライン可否", "料金目安・コンタクト"],

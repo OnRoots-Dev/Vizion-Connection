@@ -22,24 +22,60 @@ import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
 import SponsorBadge from "@/components/SponsorBadge";
 import PublicProfileRealtime from "./PublicProfileRealtime";
+import PublicProfileTabs from "./PublicProfileTabs";
+import { supabaseServer } from "@/lib/supabase/server";
+import { CATEGORY_CONFIG } from "@/types/schedule";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
+    Admin: "#7C3AED",
 };
 const ROLE_GRADIENT: Record<UserRole, string> = {
     Athlete: "#3D0000", Trainer: "#002211", Members: "#221500", Business: "#000D30",
+    Admin: "#1F0F2E",
 };
 const ROLE_LABEL: Record<UserRole, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
+    Admin: "ADMIN",
 };
 const ROLE_LABEL_JA: Record<UserRole, string> = {
     Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス",
+    Admin: "管理",
 };
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
 interface Props { params: Promise<{ slug: string }>; }
+
+async function getRoleRankingPreview(role: UserRole, slug: string, cheerCount: number) {
+    const [{ data: leaders }, { count }] = await Promise.all([
+        supabaseServer
+            .from("users")
+            .select("slug, display_name, avatar_url, cheer_count, region, sport")
+            .eq("is_deleted", false)
+            .eq("is_public", true)
+            .eq("role", role)
+            .order("cheer_count", { ascending: false })
+            .limit(5),
+        supabaseServer
+            .from("users")
+            .select("id", { count: "exact", head: true })
+            .eq("is_deleted", false)
+            .eq("is_public", true)
+            .eq("role", role)
+            .gt("cheer_count", cheerCount ?? 0),
+    ]);
+
+    const currentRank = Number(count ?? 0) + 1;
+    const currentLeader = (leaders ?? []).find((user) => user.slug === slug) ?? null;
+
+    return {
+        currentRank,
+        currentLeader,
+        leaders: leaders ?? [],
+    };
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
@@ -77,11 +113,24 @@ export default async function UserProfilePage({ params }: Props) {
     if (result.data.isPublic === false && !isOwn) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
-    const [collectorCount, careerProfile, ads] = await Promise.all([
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [collectorCount, rawCareerProfile, ads, publicSchedules] = await Promise.all([
         getCollectorCount(slug),
         getCareerProfile(slug),
         getAdsForUser(profile.prefecture ?? "", profile.sport ?? undefined),
+        supabaseServer
+            .from("schedules")
+            .select("id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at")
+            .eq("user_slug", slug)
+            .eq("is_public", true)
+            .gte("start_at", today.toISOString())
+            .order("start_at", { ascending: true })
+            .limit(10)
+            .then(({ data }) => data ?? []),
     ]);
+    const careerProfile = rawCareerProfile && (isOwn || rawCareerProfile.visibility === "public") ? rawCareerProfile : null;
     const regionalAd = ads.find((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan)) ?? null;
 
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
@@ -90,12 +139,23 @@ export default async function UserProfilePage({ params }: Props) {
     const bg1 = ROLE_GRADIENT[profile.role];
     const initials = profile.displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
     const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
+    const foundingDisplay = profile.isFoundingMember && profile.foundingNumber != null
+        ? `Founding Member #${String(profile.foundingNumber).padStart(4, "0")}`
+        : null;
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
         { label: "Instagram", href: profile.instagram, path: IG_PATH },
         { label: "TikTok", href: profile.tiktok, path: TK_PATH },
     ].filter(s => s.href);
     const cardTheme = { bg: "#08080f", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.07)", text: "#ffffff", sub: "rgba(255,255,255,0.45)" };
+    const rankingPreview = await getRoleRankingPreview(profile.role, slug, profile.cheerCount ?? 0);
+    const publicCareerLabel = profile.role === "Athlete"
+        ? "Career"
+        : profile.role === "Trainer"
+            ? "Expertise"
+            : profile.role === "Business"
+                ? "Portfolio"
+                : "Community";
 
     return (
         <div style={{ minHeight: "100vh", background: "#08080f", color: "#fff", overflowX: "hidden" }}>
@@ -178,11 +238,15 @@ export default async function UserProfilePage({ params }: Props) {
                         <div className="u1" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
                             {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
                             {serialDisplay && <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,.22)", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", padding: "2px 8px", borderRadius: 4 }}>{serialDisplay}</span>}
+                            {foundingDisplay && <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,.22)", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", padding: "2px 8px", borderRadius: 4 }}>{foundingDisplay}</span>}
                         </div>
                         <div className="u1" style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
                             <span className="rline" style={{ width: 28, background: rl }} />
                             <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 800, letterSpacing: ".32em", textTransform: "uppercase", color: `${rl}dd` }}>
-                                {ROLE_LABEL[profile.role]}{profile.sport ? ` · ${profile.sport}` : ""}
+                                {ROLE_LABEL[profile.role]}
+                                {profile.sportsCategory ? ` · ${profile.sportsCategory}` : ""}
+                                {profile.sport ? ` · ${profile.sport}` : ""}
+                                {profile.stance ? ` · ${profile.stance}` : ""}
                             </span>
                         </div>
                         <div className="u2" style={{ display: "flex", alignItems: "flex-end", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
@@ -196,6 +260,23 @@ export default async function UserProfilePage({ params }: Props) {
                                 </span>
                             )}
                         </div>
+                        {profile.claim?.trim() ? (
+                            <div className="u2" style={{ marginBottom: 14, maxWidth: 560 }}>
+                                <div style={{ position: "relative", padding: "14px 16px", borderRadius: 16, background: `${rl}10`, border: `1px solid ${rl}25`, overflow: "hidden" }}>
+                                    <div style={{ position: "absolute", top: 6, right: 12, fontFamily: "monospace", fontSize: 28, fontWeight: 900, color: `${rl}22`, userSelect: "none" }}>&quot;</div>
+                                    <p style={{ margin: 0, fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,.82)", fontWeight: 800 }}>
+                                        &quot;{profile.claim.trim()}&quot;
+                                    </p>
+                                </div>
+                            </div>
+                        ) : null}
+                        {careerProfile?.tagline && (
+                            <div className="u2" style={{ marginBottom: 14, maxWidth: 560 }}>
+                                <p style={{ margin: 0, fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,.74)", fontWeight: 700 }}>
+                                    {careerProfile.tagline}
+                                </p>
+                            </div>
+                        )}
                         <div className="u2" style={{ marginBottom: 10 }}>
                             <SponsorBadge plan={profile.sponsorPlan} prominent />
                         </div>
@@ -242,28 +323,153 @@ export default async function UserProfilePage({ params }: Props) {
                 </div>
 
                 <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", gap: 14 }}>
-                    {profile.bio && (
-                        <div className="u4" style={{ position: "relative", padding: "18px 20px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
-                            <div style={{ position: "absolute", left: 0, top: "18%", bottom: "18%", width: 3, borderRadius: "0 3px 3px 0", background: `linear-gradient(to bottom, transparent, ${rl}cc, transparent)` }} />
-                            <div style={{ position: "absolute", top: 8, right: 14, fontFamily: "monospace", fontSize: 28, fontWeight: 900, color: "rgba(255,255,255,.03)", userSelect: "none" }}>"</div>
-                            <p style={{ fontSize: 14, color: "rgba(255,255,255,.65)", lineHeight: 1.85, margin: 0, paddingLeft: 6 }}>{profile.bio}</p>
-                        </div>
-                    )}
-                    <div className="u5" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <div className="cheerb">
-                            <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                            <a href="/ranking" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 44, padding: "0 12px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.78)", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>⭐ ランキング</a>
-                            <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
-                        </div>
-                    </div>
-                    <div className="u6" id="card" style={{ scrollMarginTop: 80 }}>
-                        <ProfileCardSection profile={profile as unknown as ProfileData} t={cardTheme} roleColor={rl} />
-                    </div>
-                    <div className="u7">
-                        <CareerSection roleColor={rl} bio={profile.bio} sport={profile.sport} region={profile.region} prefecture={profile.prefecture} joinedAt={joinedAt} roleLabel={ROLE_LABEL[profile.role]} cheerCount={profile.cheerCount ?? 0} isPublic={profile.isPublic} slug={slug} careerProfile={careerProfile} />
-                    </div>
+                    <PublicProfileTabs
+                        roleColor={rl}
+                        careerLabel={publicCareerLabel}
+                        profilePanel={
+                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                                {profile.bio && (
+                                    <div style={{ position: "relative", padding: "18px 20px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)", overflow: "hidden" }}>
+                                        <div style={{ position: "absolute", left: 0, top: "18%", bottom: "18%", width: 3, borderRadius: "0 3px 3px 0", background: `linear-gradient(to bottom, transparent, ${rl}cc, transparent)` }} />
+                                        <div style={{ position: "absolute", top: 8, right: 14, fontFamily: "monospace", fontSize: 28, fontWeight: 900, color: "rgba(255,255,255,.03)", userSelect: "none" }}>&quot;</div>
+                                        <p style={{ fontSize: 14, color: "rgba(255,255,255,.65)", lineHeight: 1.85, margin: 0, paddingLeft: 6 }}>{profile.bio}</p>
+                                    </div>
+                                )}
+                                {careerProfile?.stats?.length ? (
+                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+                                        {careerProfile.stats.filter((stat) => stat?.label || stat?.value).slice(0, 3).map((stat, index) => {
+                                            const statColor = stat.color === "gold" ? "#FFD600" : stat.color === "role" ? rl : "#FFFFFF";
+                                            return (
+                                                <div key={`${stat.label}-${index}`} style={{ padding: "14px 16px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)" }}>
+                                                    <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.36)" }}>{stat.label}</p>
+                                                    <p style={{ margin: 0, fontSize: 28, fontWeight: 900, lineHeight: 1, color: statColor }}>{stat.value || "-"}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : null}
+                                <div className="cheerb">
+                                    <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
+                                </div>
+                                <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
+                                <div id="card" style={{ scrollMarginTop: 80 }}>
+                                    <ProfileCardSection
+                                        profile={profile as unknown as ProfileData}
+                                        t={cardTheme}
+                                        roleColor={rl}
+                                        preloadQr
+                                        mode="public"
+                                    />
+                                </div>
+                            </div>
+                        }
+                        careerPanel={
+                            <CareerSection roleColor={rl} bio={profile.bio} sport={profile.sport} region={profile.region} prefecture={profile.prefecture} joinedAt={joinedAt} roleLabel={ROLE_LABEL[profile.role]} cheerCount={profile.cheerCount ?? 0} isPublic={profile.isPublic} slug={slug} careerProfile={careerProfile} />
+                        }
+                        schedulePanel={
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                {publicSchedules.length === 0 ? (
+                                    <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,.55)" }}>公開中の予定はありません</p>
+                                ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                        {publicSchedules.map((s: any) => {
+                                            const cfg = CATEGORY_CONFIG[s.category as keyof typeof CATEGORY_CONFIG] ?? CATEGORY_CONFIG.other;
+                                            return (
+                                                <div
+                                                    key={s.id}
+                                                    style={{
+                                                        padding: "12px 14px",
+                                                        borderRadius: 14,
+                                                        border: "1px solid rgba(255,255,255,0.08)",
+                                                        background: "rgba(255,255,255,0.02)",
+                                                        display: "grid",
+                                                        gridTemplateColumns: "auto minmax(0, 1fr)",
+                                                        gap: 10,
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: 10, fontWeight: 800, color: cfg.color, padding: "4px 8px", borderRadius: 999, background: `${cfg.color}18`, border: `1px solid ${cfg.color}25`, flexShrink: 0 }}>
+                                                        {cfg.label}
+                                                    </span>
+                                                    <div style={{ minWidth: 0 }}>
+                                                        <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,.9)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</p>
+                                                        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,.45)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                            {new Date(s.start_at).toLocaleString("ja-JP")}{s.end_at ? ` - ${new Date(s.end_at).toLocaleString("ja-JP")}` : ""}
+                                                            {s.location ? ` · ${s.location}` : ""}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        }
+                        rankingPanel={
+                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: `${rl}0c`, border: `1px solid ${rl}22` }}>
+                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>ROLE RANK</p>
+                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: rl }}>#{rankingPreview.currentRank}</p>
+                                    </div>
+                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)" }}>
+                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>CHEER</p>
+                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
+                                    </div>
+                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)" }}>
+                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>COLLECTED</p>
+                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,.92)" }}>{collectorCount.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
+                                    <div style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                                        <div>
+                                            <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>{ROLE_LABEL[profile.role]} RANKING</p>
+                                            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,.62)" }}>同じロール内のCheer上位メンバー</p>
+                                        </div>
+                                        <a href={`/ranking?role=${profile.role}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, padding: "0 14px", borderRadius: 12, background: `${rl}12`, border: `1px solid ${rl}24`, color: rl, fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>一覧を見る</a>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                        {rankingPreview.leaders.map((user, index) => {
+                                            const active = user.slug === slug;
+                                            return (
+                                                <a
+                                                    key={user.slug}
+                                                    href={`/u/${user.slug}`}
+                                                    style={{
+                                                        display: "grid",
+                                                        gridTemplateColumns: "40px minmax(0, 1fr) auto",
+                                                        alignItems: "center",
+                                                        gap: 12,
+                                                        padding: "14px 18px",
+                                                        borderTop: index === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                                                        background: active ? `${rl}0f` : "transparent",
+                                                    }}
+                                                >
+                                                    <div style={{ fontSize: 18, fontWeight: 900, fontFamily: "monospace", color: active ? rl : "rgba(255,255,255,.4)" }}>#{index + 1}</div>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                                                        <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+                                                            {user.avatar_url ? <img src={user.avatar_url} alt={user.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
+                                                        </div>
+                                                        <div style={{ minWidth: 0 }}>
+                                                            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,.9)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
+                                                            <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,.42)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{user.slug}{user.region ? ` · ${user.region}` : ""}{user.sport ? ` · ${user.sport}` : ""}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ fontSize: 15, fontWeight: 900, fontFamily: "monospace", color: "#FFD600", whiteSpace: "nowrap" }}>★ {(user.cheer_count ?? 0).toLocaleString()}</div>
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                {!rankingPreview.currentLeader && (
+                                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,.48)", lineHeight: 1.7 }}>
+                                        現在の表示順位は同ロール内の暫定値です。トップ一覧には上位5名を表示しています。
+                                    </p>
+                                )}
+                            </div>
+                        }
+                    />
                     {regionalAd && (
                         <div className="u7">
                             <p style={{ margin: "0 0 8px", fontSize: 10, letterSpacing: ".18em", fontFamily: "monospace", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>あなたの地域のスポンサー</p>
