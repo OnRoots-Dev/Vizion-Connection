@@ -22,10 +22,6 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    const sports = Array.isArray(body.sports)
-        ? body.sports.map((v: unknown) => (typeof v === "string" ? v.trim() : "")).filter(Boolean)
-        : undefined;
-
     await updateUserProfile(user.slug, {
         displayName: body.displayName,
         bio: body.bio,
@@ -33,7 +29,6 @@ export async function POST(req: NextRequest) {
         ...(user.prefecture ? {} : { prefecture: body.prefecture }),
         sportsCategory: body.sportsCategory,
         sport: body.sport,
-        ...(sports ? { sports } : {}),
         stance: body.stance,
         instagram: body.instagram,
         xUrl: body.xUrl,
