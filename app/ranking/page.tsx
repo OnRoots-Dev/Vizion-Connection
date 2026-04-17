@@ -16,6 +16,13 @@ const ROLE_COLOR: Record<string, string> = {
   Business: "#1B3A8C",
 };
 
+function getRankIcon(rank: number) {
+  if (rank === 1) return { icon: "♛", color: "#FFD600" };
+  if (rank === 2) return { icon: "🥈", color: "#DCE7F5" };
+  if (rank === 3) return { icon: "🥉", color: "#D8A06A" };
+  return null;
+}
+
 async function getRanking(role?: string) {
   let query = supabaseServer
     .from("users")
@@ -77,6 +84,10 @@ export default async function RankingPage({
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {users.map((user, index) => (
+            (() => {
+              const rank = index + 1;
+              const rankIcon = getRankIcon(rank);
+              return (
             <Link
               key={user.slug}
               href={`/u/${user.slug}`}
@@ -85,7 +96,13 @@ export default async function RankingPage({
               className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5 transition hover:border-white/20 hover:bg-white/[0.05]"
             >
               <div className="mb-4 flex items-center justify-between">
-                <span className="text-xs font-black tracking-[0.15em] text-white/35">#{index + 1}</span>
+                <span className="text-xs font-black tracking-[0.15em] text-white/35">
+                  {rankIcon ? (
+                    <span style={{ color: rankIcon.color, fontSize: 16, lineHeight: 1 }}>{rankIcon.icon}</span>
+                  ) : (
+                    <>#{rank}</>
+                  )}
+                </span>
                 <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ background: `${ROLE_COLOR[user.role] ?? "#999"}22`, color: ROLE_COLOR[user.role] ?? "#999" }}>
                   {user.role}
                 </span>
@@ -104,6 +121,8 @@ export default async function RankingPage({
                 <span className="font-mono font-black text-[#FFD600]">★ {user.cheer_count}</span>
               </div>
             </Link>
+              );
+            })()
           ))}
         </div>
       </div>

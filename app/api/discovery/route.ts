@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getPlanFeatures, PLAN_PRIORITY } from "@/features/business/plan-features";
+import { ROLE_DISCOVERY_OPTIONS } from "@/lib/discovery-filters";
+
+type DiscoveryUserRow = {
+    slug: string;
+    display_name: string;
+    role: string;
+    avatar_url: string | null;
+    profile_image_url: string | null;
+    cheer_count: number | null;
+    region: string | null;
+    prefecture: string | null;
+    sport: string | null;
+    created_at: string;
+    sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+};
 
 function randomSort() {
     return Math.random() - 0.5;
@@ -43,6 +58,7 @@ export async function GET(req: NextRequest) {
     const role = req.nextUrl.searchParams.get("role") ?? "";
     const region = (req.nextUrl.searchParams.get("region") ?? "").trim();
     const prefecture = (req.nextUrl.searchParams.get("prefecture") ?? "").trim();
+    const sport = (req.nextUrl.searchParams.get("sport") ?? "").trim();
     const sort = req.nextUrl.searchParams.get("sort") ?? "all";
 
     let query = supabaseServer
@@ -56,6 +72,7 @@ export async function GET(req: NextRequest) {
     if (role) query = query.eq("role", role);
     if (region) query = query.ilike("region", `%${region}%`);
     if (prefecture) query = query.ilike("prefecture", `%${prefecture}%`);
+    if (sport) query = query.ilike("sport", `%${sport}%`);
     if (q) query = query.or(`slug.ilike.%${q}%,display_name.ilike.%${q}%`);
 
     const [{ data: users }, { data: refs }] = await Promise.all([
@@ -75,7 +92,7 @@ export async function GET(req: NextRequest) {
         referralMap.set(slug, (referralMap.get(slug) ?? 0) + 1);
     }
 
-    const mapped = (users ?? []).map((u: any) => ({
+    const mapped = ((users ?? []) as DiscoveryUserRow[]).map((u) => ({
         slug: u.slug,
         display_name: u.display_name,
         role: u.role,
@@ -135,6 +152,9 @@ export async function GET(req: NextRequest) {
         picks: {
             cheer: byCheer,
             referral: byReferral,
+        },
+        filters: {
+            roleOptions: ROLE_DISCOVERY_OPTIONS,
         },
     });
 }

@@ -20,20 +20,37 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: "Bad Request" }, { status: 400 });
     }
 
-    const { data, error } = await supabaseServer
+    const insertBase = {
+      user_slug: session.slug,
+      title,
+      start_at: startAt,
+      end_at: body.end_at ?? null,
+      location: body.location ?? null,
+      description: body.description ?? null,
+      category,
+      is_public: Boolean(body.is_public),
+    };
+
+    const insertWithSite = { ...insertBase, site_url: body.site_url ?? null };
+    const selectWithSiteUrl = "id,user_slug,title,start_at,end_at,location,site_url,description,category,is_public,created_at,updated_at";
+    const selectWithoutSiteUrl = "id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at";
+
+    let { data, error } = await supabaseServer
       .from("schedules")
-      .insert({
-        user_slug: session.slug,
-        title,
-        start_at: startAt,
-        end_at: body.end_at ?? null,
-        location: body.location ?? null,
-        description: body.description ?? null,
-        category,
-        is_public: Boolean(body.is_public),
-      })
-      .select("id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at")
+      .insert(insertWithSite as any)
+      .select(selectWithSiteUrl as any)
       .single();
+
+    if (error) {
+      const msg = String((error as any)?.message ?? "");
+      if (msg.toLowerCase().includes("site_url") && msg.toLowerCase().includes("column")) {
+        ({ data, error } = await supabaseServer
+          .from("schedules")
+          .insert(insertBase as any)
+          .select(selectWithoutSiteUrl as any)
+          .single());
+      }
+    }
 
     if (error) {
       console.error("[POST /api/schedules]", error);
@@ -66,21 +83,40 @@ export async function PUT(req: Request): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: "Bad Request" }, { status: 400 });
     }
 
-    const { data, error } = await supabaseServer
+    const updateBase = {
+      title,
+      start_at: startAt,
+      end_at: body.end_at ?? null,
+      location: body.location ?? null,
+      description: body.description ?? null,
+      category,
+      is_public: Boolean(body.is_public),
+    };
+
+    const updateWithSite = { ...updateBase, site_url: body.site_url ?? null };
+    const selectWithSiteUrl = "id,user_slug,title,start_at,end_at,location,site_url,description,category,is_public,created_at,updated_at";
+    const selectWithoutSiteUrl = "id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at";
+
+    let { data, error } = await supabaseServer
       .from("schedules")
-      .update({
-        title,
-        start_at: startAt,
-        end_at: body.end_at ?? null,
-        location: body.location ?? null,
-        description: body.description ?? null,
-        category,
-        is_public: Boolean(body.is_public),
-      })
+      .update(updateWithSite as any)
       .eq("id", id)
       .eq("user_slug", session.slug)
-      .select("id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at")
+      .select(selectWithSiteUrl as any)
       .single();
+
+    if (error) {
+      const msg = String((error as any)?.message ?? "");
+      if (msg.toLowerCase().includes("site_url") && msg.toLowerCase().includes("column")) {
+        ({ data, error } = await supabaseServer
+          .from("schedules")
+          .update(updateBase as any)
+          .eq("id", id)
+          .eq("user_slug", session.slug)
+          .select(selectWithoutSiteUrl as any)
+          .single());
+      }
+    }
 
     if (error) {
       console.error("[PUT /api/schedules]", error);

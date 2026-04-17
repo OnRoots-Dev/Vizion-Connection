@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, type MouseEvent } from "react";
+import { useRef, useState, useEffect, type MouseEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
-import type { LatestCheerItem, ProfileData } from "@/features/profile/types";
 import QRCode from "qrcode";
-import { DashboardView } from "@/app/(app)/dashboard/DashboardClient";
+import type { ProfileData, LatestCheerItem } from "@/features/profile/types";
+import type { DashboardView, ThemeColors } from "../types";
+import { CardHeader } from "./ui";
 import SponsorBadge from "@/components/SponsorBadge";
 
 const ROLE_COLOR: Record<string, string> = {
@@ -246,6 +247,8 @@ export function ProfileCardSection({
     t,
     roleColor,
     setView,
+    referralUrl,
+    referralCount,
     preloadQr = false,
     introAnimation = false,
     mode = "full",
@@ -254,6 +257,8 @@ export function ProfileCardSection({
     t: ThemeColors;
     roleColor?: string;
     setView?: (view: DashboardView) => void;
+    referralUrl?: string;
+    referralCount?: number;
     preloadQr?: boolean;
     introAnimation?: boolean;
     mode?: "full" | "public";
@@ -290,6 +295,12 @@ export function ProfileCardSection({
     const sy = useSpring(my, { stiffness: 180, damping: 22, mass: 0.6 });
     const rotateY = useTransform(sx, [-0.5, 0.5], [-12, 12]);
     const rotateX = useTransform(sy, [-0.5, 0.5], [10, -10]);
+
+    const touchStartX = useRef<number | null>(null);
+    const touchStartY = useRef<number | null>(null);
+    const touchLastX = useRef<number | null>(null);
+    const touchLastY = useRef<number | null>(null);
+    const touchMoved = useRef(false);
 
     function onMove(e: MouseEvent<HTMLDivElement>) {
         if (isFlipped) return;
@@ -351,23 +362,55 @@ export function ProfileCardSection({
                 transition: isPublicMode ? undefined : "box-shadow 0.22s ease, border-color 0.22s ease, transform 0.22s ease",
             }}
         >
-            {!isPublicMode && <div className="mb-4 flex items-center justify-between">
-                <p className="m-0 text-[9px] font-extrabold uppercase tracking-[0.2em] opacity-60" style={{ color: t.sub }}>Profile Card</p>
-                <div className="flex gap-[6px]">
-                    <span className="rounded-[20px] px-2 py-[3px] text-[9px] font-bold" style={{ background: `${rl}15`, color: rl, border: `1px solid ${rl}30` }}>{ROLE_LABEL[profile.role]}</span>
-                    {setView ? (
-                        <button onClick={() => setView("profile")} className="flex cursor-pointer items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
-                            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            プロフィール表示
-                        </button>
-                    ) : (
-                        <a href={`/u/${profile.slug}`} className="flex items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold no-underline" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
-                            <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                            公開ページ
-                        </a>
-                    )}
+            {!isPublicMode && (
+                <div style={{ marginBottom: 12 }}>
+                    <CardHeader
+                        title="Profile Card"
+                        color={rl}
+                        action={
+                            <div className="flex gap-[6px]">
+                                <span className="rounded-[20px] px-2 py-[3px] text-[9px] font-bold" style={{ background: `${rl}15`, color: rl, border: `1px solid ${rl}30` }}>{ROLE_LABEL[profile.role]}</span>
+                                {setView ? (
+                                    <button onClick={() => setView("profile")} className="flex cursor-pointer items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
+                                        <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                                        プロフィール表示
+                                    </button>
+                                ) : (
+                                    <a href={`/u/${profile.slug}`} className="flex items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold no-underline" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
+                                        <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                                        公開ページ
+                                    </a>
+                                )}
+                            </div>
+                        }
+                    />
+                    {referralUrl ? (
+                        <div style={{ marginTop: -6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Referral</span>
+                                {typeof referralCount === "number" ? (
+                                    <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.75)", fontWeight: 900 }}>+{referralCount}</span>
+                                ) : null}
+                            </div>
+                            <a
+                                href={referralUrl}
+                                className="no-underline"
+                                style={{
+                                    maxWidth: 260,
+                                    fontSize: 10,
+                                    fontFamily: "monospace",
+                                    color: "rgba(255,255,255,0.35)",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {referralUrl}
+                            </a>
+                        </div>
+                    ) : null}
                 </div>
-            </div>}
+            )}
 
             <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -386,6 +429,48 @@ export function ProfileCardSection({
                     />
                     <motion.div
                         onMouseMove={onMove} onMouseLeave={onLeave}
+                        onTouchStart={(e) => {
+                            if (!generated) return;
+                            if ((e.target as HTMLElement).closest("a,button")) return;
+                            const t0 = e.touches[0];
+                            if (!t0) return;
+                            touchStartX.current = t0.clientX;
+                            touchStartY.current = t0.clientY;
+                            touchLastX.current = t0.clientX;
+                            touchLastY.current = t0.clientY;
+                            touchMoved.current = false;
+                        }}
+                        onTouchMove={(e) => {
+                            const t0 = e.touches[0];
+                            if (!t0) return;
+                            if (touchStartX.current === null || touchStartY.current === null) return;
+                            const dx = t0.clientX - touchStartX.current;
+                            const dy = t0.clientY - touchStartY.current;
+                            touchLastX.current = t0.clientX;
+                            touchLastY.current = t0.clientY;
+                            if (Math.abs(dx) > 8 || Math.abs(dy) > 8) touchMoved.current = true;
+                        }}
+                        onTouchEnd={() => {
+                            if (!generated) return;
+                            if (touchStartX.current === null) return;
+                            const startX = touchStartX.current;
+                            const startY = touchStartY.current;
+                            const endX = touchLastX.current;
+                            const endY = touchLastY.current;
+                            touchStartX.current = null;
+                            touchStartY.current = null;
+                            touchLastX.current = null;
+                            touchLastY.current = null;
+                            if (!touchMoved.current) return;
+
+                            if (startY === null || endX === null || endY === null) return;
+                            const dx = endX - startX;
+                            const dy = endY - startY;
+                            const isHorizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+                            if (!isHorizontal) return;
+                            if (Math.abs(dx) < 40) return;
+                            setIsFlipped((f) => !f);
+                        }}
                         onClick={e => {
                             if (!generated) return;
                             if ((e.target as HTMLElement).closest("a,button")) return;
@@ -445,25 +530,8 @@ export function ProfileCardSection({
                                         )}
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                        <div
-                                            style={{
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                padding: "2px 0",
-                                                fontFamily: "'SF Mono','Fira Code',monospace",
-                                                fontSize: 16,
-                                                fontWeight: 900,
-                                                letterSpacing: "0.13em",
-                                                textTransform: "uppercase",
-                                                color: "rgba(255,255,255,0.45)",
-                                                whiteSpace: "nowrap",
-                                                textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.45)",
-                                            }}
-                                        >
-                                            {vzId}
-                                        </div>
-                                        <div className="flip-hint" style={{ marginTop: 4, display: "flex", alignItems: "center", fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
-                                            TAP TO SEE PROFILE
+                                        <div className="flip-hint" style={{ marginTop: 4, display: "flex", alignItems: "center", fontFamily: "monospace", fontSize: 5, letterSpacing: "0.12em", color: "rgba(255,255,255,0.18)" }}>
+                                            タップ / クリックで裏返す
                                         </div>
                                     </div>
                                 </div>
@@ -556,9 +624,7 @@ export function ProfileCardSection({
                 />
             )}
 
-            {!isPublicMode && <p className="mb-0 mt-2 text-center font-mono text-[9px] tracking-[0.1em] opacity-25" style={{ color: t.sub }}>
-                {vzId} · {joinDate}
-            </p>}
+            {null}
         </motion.div>
     );
 }
@@ -696,13 +762,12 @@ function ShareMenu({ profile, t, rl, compact = false }: { profile: ProfileData; 
     return (
         <div className="relative" style={{ marginTop: compact ? 12 : 14 }}>
             <div className="flex items-center justify-between gap-2">
-                <p className="m-0 text-[var(--share-hint-size)] opacity-45" style={{ ["--share-hint-size" as string]: `${compact ? 12 : 11}px`, color: t.sub }}>タップ / クリックで裏返す</p>
                 <button
                     onClick={() => setOpen(v => !v)}
-                    className="flex cursor-pointer items-center gap-[6px] rounded-[10px] px-[14px] py-[var(--share-btn-y)] text-[var(--share-btn-size)] font-bold transition-all duration-200"
-                    style={{ ["--share-btn-y" as string]: compact ? "8px" : "7px", ["--share-btn-size" as string]: `${compact ? 13 : 12}px`, background: open ? `${rl}18` : "rgba(255,255,255,0.06)", border: `1px solid ${open ? rl + "40" : "rgba(255,255,255,0.1)"}`, color: open ? rl : "rgba(255,255,255,0.6)" }}
+                    className="flex cursor-pointer items-center gap-[6px] rounded-[10px] px-[12px] py-[var(--share-btn-y)] text-[var(--share-btn-size)] font-bold transition-all duration-200"
+                    style={{ ["--share-btn-y" as string]: compact ? "7px" : "6px", ["--share-btn-size" as string]: `${compact ? 12 : 11}px`, background: open ? `${rl}18` : "rgba(255,255,255,0.06)", border: `1px solid ${open ? rl + "40" : "rgba(255,255,255,0.1)"}`, color: open ? rl : "rgba(255,255,255,0.6)" }}
                 >
-                    <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
+                    <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
                     シェア
                     <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} className="transition-transform duration-200" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />

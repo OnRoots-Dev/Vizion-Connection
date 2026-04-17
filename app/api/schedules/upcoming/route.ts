@@ -20,13 +20,26 @@ export async function GET(req: Request): Promise<NextResponse> {
 
     const nowIso = new Date().toISOString();
 
-    const { data, error } = await supabaseServer
-      .from("schedules")
-      .select("id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at")
-      .eq("user_slug", session.slug)
-      .gte("start_at", nowIso)
-      .order("start_at", { ascending: true })
-      .limit(limit);
+    const selectWithSiteUrl = "id,user_slug,title,start_at,end_at,location,site_url,description,category,is_public,created_at,updated_at";
+    const selectWithoutSiteUrl = "id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at";
+
+    const q = (select: string) =>
+      supabaseServer
+        .from("schedules")
+        .select(select as any)
+        .eq("user_slug", session.slug)
+        // Show items that are upcoming OR currently ongoing
+        .or(`start_at.gte.${nowIso},end_at.gte.${nowIso}`)
+        .order("start_at", { ascending: true })
+        .limit(limit);
+
+    let { data, error } = await q(selectWithSiteUrl);
+    if (error) {
+      const msg = String((error as any)?.message ?? "");
+      if (msg.toLowerCase().includes("site_url") && msg.toLowerCase().includes("column")) {
+        ({ data, error } = await q(selectWithoutSiteUrl));
+      }
+    }
 
     if (error) {
       console.error("[GET /api/schedules/upcoming]", error);

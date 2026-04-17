@@ -19,21 +19,34 @@ export async function GET(req: Request): Promise<NextResponse> {
     const start = url.searchParams.get("start");
     const end = url.searchParams.get("end");
 
-    const q = supabaseServer
-      .from("schedules")
-      .select("id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at")
-      .eq("user_slug", session.slug)
-      .order("start_at", { ascending: true });
+    const selectWithSiteUrl = "id,user_slug,title,start_at,end_at,location,site_url,description,category,is_public,created_at,updated_at";
+    const selectWithoutSiteUrl = "id,user_slug,title,start_at,end_at,location,description,category,is_public,created_at,updated_at";
 
-    const { data, error } = await q;
+    const q = (select: string) =>
+      supabaseServer
+        .from("schedules")
+        .select(select as any)
+        .eq("user_slug", session.slug)
+        .order("start_at", { ascending: true });
+
+    let { data, error } = await q(selectWithSiteUrl);
+    if (error) {
+      const msg = String((error as any)?.message ?? "");
+      if (msg.toLowerCase().includes("site_url") && msg.toLowerCase().includes("column")) {
+        ({ data, error } = await q(selectWithoutSiteUrl));
+      }
+    }
+
     if (error) {
       console.error("[GET /api/schedules/mine]", error);
       return NextResponse.json({ success: false, error: "サーバーエラーが発生しました" }, { status: 500 });
     }
 
-    const schedules = (data ?? []).filter((schedule) => {
-      const startAt = new Date(String(schedule.start_at)).getTime();
-      const endAt = schedule.end_at ? new Date(String(schedule.end_at)).getTime() : startAt;
+    const rows = (data ?? []) as any[];
+
+    const schedules = rows.filter((schedule) => {
+      const startAt = new Date(String((schedule as any).start_at)).getTime();
+      const endAt = (schedule as any).end_at ? new Date(String((schedule as any).end_at)).getTime() : startAt;
       const startLimit = start ? new Date(start).getTime() : null;
       const endLimit = end ? new Date(end).getTime() : null;
 

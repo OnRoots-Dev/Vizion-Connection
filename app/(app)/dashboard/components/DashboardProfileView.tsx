@@ -97,6 +97,17 @@ export function DashboardProfileView({
     const careerStats = careerProfile?.stats?.filter((stat) => stat?.label || stat?.value).slice(0, 4) ?? [];
     const careerEpisodes = careerProfile?.episodes?.slice(0, 4) ?? [];
     const careerSkills = careerProfile?.skills?.slice(0, 4) ?? [];
+    const profileFacts: Array<{ label: string; value: string; color?: string } | null> = [
+        { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
+        { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), color: "#FFD600" },
+        { label: "Vizion ID", value: profile.serialId ?? "" },
+        { label: "参加日", value: joinedAt },
+        { label: "Sport / Job", value: profile.sport ?? "—" },
+        profile.sportsCategory ? { label: "Category", value: profile.sportsCategory } : null,
+        profile.stance ? { label: "Stance", value: profile.stance } : null,
+        { label: "Area", value: profile.region ?? "—" },
+        { label: "Prefecture", value: profile.prefecture ?? "—" },
+    ];
 
     return (
         <div className="flex flex-col gap-0 overflow-hidden rounded-[18px]" style={{ border: `1px solid ${t.border}`, background: t.surface }}>
@@ -210,17 +221,7 @@ export function DashboardProfileView({
                         )}
 
                         <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
-                            {[
-                                { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
-                                { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), color: "#FFD600" },
-                                { label: "Vizion ID", value: profile.serialId ?? "" },
-                                { label: "参加日", value: joinedAt },
-                                { label: "Sport / Job", value: profile.sport ?? "—" },
-                                profile.sportsCategory ? { label: "Category", value: profile.sportsCategory } : null,
-                                profile.stance ? { label: "Stance", value: profile.stance } : null,
-                                { label: "Area", value: profile.region ?? "—" },
-                                { label: "Prefecture", value: profile.prefecture ?? "—" },
-                            ].filter((v): v is { label: string; value: string; color?: string } => Boolean(v) && Boolean((v as any).value)).map(({ label, value, color }) => (
+                            {profileFacts.filter((v): v is { label: string; value: string; color?: string } => Boolean(v?.value)).map(({ label, value, color }) => (
                                 <div key={label} className="rounded-[12px] p-3" style={{ background: t.surface, border: `1px solid ${t.border}` }}>
                                     <p className="mb-[5px] mt-0 font-mono text-[8px] uppercase tracking-[0.18em]" style={{ color: t.sub }}>{label}</p>
                                     <p className="m-0 break-words text-[13px] font-black" style={{ color: color ?? t.text }}>{value}</p>
@@ -250,13 +251,22 @@ export function DashboardProfileView({
                                 <p style={{ margin: 0, fontSize: 9, color: t.sub, fontWeight: 900, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace", opacity: 0.7 }}>Schedule</p>
                                 <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 900, color: t.text }}>当月の予定</p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowCalendar((v) => !v)}
-                                style={{ padding: "8px 12px", borderRadius: 12, border: `1px solid ${t.border}`, background: showCalendar ? `${roleColor}12` : "rgba(255,255,255,0.04)", color: showCalendar ? roleColor : t.sub, fontWeight: 900, cursor: "pointer", fontSize: 11 }}
-                            >
-                                {showCalendar ? "一覧に戻る" : "カレンダーで見る"}
-                            </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setView?.("schedule")}
+                                    style={{ padding: "8px 12px", borderRadius: 12, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: roleColor, fontWeight: 900, cursor: setView ? "pointer" : "default", fontSize: 11, opacity: setView ? 1 : 0.7 }}
+                                >
+                                    スケジュール管理へ
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCalendar((v) => !v)}
+                                    style={{ padding: "8px 12px", borderRadius: 12, border: `1px solid ${t.border}`, background: showCalendar ? `${roleColor}12` : "rgba(255,255,255,0.04)", color: showCalendar ? roleColor : t.sub, fontWeight: 900, cursor: "pointer", fontSize: 11 }}
+                                >
+                                    {showCalendar ? "一覧に戻る" : "カレンダーで見る"}
+                                </button>
+                            </div>
                         </div>
 
                         {showCalendar ? (

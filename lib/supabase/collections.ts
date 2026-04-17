@@ -22,6 +22,7 @@ export interface CollectedCard {
     profileImageUrl: string | null;
     bio: string | null;
     region: string | null;
+    prefecture: string | null;
     sport: string | null;
     sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
     serialId: string | null;
@@ -74,7 +75,7 @@ export async function getCollectedCards(collectorSlug: string): Promise<Collecte
             created_at,
             users!card_collections_target_slug_fkey (
                 display_name, role, avatar_url, profile_image_url,
-                bio, region, sport, sponsor_plan,
+                bio, region, prefecture, sport, sponsor_plan,
                 serial_id, cheer_count, is_founding_member
             )
         `)
@@ -91,6 +92,7 @@ export async function getCollectedCards(collectorSlug: string): Promise<Collecte
         profileImageUrl: row.users?.profile_image_url ?? null,
         bio: row.users?.bio ?? null,
         region: row.users?.region ?? null,
+        prefecture: row.users?.prefecture ?? null,
         sport: row.users?.sport ?? null,
         sponsorPlan: row.users?.sponsor_plan ?? null,
         serialId: row.users?.serial_id ?? null,
@@ -106,5 +108,13 @@ export async function getCollectorCount(targetSlug: string): Promise<number> {
         .from("card_collections")
         .select("*", { count: "exact", head: true })
         .eq("target_slug", targetSlug);
+    return count ?? 0;
+}
+
+export async function getCollectedCardCount(collectorSlug: string): Promise<number> {
+    const { count } = await supabase
+        .from("card_collections")
+        .select("*", { count: "exact", head: true })
+        .eq("collector_slug", collectorSlug);
     return count ?? 0;
 }

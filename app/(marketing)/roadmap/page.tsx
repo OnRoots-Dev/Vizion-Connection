@@ -317,7 +317,6 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                     </div>
                 )}
 
-                {/* ── セパレーター ── */}
                 <div
                     className="mx-6 mb-6 h-px md:mx-8 lg:mx-10"
                     style={{ background: isCurrent ? `linear-gradient(90deg, ${phase.accentBorder}, transparent)` : "#EEEEEE" }}

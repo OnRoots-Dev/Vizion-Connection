@@ -56,9 +56,11 @@ function getDateLabelSnapshot(): string {
 export default function NewsRoomsContent({
     title,
     dateLabelAlign = "right",
+    noticeOnly = false,
 }: {
     title: string;
     dateLabelAlign?: "right" | "below";
+    noticeOnly?: boolean;
 }) {
     const feedCacheRef = useRef<
         Record<string, { type: "top"; data: Array<{ section: { label: string; keyword: string }; articles: UnifiedArticle[] }> } | { type: "single"; data: UnifiedArticle[] }>
@@ -282,28 +284,30 @@ export default function NewsRoomsContent({
                 </span>
             </div>
 
-            <div className="flex overflow-x-auto gap-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                {CATEGORIES.map((c) => {
-                    const active = c.id === activeCategory;
-                    return (
-                        <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => {
-                                setInFlightAdsCategory(c.id);
-                                setActiveCategory(c.id);
-                            }}
-                            className={`whitespace-nowrap h-9 px-3 md:px-4 text-sm rounded-full border transition-colors ${
-                                active
-                                    ? "border-primary bg-primary text-primary-foreground font-medium"
-                                    : "border-border bg-muted/40 text-foreground hover:bg-muted/60"
-                            }`}
-                        >
-                            {c.label}
-                        </button>
-                    );
-                })}
-            </div>
+            {!noticeOnly ? (
+                <div className="flex overflow-x-auto gap-2" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                    {CATEGORIES.map((c) => {
+                        const active = c.id === activeCategory;
+                        return (
+                            <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => {
+                                    setInFlightAdsCategory(c.id);
+                                    setActiveCategory(c.id);
+                                }}
+                                className={`whitespace-nowrap h-9 px-3 md:px-4 text-sm rounded-full border transition-colors ${
+                                    active
+                                        ? "border-primary bg-primary text-primary-foreground font-medium"
+                                        : "border-border bg-muted/40 text-foreground hover:bg-muted/60"
+                                }`}
+                            >
+                                {c.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            ) : null}
 
             <div className="space-y-4">
                 {postsLoading ? (
@@ -343,7 +347,7 @@ export default function NewsRoomsContent({
                     </section>
                 ) : null}
 
-                {feedLoading ? (
+                {!noticeOnly && feedLoading ? (
                     <section className="overflow-hidden rounded-2xl border bg-card">
                         <div className="border-b px-5 py-4">
                             <p className="text-sm font-semibold text-foreground">
@@ -358,7 +362,7 @@ export default function NewsRoomsContent({
                             ))}
                         </div>
                     </section>
-                ) : activeCategory === "top" && feedSections.length > 0 ? (
+                ) : !noticeOnly && activeCategory === "top" && feedSections.length > 0 ? (
                     <>
                         {topSectionsWithAds.map((sec) => (
                             <section key={sec.section.keyword} className="overflow-hidden rounded-2xl border bg-card">
@@ -384,7 +388,7 @@ export default function NewsRoomsContent({
                             </section>
                         ))}
                     </>
-                ) : activeCategory !== "top" && (singleFeed.length > 0 || (!adsLoading && ads.length > 0)) ? (
+                ) : !noticeOnly && activeCategory !== "top" && (singleFeed.length > 0 || (!adsLoading && ads.length > 0)) ? (
                     <section className="overflow-hidden rounded-2xl border bg-card">
                         <div className="border-b px-5 py-4">
                             <p className="text-sm font-semibold text-foreground">{feedLabel} のニュース</p>

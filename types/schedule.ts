@@ -7,6 +7,7 @@ export type Schedule = {
   start_at: string
   end_at: string | null
   location: string | null
+  site_url: string | null
   description: string | null
   category: ScheduleCategory
   is_public: boolean

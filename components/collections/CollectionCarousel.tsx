@@ -13,6 +13,7 @@ export type CollectionCardItem = {
   profileImageUrl: string | null;
   bio?: string | null;
   region?: string | null;
+  prefecture?: string | null;
   sport?: string | null;
   sponsorPlan?: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
   serialId: string | null;
@@ -56,8 +57,8 @@ export function CollectionCarousel({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const total = cards.length;
-  const cardMaxWidth = compact ? 316 : 336;
-  const cardMinHeight = compact ? 198 : 226;
+  const cardMaxWidth = compact ? 300 : 332;
+  const cardMinHeight = compact ? 188 : 222;
 
   const orderedCards = useMemo(() => {
     if (cards.length === 0) return [];
@@ -77,10 +78,10 @@ export function CollectionCarousel({
           {orderedCards.slice(0, 3).reverse().map((card, indexFromBack) => {
             const displayIndex = 2 - indexFromBack;
             const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
-            const scale = compact ? 1 - displayIndex * 0.04 : 1 - displayIndex * 0.05;
-            const y = compact ? displayIndex * 14 : displayIndex * 16;
-            const x = compact ? displayIndex * 5 : displayIndex * 4;
-            const veilOpacity = displayIndex === 0 ? 0 : displayIndex === 1 ? 0.16 : 0.28;
+            const scale = compact ? 1 - displayIndex * 0.06 : 1 - displayIndex * 0.055;
+            const y = compact ? displayIndex * 18 : displayIndex * 18;
+            const x = compact ? displayIndex * 12 : displayIndex * 9;
+            const veilOpacity = displayIndex === 0 ? 0 : displayIndex === 1 ? 0.12 : 0.2;
             return (
               <motion.button
                 key={`${card.targetSlug}-${displayIndex}`}
@@ -93,15 +94,15 @@ export function CollectionCarousel({
                   position: "absolute",
                   inset: 0,
                   width: "100%",
-                  borderRadius: 18,
-                  border: `1px solid ${cardRoleColor}25`,
-                  background: `linear-gradient(145deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, #050508 100%)`,
+                  borderRadius: 20,
+                  border: `1px solid ${cardRoleColor}28`,
+                  background: `linear-gradient(150deg, ${ROLE_BG[card.role] ?? "#111827"} 0%, rgba(8,8,12,0.98) 65%, #050508 100%)`,
                   overflow: "hidden",
                   textAlign: "left",
                   cursor: "pointer",
                   boxShadow: compact
-                    ? `0 16px 38px rgba(0,0,0,0.42), 0 0 0 1px ${cardRoleColor}18`
-                    : `0 14px 34px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
+                    ? `0 18px 42px rgba(0,0,0,0.42), 0 0 0 1px ${cardRoleColor}18`
+                    : `0 16px 38px rgba(0,0,0,0.35), 0 0 0 1px ${cardRoleColor}15`,
                   padding: 0,
                   zIndex: 10 - displayIndex,
                   pointerEvents: displayIndex === 0 ? "auto" : "none",
@@ -111,10 +112,11 @@ export function CollectionCarousel({
               {card.profileImageUrl ? (
                 <img src={card.profileImageUrl} alt={card.displayName} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.38 }} />
               ) : null}
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.76) 58%, rgba(0,0,0,0.96) 100%)" }} />
-              <div style={{ position: "absolute", top: 0, right: 0, width: 180, height: 180, background: `radial-gradient(circle, ${cardRoleColor}30, transparent 72%)` }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.74) 60%, rgba(0,0,0,0.97) 100%)" }} />
+              <div style={{ position: "absolute", top: -10, right: -10, width: 180, height: 180, background: `radial-gradient(circle, ${cardRoleColor}32, transparent 72%)` }} />
               <div style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${veilOpacity})` }} />
-              <div style={{ position: "absolute", inset: 1, borderRadius: 17, border: "1px solid rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", inset: 1, borderRadius: 19, border: "1px solid rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(130deg, rgba(255,255,255,0.08), transparent 38%)", pointerEvents: "none" }} />
               <div style={{ position: "relative", zIndex: 1, height: "100%", padding: compact ? 16 : 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.16em", color: "rgba(255,255,255,0.78)" }}>
@@ -125,7 +127,7 @@ export function CollectionCarousel({
                   </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: compact ? 46 : 52, height: compact ? 46 : 52, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                  <div style={{ width: compact ? 46 : 52, height: compact ? 46 : 52, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 16, fontWeight: 800, flexShrink: 0, boxShadow: `0 0 18px ${cardRoleColor}22` }}>
                     {card.avatarUrl ? <img src={card.avatarUrl} alt={card.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : card.displayName.slice(0, 1)}
                   </div>
                   <div style={{ minWidth: 0 }}>

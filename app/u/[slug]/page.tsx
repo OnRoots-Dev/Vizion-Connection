@@ -27,7 +27,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 
 const ROLE_COLOR: Record<UserRole, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
+    Athlete: "#FF5050", Trainer: "#32D278", Members: "#B8860B", Business: "#1B3A8C",
     Admin: "#7C3AED",
 };
 const ROLE_GRADIENT: Record<UserRole, string> = {
@@ -47,35 +47,6 @@ const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
 interface Props { params: Promise<{ slug: string }>; }
-
-async function getRoleRankingPreview(role: UserRole, slug: string, cheerCount: number) {
-    const [{ data: leaders }, { count }] = await Promise.all([
-        supabaseServer
-            .from("users")
-            .select("slug, display_name, avatar_url, cheer_count, region, sport")
-            .eq("is_deleted", false)
-            .eq("is_public", true)
-            .eq("role", role)
-            .order("cheer_count", { ascending: false })
-            .limit(5),
-        supabaseServer
-            .from("users")
-            .select("id", { count: "exact", head: true })
-            .eq("is_deleted", false)
-            .eq("is_public", true)
-            .eq("role", role)
-            .gt("cheer_count", cheerCount ?? 0),
-    ]);
-
-    const currentRank = Number(count ?? 0) + 1;
-    const currentLeader = (leaders ?? []).find((user) => user.slug === slug) ?? null;
-
-    return {
-        currentRank,
-        currentLeader,
-        leaders: leaders ?? [],
-    };
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
@@ -147,8 +118,7 @@ export default async function UserProfilePage({ params }: Props) {
         { label: "Instagram", href: profile.instagram, path: IG_PATH },
         { label: "TikTok", href: profile.tiktok, path: TK_PATH },
     ].filter(s => s.href);
-    const cardTheme = { bg: "#08080f", surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.07)", text: "#ffffff", sub: "rgba(255,255,255,0.45)" };
-    const rankingPreview = await getRoleRankingPreview(profile.role, slug, profile.cheerCount ?? 0);
+    const cardTheme = { bg: "#07070e", surface: "#0d0d1a", border: "rgba(255,255,255,0.08)", text: "#ffffff", sub: "rgba(255,255,255,0.45)" };
     const publicCareerLabel = profile.role === "Athlete"
         ? "Career"
         : profile.role === "Trainer"
@@ -158,7 +128,7 @@ export default async function UserProfilePage({ params }: Props) {
                 : "Community";
 
     return (
-        <div style={{ minHeight: "100vh", background: "#08080f", color: "#fff", overflowX: "hidden" }}>
+        <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", overflowX: "hidden" }}>
             <PublicProfileRealtime slug={slug} />
             <style>{`
                 *, *::before, *::after { box-sizing: border-box; }
@@ -204,23 +174,16 @@ export default async function UserProfilePage({ params }: Props) {
             </div>
 
             {/* Header */}
-            <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.055)", background: "rgba(8,8,15,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
-                <div style={{ maxWidth: "700px", margin: "0 auto", padding: "0 20px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 28, opacity: .82 }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {session && (
-                            <a href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, background: `${rl}14`, border: `1px solid ${rl}38`, color: rl, fontSize: 11, fontWeight: 800 }}>
-                                BASEに戻る
-                            </a>
-                        )}
-                    </div>
+            <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(7,7,14,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
+                <div style={{ maxWidth: "980px", margin: "0 auto", padding: "0 20px", height: 76, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 46, opacity: .95 }} />
                 </div>
             </header>
 
-            <main style={{ maxWidth: "700px", margin: "0 auto", position: "relative", zIndex: 1, paddingBottom: 100 }}>
+            <main style={{ maxWidth: "980px", margin: "0 auto", position: "relative", zIndex: 1, paddingBottom: 100 }}>
 
                 {/* HERO */}
-                <div className="noise" style={{ position: "relative", minHeight: 420, overflow: "hidden" }}>
+                <div className="noise" style={{ position: "relative", minHeight: 420, overflow: "hidden", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", background: "#0d0d1a" }}>
                     {profile.profileImageUrl ? (
                         <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .38, filter: "saturate(1.2) contrast(1.05)" }} />
                     ) : (
@@ -228,8 +191,8 @@ export default async function UserProfilePage({ params }: Props) {
                             <div style={{ position: "absolute", inset: 0, fontSize: "22vw", fontWeight: 900, color: `${rl}07`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", userSelect: "none" }}>{initials}</div>
                         </div>
                     )}
-                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, #08080f 0%, rgba(8,8,15,.62) 40%, rgba(8,8,15,.08) 100%)` }} />
-                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(8,8,15,.78) 0%, rgba(8,8,15,.1) 55%, transparent 100%)` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, #07070e 0%, rgba(7,7,14,.62) 40%, rgba(7,7,14,.08) 100%)` }} />
+                    <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(7,7,14,.78) 0%, rgba(7,7,14,.1) 55%, transparent 100%)` }} />
                     <div style={{ position: "absolute", inset: 0, background: `linear-gradient(155deg, ${bg1}70 0%, transparent 55%)` }} />
                     <div style={{ position: "absolute", top: "-20%", right: "-5%", width: 340, height: 340, background: `radial-gradient(circle, ${rl}22, transparent 68%)`, pointerEvents: "none" }} />
                     <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, ${rl}70, transparent 60%)` }} />
@@ -250,7 +213,7 @@ export default async function UserProfilePage({ params }: Props) {
                             </span>
                         </div>
                         <div className="u2" style={{ display: "flex", alignItems: "flex-end", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
-                            <h1 style={{ fontSize: "clamp(40px,9vw,60px)", fontWeight: 900, color: "#fff", margin: 0, lineHeight: .95, letterSpacing: "-.035em", textShadow: `0 0 40px ${rl}30, 0 2px 20px rgba(0,0,0,.7)` }}>
+                            <h1 className="font-display" style={{ fontSize: "clamp(44px,10vw,66px)", fontWeight: 400, color: "#fff", margin: 0, lineHeight: .92, letterSpacing: "-.01em", textShadow: `0 0 40px ${rl}30, 0 2px 20px rgba(0,0,0,.7)` }}>
                                 {profile.displayName}
                             </h1>
                             {profile.verified && (
@@ -402,70 +365,6 @@ export default async function UserProfilePage({ params }: Props) {
                                             );
                                         })}
                                     </div>
-                                )}
-                            </div>
-                        }
-                        rankingPanel={
-                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
-                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: `${rl}0c`, border: `1px solid ${rl}22` }}>
-                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>ROLE RANK</p>
-                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: rl }}>#{rankingPreview.currentRank}</p>
-                                    </div>
-                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)" }}>
-                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>CHEER</p>
-                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: "#FFD600" }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
-                                    </div>
-                                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: "1px solid rgba(255,255,255,.07)" }}>
-                                        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>COLLECTED</p>
-                                        <p style={{ margin: 0, fontSize: 30, fontWeight: 900, lineHeight: 1, color: "rgba(255,255,255,.92)" }}>{collectorCount.toLocaleString()}</p>
-                                    </div>
-                                </div>
-                                <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
-                                    <div style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                                        <div>
-                                            <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "monospace", letterSpacing: ".18em", textTransform: "uppercase", color: "rgba(255,255,255,.32)" }}>{ROLE_LABEL[profile.role]} RANKING</p>
-                                            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,.62)" }}>同じロール内のCheer上位メンバー</p>
-                                        </div>
-                                        <a href={`/ranking?role=${profile.role}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, padding: "0 14px", borderRadius: 12, background: `${rl}12`, border: `1px solid ${rl}24`, color: rl, fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>一覧を見る</a>
-                                    </div>
-                                    <div style={{ display: "flex", flexDirection: "column" }}>
-                                        {rankingPreview.leaders.map((user, index) => {
-                                            const active = user.slug === slug;
-                                            return (
-                                                <a
-                                                    key={user.slug}
-                                                    href={`/u/${user.slug}`}
-                                                    style={{
-                                                        display: "grid",
-                                                        gridTemplateColumns: "40px minmax(0, 1fr) auto",
-                                                        alignItems: "center",
-                                                        gap: 12,
-                                                        padding: "14px 18px",
-                                                        borderTop: index === 0 ? "none" : "1px solid rgba(255,255,255,0.06)",
-                                                        background: active ? `${rl}0f` : "transparent",
-                                                    }}
-                                                >
-                                                    <div style={{ fontSize: 18, fontWeight: 900, fontFamily: "monospace", color: active ? rl : "rgba(255,255,255,.4)" }}>#{index + 1}</div>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                                                        <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
-                                                            {user.avatar_url ? <img src={user.avatar_url} alt={user.display_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
-                                                        </div>
-                                                        <div style={{ minWidth: 0 }}>
-                                                            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,.9)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
-                                                            <p style={{ margin: "2px 0 0", fontSize: 11, color: "rgba(255,255,255,.42)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{user.slug}{user.region ? ` · ${user.region}` : ""}{user.sport ? ` · ${user.sport}` : ""}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div style={{ fontSize: 15, fontWeight: 900, fontFamily: "monospace", color: "#FFD600", whiteSpace: "nowrap" }}>★ {(user.cheer_count ?? 0).toLocaleString()}</div>
-                                                </a>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                {!rankingPreview.currentLeader && (
-                                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,.48)", lineHeight: 1.7 }}>
-                                        現在の表示順位は同ロール内の暫定値です。トップ一覧には上位5名を表示しています。
-                                    </p>
                                 )}
                             </div>
                         }

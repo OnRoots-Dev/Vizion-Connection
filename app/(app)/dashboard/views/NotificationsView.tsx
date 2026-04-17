@@ -283,9 +283,9 @@ export function NotificationsView({
         <div style={{ display: "grid", gap: 8 }}>
           {items.map((item) => (
             <SectionCard key={item.id} t={t} accentColor={item.isRead ? undefined : roleColor}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <span style={{
                       fontSize: 9,
                       fontFamily: "monospace",
@@ -307,13 +307,17 @@ export function NotificationsView({
                       </span>
                     )}
                   </div>
-                  <p style={{ margin: "6px 0 4px", fontSize: 14, fontWeight: 700, color: t.text }}>{item.title}</p>
-                  {item.body && (
-                    <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.65 }}>{item.body}</p>
-                  )}
-                  <p style={{ margin: "6px 0 0", fontSize: 10, color: t.sub }}>
+                  <span style={{ fontSize: 10, color: t.sub }}>
                     {formatDate(item.createdAt)}
-                  </p>
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: t.text }}>{item.title}</p>
+                  {item.body && (
+                    <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.55 }}>{item.body}</p>
+                  )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   {item.linkUrl && (
@@ -342,6 +346,7 @@ export function NotificationsView({
                       既読
                     </button>
                   )}
+                </div>
                 </div>
               </div>
             </SectionCard>

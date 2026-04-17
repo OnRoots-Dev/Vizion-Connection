@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
-import { SectionCard, SLabel } from "@/app/(app)/dashboard/components/ui";
+import { ActionPill, CardHeader, SectionCard, SLabel } from "@/app/(app)/dashboard/components/ui";
 import type { AdItem } from "@/lib/ads-shared";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard, { AD_SIZE_MAP } from "@/components/AdCard";
@@ -28,7 +28,9 @@ type DiscoveryPreviewUser = {
     role: string;
     cheer_count: number;
     region?: string | null;
+    prefecture?: string | null;
     sport?: string | null;
+    profile_image_url?: string | null;
 };
 
 const NEWS_CATEGORY_LABEL: Record<FeaturedNewsItem["category"], string> = {
@@ -73,29 +75,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const [discoveryPreview, setDiscoveryPreview] = useState<DiscoveryPreviewUser[]>([]);
     const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
 
-    const titleBaseStyle = {
-        fontSize: 8,
-        fontWeight: 900,
-        letterSpacing: "0.22em",
-        textTransform: "uppercase" as const,
-        margin: "0 0 6px",
-        fontFamily: "monospace",
-        opacity: 0.75,
-    };
-    const detailBaseStyle = {
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "4px 10px",
-        borderRadius: 20,
-        fontSize: 9,
-        fontWeight: 800,
-        fontFamily: "monospace",
-        letterSpacing: "0.08em",
-        cursor: "pointer",
-        border: "none",
-    };
-
     const localAds = ads.filter((ad) => isLocalPlan(ad.plan));
     const nationalAds = ads.filter((ad) => !isLocalPlan(ad.plan));
     const topHero = nationalAds.find((ad) => {
@@ -110,7 +89,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 
         collectedCardsInFlight = fetch("/api/collect/list")
             .then((r) => r.json())
-            .then((d) => (Array.isArray(d.cards) ? d.cards.slice(0, 8) : []) as CollectedCard[])
+            .then((d) => (Array.isArray(d.cards) ? d.cards.slice(0, 10) : []) as CollectedCard[])
             .catch(() => [] as CollectedCard[])
             .then((cards) => {
                 collectedCardsCache = cards;
@@ -192,17 +171,16 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 )}
             </motion.div>
 
-            <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={setView} />
+            <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={setView} referralUrl={referralUrl} referralCount={referralCount} />
 
             {featuredNewsTop.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
                     <SectionCard t={t} accentColor="#FFD600">
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                            <SLabel text="Featured News" color="#FFD600" />
-                            <button onClick={() => setView("news")} style={{ ...detailBaseStyle, background: "rgba(255,214,0,0.08)", outline: "1px solid rgba(255,214,0,0.2)", color: "#FFD600" }}>
-                                News Rooms →
-                            </button>
-                        </div>
+                        <CardHeader
+                            title="Featured News"
+                            color="#FFD600"
+                            action={<ActionPill onClick={() => setView("news")} color="#FFD600" t={t}>News Rooms →</ActionPill>}
+                        />
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {featuredNewsTop.slice(0, 5).map((item) => (
                                 <button
@@ -236,58 +214,29 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </motion.div>
             )}
 
-            <DailyLogCard t={t} roleColor={roleColor} />
+            <DailyLogCard t={t} roleColor={roleColor} onOpenJourney={setView} />
 
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-                <button onClick={() => setView("cheer")} className="vz-btn vz-card-hover" style={{ width: "100%", padding: "18px 20px", borderRadius: 16, background: `radial-gradient(circle at top right, ${roleColor}15, rgba(255,255,255,0.02))`, border: `1px solid ${roleColor}25`, cursor: "pointer", textAlign: "left", position: "relative", overflow: "hidden" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                        <p style={{ ...titleBaseStyle, color: roleColor, marginBottom: 0 }}>Cheer</p>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                <SectionCard t={t} accentColor={roleColor}>
+                    <CardHeader
+                        title="Cheer"
+                        color={roleColor}
+                        action={<ActionPill onClick={() => setView("cheer")} color={roleColor} t={t}>詳細 →</ActionPill>}
+                    />
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                         <span style={{ fontSize: 40, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace" }}>{profile.cheerCount ?? 0}</span>
                         <span style={{ fontSize: 12, color: t.sub }}>★ 応援数</span>
                     </div>
                     <p style={{ fontSize: 10, color: t.sub, margin: "6px 0 0", opacity: 0.45 }}>プロフィールを広めてCheerを集めよう</p>
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
-                        <span style={{ ...detailBaseStyle, background: `${roleColor}18`, outline: `1px solid ${roleColor}35`, color: roleColor }}>詳細 →</span>
-                    </div>
-                </button>
-
-                <SectionCard accentColor="#FFD600" t={t}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <p style={{ ...titleBaseStyle, color: "#FFD600", marginBottom: 0 }}>Referral</p>
-                        <button onClick={() => setView("referral")} style={{ ...detailBaseStyle, background: "rgba(255,214,0,0.1)", outline: "1px solid rgba(255,214,0,0.28)", color: "#FFD600" }}>詳細 →</button>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                            <span style={{ fontSize: 28, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 }}>{referralCount}</span>
-                            <span style={{ fontSize: 11, color: t.sub }}>/ {REFERRAL_LIMIT} 人</span>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                            <p style={{ fontSize: 8, color: t.sub, opacity: 0.4, margin: 0, fontFamily: "monospace" }}>獲得ポイント</p>
-                            <p style={{ fontSize: 13, fontWeight: 900, color: "#FFD600", margin: 0, fontFamily: "monospace" }}>+{(referralCount * 500).toLocaleString()}pt</p>
-                        </div>
-                    </div>
-                    <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: 12 }}>
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg,#FFD600,#FFD60066)", boxShadow: "0 0 8px rgba(255,214,0,0.4)" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 11px", borderRadius: 10, background: "rgba(255,214,0,0.05)", border: "1px solid rgba(255,214,0,0.18)" }}>
-                        <span style={{ flex: 1, fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.55)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl}</span>
-                        <button onClick={handleCopy} className="vz-btn" style={{ flexShrink: 0, padding: "5px 11px", borderRadius: 7, background: copied ? "rgba(255,214,0,0.18)" : "rgba(255,214,0,0.1)", border: "1px solid rgba(255,214,0,0.3)", color: "#FFD600", fontSize: 10, fontWeight: 800, cursor: "pointer" }}>
-                            {copied ? "✓" : "Copy"}
-                        </button>
-                    </div>
-                    <p style={{ fontSize: 9, color: t.sub, opacity: 0.35, margin: "7px 0 0", fontFamily: "monospace" }}>1人招待ごとに 500pt 付与</p>
                 </SectionCard>
 
                 <SectionCard t={t} accentColor={roleColor}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 12 }}>
-                        <SLabel text="Upcoming" color={roleColor} />
-                        <a href="/schedule" style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor, textDecoration: "none" }}>
-                            すべて見る →
-                        </a>
-                    </div>
+                    <CardHeader
+                        title="Schedule"
+                        color={roleColor}
+                        action={<ActionPill onClick={() => setView("schedule")} color={roleColor} t={t}>すべて見る →</ActionPill>}
+                    />
                     {upcomingSchedules.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>直近の予定はありません。</p>
                     ) : (
@@ -295,9 +244,10 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                             {upcomingSchedules.slice(0, 3).map((s) => {
                                 const cfg = CATEGORY_CONFIG[s.category];
                                 return (
-                                    <a
+                                    <button
                                         key={s.id}
-                                        href="/schedule"
+                                        type="button"
+                                        onClick={() => setView("schedule")}
                                         style={{
                                             display: "grid",
                                             gridTemplateColumns: "auto minmax(0, 1fr)",
@@ -309,6 +259,8 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                             background: "rgba(255,255,255,0.02)",
                                             color: t.text,
                                             textDecoration: "none",
+                                            textAlign: "left",
+                                            cursor: "pointer",
                                         }}
                                     >
                                         <span style={{ fontSize: 10, fontWeight: 800, color: cfg.color, padding: "4px 8px", borderRadius: 999, background: `${cfg.color}18`, border: `1px solid ${cfg.color}25`, flexShrink: 0 }}>
@@ -320,7 +272,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                                 {new Date(s.start_at).toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                                             </p>
                                         </div>
-                                    </a>
+                                    </button>
                                 );
                             })}
                         </div>
@@ -331,15 +283,12 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
                 <SectionCard t={t} accentColor={roleColor}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                        <SLabel text="Collection" color={roleColor} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 10, color: t.sub }}>{collectedCards.length} cards</span>
-                            <button onClick={() => setView("collections" as DashboardView)} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}25`, color: roleColor }}>
-                                一覧 →
-                            </button>
-                        </div>
-                    </div>
+                    <CardHeader
+                        title="Collection"
+                        color={roleColor}
+                        action={<ActionPill onClick={() => setView("collections" as DashboardView)} color={roleColor} t={t}>一覧 →</ActionPill>}
+                        meta={<p style={{ margin: 0, fontSize: 10, color: t.sub }}>{collectedCards.length} cards</p>}
+                    />
                     {collectedCards.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションはまだありません。公開プロフィールでカードをコレクトするとここに表示されます。</p>
                     ) : (
@@ -348,12 +297,11 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </SectionCard>
 
                 <SectionCard t={t} accentColor={roleColor}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <SLabel text="Discovery" />
-                        <button onClick={() => setView("discovery")} style={{ ...detailBaseStyle, background: `${roleColor}16`, outline: `1px solid ${roleColor}28`, color: roleColor }}>
-                            詳細 →
-                        </button>
-                    </div>
+                    <CardHeader
+                        title="Discovery"
+                        color={roleColor}
+                        action={<ActionPill onClick={() => setView("discovery")} color={roleColor} t={t}>詳細 →</ActionPill>}
+                    />
                     {discoveryPreview.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>公開プロフィールからおすすめのユーザーを表示します。</p>
                     ) : (
@@ -366,6 +314,8 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                         type="button"
                                         onClick={() => onOpenProfile(user.slug)}
                                         style={{
+                                            position: "relative",
+                                            overflow: "hidden",
                                             display: "grid",
                                             gridTemplateColumns: "1fr auto",
                                             gap: 10,
@@ -374,7 +324,9 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                             padding: "12px 14px",
                                             borderRadius: 14,
                                             border: `1px solid ${previewRoleColor}22`,
-                                            background: `linear-gradient(135deg, ${previewRoleColor}14, rgba(255,255,255,0.02))`,
+                                            background: user.profile_image_url
+                                                ? `linear-gradient(135deg, rgba(10,12,18,0.76), rgba(10,12,18,0.96)), url(${user.profile_image_url}) center/cover`
+                                                : `linear-gradient(135deg, ${previewRoleColor}14, rgba(255,255,255,0.02))`,
                                             color: t.text,
                                             textAlign: "left",
                                             cursor: "pointer",
@@ -386,13 +338,14 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                                     {ROLE_LABEL[user.role] ?? user.role}
                                                 </span>
                                                 <span style={{ fontSize: 10, color: t.sub }}>
-                                                    {user.region ?? "地域未設定"}{user.sport ? ` · ${user.sport}` : ""}
+                                                    {[user.region, user.prefecture].filter(Boolean).join(" / ") || "地域未設定"}
                                                 </span>
                                             </div>
                                             <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: t.text }}>{user.display_name}</p>
-                                            <p style={{ margin: 0, fontSize: 10, color: "#FFD600", fontFamily: "monospace" }}>★ {user.cheer_count ?? 0}</p>
+                                            <p style={{ margin: "0 0 3px", fontSize: 10, color: t.sub }}>{user.sport || "活動情報なし"}</p>
+                                            <p style={{ margin: 0, fontSize: 10, color: "#FFD600", fontFamily: "monospace" }}>Cheer {user.cheer_count ?? 0}</p>
                                         </div>
-                                        <span style={{ fontSize: 10, color: t.sub }}>見る →</span>
+                                        <span style={{ fontSize: 10, color: "#fff", fontWeight: 800 }}>Check →</span>
                                     </button>
                                 );
                             })}

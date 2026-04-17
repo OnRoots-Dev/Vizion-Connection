@@ -62,12 +62,13 @@ type BusinessOffer = {
     updatedAt: string;
 };
 
-type BusinessFeature = "analytics" | "ads" | "offers";
+type BusinessFeature = "analytics" | "ads" | "offers" | "discovery";
 
 const businessFeatureMeta: Record<BusinessFeature, { title: string; summary: string }> = {
     analytics: { title: "分析", summary: "広告効果と売上の流れを確認" },
     ads: { title: "広告管理", summary: "出稿状況を更新して成果を改善" },
     offers: { title: "オファー", summary: "案件送信と進捗管理を一元化" },
+    discovery: { title: "検索", summary: "Athlete・Trainer を検索して候補保存" },
 };
 
 const emptyAnalytics: BusinessAnalytics = {
@@ -228,6 +229,12 @@ function GenericHubView({
                                         type="button"
                                         onClick={() => {
                                             if (feature.targetView) {
+                                                if (feature.targetView === "business") {
+                                                    try {
+                                                        sessionStorage.setItem("vz-business-feature", feature.id);
+                                                    } catch {
+                                                    }
+                                                }
                                                 setView(feature.targetView);
                                                 return;
                                             }
@@ -388,6 +395,17 @@ export function BusinessHubView({
 
     useEffect(() => {
         void load();
+    }, []);
+
+    useEffect(() => {
+        try {
+            const stored = sessionStorage.getItem("vz-business-feature") as BusinessFeature | null;
+            if (stored && stored in businessFeatureMeta) {
+                setSelectedFeature(stored);
+            }
+            sessionStorage.removeItem("vz-business-feature");
+        } catch {
+        }
     }, []);
 
     const kpiCards = [
@@ -597,6 +615,28 @@ export function BusinessHubView({
                                 ))}
                             </div>
                         </div>
+                    ) : selectedFeature === "discovery" ? (
+                        <div style={{ display: "grid", gap: 16 }}>
+                            <div>
+                                <h3 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 900, color: t.text }}>Athlete・Trainer検索</h3>
+                                <p style={{ margin: 0, fontSize: 11, color: t.sub }}>Discovery と同様の検索機能で候補を探し、プロフィールを比較できます。</p>
+                            </div>
+                            <div style={{ padding: 16, borderRadius: 18, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
+                                <SLabel text="Discovery" color={accent} />
+                                <p style={{ margin: "10px 0 0", fontSize: 12, color: t.sub, lineHeight: 1.9 }}>
+                                    競技・地域・ロールなどで絞り込みながら候補を探し、気になる相手はコレクトして一時保存しておく運用ができます。
+                                </p>
+                                <div style={{ marginTop: 14 }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setView("discovery")}
+                                        style={{ padding: "10px 16px", borderRadius: 12, border: "none", background: accent, color: "#07131d", fontWeight: 800, cursor: "pointer" }}
+                                    >
+                                        Discoveryを開く
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <div style={{ display: "grid", gap: 16 }}>
                             <div>
@@ -669,7 +709,7 @@ export function BusinessView({
     }
 
     if (profile.role === "Trainer") {
-        return <TrainerHubView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
+        return <GenericHubView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} canManageAdmin={canManageAdmin} />;
     }
 
     if (profile.role === "Athlete") {

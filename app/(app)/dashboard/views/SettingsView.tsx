@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
@@ -30,6 +30,10 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
     const [deleteConfirm, setDeleteConfirm] = useState("");
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteMsg, setDeleteMsg] = useState<string | null>(null);
+
+    useEffect(() => {
+        setIsPublic(profile.isPublic !== false);
+    }, [profile.isPublic]);
 
     async function handleVisibilityToggle() {
         const nextValue = !isPublic;

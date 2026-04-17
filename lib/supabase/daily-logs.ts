@@ -10,6 +10,16 @@ function getTodayJst(): string {
   }).format(new Date());
 }
 
+export function getCurrentJstHour(date = new Date()): number {
+  const hour = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).format(date);
+
+  return Number(hour);
+}
+
 function parseUserId(userId: string): number {
   const parsed = Number(userId);
   if (!Number.isInteger(parsed) || parsed <= 0) {
@@ -57,4 +67,20 @@ export async function getDailyLogs(userId: string, limit = 30): Promise<DailyLog
   }
 
   return (data ?? []) as DailyLog[];
+}
+
+export async function getTodayDailyLog(userId: string): Promise<DailyLog | null> {
+  const parsedUserId = parseUserId(userId);
+  const { data, error } = await supabase
+    .from("daily_logs")
+    .select("id, user_id, log_date, content, condition_score, created_at")
+    .eq("user_id", parsedUserId)
+    .eq("log_date", getTodayJst())
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as DailyLog | null) ?? null;
 }

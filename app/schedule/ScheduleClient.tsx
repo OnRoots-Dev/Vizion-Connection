@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import type { Schedule, ScheduleCategory } from "@/types/schedule";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import { AnimatePresence, motion } from "framer-motion";
+import type { ThemeColors } from "@/app/(app)/dashboard/types";
+import { SLabel, SectionCard, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -64,6 +67,17 @@ function getScheduleDayRange(s: Schedule) {
   const endMinus = new Date(Math.max(end.getTime() - 1, start.getTime()));
   const endDay = startOfDay(endMinus);
   return { startDay, endDay };
+}
+
+function isAllDayLikeRange(start: Date, end: Date) {
+  return start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 0 && end.getMinutes() === 0;
+}
+
+function isTimedSchedule(s: Schedule) {
+  if (!s.end_at) return false;
+  const st = new Date(s.start_at);
+  const en = new Date(s.end_at);
+  return !isAllDayLikeRange(st, en);
 }
 
 type WeekSegment = {
@@ -152,6 +166,7 @@ type DraftSchedule = {
   start_at: string;
   end_at: string;
   location: string;
+  site_url: string;
   description: string;
   category: ScheduleCategory;
   is_public: boolean;
@@ -164,13 +179,27 @@ function toDraft(s: Schedule): DraftSchedule {
     start_at: toLocalDatetimeValue(new Date(s.start_at)),
     end_at: s.end_at ? toLocalDatetimeValue(new Date(s.end_at)) : "",
     location: s.location ?? "",
+    site_url: s.site_url ?? "",
     description: s.description ?? "",
     category: s.category,
     is_public: Boolean(s.is_public),
   };
 }
 
-export default function ScheduleClient({ profile, embedded = false }: { profile: ProfileData; embedded?: boolean }) {
+export default function ScheduleClient({
+  profile,
+  embedded = false,
+  onBack,
+  t,
+  roleColor,
+}: {
+  profile: ProfileData;
+  embedded?: boolean;
+  onBack?: () => void;
+  t?: ThemeColors;
+  roleColor?: string;
+}) {
+  const router = useRouter();
   const canEdit = true;
 
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
@@ -185,6 +214,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
     start_at: toLocalDatetimeValue(new Date()),
     end_at: "",
     location: "",
+    site_url: "",
     description: "",
     category: "practice",
     is_public: true,
@@ -253,7 +283,8 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
   const weekSpanLayout = useMemo(() => {
     const multiDay = items.filter((s) => {
       const { startDay, endDay } = getScheduleDayRange(s);
-      return startDay.getTime() !== endDay.getTime();
+      if (startDay.getTime() === endDay.getTime()) return false;
+      return !isTimedSchedule(s);
     });
     return buildWeekSegments(weekStart, multiDay);
   }, [items, weekStart]);
@@ -283,6 +314,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
       start_at: toLocalDatetimeValue(new Date()),
       end_at: "",
       location: "",
+      site_url: "",
       description: "",
       category: "practice",
       is_public: true,
@@ -291,15 +323,20 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
   };
 
   const openCreateAtTime = (day: Date, hour: number) => {
+    openCreateAtSlot(day, hour, 0);
+  };
+
+  const openCreateAtSlot = (day: Date, hour: number, minute: number) => {
     setErrorMessage(null);
     const d = new Date(day);
-    d.setHours(hour, 0, 0, 0);
+    d.setHours(hour, minute, 0, 0);
     setSelected(null);
     setDraft({
       title: "",
       start_at: toLocalDatetimeValue(d),
       end_at: "",
       location: "",
+      site_url: "",
       description: "",
       category: "practice",
       is_public: true,
@@ -317,6 +354,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
       start_at: toLocalDatetimeValue(d),
       end_at: "",
       location: "",
+      site_url: "",
       description: "",
       category: "practice",
       is_public: true,
@@ -350,6 +388,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
         start_at: new Date(draft.start_at).toISOString(),
         end_at: draft.end_at ? new Date(draft.end_at).toISOString() : null,
         location: draft.location.trim() ? draft.location.trim() : null,
+        site_url: draft.site_url.trim() ? draft.site_url.trim() : null,
         description: draft.description.trim() ? draft.description.trim() : null,
         category: draft.category,
         is_public: draft.is_public,
@@ -435,46 +474,170 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
     }
   };
 
-  const roleColor = profile.role === "Athlete" ? "#C1272D" : profile.role === "Trainer" ? "#1A7A4A" : "#FFD600";
+  const accentColor = roleColor ?? (profile.role === "Athlete" ? "#C1272D" : profile.role === "Trainer" ? "#1A7A4A" : "#FFD600");
+  const theme: ThemeColors = t ?? {
+    bg: "#0B0B0F",
+    surface: "rgba(255,255,255,0.04)",
+    border: "rgba(255,255,255,0.10)",
+    text: "#FFFFFF",
+    sub: "rgba(255,255,255,0.68)",
+  };
+  const handleBack = onBack ?? (() => router.push("/dashboard"));
 
   const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const hours = useMemo(() => Array.from({ length: 17 }).map((_, i) => i + 6), []); // 06:00 - 22:00
+  const hours = useMemo(() => Array.from({ length: 24 }).map((_, i) => i), []); // 00:00 - 24:00
+  const hourCellHeight = 48;
+
+  type WeekTimedOccurrence = {
+    schedule: Schedule;
+    dayIndex: number;
+    startMin: number;
+    endMin: number;
+    isStart: boolean;
+  };
+
+  type PlacedWeekTimed = WeekTimedOccurrence & {
+    col: number;
+    colsInGroup: number;
+  };
+
+  const weekTimedLayouts = useMemo(() => {
+    const startHour = hours[0] ?? 0;
+    const endHour = (hours[hours.length - 1] ?? 23) + 1;
+    const viewStartMin = startHour * 60;
+    const viewEndMin = endHour * 60;
+
+    const occurrencesByDay: WeekTimedOccurrence[][] = Array.from({ length: 7 }).map(() => []);
+
+    for (const s of items) {
+      const st = new Date(s.start_at);
+
+      if (!s.end_at) {
+        // Point-in-time schedule (no duration). Render as a short block.
+        const dayIndex = diffDays(startOfDay(st), weekStart);
+        if (dayIndex < 0 || dayIndex > 6) continue;
+
+        const mins = st.getHours() * 60 + st.getMinutes();
+        const startMin = Math.max(viewStartMin, Math.min(viewEndMin, mins));
+        const endMin = Math.min(viewEndMin, startMin + 30);
+        if (endMin <= viewStartMin || startMin >= viewEndMin) continue;
+
+        occurrencesByDay[dayIndex]!.push({ schedule: s, dayIndex, startMin, endMin, isStart: true });
+        continue;
+      }
+
+      if (!isTimedSchedule(s)) {
+        // All-day-like or untimed multi-day stays in Span row.
+        continue;
+      }
+
+      const en = new Date(s.end_at);
+      const weekEnd = addDays(weekStart, 7);
+      if (en <= weekStart) continue;
+      if (st >= weekEnd) continue;
+
+      for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
+        const dayStart = startOfDay(weekDays[dayIndex]!);
+        const dayEnd = addDays(dayStart, 1);
+        if (en <= dayStart) continue;
+        if (st >= dayEnd) continue;
+
+        const occStart = new Date(Math.max(st.getTime(), dayStart.getTime()));
+        const occEnd = new Date(Math.min(en.getTime(), dayEnd.getTime()));
+
+        const occStartMin = occStart.getHours() * 60 + occStart.getMinutes();
+        const occEndMin = occEnd.getHours() * 60 + occEnd.getMinutes();
+
+        const startMin = Math.max(viewStartMin, Math.min(viewEndMin, occStartMin));
+        const endMin = Math.max(viewStartMin, Math.min(viewEndMin, occEndMin));
+        if (endMin <= startMin) continue;
+
+        const isStart = dayIndex === diffDays(startOfDay(st), weekStart);
+        occurrencesByDay[dayIndex]!.push({ schedule: s, dayIndex, startMin, endMin, isStart });
+      }
+    }
+
+    const layoutDay = (dayEvents: WeekTimedOccurrence[]): PlacedWeekTimed[] => {
+      const sorted = dayEvents
+        .slice()
+        .sort((a, b) => (a.startMin !== b.startMin ? a.startMin - b.startMin : (b.endMin - b.startMin) - (a.endMin - a.startMin)));
+
+      const active: Array<{ endMin: number; col: number }> = [];
+      const placed: Array<WeekTimedOccurrence & { col: number }> = [];
+
+      for (const ev of sorted) {
+        for (let i = active.length - 1; i >= 0; i -= 1) {
+          if (active[i]!.endMin <= ev.startMin) active.splice(i, 1);
+        }
+        const used = new Set(active.map((a) => a.col));
+        let col = 0;
+        while (used.has(col)) col += 1;
+        active.push({ endMin: ev.endMin, col });
+        placed.push({ ...ev, col });
+      }
+
+      // Group by overlap chain (connected component) and compute max columns in each group.
+      const byStart = placed.slice().sort((a, b) => a.startMin - b.startMin);
+      const groupIdByKey = new Map<string, number>();
+      const groups: Array<{ endMin: number; maxCol: number }> = [];
+      let groupId = -1;
+      let groupEnd = -1;
+
+      for (const ev of byStart) {
+        if (groupId === -1 || ev.startMin >= groupEnd) {
+          groupId += 1;
+          groupEnd = ev.endMin;
+          groups[groupId] = { endMin: ev.endMin, maxCol: ev.col };
+        } else {
+          groupEnd = Math.max(groupEnd, ev.endMin);
+          groups[groupId] = { endMin: Math.max(groups[groupId]!.endMin, ev.endMin), maxCol: Math.max(groups[groupId]!.maxCol, ev.col) };
+        }
+        groupIdByKey.set(`${ev.schedule.id}-${ev.startMin}-${ev.endMin}-${ev.col}`, groupId);
+      }
+
+      return placed.map((ev) => {
+        const gid = groupIdByKey.get(`${ev.schedule.id}-${ev.startMin}-${ev.endMin}-${ev.col}`) ?? 0;
+        const colsInGroup = (groups[gid]?.maxCol ?? 0) + 1;
+        return { ...ev, colsInGroup };
+      });
+    };
+
+    return occurrencesByDay.map((dayEvents) => layoutDay(dayEvents));
+  }, [hours, items, weekDays, weekStart]);
 
   return (
     <div style={embedded ? undefined : { minHeight: "100vh", background: "#0B0B0F", color: "#fff" }}>
       <div style={embedded ? { width: "100%" } : { maxWidth: 980, margin: "0 auto", padding: "28px 16px 80px" }}>
+        <div style={{ marginBottom: 14 }}>
+          <ViewHeader title="Schedule" sub="スケジュール管理" onBack={handleBack} t={theme} roleColor={accentColor} />
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: embedded ? theme.sub : "rgba(255,255,255,0.55)" }}>@{profile.slug}</p>
+        </div>
+
         {!embedded ? (
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
-            <div>
-              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: "0.28em", textTransform: "uppercase", fontFamily: "monospace", opacity: 0.6 }}>
-                Schedule
-              </p>
-              <h1 style={{ margin: 0, fontSize: 34, fontWeight: 900, letterSpacing: "-0.01em" }}>
-                スケジュール管理
-              </h1>
-              <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.55)" }}>@{profile.slug}</p>
-            </div>
-          </div>
+          <SectionCard t={theme}>
+            <SLabel text="AD SLOT" color="#FFD600" />
+            <p style={{ margin: 0, fontSize: 11, color: theme.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
+          </SectionCard>
         ) : null}
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {viewMode === "month" ? (
               <>
                 <button
                   type="button"
                   onClick={() => setMonth((m) => addMonths(m, -1))}
-                  style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800 }}
+                  style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800, fontSize: 11 }}
                 >
                   ← 前月
                 </button>
-                <div style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.02)", fontFamily: "monospace", fontSize: 12, fontWeight: 800 }}>
+                <div style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.02)", fontFamily: "monospace", fontSize: 11, fontWeight: 800 }}>
                   {month.getFullYear()}-{pad2(month.getMonth() + 1)}
                 </div>
                 <button
                   type="button"
                   onClick={() => setMonth((m) => addMonths(m, 1))}
-                  style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800 }}
+                  style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800, fontSize: 11 }}
                 >
                   次月 →
                 </button>
@@ -484,17 +647,17 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                 <button
                   type="button"
                   onClick={() => setFocusDate((d) => addDays(d, -7))}
-                  style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800 }}
+                  style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800, fontSize: 11 }}
                 >
                   ← 前週
                 </button>
-                <div style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.02)", fontFamily: "monospace", fontSize: 12, fontWeight: 800 }}>
+                <div style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.02)", fontFamily: "monospace", fontSize: 11, fontWeight: 800 }}>
                   {weekStart.getFullYear()}-{pad2(weekStart.getMonth() + 1)}-{pad2(weekStart.getDate())}
                 </div>
                 <button
                   type="button"
                   onClick={() => setFocusDate((d) => addDays(d, 7))}
-                  style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800 }}
+                  style={{ padding: "7px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontWeight: 800, fontSize: 11 }}
                 >
                   次週 →
                 </button>
@@ -507,14 +670,14 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
               <button
                 type="button"
                 onClick={() => setViewMode("month")}
-                style={{ padding: "9px 12px", border: "none", cursor: "pointer", background: viewMode === "month" ? "rgba(255,255,255,0.06)" : "transparent", color: viewMode === "month" ? "#fff" : "rgba(255,255,255,0.55)", fontWeight: 900, fontSize: 11, fontFamily: "monospace" }}
+                style={{ padding: "7px 10px", border: "none", cursor: "pointer", background: viewMode === "month" ? "rgba(255,255,255,0.06)" : "transparent", color: viewMode === "month" ? "#fff" : "rgba(255,255,255,0.55)", fontWeight: 900, fontSize: 10, fontFamily: "monospace" }}
               >
                 Month
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("week")}
-                style={{ padding: "9px 12px", border: "none", cursor: "pointer", background: viewMode === "week" ? "rgba(255,255,255,0.06)" : "transparent", color: viewMode === "week" ? "#fff" : "rgba(255,255,255,0.55)", fontWeight: 900, fontSize: 11, fontFamily: "monospace" }}
+                style={{ padding: "7px 10px", border: "none", cursor: "pointer", background: viewMode === "week" ? "rgba(255,255,255,0.06)" : "transparent", color: viewMode === "week" ? "#fff" : "rgba(255,255,255,0.55)", fontWeight: 900, fontSize: 10, fontFamily: "monospace" }}
               >
                 Week
               </button>
@@ -524,7 +687,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
               <button
                 type="button"
                 onClick={openCreate}
-                style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${roleColor}40`, background: `${roleColor}18`, color: roleColor, cursor: "pointer", fontWeight: 900 }}
+                style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${accentColor}40`, background: `${accentColor}18`, color: accentColor, cursor: "pointer", fontWeight: 900, fontSize: 11 }}
               >
                 ＋ 予定を追加
               </button>
@@ -595,7 +758,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                                 fontFamily: "monospace",
                                 fontSize: 11,
                                 fontWeight: 900,
-                                color: isToday ? roleColor : "rgba(255,255,255,0.65)",
+                                color: isToday ? accentColor : "rgba(255,255,255,0.65)",
                               }}
                             >
                               {day.getDate()}
@@ -740,7 +903,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                   style={{ padding: "10px 10px", border: "none", background: "transparent", textAlign: "left", cursor: canEdit ? "pointer" : "default" }}
                 >
                   <div style={{ fontSize: 10, letterSpacing: "0.14em", fontFamily: "monospace", color: "rgba(255,255,255,0.45)", textTransform: "uppercase" }}>{weekday[d.getDay()]}</div>
-                  <div style={{ marginTop: 2, fontSize: 12, fontWeight: 900, color: isSameDay(d, new Date()) ? roleColor : "rgba(255,255,255,0.85)" }}>{pad2(d.getMonth() + 1)}/{pad2(d.getDate())}</div>
+                  <div style={{ marginTop: 2, fontSize: 12, fontWeight: 900, color: isSameDay(d, new Date()) ? accentColor : "rgba(255,255,255,0.85)" }}>{pad2(d.getMonth() + 1)}/{pad2(d.getDate())}</div>
                 </button>
               ))}
             </div>
@@ -795,101 +958,145 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
             ) : null}
 
             <div style={{ maxHeight: embedded ? 520 : undefined, overflow: "auto" }}>
-              {hours.map((h) => (
-                <div key={h} style={{ display: "grid", gridTemplateColumns: "80px repeat(7, minmax(0, 1fr))" }}>
-                  <div style={{ padding: "10px", borderRight: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)", fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                    {pad2(h)}:00
+              {(() => {
+                const startHour = hours[0] ?? 0;
+                const endHour = (hours[hours.length - 1] ?? 23) + 1;
+                const totalMinutes = Math.max(60, (endHour - startHour) * 60);
+                const dayHeight = (totalMinutes / 60) * hourCellHeight;
+                const gapPx = 6;
+
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "80px repeat(7, minmax(0, 1fr))" }}>
+                    <div
+                      style={{
+                        position: "relative",
+                        height: dayHeight,
+                        borderRight: "1px solid rgba(255,255,255,0.06)",
+                        background: "rgba(0,0,0,0.14)",
+                      }}
+                    >
+                      {hours.map((h) => (
+                        <div
+                          key={h}
+                          style={{
+                            position: "absolute",
+                            top: (h - startHour) * hourCellHeight,
+                            left: 0,
+                            right: 0,
+                            height: hourCellHeight,
+                            borderBottom: "1px solid rgba(255,255,255,0.06)",
+                            padding: "10px",
+                            fontFamily: "monospace",
+                            fontSize: 11,
+                            color: "rgba(255,255,255,0.40)",
+                          }}
+                        >
+                          {pad2(h)}:00
+                        </div>
+                      ))}
+                    </div>
+
+                    {weekDays.map((d, dayIndex) => {
+                      const dayEvents = weekTimedLayouts[dayIndex] ?? [];
+
+                      return (
+                        <div
+                          key={dayIndex}
+                          tabIndex={canEdit ? 0 : -1}
+                          onKeyDown={(e) => {
+                            if (!canEdit) return;
+                            if (e.key !== "Enter" && e.key !== " ") return;
+                            e.preventDefault();
+                            openCreateAt(d);
+                          }}
+                          onClick={(e) => {
+                            if (!canEdit) return;
+                            const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                            const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+                            const minsFromStart = (y / hourCellHeight) * 60;
+                            const absoluteMins = startHour * 60 + minsFromStart;
+                            const rounded = Math.round(absoluteMins / 30) * 30;
+                            const hour = Math.max(0, Math.min(23, Math.floor(rounded / 60)));
+                            const minute = Math.max(0, Math.min(59, rounded % 60));
+                            openCreateAtSlot(d, hour, minute);
+                          }}
+                          style={{
+                            position: "relative",
+                            height: dayHeight,
+                            borderRight: dayIndex === 6 ? "none" : "1px solid rgba(255,255,255,0.06)",
+                            background: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 48px)",
+                            cursor: canEdit ? "pointer" : "default",
+                          }}
+                        >
+                          {dayEvents.map((ev) => {
+                            const cfg = CATEGORY_CONFIG[ev.schedule.category];
+                            const top = ((ev.startMin - startHour * 60) / 60) * hourCellHeight;
+                            const height = Math.max(18, ((ev.endMin - ev.startMin) / 60) * hourCellHeight);
+                            const cols = Math.max(1, ev.colsInGroup);
+                            const width = `calc(${100 / cols}% - ${gapPx}px)`;
+                            const left = `calc(${(100 / cols) * ev.col}% + ${gapPx * ev.col}px)`;
+
+                            const st = new Date(ev.schedule.start_at);
+                            const en = ev.schedule.end_at ? new Date(ev.schedule.end_at) : null;
+                            const timeLabel = ev.schedule.end_at ? `${pad2(st.getHours())}:${pad2(st.getMinutes())} - ${pad2(en!.getHours())}:${pad2(en!.getMinutes())}` : `${pad2(st.getHours())}:${pad2(st.getMinutes())}`;
+
+                            return (
+                              <button
+                                key={`${ev.schedule.id}-${ev.dayIndex}-${ev.startMin}-${ev.endMin}-${ev.col}`}
+                                type="button"
+                                onClick={(click) => {
+                                  click.stopPropagation();
+                                  openEdit(ev.schedule);
+                                }}
+                                style={{
+                                  position: "absolute",
+                                  top,
+                                  left,
+                                  width,
+                                  height,
+                                  borderRadius: 12,
+                                  border: `1px solid ${cfg.color}55`,
+                                  background: `linear-gradient(180deg, ${cfg.color}18, rgba(255,255,255,0.02))`,
+                                  color: "rgba(255,255,255,0.92)",
+                                  padding: "8px 10px",
+                                  cursor: "pointer",
+                                  textAlign: "left",
+                                  overflow: "hidden",
+                                  boxShadow: `0 8px 18px rgba(0,0,0,0.25)`,
+                                }}
+                                title={`${ev.schedule.title}${ev.schedule.end_at ? ` (${new Date(ev.schedule.start_at).toLocaleString("ja-JP")} - ${new Date(ev.schedule.end_at).toLocaleString("ja-JP")})` : ""}`}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: 999, background: cfg.color, opacity: 0.9, flexShrink: 0 }} />
+                                  <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 900, color: cfg.color, opacity: 0.9 }}>{CATEGORY_CONFIG[ev.schedule.category].label}</span>
+                                </div>
+                                <div style={{ marginTop: 6, fontSize: 12, fontWeight: 900, lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.schedule.title}</div>
+                                {ev.isStart ? (
+                                  <div style={{ marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.62)", fontFamily: "monospace" }}>{timeLabel}</div>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
-                  {weekDays.map((d, idx) => {
-                    const cellStart = new Date(d);
-                    cellStart.setHours(h, 0, 0, 0);
-                    const cellEnd = new Date(d);
-                    cellEnd.setHours(h + 1, 0, 0, 0);
-
-                    const cellItems = items.filter((s) => {
-                      const { startDay, endDay } = getScheduleDayRange(s);
-                      if (startDay.getTime() !== endDay.getTime()) return false;
-                      const st = new Date(s.start_at);
-                      return st >= cellStart && st < cellEnd;
-                    });
-
-                    return (
-                      <div
-                        key={idx}
-                        tabIndex={canEdit ? 0 : -1}
-                        aria-label={`予定を作成: ${pad2(d.getMonth() + 1)}/${pad2(d.getDate())} ${pad2(h)}:00`}
-                        title={`予定を作成: ${pad2(d.getMonth() + 1)}/${pad2(d.getDate())} ${pad2(h)}:00`}
-                        onClick={() => {
-                          if (!canEdit) return;
-                          openCreateAtTime(d, h);
-                        }}
-                        onKeyDown={(e) => {
-                          if (!canEdit) return;
-                          if (e.key !== "Enter" && e.key !== " ") return;
-                          e.preventDefault();
-                          openCreateAtTime(d, h);
-                        }}
-                        style={{
-                          minHeight: 48,
-                          padding: 8,
-                          borderRight: "1px solid rgba(255,255,255,0.06)",
-                          borderBottom: "1px solid rgba(255,255,255,0.06)",
-                          cursor: canEdit ? "pointer" : "default",
-                          outline: "none",
-                        }}
-                      >
-                        {cellItems.slice(0, 2).map((s) => {
-                          const cfg = CATEGORY_CONFIG[s.category];
-                          const st = new Date(s.start_at);
-                          const time = `${pad2(st.getHours())}:${pad2(st.getMinutes())}`;
-                          return (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openEdit(s);
-                              }}
-                              style={{
-                                width: "100%",
-                                border: `1px solid ${cfg.color}45`,
-                                background: `linear-gradient(90deg, ${cfg.color}26 0%, rgba(255,255,255,0.02) 70%)`,
-                                color: "rgba(255,255,255,0.92)",
-                                padding: "6px 8px",
-                                borderRadius: 10,
-                                cursor: "pointer",
-                                textAlign: "left",
-                                display: "grid",
-                                gridTemplateColumns: "auto 1fr",
-                                alignItems: "center",
-                                gap: 8,
-                                marginBottom: 6,
-                              }}
-                            >
-                              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-                                <span style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 900, color: cfg.color }}>{time}</span>
-                                {!s.is_public ? (
-                                  <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke={cfg.color} strokeWidth={2} style={{ flexShrink: 0, opacity: 0.85 }}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d={LOCK_ICON_PATH} />
-                                  </svg>
-                                ) : (
-                                  <span style={{ width: 10, height: 10, borderRadius: 3, background: cfg.color, opacity: 0.5 }} />
-                                )}
-                              </div>
-                              <span style={{ minWidth: 0, fontSize: 11, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                );
+              })()}
             </div>
           </div>
         )}
 
         {loading ? <p style={{ marginTop: 12, color: "rgba(255,255,255,0.45)" }}>読み込み中...</p> : null}
+
+        {!embedded ? (
+          <div style={{ marginTop: 16 }}>
+            <SectionCard t={theme}>
+              <SLabel text="AD SLOT" color="#FFD600" />
+              <p style={{ margin: 0, fontSize: 11, color: theme.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
+            </SectionCard>
+          </div>
+        ) : null}
       </div>
 
       <AnimatePresence>
@@ -941,10 +1148,15 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                     <p style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{selected.title}</p>
                     <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{new Date(selected.start_at).toLocaleString("ja-JP")}{selected.end_at ? ` - ${new Date(selected.end_at).toLocaleString("ja-JP")}` : ""}</p>
                     {selected.location ? <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>場所: {selected.location}</p> : null}
+                    {selected.site_url ? (
+                      <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
+                        リンク: <a href={selected.site_url} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.9)", textDecoration: "underline" }}>{selected.site_url}</a>
+                      </p>
+                    ) : null}
                     {selected.description ? <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.72)" }}>{selected.description}</p> : null}
                     <div style={{ marginTop: 6 }}>
                       {canEdit ? (
-                        <button type="button" onClick={() => openEdit(selected)} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${roleColor}40`, background: `${roleColor}18`, color: roleColor, cursor: "pointer", fontWeight: 900 }}>
+                        <button type="button" onClick={() => openEdit(selected)} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${accentColor}40`, background: `${accentColor}18`, color: accentColor, cursor: "pointer", fontWeight: 900 }}>
                           編集する
                         </button>
                       ) : null}
@@ -988,6 +1200,11 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                       </label>
 
                       <label style={{ display: "grid", gap: 6 }}>
+                        <span style={{ fontSize: 10, fontFamily: "monospace", opacity: 0.55 }}>サイトリンク</span>
+                        <input value={draft.site_url} onChange={(e) => setDraft((d) => ({ ...d, site_url: e.target.value }))} placeholder="https://..." style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", color: "#fff", padding: "0 12px", outline: "none" }} />
+                      </label>
+
+                      <label style={{ display: "grid", gap: 6 }}>
                         <span style={{ fontSize: 10, fontFamily: "monospace", opacity: 0.55 }}>説明</span>
                         <textarea value={draft.description} onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))} rows={4} style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", color: "#fff", padding: "10px 12px", outline: "none", resize: "vertical" }} />
                       </label>
@@ -1018,7 +1235,7 @@ export default function ScheduleClient({ profile, embedded = false }: { profile:
                         ) : null}
                       </div>
 
-                      <button type="button" onClick={save} disabled={saving} style={{ padding: "10px 16px", borderRadius: 12, border: `1px solid ${roleColor}40`, background: roleColor, color: "#050510", cursor: "pointer", fontWeight: 900, opacity: saving ? 0.6 : 1 }}>
+                      <button type="button" onClick={save} disabled={saving} style={{ padding: "10px 16px", borderRadius: 12, border: `1px solid ${accentColor}40`, background: accentColor, color: "#050510", cursor: "pointer", fontWeight: 900, opacity: saving ? 0.6 : 1 }}>
                         保存
                       </button>
                     </div>

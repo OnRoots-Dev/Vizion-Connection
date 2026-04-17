@@ -9,6 +9,7 @@ import { HubAdPanel } from "@/app/(app)/dashboard/components/HubAdPanel";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import type { MemberHubSummary } from "@/lib/supabase/member-hub";
 import type { AdItem } from "@/lib/ads-shared";
+import type { CollectionCardItem } from "@/components/collections/CollectionCarousel";
 
 const numberFormatter = new Intl.NumberFormat("ja-JP");
 
@@ -58,6 +59,8 @@ export function MembersHubView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [myHubCards, setMyHubCards] = useState<CollectionCardItem[]>([]);
+  const [activeMyHubSlug, setActiveMyHubSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -94,6 +97,37 @@ export function MembersHubView({
     };
   }, [profile.slug]);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/api/collect/list", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (!active) return;
+        const cards = (Array.isArray(json?.cards) ? json.cards : []) as CollectionCardItem[];
+        const favorites = cards
+          .filter((card) => card.role === "Athlete" || card.role === "Trainer")
+          .slice(0, 5);
+        setMyHubCards(favorites);
+        setActiveMyHubSlug((prev) => {
+          if (prev && favorites.some((card) => card.targetSlug === prev)) return prev;
+          return favorites[0]?.targetSlug ?? null;
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setMyHubCards([]);
+        setActiveMyHubSlug(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const activeMyHubCard = useMemo(
+    () => myHubCards.find((card) => card.targetSlug === activeMyHubSlug) ?? myHubCards[0] ?? null,
+    [activeMyHubSlug, myHubCards],
+  );
+
   const progressLabel = useMemo(() => {
     return `${summary.referral.successCount}/${summary.referral.nextGoal}`;
   }, [summary.referral.nextGoal, summary.referral.successCount]);
@@ -124,6 +158,101 @@ export function MembersHubView({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Members Hub" sub="活動・応援・紹介を可視化する" onBack={() => setView("home")} t={t} roleColor={roleColor} />
+
+      <SectionCard t={t} accentColor={roleColor}>
+        <SLabel text="My Hub" color={roleColor} />
+        {myHubCards.length === 0 ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.8 }}>
+              推しの Athlete / Trainer を最大5人まで登録して、ここで切り替えてプロフィールを確認できます。
+            </p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => setView("discovery")}
+                style={{ padding: "9px 14px", borderRadius: 12, border: "none", background: roleColor, color: "#061018", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+              >
+                Discoveryで探す
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("collections")}
+                style={{ padding: "9px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+              >
+                コレクションを見る
+              </button>
+            </div>
+            <div style={{ padding: 16, borderRadius: 14, border: `1px dashed ${t.border}`, color: t.sub, fontSize: 12 }}>
+              まだ推しが登録されていません。気になるプロフィールを「コレクト」すると、My Hub に表示されます。
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {myHubCards.map((card) => {
+                const active = card.targetSlug === activeMyHubSlug;
+                return (
+                  <button
+                    key={card.targetSlug}
+                    type="button"
+                    onClick={() => setActiveMyHubSlug(card.targetSlug)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "8px 12px",
+                      borderRadius: 999,
+                      border: `1px solid ${active ? `${roleColor}55` : t.border}`,
+                      background: active ? `${roleColor}14` : "rgba(255,255,255,0.04)",
+                      color: active ? roleColor : t.sub,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <span style={{ width: 22, height: 22, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {card.avatarUrl ? <img src={card.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 11, fontWeight: 900 }}>{card.displayName.slice(0, 1)}</span>}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 900, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.displayName}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {activeMyHubCard ? (
+              <div style={{ padding: 16, borderRadius: 18, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                    <div style={{ width: 54, height: 54, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
+                      {activeMyHubCard.avatarUrl ? <img src={activeMyHubCard.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 900, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeMyHubCard.displayName}</div>
+                      <div style={{ marginTop: 2, fontSize: 11, color: t.sub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{activeMyHubCard.targetSlug} · {activeMyHubCard.role}</div>
+                      <div style={{ marginTop: 6, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>{activeMyHubCard.bio ?? "プロフィール未設定"}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <a
+                      href={`/u/${activeMyHubCard.targetSlug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "9px 14px", borderRadius: 12, border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, fontSize: 12, fontWeight: 800, textDecoration: "none" }}
+                    >
+                      公開プロフィールを開く
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setView("collections")}
+                      style={{ padding: "9px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                    >
+                      推しを編集
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </SectionCard>
 
       <SectionCard t={t} accentColor={roleColor}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>

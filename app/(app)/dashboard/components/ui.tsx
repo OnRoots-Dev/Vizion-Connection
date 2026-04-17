@@ -24,7 +24,7 @@ export function SectionCard({
                 background: accentColor
                     ? `radial-gradient(circle at top right, ${accentColor}10, ${t.surface})`
                     : t.surface,
-                border: `1px solid ${accentColor ? `${accentColor}22` : t.border}`,
+                border: `0.5px solid ${accentColor ? `${accentColor}14` : t.border}`,
             }}
         >
             {accentColor && (
@@ -55,6 +55,82 @@ export function SLabel({ text, color, size = 8 }: { text: string; color?: string
     );
 }
 
+export function ActionPill({
+    children,
+    onClick,
+    href,
+    color,
+    t,
+}: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    href?: string;
+    color: string;
+    t: ThemeColors;
+}) {
+    const style = {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+        minHeight: 30,
+        padding: "6px 11px",
+        borderRadius: 999,
+        fontSize: 10,
+        fontWeight: 800,
+        fontFamily: "monospace",
+        letterSpacing: "0.08em",
+        background: `${color}14`,
+        outline: `1px solid ${color}26`,
+        color,
+        textDecoration: "none",
+        border: "none",
+        cursor: "pointer",
+        whiteSpace: "nowrap" as const,
+    };
+
+    if (href) {
+        return <a href={href} style={style}>{children}</a>;
+    }
+
+    return <button type="button" onClick={onClick} style={{ ...style, color: color || t.text }}>{children}</button>;
+}
+
+export function CardHeader({
+    title,
+    color,
+    action,
+    meta,
+}: {
+    title: string;
+    color?: string;
+    action?: React.ReactNode;
+    meta?: React.ReactNode;
+}) {
+    return (
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+            <div style={{ minWidth: 0 }}>
+                <div
+                    className="font-display"
+                    style={{
+                        fontSize: 32,
+                        fontWeight: 900,
+                        color: "#B2B8BE",
+                        margin: 0,
+                        lineHeight: 1.02,
+                        letterSpacing: "-0.012em",
+                        textTransform: "uppercase",
+                    }}
+                >
+                    {title}
+                </div>
+                {meta ? <div style={{ marginTop: -8 }}>{meta}</div> : null}
+            </div>
+            {action ? <div style={{ marginLeft: "auto" }}>{action}</div> : null}
+        </div>
+    );
+}
+
 // ── ビューヘッダー（戻るボタン付き） ─────────────────────────────────────────
 export function ViewHeader({
     title,
@@ -76,8 +152,8 @@ export function ViewHeader({
                 className="vz-btn h-9 w-9 cursor-pointer rounded-full"
                 style={{
                     background: t.surface,
-                    border: `1px solid ${t.border}`,
-                    color: t.sub,
+                    border: `1px solid ${roleColor}24`,
+                    color: roleColor,
                 }}
             >
                 ←

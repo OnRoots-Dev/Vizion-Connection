@@ -8,6 +8,7 @@ import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { DailyMissionWithProgress, OnetimeMission } from "@/features/missions/types";
+import type { DailyLogListResponse } from "@/features/daily-log/types";
 
 type MissionsSnapshot = {
     onetime: OnetimeMission[];
@@ -16,6 +17,23 @@ type MissionsSnapshot = {
 
 let missionsSnapshotCache: MissionsSnapshot | null = null;
 let missionsSnapshotInFlight: Promise<MissionsSnapshot> | null = null;
+
+function getTodayJstString() {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).format(new Date());
+}
+
+function getJstHour(dateString: string) {
+    return Number(new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Tokyo",
+        hour: "2-digit",
+        hourCycle: "h23",
+    }).format(new Date(dateString)));
+}
 
 function buildFallbackOnetimeMissions(params: {
     verified: boolean;
@@ -45,6 +63,12 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
     const [onetimeMissions, setOnetimeMissions] = useState<OnetimeMission[]>([]);
     const [loadingDaily, setLoadingDaily] = useState(true);
     const [refreshingPoints, setRefreshingPoints] = useState(false);
+    const [currentJstHour, setCurrentJstHour] = useState(() => Number(new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Tokyo",
+        hour: "2-digit",
+        hourCycle: "h23",
+    }).format(new Date())));
+    const [morningJourneyCompleted, setMorningJourneyCompleted] = useState(false);
     const fallbackOnetime = useMemo(() => buildFallbackOnetimeMissions({
         verified: profile.verified,
         hasShared: profile.hasShared ?? false,
@@ -54,6 +78,41 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
     const MISSIONS = onetimeMissions.length > 0 ? onetimeMissions : fallbackOnetime;
     const completedCount = MISSIONS.filter((m) => m.done).length;
     const allDone = completedCount === MISSIONS.length;
+    const isMorningMissionWindow = currentJstHour >= 4 && currentJstHour < 10;
+    const shouldShowMorningJourneyMission = isMorningMissionWindow || morningJourneyCompleted;
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            setCurrentJstHour(Number(new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Tokyo",
+                hour: "2-digit",
+                hourCycle: "h23",
+            }).format(new Date())));
+        }, 60000);
+
+        return () => window.clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        fetch("/api/daily-log", { cache: "no-store" })
+            .then((res) => res.json())
+            .then((json: DailyLogListResponse) => {
+                if (cancelled) return;
+                const today = getTodayJstString();
+                const todayLog = (json.logs ?? []).find((log) => log.log_date === today);
+                const completed = Boolean(todayLog && getJstHour(todayLog.created_at) >= 4 && getJstHour(todayLog.created_at) < 10);
+                setMorningJourneyCompleted(completed);
+            })
+            .catch(() => {
+                if (!cancelled) setMorningJourneyCompleted(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -231,6 +290,54 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                         transition={{ duration: 0.25 }}
                         style={{ display: "flex", flexDirection: "column", gap: 12 }}
                     >
+                        {shouldShowMorningJourneyMission ? (
+                            <SectionCard t={t} accentColor={roleColor}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                                    <div>
+                                        <SLabel text="Daily Mission" color={roleColor} />
+                                        <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: t.text }}>My Journey を朝のうちに記録しよう</p>
+                                        <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
+                                            {morningJourneyCompleted
+                                                ? "本日は朝の時間帯に My Journey を記録済みです。"
+                                                : "AM4:00-AM10:00 の間だけ表示される朝の記録ミッションです。"}
+                                        </p>
+                                    </div>
+                                    {morningJourneyCompleted ? (
+                                        <span
+                                            style={{
+                                                padding: "8px 12px",
+                                                borderRadius: 10,
+                                                border: `1px solid ${roleColor}30`,
+                                                background: `${roleColor}14`,
+                                                color: roleColor,
+                                                fontSize: 10,
+                                                fontWeight: 900,
+                                            }}
+                                        >
+                                            達成済み
+                                        </span>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => setView("journey")}
+                                            style={{
+                                                padding: "8px 12px",
+                                                borderRadius: 10,
+                                                border: `1px solid ${roleColor}30`,
+                                                background: `${roleColor}14`,
+                                                color: roleColor,
+                                                fontSize: 10,
+                                                fontWeight: 900,
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            My Journeyへ →
+                                        </button>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        ) : null}
+
                         {loadingDaily ? (
                             <SectionCard t={t}>
                                 <p style={{ margin: 0, fontSize: 12, color: t.sub }}>デイリーミッションを読み込み中...</p>

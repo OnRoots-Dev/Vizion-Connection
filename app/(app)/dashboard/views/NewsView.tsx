@@ -16,7 +16,7 @@ export function NewsView({
     return (
         <div className="flex flex-col gap-4">
             <ViewHeader title="News Rooms" sub="ニュース" onBack={() => setView("home")} t={t} roleColor={roleColor} />
-            <NewsRoomsContent title="News Rooms" />
+            <NewsRoomsContent title="News Rooms" noticeOnly />
         </div>
     );
 }

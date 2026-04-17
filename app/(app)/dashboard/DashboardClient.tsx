@@ -12,6 +12,7 @@ import { HomeView } from "./views/HomeView";
 import { CardView } from "./views/CardView";
 import { EditView } from "./views/EditView";
 import { CheerView } from "./views/CheerView";
+import { CheerGraphView } from "./views/CheerGraphView";
 import { CareerSPAWrapper } from "./views/CareerSPAWrapper";
 import { DiscoveryView } from "./views/DiscoveryView";
 import { ReferralView } from "./views/ReferralView";
@@ -28,6 +29,8 @@ import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import { AdminPostsView } from "./views/admin/AdminPostsView";
 import { OffersView } from "./views/OffersView";
+import { MyJourneyView } from "./views/MyJourneyView";
+import ScheduleClient from "@/app/schedule/ScheduleClient";
 
 type DashboardNewsPost = {
     id: string;
@@ -69,6 +72,10 @@ export default function DashboardClient({
 
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [careerProfileCache, setCareerProfileCache] = useState<CareerProfileRow | null | undefined>(undefined);
+    useEffect(() => {
+        setProfile(initialProfile);
+    }, [initialProfile]);
+
     useEffect(() => {
         let cancelled = false;
 
@@ -235,6 +242,8 @@ export default function DashboardClient({
                 return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={() => { handleSetView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
+            case "journey":
+                return <MyJourneyView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "notifications":
                 return <NotificationsView t={t} roleColor={roleColor} setView={handleSetView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "admin_posts":
@@ -243,6 +252,8 @@ export default function DashboardClient({
                 return <CardView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "profile":
                 return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} setView={handleSetView} careerProfile={careerProfileCache} />;
+            case "schedule":
+                return <ScheduleClient profile={profile} embedded onBack={() => handleSetView("home")} t={t} roleColor={roleColor} />;
             case "news":
                 return <NewsView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "offers":
@@ -253,10 +264,12 @@ export default function DashboardClient({
                 return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} onSave={handleProfileUpdate} />;
             case "cheer":
                 return <CheerView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "cheer_graph":
+                return <CheerGraphView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "career":
                 return <CareerSPAWrapper profile={profile} t={t} roleColor={roleColor} setView={handleSetView} careerCache={careerProfileCache} />;
             case "discovery":
-                return <DiscoveryView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
+                return <DiscoveryView t={t} roleColor={roleColor} setView={handleSetView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
             case "hub":
             case "business":
                 return <BusinessView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} ads={ads} canManageAdmin={canManageVoiceLab} />;
@@ -326,26 +339,8 @@ export default function DashboardClient({
                                 <button type="button" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
-                                <Image src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"} alt="Vizion" width={120} height={32} priority style={{ height: 32, width: "auto" }} />
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
-                                    <motion.div
-                                        animate={profile.isPublic ? { opacity: [1, 0.3, 1] } : { opacity: 0.45 }}
-                                        transition={profile.isPublic ? { duration: 2, repeat: Infinity } : undefined}
-                                        style={{ width: 6, height: 6, borderRadius: "50%", background: profile.isPublic ? roleColor : t.sub }}
-                                    />
-                                    <span
-                                        style={{
-                                            fontSize: 9,
-                                            fontFamily: "monospace",
-                                            fontWeight: 700,
-                                            letterSpacing: "0.12em",
-                                            color: profile.isPublic ? roleColor : t.sub,
-                                            textTransform: "uppercase",
-                                        }}
-                                    >
-                                        {profile.isPublic ? "Live" : "Private"}
-                                    </span>
-                                </div>
+                                <Image src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"} alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
+                                <div style={{ width: 20 }} />
                             </div>
                         )}
 

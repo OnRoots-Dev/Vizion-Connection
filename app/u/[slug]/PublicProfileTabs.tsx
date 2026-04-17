@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-type TabId = "profile" | "career" | "schedule" | "ranking";
+type TabId = "profile" | "career" | "schedule";
 
 export default function PublicProfileTabs({
     roleColor,
@@ -10,43 +10,60 @@ export default function PublicProfileTabs({
     profilePanel,
     careerPanel,
     schedulePanel,
-    rankingPanel,
 }: {
     roleColor: string;
     careerLabel: string;
     profilePanel: ReactNode;
     careerPanel: ReactNode;
     schedulePanel: ReactNode;
-    rankingPanel: ReactNode;
 }) {
     const [activeTab, setActiveTab] = useState<TabId>("profile");
+
+    useEffect(() => {
+        const syncTabFromHash = () => {
+            const hash = window.location.hash.replace("#", "").toLowerCase();
+            if (hash === "schedule") {
+                setActiveTab("schedule");
+                return;
+            }
+            if (hash === "career") {
+                setActiveTab("career");
+                return;
+            }
+            if (hash === "profile") {
+                setActiveTab("profile");
+            }
+        };
+
+        syncTabFromHash();
+        window.addEventListener("hashchange", syncTabFromHash);
+        return () => window.removeEventListener("hashchange", syncTabFromHash);
+    }, []);
 
     const tabs: { id: TabId; label: string }[] = [
         { id: "profile", label: "Profile" },
         { id: "career", label: careerLabel },
         { id: "schedule", label: "Schedule" },
-        { id: "ranking", label: "Ranking" },
     ];
 
     return (
         <section
             className="u4"
             style={{
-                borderRadius: 22,
+                borderRadius: 20,
                 border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(255,255,255,0.02)",
+                background: "#0d0d1a",
                 overflow: "hidden",
-                backdropFilter: "blur(14px)",
             }}
         >
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                     gap: 0,
                     padding: 6,
                     borderBottom: "1px solid rgba(255,255,255,0.06)",
-                    background: "rgba(0,0,0,0.24)",
+                    background: "rgba(7,7,14,0.55)",
                 }}
             >
                 {tabs.map((tab) => {
@@ -55,7 +72,10 @@ export default function PublicProfileTabs({
                         <button
                             key={tab.id}
                             type="button"
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => {
+                                setActiveTab(tab.id);
+                                window.history.replaceState(null, "", `#${tab.id}`);
+                            }}
                             style={{
                                 minHeight: 46,
                                 padding: "0 12px",
@@ -81,7 +101,6 @@ export default function PublicProfileTabs({
                 {activeTab === "profile" ? profilePanel : null}
                 {activeTab === "career" ? careerPanel : null}
                 {activeTab === "schedule" ? schedulePanel : null}
-                {activeTab === "ranking" ? rankingPanel : null}
             </div>
         </section>
     );

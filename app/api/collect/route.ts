@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { collectCard, uncollectCard, hasCollected } from "@/lib/supabase/collections";
+import { collectCard, uncollectCard, hasCollected, getCollectedCardCount } from "@/lib/supabase/collections";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { z } from "zod";
@@ -13,6 +13,8 @@ const schema = z.object({
     targetSlug: z.string().min(1).max(50),
     action: z.enum(["collect", "uncollect"]),
 }).strict();
+
+const COLLECTION_LIMIT = 10;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     const csrfError = validateCSRF(req);
@@ -49,6 +51,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 重複チェック
     const already = await hasCollected(session.slug, targetSlug);
     if (already) return NextResponse.json({ ok: true, collected: true, alreadyCollected: true });
+
+    const collectedCount = await getCollectedCardCount(session.slug);
+    if (collectedCount >= COLLECTION_LIMIT) {
+        return NextResponse.json({ error: `コレクションの上限は${COLLECTION_LIMIT}枚です` }, { status: 400 });
+    }
 
     const success = await collectCard(session.slug, targetSlug);
     return NextResponse.json({ ok: success, collected: success });
