@@ -23,10 +23,6 @@ const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
-interface ThemeColors {
-    bg: string; surface: string; border: string; text: string; sub: string;
-}
-
 function SnsIconBtn({ label, href, color, path }: {
     label: string; href?: string; color: string; path: string;
 }) {
@@ -384,31 +380,6 @@ export function ProfileCardSection({
                             </div>
                         }
                     />
-                    {referralUrl ? (
-                        <div style={{ marginTop: -6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 9, fontFamily: "monospace", color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Referral</span>
-                                {typeof referralCount === "number" ? (
-                                    <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.75)", fontWeight: 900 }}>+{referralCount}</span>
-                                ) : null}
-                            </div>
-                            <a
-                                href={referralUrl}
-                                className="no-underline"
-                                style={{
-                                    maxWidth: 260,
-                                    fontSize: 10,
-                                    fontFamily: "monospace",
-                                    color: "rgba(255,255,255,0.35)",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                {referralUrl}
-                            </a>
-                        </div>
-                    ) : null}
                 </div>
             )}
 
@@ -500,15 +471,15 @@ export function ProfileCardSection({
                                 <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
                                 <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 26px ${rl}14` : "inset 0 0 0 1px rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
-                                <div style={{ position: "absolute", inset: 0, zIndex: 7, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "16px 60% 14px 16px" }}>
+                                <div style={{ position: "absolute", inset: 0, zIndex: 7, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "16px 14px 14px 16px", paddingRight: "min(60%, 250px)" }}>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start", paddingLeft: 10 }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
                                     </div>
                                     <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                        <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "normal", overflow: "visible", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
-                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 10.5, letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap" }}>{profile.sport}</div>}
+                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "normal", overflow: "visible", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
+                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(9px, 2.8vw, 10.5px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
@@ -529,11 +500,7 @@ export function ProfileCardSection({
                                             <span style={{ marginTop: 5, fontSize: 8, color: "rgba(255,255,255,0.35)" }}>コメント付きCheerはまだありません</span>
                                         )}
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                        <div className="flip-hint" style={{ marginTop: 4, display: "flex", alignItems: "center", fontFamily: "monospace", fontSize: 5, letterSpacing: "0.12em", color: "rgba(255,255,255,0.18)" }}>
-                                            タップ / クリックで裏返す
-                                        </div>
-                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
                                 </div>
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
                                     <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
@@ -613,6 +580,44 @@ export function ProfileCardSection({
                     )}
                 </div>
             </div>
+
+            {referralUrl ? (
+                <div
+                    style={{
+                        marginTop: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        padding: "10px 12px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,214,0,0.18)",
+                        background: "rgba(255,214,0,0.06)",
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                        <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.75)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 900 }}>Referral</span>
+                        {typeof referralCount === "number" ? (
+                            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,214,0,0.95)", fontWeight: 900 }}>+{referralCount}</span>
+                        ) : null}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1, justifyContent: "flex-end" }}>
+                        <span style={{ minWidth: 0, fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl}</span>
+                        <button
+                            type="button"
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                try { await navigator.clipboard.writeText(referralUrl); } catch {}
+                            }}
+                            className="vz-btn"
+                            style={{ flexShrink: 0, padding: "6px 10px", borderRadius: 10, background: "rgba(255,214,0,0.12)", border: "1px solid rgba(255,214,0,0.28)", color: "#FFD600", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
+                        >
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            ) : null}
 
             <ShareMenu profile={profile} t={t} rl={rl} compact={isPublicMode} />
 
@@ -761,7 +766,7 @@ function ShareMenu({ profile, t, rl, compact = false }: { profile: ProfileData; 
 
     return (
         <div className="relative" style={{ marginTop: compact ? 12 : 14 }}>
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-end gap-2">
                 <button
                     onClick={() => setOpen(v => !v)}
                     className="flex cursor-pointer items-center gap-[6px] rounded-[10px] px-[12px] py-[var(--share-btn-y)] text-[var(--share-btn-size)] font-bold transition-all duration-200"
