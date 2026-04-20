@@ -472,22 +472,52 @@ export function ProfileCardSection({
                                 <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
                                 <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 26px ${rl}14` : "inset 0 0 0 1px rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
-                                <div style={{ position: "absolute", inset: 0, zIndex: 7, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "16px 14px 14px 16px", paddingRight: "min(60%, 250px)" }}>
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        inset: 0,
+                                        zIndex: 7,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        justifyContent: "space-between",
+                                        paddingTop: 16,
+                                        paddingRight: 14,
+                                        paddingBottom: 14,
+                                        paddingLeft: 16,
+                                    }}
+                                >
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
                                     </div>
                                     <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "normal", overflow: "visible", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
+                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(9px, 2.8vw, 10.5px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
-                                        <div style={{ marginTop: 6, fontSize: 8.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.35, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                                            {String(profile.bio ?? "").trim() ? `“${String(profile.bio).trim()}”` : "—"}
+                                        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+                                            <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.22)", textTransform: "uppercase" }}>Account ID</span>
+                                            <span
+                                                style={{
+                                                    fontFamily: "monospace",
+                                                    fontSize: 13,
+                                                    fontWeight: 950,
+                                                    letterSpacing: "0.18em",
+                                                    color: "rgba(255,255,255,0.82)",
+                                                    whiteSpace: "nowrap",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    maxWidth: 240,
+                                                    textShadow: "0 1px 0 rgba(255,255,255,0.35), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.55)",
+                                                    filter: "drop-shadow(0 0 10px rgba(0,0,0,0.25))",
+                                                }}
+                                            >
+                                                {vzId}
+                                            </span>
                                         </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
@@ -517,11 +547,11 @@ export function ProfileCardSection({
                                         <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
                                     </div>
                                     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 2, pointerEvents: "none" }}>
-                                        <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.08, letterSpacing: "-0.01em", overflow: "visible", whiteSpace: "normal", wordBreak: "break-word", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}>{profile.displayName}</div>
+                                        <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.08, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}>{profile.displayName}</div>
                                         <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                                             <SponsorBadge plan={profile.sponsorPlan} />
                                         </div>
-                                        <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>@{profile.slug}{profile.region ? ` · ${profile.region}` : ""}</div>
+                                        <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>@{profile.slug}{profile.region ? ` · ${profile.region}` : ""}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.sport}</div>}
                                     </div>
                                     <div style={{ height: 1, background: `linear-gradient(90deg, ${rl} 0%, transparent 100%)`, opacity: 0.4, margin: "5px 0" }} />

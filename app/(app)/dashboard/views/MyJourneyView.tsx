@@ -348,9 +348,24 @@ export function MyJourneyView({
             <div style={{ marginTop: 14 }}>
               <div style={{ position: "relative", padding: "6px 0 14px" }}>
                 <div style={{ position: "absolute", inset: "-12px -10px", borderRadius: 0, background: `radial-gradient(circle at 40% 40%, ${roleColor}40, transparent 62%)`, filter: "blur(18px)", opacity: 0.9, pointerEvents: "none" }} />
-                <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
-                  “{hypeMessage.replace(/^Your Hype:\s*/, "")}”
-                </p>
+                {(() => {
+                  const raw = hypeMessage.replace(/^Your Hype:\s*/, "");
+                  const dashIndex = raw.lastIndexOf("—");
+                  const quote = dashIndex >= 0 ? raw.slice(0, dashIndex).trim() : raw.trim();
+                  const author = dashIndex >= 0 ? raw.slice(dashIndex).trim() : "";
+                  return (
+                    <>
+                      <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
+                        “{quote}”
+                      </p>
+                      {author ? (
+                        <p style={{ position: "relative", margin: "6px 0 0", fontSize: 12, color: t.sub, fontFamily: "monospace", letterSpacing: "0.04em", lineHeight: 1.4, width: "fit-content", marginLeft: "auto", paddingRight: "18%" }}>
+                          {author}
+                        </p>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>

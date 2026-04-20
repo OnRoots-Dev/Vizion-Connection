@@ -124,7 +124,7 @@ export default function EventModal({
             exit={{ opacity: 0, y: 24 }}
             className="fixed inset-0 z-[91] grid place-items-center p-4"
           >
-            <div className="w-full max-w-[620px] max-h-[calc(100vh-32px)] overflow-y-auto rounded-3xl border border-border bg-background p-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
+            <div className="relative w-full max-w-[620px] max-h-[calc(100vh-32px)] overflow-y-auto rounded-3xl border border-border bg-background p-5 shadow-[0_18px_60px_rgba(0,0,0,0.45)]">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="mb-1 font-mono text-[10px] font-black tracking-[0.18em] text-muted-foreground/60">SCHEDULE</p>
@@ -145,6 +145,55 @@ export default function EventModal({
                   {errorMessage}
                 </div>
               ) : null}
+
+              <AnimatePresence>
+                {confirm ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-[2] grid place-items-center"
+                  >
+                    <motion.button
+                      type="button"
+                      aria-label="confirm-backdrop"
+                      onClick={() => setConfirm(null)}
+                      disabled={saving}
+                      className="absolute inset-0 border-none bg-black/45 backdrop-blur-[6px] disabled:opacity-100"
+                    />
+
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98, y: 8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98, y: 8 }}
+                      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                      className="relative z-[3] w-full max-w-[420px] rounded-2xl border border-border bg-background/95 p-4 shadow-[0_18px_60px_rgba(0,0,0,0.55)]"
+                    >
+                      <p className="m-0 text-sm font-black text-foreground">{confirmTitle}</p>
+                      <p className="mb-0 mt-1 text-xs text-muted-foreground">{confirmDesc}</p>
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirm(null)}
+                          disabled={saving}
+                          className="rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-sm font-black text-foreground/80 disabled:opacity-60"
+                        >
+                          キャンセル
+                        </button>
+                        <button
+                          type="button"
+                          onClick={runConfirmed}
+                          disabled={saving}
+                          className="rounded-xl px-4 py-2.5 text-sm font-black text-background disabled:opacity-60"
+                          style={{ background: accentColor, border: `1px solid ${accentColor}40` }}
+                        >
+                          実行する
+                        </button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
 
               {selected && !canEdit ? (
                 <div className="flex flex-col gap-2.5">
@@ -205,32 +254,6 @@ export default function EventModal({
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {confirm ? (
-                    <div className="rounded-2xl border border-border bg-muted/10 p-4">
-                      <p className="m-0 text-sm font-black text-foreground">{confirmTitle}</p>
-                      <p className="mb-0 mt-1 text-xs text-muted-foreground">{confirmDesc}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setConfirm(null)}
-                          disabled={saving}
-                          className="rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-sm font-black text-foreground/80 disabled:opacity-60"
-                        >
-                          キャンセル
-                        </button>
-                        <button
-                          type="button"
-                          onClick={runConfirmed}
-                          disabled={saving}
-                          className="rounded-xl px-4 py-2.5 text-sm font-black text-background disabled:opacity-60"
-                          style={{ background: accentColor, border: `1px solid ${accentColor}40` }}
-                        >
-                          実行する
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-
                   {!selected ? null : (
                     <div className="flex flex-wrap items-center gap-2">
                       <span

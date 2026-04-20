@@ -30,6 +30,7 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
     const [deleteConfirm, setDeleteConfirm] = useState("");
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteMsg, setDeleteMsg] = useState<string | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
     useEffect(() => {
         setIsPublic(profile.isPublic !== false);
@@ -128,6 +129,44 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {deleteModalOpen ? (
+                <>
+                    <button
+                        type="button"
+                        aria-label="退会確認を閉じる"
+                        onClick={() => setDeleteModalOpen(false)}
+                        disabled={deleteLoading}
+                        style={{ position: "fixed", inset: 0, zIndex: 90, border: "none", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", cursor: "pointer" }}
+                    />
+                    <div style={{ position: "fixed", inset: 0, zIndex: 91, display: "grid", placeItems: "center", padding: 16 }}>
+                        <div style={{ width: "100%", maxWidth: 420, borderRadius: 16, border: `1px solid ${t.border}`, background: t.bg, padding: 16, boxShadow: "0 18px 60px rgba(0,0,0,0.55)" }}>
+                            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: t.text }}>本当に退会しますか？</p>
+                            <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
+                                退会するとプロフィールが非公開になり、復元できません。
+                            </p>
+                            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeleteModalOpen(false)}
+                                    disabled={deleteLoading}
+                                    style={{ borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.sub, fontWeight: 900, fontSize: 12, padding: "10px 12px", cursor: deleteLoading ? "wait" : "pointer" }}
+                                >
+                                    キャンセル
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => void handleDeleteAccount()}
+                                    disabled={deleteLoading}
+                                    style={{ borderRadius: 12, border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.14)", color: "#FF5050", fontWeight: 900, fontSize: 12, padding: "10px 12px", cursor: deleteLoading ? "wait" : "pointer", opacity: deleteLoading ? 0.75 : 1 }}
+                                >
+                                    {deleteLoading ? "処理中..." : "退会する"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            ) : null}
+
             <ViewHeader title="Settings" sub="アカウント設定" onBack={onBack} t={t} roleColor={roleColor} />
             <SectionCard t={t}>
                 <SLabel text="アカウント情報" />
@@ -141,7 +180,7 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                 ].map(({ k, v, mono, color }) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${t.border}` }}>
                         <span style={{ fontSize: 10, color: t.sub, opacity: 0.5, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{k}</span>
-                        <span style={{ fontSize: 11, fontFamily: mono ? "monospace" : "inherit", color: color ?? t.text, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", fontWeight: color ? 700 : 400 }}>{v}</span>
+                        <span style={{ fontSize: 11, fontFamily: mono ? "monospace" : "inherit", color: color ?? t.text, maxWidth: "62%", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", fontWeight: color ? 700 : 400 }}>{v}</span>
                     </div>
                 ))}
             </SectionCard>
@@ -154,7 +193,7 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                         placeholder="新しいメールアドレス"
                         value={newEmail}
                         onChange={(e) => setNewEmail(e.target.value)}
-                        style={{ height: 42, borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
+                        style={{ height: 42, width: "100%", maxWidth: "100%", boxSizing: "border-box", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
                     />
                     <button
                         type="button"
@@ -173,21 +212,21 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
             </SectionCard>
 
             <SectionCard t={t}>
-                <SLabel text="パスワード変更" />
+                <SLabel text="パスワード変更" color={roleColor} />
                 <div style={{ display: "grid", gap: 8 }}>
                     <input
                         type="password"
                         placeholder="現在のパスワード"
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        style={{ height: 42, borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
+                        style={{ height: 42, width: "100%", maxWidth: "100%", boxSizing: "border-box", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
                     />
                     <input
                         type="password"
                         placeholder="新しいパスワード（8文字以上）"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        style={{ height: 42, borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
+                        style={{ height: 42, width: "100%", maxWidth: "100%", boxSizing: "border-box", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
                     />
                     <button
                         type="button"
@@ -243,11 +282,11 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                     placeholder={`${profile.slug} と入力`}
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}
-                    style={{ height: 42, borderRadius: 12, border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
+                    style={{ height: 42, width: "100%", maxWidth: "100%", boxSizing: "border-box", borderRadius: 12, border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,255,255,0.03)", color: t.text, padding: "0 12px", outline: "none" }}
                 />
                 <button
                     type="button"
-                    onClick={() => void handleDeleteAccount()}
+                    onClick={() => setDeleteModalOpen(true)}
                     disabled={deleteLoading || deleteConfirm !== profile.slug}
                     style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: "rgba(255,80,80,0.10)", border: "1px solid rgba(255,80,80,0.25)", color: "#FF5050", fontSize: 13, fontWeight: 800, cursor: deleteLoading ? "wait" : deleteConfirm === profile.slug ? "pointer" : "not-allowed", opacity: deleteLoading ? 0.7 : 1 }}
                 >
