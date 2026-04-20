@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -45,6 +46,64 @@ export default function EventModal({
   onOpenEdit: (s: Schedule) => void;
   setDraft: Dispatch<SetStateAction<DraftSchedule>>;
 }) {
+  const [confirm, setConfirm] = useState<null | "delete" | "make_public" | "make_private">(null);
+
+  useEffect(() => {
+    if (!open) setConfirm(null);
+  }, [open]);
+
+  const privacyChange = useMemo(() => {
+    if (!selected) return null;
+    if (Boolean(selected.is_public) === Boolean(draft.is_public)) return null;
+    return draft.is_public ? "make_public" : "make_private";
+  }, [draft.is_public, selected]);
+
+  const confirmTitle = useMemo(() => {
+    if (confirm === "delete") return "本当に削除しますか？";
+    if (confirm === "make_public") return "この予定を公開しますか？";
+    if (confirm === "make_private") return "この予定を非公開にしますか？";
+    return "";
+  }, [confirm]);
+
+  const confirmDesc = useMemo(() => {
+    if (confirm === "delete") return "この操作は取り消せません。";
+    if (confirm === "make_public") return "公開にすると、公開プロフィール等で表示される可能性があります。";
+    if (confirm === "make_private") return "非公開にすると、他のユーザーには表示されません。";
+    return "";
+  }, [confirm]);
+
+  const handleClose = () => {
+    setConfirm(null);
+    onClose();
+  };
+
+  const requestSave = () => {
+    if (!selected) {
+      onSave();
+      return;
+    }
+    if (privacyChange) {
+      setConfirm(privacyChange);
+      return;
+    }
+    onSave();
+  };
+
+  const requestRemove = () => {
+    setConfirm("delete");
+  };
+
+  const runConfirmed = () => {
+    if (confirm === "delete") {
+      onRemove();
+      return;
+    }
+    if (confirm === "make_public" || confirm === "make_private") {
+      onSave();
+      return;
+    }
+  };
+
   return (
     <AnimatePresence>
       {open ? (
@@ -54,7 +113,7 @@ export default function EventModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="fixed inset-0 z-[90] border-none bg-black/70"
             aria-label="閉じる"
           />
@@ -74,7 +133,7 @@ export default function EventModal({
 
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="rounded-xl border border-border bg-muted/20 px-3 py-2 text-sm font-bold text-foreground/80 hover:bg-muted/30"
                 >
                   閉じる
@@ -146,6 +205,32 @@ export default function EventModal({
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
+                  {confirm ? (
+                    <div className="rounded-2xl border border-border bg-muted/10 p-4">
+                      <p className="m-0 text-sm font-black text-foreground">{confirmTitle}</p>
+                      <p className="mb-0 mt-1 text-xs text-muted-foreground">{confirmDesc}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirm(null)}
+                          disabled={saving}
+                          className="rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-sm font-black text-foreground/80 disabled:opacity-60"
+                        >
+                          キャンセル
+                        </button>
+                        <button
+                          type="button"
+                          onClick={runConfirmed}
+                          disabled={saving}
+                          className="rounded-xl px-4 py-2.5 text-sm font-black text-background disabled:opacity-60"
+                          style={{ background: accentColor, border: `1px solid ${accentColor}40` }}
+                        >
+                          実行する
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {!selected ? null : (
                     <div className="flex flex-wrap items-center gap-2">
                       <span
@@ -261,7 +346,7 @@ export default function EventModal({
                       {selected ? (
                         <button
                           type="button"
-                          onClick={onRemove}
+                          onClick={requestRemove}
                           disabled={saving}
                           className="rounded-xl border border-red-500/35 bg-red-500/10 px-3.5 py-2.5 text-sm font-black text-red-200 disabled:opacity-60"
                         >
@@ -272,7 +357,7 @@ export default function EventModal({
 
                     <button
                       type="button"
-                      onClick={onSave}
+                      onClick={requestSave}
                       disabled={saving}
                       className="rounded-xl px-4 py-2.5 text-sm font-black text-background disabled:opacity-60"
                       style={{ background: accentColor, border: `1px solid ${accentColor}40` }}

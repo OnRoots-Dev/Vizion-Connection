@@ -363,13 +363,24 @@ export default function ScheduleClient({
       const cfg = EVENT_TYPE_CONFIG[eventType];
       const start = new Date(s.start_at);
       const end = s.end_at ? new Date(s.end_at) : null;
-      const allDay = Boolean((s as any)?.all_day);
+      const allDayFlag = Boolean((s as any)?.all_day);
+      const crossesMidnight = Boolean(
+        end && (
+          start.getFullYear() !== end.getFullYear() ||
+          start.getMonth() !== end.getMonth() ||
+          start.getDate() !== end.getDate()
+        )
+      );
+      const allDay = allDayFlag || crossesMidnight;
+      const endForAllDay = allDay
+        ? (end ?? new Date(new Date(start).setDate(start.getDate() + 1)))
+        : end;
 
       return {
         id: s.id,
         title: s.title,
         start,
-        end: end ?? undefined,
+        end: endForAllDay ?? undefined,
         allDay,
         backgroundColor: `${cfg.color}22`,
         borderColor: `${cfg.color}AA`,

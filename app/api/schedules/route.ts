@@ -103,7 +103,7 @@ export async function PUT(req: Request): Promise<NextResponse> {
       .eq("id", id)
       .eq("user_slug", session.slug)
       .select(selectWithSiteUrl as any)
-      .single();
+      .maybeSingle();
 
     if (error) {
       const msg = String((error as any)?.message ?? "");
@@ -114,11 +114,34 @@ export async function PUT(req: Request): Promise<NextResponse> {
           .eq("id", id)
           .eq("user_slug", session.slug)
           .select(selectWithoutSiteUrl as any)
-          .single());
+          .maybeSingle());
       }
     }
 
+    if (!error && !data) {
+      const { data: existsData, error: existsError } = await supabaseServer
+        .from("schedules")
+        .select("id,user_slug" as any)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!existsError && existsData && (existsData as any).user_slug && String((existsData as any).user_slug) !== session.slug) {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+      }
+
+      return NextResponse.json({ success: false, error: "Not Found" }, { status: 404 });
+    }
+
     if (error) {
+      const msg = String((error as any)?.message ?? "");
+      // maybeSingle() will typically avoid the "Cannot coerce ... single JSON object" error for 0 rows,
+      // but keep a defensive mapping just in case.
+      if (
+        msg.toLowerCase().includes("json object requested") ||
+        msg.toLowerCase().includes("cannot coerce")
+      ) {
+        return NextResponse.json({ success: false, error: "Not Found" }, { status: 404 });
+      }
       console.error("[PUT /api/schedules]", error);
       return NextResponse.json({ success: false, error: error.message || "サーバーエラーが発生しました" }, { status: 500 });
     }
@@ -142,15 +165,30 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const id = String(body.id ?? "");
     if (!id) return NextResponse.json({ success: false, error: "Bad Request" }, { status: 400 });
 
-    const { error } = await supabaseServer
+    const { data, error } = await supabaseServer
       .from("schedules")
       .delete()
       .eq("id", id)
-      .eq("user_slug", session.slug);
+      .eq("user_slug", session.slug)
+      .select("id" as any);
 
     if (error) {
       console.error("[DELETE /api/schedules]", error);
       return NextResponse.json({ success: false, error: error.message || "サーバーエラーが発生しました" }, { status: 500 });
+    }
+
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      const { data: existsData, error: existsError } = await supabaseServer
+        .from("schedules")
+        .select("id,user_slug" as any)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!existsError && existsData && (existsData as any).user_slug && String((existsData as any).user_slug) !== session.slug) {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+      }
+
+      return NextResponse.json({ success: false, error: "Not Found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
