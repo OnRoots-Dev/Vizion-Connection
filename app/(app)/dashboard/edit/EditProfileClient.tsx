@@ -80,7 +80,6 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
     const [prefecture, setPrefecture] = useState(user.prefecture ?? "");
     const [sportsCategory, setSportsCategory] = useState(user.sportsCategory ?? "");
     const [sport, setSport] = useState(user.sport ?? "");
-    const [sports, setSports] = useState<string[]>(user.sports ?? []);
     const [stance, setStance] = useState(user.stance ?? "");
     const [instagram, setInstagram] = useState(user.instagram ?? "");
     const [xUrl, setXUrl] = useState(user.xUrl ?? "");
@@ -100,10 +99,6 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
         : role === "Trainer" ? TRAINER_SPORTS
             : role === "Members" ? MEMBERS_SPORTS
                 : BUSINESS_SPORTS;
-
-    const toggleSport = (value: string) => {
-        setSports((prev) => prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]);
-    };
 
     async function handleImageUpload(type: "profile" | "avatar") {
         const input = type === "profile" ? profileInputRef.current : avatarInputRef.current;
@@ -154,8 +149,7 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
                     region,
                     prefecture,
                     sportsCategory,
-                    sport: role === "Athlete" ? (sports[0] ?? sport) : sport,
-                    sports: role === "Athlete" ? sports : undefined,
+                    sport,
                     stance,
                     instagram,
                     xUrl,
@@ -283,7 +277,7 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
         <div className="min-h-screen" style={{ background: `radial-gradient(circle at top right, ${rl}18, transparent 28%), ${t.bg}`, color: t.text }}>
             <div className="border-b backdrop-blur-[18px]" style={{ borderBottomColor: t.border, background: "rgba(7,7,14,0.84)" }}>
                 <div className="mx-auto flex max-w-[1120px] items-center gap-3 px-4 py-4 md:px-6">
-                    <button type="button" onClick={() => onBack ? onBack() : router.back()} className="flex h-10 w-10 items-center justify-center rounded-[12px] border" style={{ borderColor: t.border, background: "rgba(255,255,255,0.05)", cursor: "pointer" }}>
+                    <button type="button" aria-label="戻る" title="戻る" onClick={() => onBack ? onBack() : router.back()} className="flex h-10 w-10 items-center justify-center rounded-[12px] border" style={{ borderColor: t.border, background: "rgba(255,255,255,0.05)", cursor: "pointer" }}>
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                         </svg>
@@ -385,28 +379,10 @@ export function EditProfileClient({ user, onBack, onSaved }: { user: UserRecord;
                                 {role === "Athlete" ? field("カテゴリー", renderSelect(sportsCategory, (value) => {
                                     setSportsCategory(value);
                                     setSport("");
-                                    setSports([]);
                                 }, Object.keys(SPORTS_BY_CATEGORY), "選択してください", "スポーツカテゴリー")) : null}
 
-                                {role === "Athlete" ? field("競技（複数選択）", (
-                                    <div className="max-h-[220px] overflow-auto rounded-[14px] border p-3" style={{ borderColor: t.border, background: "rgba(255,255,255,0.03)" }}>
-                                        {sportOptions.length === 0 ? (
-                                            <span className="text-[12px]" style={{ color: t.sub }}>カテゴリーを選択してください</span>
-                                        ) : (
-                                            <div className="grid gap-2">
-                                                {sportOptions.map((option) => {
-                                                    const checked = sports.includes(option);
-                                                    return (
-                                                        <label key={option} className="flex cursor-pointer items-center gap-[10px] rounded-[10px] px-2 py-[6px]" style={{ background: checked ? `${rl}10` : "transparent" }}>
-                                                            <input type="checkbox" checked={checked} onChange={() => toggleSport(option)} className="h-[14px] w-[14px]" />
-                                                            <span className="text-[13px]" style={{ color: t.text }}>{option}</span>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                )) : field(role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域", renderSelect(sport, setSport, sportOptions, "選択してください", "競技名"))}
+                                {role === "Athlete" ? field("競技（1つ選択）", renderSelect(sport, setSport, sportOptions, sportOptions.length === 0 ? "カテゴリーを選択してください" : "選択してください", "競技"))
+                                    : field(role === "Trainer" ? "指導専門領域" : role === "Business" ? "業種" : "支援可能領域", renderSelect(sport, setSport, sportOptions, "選択してください", "競技名"))}
 
                                 {field(role === "Athlete" ? "今の注力テーマ" : role === "Trainer" ? "指導スタンス" : role === "Business" ? "関わりたい目的" : "関わりたいスタンス", renderSelect(stance, setStance, STANCE[role] ?? [], "選択してください", "スタンス"))}
                             </div>

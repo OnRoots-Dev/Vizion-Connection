@@ -1,26 +1,33 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquareText } from "lucide-react";
 import { ActionPill, CardHeader, SectionCard } from "@/app/(app)/dashboard/components/ui";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import type { DashboardView } from "@/app/(app)/dashboard/types";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
-import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype } from "./journey";
+import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, JOURNEY_MAX_CHARS } from "./journey";
 
 export function DailyLogCard({
   t,
   roleColor,
+  role,
   onOpenJourney,
 }: {
   t: ThemeColors;
   roleColor: string;
+  role?: string | null;
   onOpenJourney?: (view: DashboardView) => void;
 }) {
   const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
+  const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
+  const [showHypeAfterSubmit, setShowHypeAfterSubmit] = useState(true);
+  const justSubmittedRef = useRef(false);
+  const submitSuccessTimeoutRef = useRef<number | null>(null);
+  const hypeRevealTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -28,10 +35,46 @@ export function DailyLogCard({
     }
   }, [fetchLogs, hasLoaded]);
 
-  const remaining = useMemo(() => 200 - content.length, [content.length]);
+  const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
   const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
+  const templateSuggestions = useMemo(() => getRandomJourneyTemplateSuggestions(role), [role]);
+
+  useEffect(() => {
+    return () => {
+      if (submitSuccessTimeoutRef.current !== null) {
+        window.clearTimeout(submitSuccessTimeoutRef.current);
+      }
+      if (hypeRevealTimeoutRef.current !== null) {
+        window.clearTimeout(hypeRevealTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!justSubmittedRef.current) return;
+    if (!todayLog) return;
+
+    setShowSubmitSuccess(true);
+    setShowHypeAfterSubmit(false);
+
+    if (submitSuccessTimeoutRef.current !== null) {
+      window.clearTimeout(submitSuccessTimeoutRef.current);
+    }
+    if (hypeRevealTimeoutRef.current !== null) {
+      window.clearTimeout(hypeRevealTimeoutRef.current);
+    }
+
+    hypeRevealTimeoutRef.current = window.setTimeout(() => {
+      setShowHypeAfterSubmit(true);
+    }, 900);
+
+    submitSuccessTimeoutRef.current = window.setTimeout(() => {
+      setShowSubmitSuccess(false);
+      justSubmittedRef.current = false;
+    }, 2600);
+  }, [todayLog]);
 
   async function handleSubmit() {
     if (!canSubmit || conditionScore === null) return;
@@ -42,6 +85,7 @@ export function DailyLogCard({
     });
 
     if (ok) {
+      justSubmittedRef.current = true;
       setContent("");
       setConditionScore(null);
     }
@@ -94,8 +138,8 @@ export function DailyLogCard({
               <div>
                 <textarea
                   value={content}
-                  onChange={(event) => setContent(event.target.value.slice(0, 200))}
-                  maxLength={200}
+                  onChange={(event) => setContent(event.target.value.slice(0, JOURNEY_MAX_CHARS))}
+                  maxLength={JOURNEY_MAX_CHARS}
                   placeholder="今日の一言・取り組みを記録しよう"
                   rows={3}
                   style={{ width: "100%", resize: "none", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "13px 14px 34px", fontSize: 12, lineHeight: 1.65, outline: "none" }}
@@ -103,6 +147,35 @@ export function DailyLogCard({
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: -30, padding: "0 14px" }}>
                   <span style={{ fontSize: 10, color: t.sub }}>4:00-10:00 の記録で +10pt</span>
                   <span style={{ fontSize: 10, color: remaining >= 0 ? t.sub : "rgba(255,80,80,0.9)" }}>残り{remaining}文字</span>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gap: 8 }}>
+                <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
+                  Templates
+                </p>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {templateSuggestions.map((text) => (
+                    <button
+                      key={text}
+                      type="button"
+                      onClick={() => setContent(text.slice(0, JOURNEY_MAX_CHARS))}
+                      style={{
+                        textAlign: "left",
+                        width: "100%",
+                        borderRadius: 14,
+                        padding: "10px 12px",
+                        border: `1px solid ${t.border}`,
+                        background: "rgba(255,255,255,0.02)",
+                        color: t.text,
+                        cursor: "pointer",
+                        fontSize: 12,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {text}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -150,10 +223,56 @@ export function DailyLogCard({
             </div>
           )}
 
-          <div style={{ padding: "12px 14px", borderRadius: 16, border: `1px solid ${roleColor}22`, background: `${roleColor}10` }}>
-            <p style={{ margin: "0 0 6px", fontSize: 11, color: roleColor, fontWeight: 900, letterSpacing: "0.04em" }}>📣 Your HYPE</p>
-            <p style={{ margin: 0, fontSize: 12, color: t.text, lineHeight: 1.7 }}>{hypeMessage.replace(/^Your Hype:\s*/, "")}</p>
-          </div>
+          <AnimatePresence>
+            {showSubmitSuccess ? (
+              <motion.div
+                key="journey-submit-success"
+                initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -6, filter: "blur(6px)" }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 16,
+                  border: `1px solid ${roleColor}30`,
+                  background: `${roleColor}10`,
+                }}
+              >
+                <p style={{ margin: 0, fontSize: 12, color: t.text, lineHeight: 1.7, fontWeight: 800 }}>
+                  記録が完了しました。今日の一歩が、未来をつくります。
+                </p>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence mode="wait">
+            {showHypeAfterSubmit ? (
+              <motion.div
+                key="journey-hype"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                style={{ padding: "12px 14px", borderRadius: 16, border: `1px solid ${roleColor}22`, background: `${roleColor}10` }}
+              >
+                <p style={{ margin: "0 0 6px", fontSize: 11, color: roleColor, fontWeight: 900, letterSpacing: "0.04em" }}>📣 Your HYPE</p>
+                <p style={{ margin: 0, fontSize: 12, color: t.text, lineHeight: 1.7 }}>{hypeMessage.replace(/^Your Hype:\s*/, "")}</p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="journey-hype-placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ padding: "12px 14px", borderRadius: 16, border: `1px solid ${roleColor}18`, background: "rgba(255,255,255,0.02)" }}
+              >
+                <p style={{ margin: 0, fontSize: 11, color: t.sub, letterSpacing: "0.04em", fontWeight: 800 }}>
+                  Your HYPE を準備中…
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </SectionCard>
     </motion.div>

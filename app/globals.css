@@ -434,3 +434,114 @@ html {
     @apply block h-0.5 w-[22px] transition-all duration-200;
   }
 }
+
+.fc {
+  --fc-border-color: color-mix(in srgb, var(--border) 65%, transparent);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-today-bg-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  --fc-small-font-size: 0.75rem;
+  font-family: var(--font-body, var(--font-sans, ui-sans-serif));
+  color: var(--foreground);
+}
+
+.fc .fc-toolbar,
+.fc .fc-header-toolbar {
+  color: var(--foreground);
+}
+
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section > td,
+.fc .fc-scrollgrid-section > th {
+  border-color: var(--fc-border-color);
+}
+
+.fc .fc-col-header-cell {
+  background: transparent;
+}
+
+.fc .fc-col-header-cell-cushion {
+  padding: 0.5rem 0.25rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--foreground) 88%, transparent);
+}
+
+.fc .fc-col-header-cell-cushion:hover {
+  color: var(--foreground);
+}
+
+.fc .fc-daygrid-day,
+.fc .fc-timegrid-col {
+  background: transparent;
+}
+
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-timegrid-col.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--foreground) 92%, transparent);
+}
+
+.fc .fc-daygrid-day-number:hover {
+  color: var(--foreground);
+}
+
+.fc .fc-daygrid-day-top {
+  justify-content: flex-start;
+}
+
+.fc .fc-timegrid-slot,
+.fc .fc-timegrid-axis {
+  border-color: var(--fc-border-color);
+}
+
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.72rem;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+}
+
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-timegrid-axis-cushion {
+  font-weight: 600;
+}
+
+.fc .fc-now-indicator-line {
+  border-color: var(--primary);
+}
+
+.fc .fc-event {
+  border-radius: 0.625rem;
+  border-width: 1px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+}
+
+.fc .fc-list,
+.fc .fc-list-table {
+  border-color: var(--fc-border-color);
+}
+
+.fc .fc-list-day-cushion {
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+  color: var(--foreground);
+}
+
+.fc .fc-list-event:hover td {
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+}
+
+.fc .fc-list-event-title,
+.fc .fc-list-event-time {
+  color: var(--foreground);
+}
+
+.fc .fc-event:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ring) 85%, transparent);
+  outline-offset: 2px;
+}

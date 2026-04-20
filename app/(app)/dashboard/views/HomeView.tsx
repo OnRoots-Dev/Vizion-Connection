@@ -75,6 +75,9 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const [discoveryPreview, setDiscoveryPreview] = useState<DiscoveryPreviewUser[]>([]);
     const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
 
+    const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+    const formatMd = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" });
+
     const localAds = ads.filter((ad) => isLocalPlan(ad.plan));
     const nationalAds = ads.filter((ad) => !isLocalPlan(ad.plan));
     const topHero = nationalAds.find((ad) => {
@@ -214,7 +217,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </motion.div>
             )}
 
-            <DailyLogCard t={t} roleColor={roleColor} onOpenJourney={setView} />
+            <DailyLogCard t={t} roleColor={roleColor} role={profile.role} onOpenJourney={setView} />
 
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
@@ -222,20 +225,19 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     <CardHeader
                         title="Cheer"
                         color={roleColor}
-                        action={<ActionPill onClick={() => setView("cheer")} color={roleColor} t={t}>詳細 →</ActionPill>}
+                        action={<ActionPill onClick={() => setView("cheer")} color={roleColor} t={t}>View →</ActionPill>}
                     />
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                         <span style={{ fontSize: 40, fontWeight: 900, color: "#FFD600", lineHeight: 1, fontFamily: "monospace" }}>{profile.cheerCount ?? 0}</span>
                         <span style={{ fontSize: 12, color: t.sub }}>★ 応援数</span>
                     </div>
-                    <p style={{ fontSize: 10, color: t.sub, margin: "6px 0 0", opacity: 0.45 }}>プロフィールを広めてCheerを集めよう</p>
                 </SectionCard>
 
                 <SectionCard t={t} accentColor={roleColor}>
                     <CardHeader
                         title="Schedule"
                         color={roleColor}
-                        action={<ActionPill onClick={() => setView("schedule")} color={roleColor} t={t}>すべて見る →</ActionPill>}
+                        action={<ActionPill onClick={() => setView("schedule")} color={roleColor} t={t}>View →</ActionPill>}
                     />
                     {upcomingSchedules.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>直近の予定はありません。</p>
@@ -243,6 +245,11 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {upcomingSchedules.slice(0, 3).map((s) => {
                                 const cfg = CATEGORY_CONFIG[s.category];
+                                const start = new Date(s.start_at);
+                                const startLabel = `${formatMd(s.start_at)} ${formatTime(s.start_at)}`;
+                                const endLabel = s.end_at ? formatTime(s.end_at) : null;
+                                const timeLabel = endLabel ? `${startLabel} - ${endLabel}` : startLabel;
+                                const locationLabel = String(s.location ?? "").trim();
                                 return (
                                     <button
                                         key={s.id}
@@ -268,9 +275,14 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                                         </span>
                                         <div style={{ minWidth: 0 }}>
                                             <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 800, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</p>
-                                            <p style={{ margin: 0, fontSize: 10, color: t.sub, fontFamily: "monospace", opacity: 0.65, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                                {new Date(s.start_at).toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                            <p style={{ margin: 0, fontSize: 10, color: t.sub, fontFamily: "monospace", opacity: 0.75, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {timeLabel}
                                             </p>
+                                            {locationLabel ? (
+                                                <p style={{ margin: "3px 0 0", fontSize: 10, color: t.sub, opacity: 0.65, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                    {locationLabel}
+                                                </p>
+                                            ) : null}
                                         </div>
                                     </button>
                                 );
@@ -300,7 +312,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     <CardHeader
                         title="Discovery"
                         color={roleColor}
-                        action={<ActionPill onClick={() => setView("discovery")} color={roleColor} t={t}>詳細 →</ActionPill>}
+                        action={<ActionPill onClick={() => setView("discovery")} color={roleColor} t={t}>View →</ActionPill>}
                     />
                     {discoveryPreview.length === 0 ? (
                         <p style={{ margin: 0, fontSize: 12, color: t.sub }}>公開プロフィールからおすすめのユーザーを表示します。</p>

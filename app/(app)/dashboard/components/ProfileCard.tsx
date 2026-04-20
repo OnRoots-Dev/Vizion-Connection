@@ -262,6 +262,7 @@ export function ProfileCardSection({
     const [isFlipped, setIsFlipped] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [qrDataUrl, setQrDataUrl] = useState<string>("");
+    const [referralCopied, setReferralCopied] = useState(false);
     useEffect(() => {
         if (!preloadQr && !isFlipped) return;
         let active = true;
@@ -472,7 +473,7 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 26px ${rl}14` : "inset 0 0 0 1px rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
                                 <div style={{ position: "absolute", inset: 0, zIndex: 7, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "16px 14px 14px 16px", paddingRight: "min(60%, 250px)" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start", paddingLeft: 10 }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
                                     </div>
@@ -485,20 +486,9 @@ export function ProfileCardSection({
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
-                                        {latestCheer ? (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setCheerModalOpen(true);
-                                                }}
-                                                style={{ marginTop: 5, padding: "4px 7px", borderRadius: 6, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.78)", fontSize: 8, lineHeight: 1.25, maxWidth: 170, textAlign: "left", cursor: "pointer" }}
-                                            >
-                                                &quot;{latestCheer.comment}&quot; - @{latestCheer.fromSlug}
-                                            </button>
-                                        ) : (
-                                            <span style={{ marginTop: 5, fontSize: 8, color: "rgba(255,255,255,0.35)" }}>コメント付きCheerはまだありません</span>
-                                        )}
+                                        <div style={{ marginTop: 6, fontSize: 8.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.35, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                                            {String(profile.bio ?? "").trim() ? `“${String(profile.bio).trim()}”` : "—"}
+                                        </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
                                 </div>
@@ -599,7 +589,7 @@ export function ProfileCardSection({
                     <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                         <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.75)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 900 }}>Referral</span>
                         {typeof referralCount === "number" ? (
-                            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,214,0,0.95)", fontWeight: 900 }}>+{referralCount}</span>
+                            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,214,0,0.95)", fontWeight: 900 }}>+{referralCount} / 30</span>
                         ) : null}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1, justifyContent: "flex-end" }}>
@@ -609,11 +599,13 @@ export function ProfileCardSection({
                             onClick={async (e) => {
                                 e.stopPropagation();
                                 try { await navigator.clipboard.writeText(referralUrl); } catch {}
+                                setReferralCopied(true);
+                                window.setTimeout(() => setReferralCopied(false), 1600);
                             }}
                             className="vz-btn"
                             style={{ flexShrink: 0, padding: "6px 10px", borderRadius: 10, background: "rgba(255,214,0,0.12)", border: "1px solid rgba(255,214,0,0.28)", color: "#FFD600", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
                         >
-                            Copy
+                            {referralCopied ? "✓ Copied" : "Copy"}
                         </button>
                     </div>
                 </div>

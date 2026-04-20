@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
+import type { ProfileData } from "@/features/profile/types";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
-import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype, getTodayString } from "@/components/DailyLog/journey";
+import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 
 function getDateKey(offset: number) {
   const date = new Date();
@@ -61,10 +62,12 @@ function getHourJst(iso?: string | null): number | null {
 }
 
 export function MyJourneyView({
+  profile,
   t,
   roleColor,
   setView,
 }: {
+  profile: ProfileData;
   t: ThemeColors;
   roleColor: string;
   setView: (view: DashboardView) => void;
@@ -79,10 +82,11 @@ export function MyJourneyView({
     }
   }, [fetchLogs, hasLoaded]);
 
-  const remaining = useMemo(() => 200 - content.length, [content.length]);
+  const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
   const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
+  const templateSuggestions = useMemo(() => getRandomJourneyTemplateSuggestions(profile.role), [profile.role]);
 
   const logMap = useMemo(() => new Map(logs.map((log) => [log.log_date, log])), [logs]);
 
@@ -122,6 +126,16 @@ export function MyJourneyView({
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [weekExpanded, setWeekExpanded] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const weekStart = useMemo(() => addDays(startOfWeekMonday(new Date()), weekOffset * 7), [weekOffset]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
@@ -204,14 +218,14 @@ export function MyJourneyView({
           meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>}
         />
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-          <div style={{ borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", padding: "14px 14px" }}>
+        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ borderRadius: 0, border: "none", background: "transparent", padding: 0 }}>
             <p style={{ margin: "0 0 10px", fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
-              Today
+              Today + Your HYPE
             </p>
 
             {error ? (
-              <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,80,80,0.2)", background: "rgba(255,80,80,0.08)", color: "rgba(255,160,160,0.95)", fontSize: 12 }}>
+              <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 0, border: "1px solid rgba(255,80,80,0.2)", background: "rgba(255,80,80,0.08)", color: "rgba(255,160,160,0.95)", fontSize: 12 }}>
                 {error}
               </div>
             ) : null}
@@ -220,7 +234,7 @@ export function MyJourneyView({
 
             {todayLog ? (
               <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ padding: "14px 16px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
+                <div style={{ padding: "14px 16px", borderRadius: 0, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
                     <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
                       {getTodayString()}
@@ -233,7 +247,7 @@ export function MyJourneyView({
                 </div>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <ActionPill onClick={() => setView("home")} color={roleColor} t={t}>ダッシュボードへ</ActionPill>
-                  <div style={{ display: "inline-flex", alignItems: "center", padding: "6px 12px", borderRadius: 999, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: t.text, fontSize: 11 }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", padding: "6px 12px", borderRadius: 0, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: t.text, fontSize: 11 }}>
                     {morningBonusEligible ? "+10pt 対象で記録済み" : "本日の記録を保存済み"}
                   </div>
                 </div>
@@ -243,15 +257,44 @@ export function MyJourneyView({
                 <div>
                   <textarea
                     value={content}
-                    onChange={(event) => setContent(event.target.value.slice(0, 200))}
-                    maxLength={200}
+                    onChange={(event) => setContent(event.target.value.slice(0, JOURNEY_MAX_CHARS))}
+                    maxLength={JOURNEY_MAX_CHARS}
                     placeholder="今日の一言・取り組みを記録しよう"
                     rows={5}
-                    style={{ width: "100%", resize: "vertical", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "13px 14px", fontSize: 13, lineHeight: 1.7, outline: "none", minHeight: 140 }}
+                    style={{ width: "100%", resize: "vertical", borderRadius: 0, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "13px 14px", fontSize: 13, lineHeight: 1.7, outline: "none", minHeight: 140 }}
                   />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, gap: 10, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 10, color: t.sub }}>4:00-10:00 の記録で +10pt</span>
                     <span style={{ fontSize: 10, color: remaining >= 0 ? t.sub : "rgba(255,80,80,0.9)" }}>残り{remaining}文字</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gap: 8 }}>
+                  <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
+                    Templates
+                  </p>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {templateSuggestions.map((text) => (
+                      <button
+                        key={text}
+                        type="button"
+                        onClick={() => setContent(text.slice(0, JOURNEY_MAX_CHARS))}
+                        style={{
+                          textAlign: "left",
+                          width: "100%",
+                          padding: "12px 12px",
+                          borderRadius: 0,
+                          border: `1px solid ${t.border}`,
+                          background: "rgba(255,255,255,0.02)",
+                          color: t.text,
+                          cursor: "pointer",
+                          fontSize: 13,
+                          lineHeight: 1.7,
+                        }}
+                      >
+                        {text}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -266,7 +309,7 @@ export function MyJourneyView({
                         animate={{ scale: selected ? 1.03 : 1 }}
                         onClick={() => setConditionScore(option.score)}
                         style={{
-                          borderRadius: 14,
+                          borderRadius: 0,
                           border: `1px solid ${selected ? `${roleColor}44` : t.border}`,
                           background: selected ? `${roleColor}18` : "rgba(255,255,255,0.03)",
                           color: selected ? t.text : t.sub,
@@ -292,38 +335,33 @@ export function MyJourneyView({
                   className="vz-btn"
                   onClick={handleSubmit}
                   disabled={!canSubmit}
-                  style={{ width: "100%", border: "none", borderRadius: 14, padding: "13px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
+                  style={{ width: "100%", border: "none", borderRadius: 0, padding: "13px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
                 >
                   {isSubmitting ? "記録中..." : "Journeyを記録"}
                 </button>
               </div>
             )}
-          </div>
-
-          <div style={{ borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", padding: "14px 14px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
-              📣Your Hype
-            </p>
-
-            <div style={{ position: "relative", padding: "6px 0 14px" }}>
-              <div style={{ position: "absolute", inset: "-12px -10px", borderRadius: 999, background: `radial-gradient(circle at 40% 40%, ${roleColor}40, transparent 62%)`, filter: "blur(18px)", opacity: 0.9, pointerEvents: "none" }} />
-              <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
-                “{hypeMessage.replace(/^Your Hype:\s*/, "")}”
-              </p>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-              <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
-                <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Monthly Log</p>
-                <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: t.text }}>{monthlyCount}<span style={{ fontSize: 12, color: t.sub }}> / 30日</span></p>
+            <div style={{ marginTop: 14 }}>
+              <div style={{ position: "relative", padding: "6px 0 14px" }}>
+                <div style={{ position: "absolute", inset: "-12px -10px", borderRadius: 0, background: `radial-gradient(circle at 40% 40%, ${roleColor}40, transparent 62%)`, filter: "blur(18px)", opacity: 0.9, pointerEvents: "none" }} />
+                <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
+                  “{hypeMessage.replace(/^Your Hype:\s*/, "")}”
+                </p>
               </div>
-              <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
-                <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Habit Streak</p>
-                <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: roleColor }}>{streak}<span style={{ fontSize: 12, color: t.sub }}> 日連続</span></p>
-              </div>
-              <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
-                <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Morning Bonus</p>
-                <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: morningBonusEligible ? roleColor : t.text }}>{morningBonusEligible ? "+10pt" : "4:00-10:00"}</p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+                <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Monthly Log</p>
+                  <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: t.text }}>{monthlyCount}<span style={{ fontSize: 12, color: t.sub }}> / 30日</span></p>
+                </div>
+                <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Habit Streak</p>
+                  <p style={{ margin: 0, fontSize: 28, fontWeight: 900, color: roleColor }}>{streak}<span style={{ fontSize: 12, color: t.sub }}> 日連続</span></p>
+                </div>
+                <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Morning Bonus</p>
+                  <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: morningBonusEligible ? roleColor : t.text }}>{morningBonusEligible ? "+10pt" : "4:00-10:00"}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -339,7 +377,22 @@ export function MyJourneyView({
           />
 
           <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 8 }}>
+            <div
+              style={
+                isMobile
+                  ? {
+                      display: "grid",
+                      gridAutoFlow: "column",
+                      gridAutoColumns: "calc((100% - 16px) / 3)",
+                      gap: 8,
+                      overflowX: "auto",
+                      paddingBottom: 6,
+                      scrollSnapType: "x mandatory",
+                      WebkitOverflowScrolling: "touch",
+                    }
+                  : { display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 8 }
+              }
+            >
               {weekDays.map((d, idx) => {
                 const key = weekKeys[idx] ?? "";
                 const log = key ? logMap.get(key) : undefined;
@@ -355,6 +408,7 @@ export function MyJourneyView({
                     type="button"
                     onClick={() => setSelectedDayKey(key)}
                     style={{
+                      scrollSnapAlign: isMobile ? "start" : undefined,
                       borderRadius: 14,
                       border: `1px solid ${selected ? `${roleColor}85` : isToday ? `${roleColor}55` : "rgba(255,255,255,0.10)"}`,
                       background: log ? `linear-gradient(180deg, rgba(255,255,255,${intensity}), rgba(255,255,255,0.02))` : "rgba(255,255,255,0.02)",

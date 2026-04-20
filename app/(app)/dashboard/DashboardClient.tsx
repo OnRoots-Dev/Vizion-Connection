@@ -64,6 +64,7 @@ export default function DashboardClient({
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
     const [view, setView] = useState<DashboardView>(initialView);
+    const [viewHistory, setViewHistory] = useState<DashboardView[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
@@ -218,14 +219,41 @@ export default function DashboardClient({
         window.location.href = "/login";
     }, []);
 
+    const goBack = useCallback(() => {
+        setViewHistory((prev) => {
+            const last = prev[prev.length - 1];
+            if (!last) {
+                setView("home");
+                return prev;
+            }
+            setView(last);
+            return prev.slice(0, -1);
+        });
+    }, []);
+
+    const handleMenuSetView = useCallback((nextView: DashboardView) => {
+        setViewHistory([]);
+        setView(nextView);
+    }, []);
+
     const handleSetView = useCallback((nextView: DashboardView) => {
+        if (nextView === "home") {
+            setViewHistory([]);
+            setView("home");
+            return;
+        }
         if ((nextView === "profile" || nextView === "career") && careerProfileCache === undefined) {
             refreshCareerProfile().catch(() => {
                 setCareerProfileCache(null);
             });
         }
-        setView(nextView);
-    }, [careerProfileCache, refreshCareerProfile]);
+        setView((current) => {
+            if (current !== nextView) {
+                setViewHistory((prev) => [...prev, current]);
+            }
+            return nextView;
+        });
+    }, [careerProfileCache, goBack, refreshCareerProfile]);
 
     const handleProfileUpdate = useCallback(async (updated?: ProfileData) => {
         if (updated) {
@@ -239,7 +267,7 @@ export default function DashboardClient({
     const renderView = () => {
         switch (view) {
             case "home":
-                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={() => { handleSetView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
+                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleMenuSetView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={() => { handleMenuSetView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":
@@ -251,9 +279,9 @@ export default function DashboardClient({
             case "card":
                 return <CardView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "profile":
-                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} setView={handleSetView} careerProfile={careerProfileCache} />;
+                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} careerProfile={careerProfileCache} />;
             case "schedule":
-                return <ScheduleClient profile={profile} embedded onBack={() => handleSetView("home")} t={t} roleColor={roleColor} />;
+                return <ScheduleClient profile={profile} embedded onBack={goBack} t={t} roleColor={roleColor} />;
             case "news":
                 return <NewsView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "offers":
@@ -261,11 +289,11 @@ export default function DashboardClient({
             case "voicelab":
                 return <VoiceLabView t={t} roleColor={roleColor} setView={handleSetView} ads={ads} canManageVoiceLab={canManageVoiceLab} />;
             case "edit":
-                return <EditView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} onSave={handleProfileUpdate} />;
+                return <EditView profile={profile} t={t} roleColor={roleColor} onBack={goBack} onSave={handleProfileUpdate} />;
             case "cheer":
                 return <CheerView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "cheer_graph":
-                return <CheerGraphView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
+                return <CheerGraphView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} onBack={goBack} />;
             case "career":
                 return <CareerSPAWrapper profile={profile} t={t} roleColor={roleColor} setView={handleSetView} careerCache={careerProfileCache} />;
             case "discovery":
@@ -276,7 +304,7 @@ export default function DashboardClient({
             case "referral":
                 return <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "settings":
-                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={() => handleSetView("home")} onLogout={handleLogout} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
+                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={goBack} onLogout={handleLogout} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "missions":
                 return <MissionsView profile={profile} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "roadmap":
@@ -321,7 +349,7 @@ export default function DashboardClient({
                                 <Sidebar
                                     profile={profile}
                                     view={view}
-                                    setView={(v) => { handleSetView(v); setSidebarOpen(false); }}
+                                    setView={(v) => { handleMenuSetView(v); setSidebarOpen(false); }}
                                     notificationUnreadCount={notificationUnreadCount}
                                     theme={theme}
                                     setTheme={setTheme}

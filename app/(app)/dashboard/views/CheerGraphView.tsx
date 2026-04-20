@@ -66,11 +66,13 @@ export function CheerGraphView({
   t,
   roleColor,
   setView,
+  onBack,
 }: {
   profile: ProfileData;
   t: ThemeColors;
   roleColor: string;
   setView: (v: DashboardView) => void;
+  onBack?: () => void;
 }) {
   const [insights, setInsights] = useState<CheerInsights | null>(null);
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,13 @@ export function CheerGraphView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <ViewHeader title="Cheer Graph" sub="Cheerしてくれたユーザーの属性分布" onBack={() => setView("hub")} t={t} roleColor={roleColor} />
+      <ViewHeader
+        title="Cheer Graph"
+        sub="Cheerしてくれたユーザーの属性分布"
+        onBack={onBack ?? (() => setView("home"))}
+        t={t}
+        roleColor={roleColor}
+      />
 
       <SectionCard t={t} accentColor={roleColor}>
         <SLabel text="Overview" color={roleColor} />

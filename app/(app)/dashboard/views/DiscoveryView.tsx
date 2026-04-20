@@ -65,51 +65,114 @@ function ArcadeDiscoveryRow({
         position: "relative",
         overflow: "hidden",
         width: "100%",
-        padding: "clamp(10px, 1.5vw, 12px) clamp(10px, 1.5vw, 12px)",
         borderRadius: 14,
         border: `1px solid ${roleColor}30`,
-        background: user.profile_image_url
-          ? `linear-gradient(90deg, rgba(7,10,18,0.94) 0%, rgba(7,10,18,0.82) 48%, rgba(7,10,18,0.96) 100%), url(${user.profile_image_url}) center/cover`
-          : "linear-gradient(90deg, rgba(7,10,18,0.94) 0%, rgba(10,14,24,0.92) 100%)",
-        display: "grid",
-        gridTemplateColumns: "clamp(40px, 8vw, 48px) minmax(0, 1fr) auto",
-        gap: "clamp(6px, 1vw, 8px)",
-        alignItems: "center",
+        background: "linear-gradient(90deg, rgba(7,10,18,0.94) 0%, rgba(7,10,18,0.90) 55%, rgba(7,10,18,0.96) 100%)",
         color: "#fff",
         textAlign: "left",
         cursor: "pointer",
       }}
     >
-      <div style={{ textAlign: "left" }}>
-        {rankIcon ? (
-          <div
-            style={{
-              margin: 0,
-              display: "inline-flex",
-              width: "1.2em",
-              justifyContent: "center",
-              color: rankIcon.color,
-              fontSize: "clamp(18px, 3vw, 22px)",
-              lineHeight: 1,
-            }}
-          >
-            {rankIcon.icon}
-          </div>
-        ) : (
-          <div style={{ fontSize: "clamp(22px, 4vw, 28px)", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{String(rank).padStart(2, "0")}</div>
-        )}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        {user.profile_image_url ? (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                left: "50%",
+                backgroundImage: `url(${user.profile_image_url})`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundSize: "contain",
+                opacity: 0.95,
+                filter: "saturate(1.05) contrast(1.02)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, rgba(7,10,18,0.98) 0%, rgba(7,10,18,0.94) 45%, rgba(7,10,18,0.55) 60%, rgba(7,10,18,0.88) 100%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: "50%",
+                width: 48,
+                transform: "translateX(-50%)",
+                background:
+                  "linear-gradient(90deg, rgba(7,10,18,1) 0%, rgba(7,10,18,0.0) 50%, rgba(7,10,18,1) 100%)",
+                opacity: 0.55,
+                filter: "blur(10px)",
+              }}
+            />
+          </>
+        ) : null}
+
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.06), transparent 52%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 1,
+            borderRadius: 13,
+            border: "1px solid rgba(255,255,255,0.06)",
+          }}
+        />
       </div>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-          <span style={{ fontSize: 10, fontWeight: 900, color: roleColor }}>{user.role}</span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.72)" }}>{formatLocation(user)}</span>
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "clamp(10px, 1.5vw, 12px) clamp(10px, 1.5vw, 12px)",
+          display: "grid",
+          gridTemplateColumns: "clamp(40px, 8vw, 48px) minmax(0, 1fr) auto",
+          gap: "clamp(6px, 1vw, 8px)",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ textAlign: "left" }}>
+          {rankIcon ? (
+            <div
+              style={{
+                margin: 0,
+                display: "inline-flex",
+                width: "1.2em",
+                justifyContent: "center",
+                color: rankIcon.color,
+                fontSize: "clamp(18px, 3vw, 22px)",
+                lineHeight: 1,
+              }}
+            >
+              {rankIcon.icon}
+            </div>
+          ) : (
+            <div style={{ fontSize: "clamp(22px, 4vw, 28px)", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{String(rank).padStart(2, "0")}</div>
+          )}
         </div>
-        <p style={{ margin: "0 0 3px", fontSize: "clamp(13px, 2.3vw, 15px)", fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
-        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.sport || "活動情報なし"}</p>
-      </div>
-      <div style={{ textAlign: "right" }}>
-        <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: score.includes("★") ? "#FFD600" : "#fff", lineHeight: 1 }}>{score}</div>
-        <div style={{ marginTop: 4, fontSize: 10, color: "#fff", fontWeight: 800 }}>Check →</div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: roleColor }}>{user.role}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.72)" }}>{formatLocation(user)}</span>
+          </div>
+          <p style={{ margin: "0 0 3px", fontSize: "clamp(13px, 2.3vw, 15px)", fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
+          <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.sport || "活動情報なし"}</p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: score.includes("★") ? "#FFD600" : "#fff", lineHeight: 1 }}>{score}</div>
+          <div style={{ marginTop: 4, fontSize: 10, color: "#fff", fontWeight: 800 }}>Check →</div>
+        </div>
       </div>
     </button>
   );
@@ -213,7 +276,40 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
       <SectionCard t={t} accentColor={roleColor}>
         <SLabel text="Vizion Radar" color={roleColor} size={10} />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8, marginBottom: 8 }}>
-          <input value={q} onChange={(e) => { setLoading(true); setQ(e.target.value); }} placeholder="ユーザーID / アカウント名で検索" style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }} />
+          <div style={{ position: "relative" }}>
+            <input
+              value={q}
+              onChange={(e) => { setLoading(true); setQ(e.target.value); }}
+              placeholder="ユーザーID / アカウント名で検索"
+              style={{ width: "100%", padding: "10px 36px 10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }}
+            />
+            {q.trim() ? (
+              <button
+                type="button"
+                aria-label="検索条件をクリア"
+                onClick={() => { setLoading(true); setQ(""); }}
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 22,
+                  height: 22,
+                  borderRadius: 8,
+                  border: `1px solid ${t.border}`,
+                  background: "rgba(255,255,255,0.04)",
+                  color: t.sub,
+                  cursor: "pointer",
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
           <select value={role} onChange={(e) => { setLoading(true); setRole(e.target.value); setSport(""); }} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }}>
             <option value="">全ロール</option>
             <option value="Athlete">Athlete</option>
@@ -290,7 +386,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
       </div>
 
       <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="Discovery Results" color={roleColor} size={10} />
+        <SLabel text="Discovery Results" color="#fff" size={10} />
         {loading ? (
           <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
         ) : users.length === 0 ? (

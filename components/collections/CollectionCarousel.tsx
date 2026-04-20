@@ -75,8 +75,10 @@ export function CollectionCarousel({
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ position: "relative", minHeight: cardMinHeight + 42, display: "flex", justifyContent: "center" }}>
         <div style={{ position: "relative", width: "100%", maxWidth: cardMaxWidth, aspectRatio: "400 / 240" }}>
-          {orderedCards.slice(0, 3).reverse().map((card, indexFromBack) => {
-            const displayIndex = 2 - indexFromBack;
+          {(() => {
+            const visible = orderedCards.slice(0, Math.min(3, orderedCards.length));
+            return visible.slice().reverse().map((card, indexFromBack) => {
+              const displayIndex = (visible.length - 1) - indexFromBack;
             const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
             const scale = compact ? 1 - displayIndex * 0.06 : 1 - displayIndex * 0.055;
             const y = compact ? displayIndex * 18 : displayIndex * 18;
@@ -159,7 +161,8 @@ export function CollectionCarousel({
                 </div>
               </motion.button>
             );
-          })}
+            });
+          })()}
         </div>
       </div>
 

@@ -8,7 +8,7 @@ export function canManageVoiceLabByEmail(email?: string | null) {
     if (!email) return false;
 
     const normalized = normalizeEmail(email);
-    const configuredAdmins = `${env.VOICELAB_ADMIN_EMAILS},${env.OPENLAB_ADMIN_EMAILS}`
+    const configuredAdmins = `${env.VOICELAB_ADMIN_EMAILS}`
         .split(",")
         .map((entry) => normalizeEmail(entry))
         .filter(Boolean);

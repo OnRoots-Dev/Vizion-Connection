@@ -9,6 +9,7 @@ import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
+import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
@@ -110,7 +111,10 @@ export function DashboardProfileView({
     ];
 
     return (
-        <div className="flex flex-col gap-0 overflow-hidden rounded-[18px]" style={{ border: `1px solid ${t.border}`, background: t.surface }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <ViewHeader title="Profile" sub="プロフィール" onBack={onBack} t={t} roleColor={roleColor} />
+
+            <div className="flex flex-col gap-0 overflow-hidden rounded-[18px]" style={{ border: `1px solid ${t.border}`, background: t.surface }}>
             <div className="relative min-h-[228px] overflow-hidden">
                 {profile.profileImageUrl ? (
                     <img src={profile.profileImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-45" />
@@ -123,13 +127,7 @@ export function DashboardProfileView({
                 <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(7,7,14,0.7) 0%, transparent 55%)" }} />
                 <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1}50 0%, transparent 60%)` }} />
 
-                <div className="relative z-10 flex items-center justify-between px-[14px] pb-0 pt-3">
-                    <button onClick={onBack} className="inline-flex cursor-pointer items-center gap-[5px] rounded-[9px] px-[10px] py-[6px] text-[10px] font-bold backdrop-blur-[8px]" style={{ background: "rgba(0,0,0,0.22)", border: `1px solid ${t.border}`, color: t.text }}>
-                        <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        戻る
-                    </button>
+                <div className="relative z-10 flex items-center justify-end px-[14px] pb-0 pt-3">
                     <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] rounded-[9px] px-[10px] py-[6px] text-[10px] font-extrabold no-underline backdrop-blur-[8px]" style={{ background: `${roleColor}16`, border: `1px solid ${roleColor}35`, color: roleColor }}>
                         公開ページを開く
                         <svg width={11} height={11} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -406,6 +404,7 @@ export function DashboardProfileView({
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }

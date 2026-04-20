@@ -149,14 +149,19 @@ export function ViewHeader({
         <div className="mb-1 flex items-center gap-3">
             <button
                 onClick={onBack}
-                className="vz-btn h-9 w-9 cursor-pointer rounded-full"
+                type="button"
+                aria-label="戻る"
+                title="戻る"
+                className="vz-btn flex h-10 w-10 items-center justify-center rounded-[12px] border"
                 style={{
-                    background: t.surface,
-                    border: `1px solid ${roleColor}24`,
-                    color: roleColor,
+                    borderColor: t.border,
+                    background: "rgba(255,255,255,0.05)",
+                    cursor: "pointer",
                 }}
             >
-                ←
+                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
             </button>
             <div>
                 <h2 className="m-0 text-[28px] font-black" style={{ color: t.text }}>{title}</h2>

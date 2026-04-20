@@ -29,11 +29,18 @@ export function FoundingMemberBadge() {
             <svg className="z-[3] h-[9px] w-[9px] shrink-0 overflow-visible"
                 style={{ filter: "drop-shadow(0 0 2px rgba(255,220,40,0.9)) drop-shadow(0 0 5px rgba(255,180,0,0.5))" }}
                 viewBox="0 0 14 11" fill="none">
-                <path d="M1 9 L3.5 3 L7 6.5 L10.5 3 L13 9" stroke="#f5dc5a" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" />
-                <line x1="1" y1="9" x2="13" y2="9" stroke="#f5dc5a" strokeWidth="1.2" strokeLinecap="round" />
-                <circle cx="1" cy="9" r="1" fill="#ffe566" />
-                <circle cx="7" cy="6.5" r="1" fill="#ffe566" />
-                <circle cx="13" cy="9" r="1" fill="#ffe566" />
+                <path
+                    d="M2 8.6L1.6 3.2L4.6 5.6L7 2.2L9.4 5.6L12.4 3.2L12 8.6"
+                    stroke="#f5dc5a"
+                    strokeWidth="1.25"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                />
+                <path d="M2 8.6H12" stroke="#f5dc5a" strokeWidth="1.2" strokeLinecap="round" />
+                <path d="M3.2 10H10.8" stroke="#f5dc5a" strokeWidth="1.1" strokeLinecap="round" opacity="0.85" />
+                <circle cx="4.6" cy="5.6" r="0.7" fill="#ffe566" />
+                <circle cx="7" cy="2.2" r="0.7" fill="#ffe566" />
+                <circle cx="9.4" cy="5.6" r="0.7" fill="#ffe566" />
             </svg>
             <span className="relative z-[3] whitespace-nowrap">Founding Member</span>
             <div className="absolute inset-[2px] z-[4] rounded-[1px] border border-dashed border-[#ffd22826] pointer-events-none" />

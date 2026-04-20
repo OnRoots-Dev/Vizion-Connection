@@ -27,7 +27,6 @@ export const env = {
   // App
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
   VOICELAB_ADMIN_EMAILS: optionalEnv("VOICELAB_ADMIN_EMAILS"),
-  OPENLAB_ADMIN_EMAILS: optionalEnv("OPENLAB_ADMIN_EMAILS"),
 
   // Square（決済リンク）- 遅延評価のためoptional
   SQUARE_LINK_ENTRY_SUPPORTER: optionalEnv("SQUARE_LINK_ENTRY_SUPPORTER"),

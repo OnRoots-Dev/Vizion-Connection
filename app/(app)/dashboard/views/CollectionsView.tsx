@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
-import type { CollectionCardItem } from "@/components/collections/CollectionCarousel";
+import { CollectionCarousel, type CollectionCardItem } from "@/components/collections/CollectionCarousel";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 
 type InlineAd = {
@@ -123,6 +123,11 @@ export function CollectionsView({
           <SLabel text="Card Collection" color={roleColor} />
           <span style={{ fontSize: 10, color: t.sub }}>{filteredCards.length} / {COLLECTION_LIMIT} cards</span>
         </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <CollectionCarousel cards={filteredCards} t={t} roleColor={roleColor} onOpenProfile={onOpenProfile} />
+        </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {ROLE_FILTERS.map((filter) => {
@@ -192,21 +197,49 @@ export function CollectionsView({
             </select>
           </div>
 
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="名前・スラッグ・地域で検索"
-            style={{
-              width: "100%",
-              padding: "11px 13px",
-              borderRadius: 12,
-              border: `1px solid ${t.border}`,
-              background: "rgba(255,255,255,0.04)",
-              color: t.text,
-              fontSize: 13,
-              outline: "none",
-            }}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="名前・スラッグ・地域で検索"
+              style={{
+                width: "100%",
+                padding: "11px 40px 11px 13px",
+                borderRadius: 12,
+                border: `1px solid ${t.border}`,
+                background: "rgba(255,255,255,0.04)",
+                color: t.text,
+                fontSize: 13,
+                outline: "none",
+              }}
+            />
+            {search.trim() ? (
+              <button
+                type="button"
+                aria-label="検索条件をクリア"
+                onClick={() => setSearch("")}
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 24,
+                  height: 24,
+                  borderRadius: 8,
+                  border: `1px solid ${t.border}`,
+                  background: "rgba(255,255,255,0.04)",
+                  color: t.sub,
+                  cursor: "pointer",
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
         </div>
         {loading ? (
           <p style={{ margin: 0, fontSize: 12, color: t.sub }}>コレクションを読み込み中...</p>
