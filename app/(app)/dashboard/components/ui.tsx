@@ -164,7 +164,7 @@ export function ViewHeader({
                 </svg>
             </button>
             <div>
-                <h2 className="m-0 text-[28px] font-black" style={{ color: t.text }}>{title}</h2>
+                <h2 className="font-display m-0 text-[28px] font-black" style={{ color: t.text }}>{title}</h2>
                 <p className="m-0 text-[10px]" style={{ color: t.sub }}>{sub}</p>
             </div>
         </div>

@@ -271,7 +271,7 @@ export default function DashboardClient({
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":
-                return <MyJourneyView t={t} roleColor={roleColor} setView={handleSetView} />;
+                return <MyJourneyView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "notifications":
                 return <NotificationsView t={t} roleColor={roleColor} setView={handleSetView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "admin_posts":

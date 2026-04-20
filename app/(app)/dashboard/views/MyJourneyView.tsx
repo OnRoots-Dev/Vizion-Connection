@@ -75,6 +75,7 @@ export function MyJourneyView({
   const { logs, todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
+  const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -86,7 +87,10 @@ export function MyJourneyView({
   const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
-  const templateSuggestions = useMemo(() => getRandomJourneyTemplateSuggestions(profile.role), [profile.role]);
+
+  useEffect(() => {
+    setTemplateSuggestions(getRandomJourneyTemplateSuggestions(profile.role));
+  }, [profile.role]);
 
   const logMap = useMemo(() => new Map(logs.map((log) => [log.log_date, log])), [logs]);
 

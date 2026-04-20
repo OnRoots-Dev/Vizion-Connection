@@ -23,6 +23,7 @@ export function DailyLogCard({
   const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
+  const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
   const [showSubmitSuccess, setShowSubmitSuccess] = useState(false);
   const [showHypeAfterSubmit, setShowHypeAfterSubmit] = useState(true);
   const justSubmittedRef = useRef(false);
@@ -39,7 +40,10 @@ export function DailyLogCard({
   const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
-  const templateSuggestions = useMemo(() => getRandomJourneyTemplateSuggestions(role), [role]);
+
+  useEffect(() => {
+    setTemplateSuggestions(getRandomJourneyTemplateSuggestions(role));
+  }, [role]);
 
   useEffect(() => {
     return () => {
