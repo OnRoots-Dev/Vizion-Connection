@@ -267,7 +267,7 @@ export default function DashboardClient({
     const renderView = () => {
         switch (view) {
             case "home":
-                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleMenuSetView} ads={ads} featuredNewsTop={featuredNewsTop} onOpenNews={() => { handleMenuSetView("news"); }} onOpenProfile={setSelectedProfileSlug} />;
+                return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleMenuSetView} />;
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":

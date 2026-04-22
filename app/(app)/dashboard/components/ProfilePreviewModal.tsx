@@ -13,6 +13,11 @@ export function ProfilePreviewModal({
 }) {
   const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cheerLoading, setCheerLoading] = useState(false);
+  const [collectLoading, setCollectLoading] = useState(false);
+  const [collected, setCollected] = useState(false);
+  const [notesBurst, setNotesBurst] = useState(0);
+  const [collectBurst, setCollectBurst] = useState(0);
 
   useEffect(() => {
     if (!slug) return;
@@ -23,6 +28,65 @@ export function ProfilePreviewModal({
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/collect?targetSlug=${slug}`)
+      .then((r) => r.json())
+      .then((d) => setCollected(Boolean(d?.collected)))
+      .catch(() => setCollected(false));
+  }, [slug]);
+
+  async function handleCheer() {
+    if (!profile || cheerLoading) return;
+    setCheerLoading(true);
+    try {
+      const res = await fetch("/api/cheer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toSlug: profile.slug }),
+      });
+      if (res.status === 401) {
+        window.location.href = `/login?redirect=/u/${profile.slug}`;
+        return;
+      }
+      const data: { success?: boolean; cheerCount?: number } = await res.json().catch(() => ({}));
+      if (data.success && typeof data.cheerCount === "number") {
+        const nextCheerCount: number = data.cheerCount;
+        setProfile((p) => {
+          if (!p) return p;
+          return { ...p, cheerCount: nextCheerCount };
+        });
+        setNotesBurst((n) => n + 1);
+      }
+    } finally {
+      setCheerLoading(false);
+    }
+  }
+
+  async function handleCollectToggle() {
+    if (!profile || collectLoading) return;
+    setCollectLoading(true);
+    try {
+      const action = collected ? "uncollect" : "collect";
+      const res = await fetch("/api/collect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetSlug: profile.slug, action }),
+      });
+      if (res.status === 401) {
+        window.location.href = `/login?redirect=/u/${profile.slug}`;
+        return;
+      }
+      const data: { ok?: boolean; collected?: boolean } = await res.json().catch(() => ({}));
+      if (data.ok) {
+        setCollected(Boolean(data.collected));
+        setCollectBurst((n) => n + 1);
+      }
+    } finally {
+      setCollectLoading(false);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -65,6 +129,70 @@ export function ProfilePreviewModal({
                       <p className="m-0 text-[12px] text-white/45">@{profile.slug}</p>
                     </div>
                   </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <motion.button
+                      type="button"
+                      onClick={handleCheer}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={cheerLoading}
+                      className="relative inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-[14px] py-[10px] font-bold text-white/90"
+                    >
+                      <span className="text-[#FFD600]">📣</span>
+                      Cheer
+                      <span className="font-mono text-white/50">{profile.cheerCount ?? 0}</span>
+
+                      <AnimatePresence>
+                        {notesBurst ? (
+                          <motion.div
+                            key={`notes-${notesBurst}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="pointer-events-none absolute inset-0"
+                          >
+                            {[0, 1, 2].map((i) => (
+                              <motion.span
+                                key={i}
+                                initial={{ opacity: 0, x: 0, y: 0, scale: 0.8 }}
+                                animate={{ opacity: [0, 1, 0], x: 18 + i * 8, y: -16 - i * 8, scale: 1.05 }}
+                                transition={{ duration: 0.85, delay: i * 0.06, ease: "easeOut" }}
+                                className="absolute left-1/2 top-1/2"
+                                style={{ color: "rgba(255,255,255,0.85)" }}
+                              >
+                                ♪
+                              </motion.span>
+                            ))}
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </motion.button>
+
+                    <motion.button
+                      type="button"
+                      onClick={handleCollectToggle}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={collectLoading}
+                      className="relative inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-[14px] py-[10px] font-bold text-white/90"
+                    >
+                      <span style={{ color: collected ? "#FFD600" : "rgba(255,255,255,0.75)" }}>🃏</span>
+                      {collected ? "Collected" : "Collect"}
+
+                      <AnimatePresence>
+                        {collectBurst ? (
+                          <motion.span
+                            key={`collect-${collectBurst}`}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: [0, 0.8, 0], scale: [0.95, 1.08, 1.0] }}
+                            transition={{ duration: 0.65, ease: "easeOut" }}
+                            className="pointer-events-none absolute inset-0 rounded-xl"
+                            style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.16), 0 0 28px rgba(255,214,0,0.22)" }}
+                          />
+                        ) : null}
+                      </AnimatePresence>
+                    </motion.button>
+                  </div>
+
                   <div className="flex flex-wrap gap-2">
                     {profile.role ? <span className="rounded-full bg-white/6 px-[10px] py-[5px] text-[11px] text-white">{profile.role}</span> : null}
                     {profile.region ? <span className="rounded-full bg-white/6 px-[10px] py-[5px] text-[11px] text-white">{profile.region}</span> : null}

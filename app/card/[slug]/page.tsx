@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { env } from "@/lib/env";
+import Link from "next/link";
 import CardPageClient from "./CardPageClient";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import type { UserRole } from "@/features/auth/types";
@@ -69,9 +70,9 @@ export default async function CardPage({ params }: Props) {
                             プロフィールへ
                         </a>
                     </div>
-                    <a href="/" style={{ display: "flex" }}>
+                    <Link href="/" style={{ display: "flex" }}>
                         <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "26px", width: "auto" }} />
-                    </a>
+                    </Link>
                     <a href="/register" style={{ padding: "6px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: 700, textDecoration: "none" }}>
                         先行登録
                     </a>

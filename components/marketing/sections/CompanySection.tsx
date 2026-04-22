@@ -1,3 +1,4 @@
+import Link from "next/link";
 // components/marketing/sections/CompanySection.tsx
 
 export function CompanySection() {
@@ -63,9 +64,9 @@ export function CompanySection() {
 
                 {/* 戻るリンク */}
                 <div>
-                    <a href="/" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>
+                    <Link href="/" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>
                         ← トップに戻る
-                    </a>
+                    </Link>
                 </div>
 
             </div>

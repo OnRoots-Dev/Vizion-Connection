@@ -461,7 +461,8 @@ export function ProfileCardSection({
                             {/* FRONT */}
                             <div className="v12-face" style={{ ...faceBase, ["--rg-val" as string]: rl }}>
                                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 40%, #000) 60%, #060606 100%)` }} />
-                                <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}25, transparent 70%)`, pointerEvents: "none" }} />
+                                <div style={{ position: "absolute", top: "-15%", right: "25%", width: 200, height: 200, background: `radial-gradient(circle, ${rl}22, transparent 70%)`, pointerEvents: "none" }} />
+                                <div style={{ position: "absolute", top: "-12%", right: "-10%", width: 220, height: 220, background: "radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)", filter: "blur(12px)", opacity: 0.9, pointerEvents: "none" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />
                                 {profile.profileImageUrl ? (
@@ -470,7 +471,7 @@ export function ProfileCardSection({
                                     <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", zIndex: 3, ...photoMask }}>{initials}</div>
                                 )}
                                 <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
-                                <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 26px ${rl}14` : "inset 0 0 0 1px rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
+                                <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: isHovered ? `inset 0 0 0 1px ${rl}38, inset 0 0 30px ${rl}12, inset 0 1px 0 rgba(255,255,255,0.06)` : "inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04)", transition: "box-shadow 0.22s ease", pointerEvents: "none", zIndex: 6 }} />
                                 <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 5, fontFamily: "monospace", fontSize: 5, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", pointerEvents: "none", whiteSpace: "nowrap" }}>VIZION CONNECTION · PROOF OF EXISTENCE</div>
                                 <div
                                     style={{
@@ -492,35 +493,54 @@ export function ProfileCardSection({
                                     </div>
                                     <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
+                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(9px, 2.8vw, 10.5px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
-                                        </div>
-                                        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
-                                            <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.22)", textTransform: "uppercase" }}>Account ID</span>
-                                            <span
-                                                style={{
-                                                    fontFamily: "monospace",
-                                                    fontSize: 13,
-                                                    fontWeight: 950,
-                                                    letterSpacing: "0.18em",
-                                                    color: "rgba(255,255,255,0.82)",
-                                                    whiteSpace: "nowrap",
-                                                    overflow: "hidden",
-                                                    textOverflow: "ellipsis",
-                                                    maxWidth: 240,
-                                                    textShadow: "0 1px 0 rgba(255,255,255,0.35), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.55)",
-                                                    filter: "drop-shadow(0 0 10px rgba(0,0,0,0.25))",
-                                                }}
-                                            >
-                                                {vzId}
-                                            </span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
+                                </div>
+
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        left: 16,
+                                        right: 16,
+                                        bottom: 14,
+                                        zIndex: 8,
+                                        pointerEvents: "none",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 4,
+                                            maxWidth: "60%",
+                                        }}
+                                    >
+                                        <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.16em", color: "rgba(255,255,255,0.26)", textTransform: "uppercase" }}>
+                                            Account ID
+                                        </span>
+                                        <span
+                                            style={{
+                                                display: "block",
+                                                fontFamily: "monospace",
+                                                fontSize: "clamp(12px, 3.0vw, 17px)",
+                                                fontWeight: 950,
+                                                letterSpacing: "clamp(0.06em, 0.5vw, 0.16em)",
+                                                color: "rgba(255,255,255,0.72)",
+                                                whiteSpace: "nowrap",
+                                                textShadow: "0 1px 0 rgba(255,255,255,0.42), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.62)",
+                                                filter: "drop-shadow(0 0 10px rgba(0,0,0,0.28))",
+                                            }}
+                                        >
+                                            {vzId}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
                                     <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
@@ -605,25 +625,38 @@ export function ProfileCardSection({
                 <div
                     style={{
                         marginTop: 12,
+                        width: "100%",
+                        maxWidth: 440,
+                        marginLeft: "auto",
+                        marginRight: "auto",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
+                        flexDirection: "column",
                         gap: 10,
-                        padding: "10px 12px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(255,214,0,0.18)",
-                        background: "rgba(255,214,0,0.06)",
+                        paddingTop: 12,
+                        paddingRight: 12,
+                        paddingBottom: 12,
+                        paddingLeft: 12,
+                        borderRadius: 14,
+                        border: "1px solid rgba(255,214,0,0.16)",
+                        background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
                         flexWrap: "wrap",
                     }}
                 >
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                        <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.75)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 900 }}>Referral</span>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, width: "100%" }}>
+                        <span style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,0.62)", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 900 }}>Referral</span>
                         {typeof referralCount === "number" ? (
-                            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,214,0,0.95)", fontWeight: 900 }}>+{referralCount} / 30</span>
+                            <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.85)", fontWeight: 900 }}>+{referralCount} / 30</span>
                         ) : null}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1, justifyContent: "flex-end" }}>
-                        <span style={{ minWidth: 0, fontSize: 10, fontFamily: "monospace", color: "rgba(255,214,0,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl}</span>
+
+                    {typeof referralCount === "number" ? (
+                        <div style={{ width: "100%", height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${Math.min((referralCount / 30) * 100, 100)}%`, background: "rgba(255,255,255,0.55)", borderRadius: 999 }} />
+                        </div>
+                    ) : null}
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.72)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl}</span>
                         <button
                             type="button"
                             onClick={async (e) => {
@@ -633,7 +666,7 @@ export function ProfileCardSection({
                                 window.setTimeout(() => setReferralCopied(false), 1600);
                             }}
                             className="vz-btn"
-                            style={{ flexShrink: 0, padding: "6px 10px", borderRadius: 10, background: "rgba(255,214,0,0.12)", border: "1px solid rgba(255,214,0,0.28)", color: "#FFD600", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
+                            style={{ flexShrink: 0, padding: "8px 10px", borderRadius: 12, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.16)", color: "rgba(255,255,255,0.85)", fontSize: 10, fontWeight: 900, cursor: "pointer" }}
                         >
                             {referralCopied ? "✓ Copied" : "Copy"}
                         </button>

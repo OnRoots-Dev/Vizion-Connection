@@ -7,6 +7,7 @@ import type { AdItem } from "@/lib/ads-shared";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
 import { REGION_OPTIONS, ROLE_DISCOVERY_OPTIONS, getPrefectureOptions } from "@/lib/discovery-filters";
+import { useDailyLogStore } from "@/hooks/useDailyLogStore";
 
 type DiscoveryUser = {
   slug: string;
@@ -185,6 +186,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   ads: AdItem[];
   onOpenProfile?: (slug: string) => void;
 }) {
+  const { logs, hasLoaded, fetchLogs } = useDailyLogStore();
   const [q, setQ] = useState("");
   const [role, setRole] = useState("");
   const [region, setRegion] = useState("");
@@ -194,6 +196,10 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<DiscoveryUser[]>([]);
   const [picks, setPicks] = useState<{ cheer: DiscoveryUser[]; referral: DiscoveryUser[] }>({ cheer: [], referral: [] });
+  const [isPc, setIsPc] = useState(false);
+  const [listMode, setListMode] = useState<null | "cheer" | "referral" | "results">(null);
+  const LIST_PAGE_SIZE = 24;
+  const [listPage, setListPage] = useState<1 | 2>(1);
 
   const localAds = ads.filter((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan));
   const nationalAds = ads.filter((ad) => ad.adScope === "national" || !isLocalPlan(ad.plan));
@@ -204,6 +210,41 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   const prefectureOptions = useMemo(() => getPrefectureOptions(region), [region]);
   const selectedPrefecture = prefectureOptions.includes(prefecture) ? prefecture : "";
   const selectedSport = sportOptions.includes(sport) ? sport : "";
+
+  useEffect(() => {
+    if (!hasLoaded) {
+      void fetchLogs();
+    }
+  }, [fetchLogs, hasLoaded]);
+
+  const journeyStreak = useMemo(() => {
+    const map = new Map(logs.map((log) => [log.log_date, log]));
+    const getDateKey = (offset: number) => {
+      const date = new Date();
+      date.setDate(date.getDate() - offset);
+      return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(date);
+    };
+
+    let count = 0;
+    for (let i = 0; i < 30; i += 1) {
+      if (map.has(getDateKey(i))) count += 1;
+      else break;
+    }
+    return count;
+  }, [logs]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsPc(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const query = useMemo(() => {
     const sp = new URLSearchParams();
@@ -253,6 +294,45 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
       .finally(() => setLoading(false));
   }, [query]);
 
+  useEffect(() => {
+    setListPage(1);
+  }, [LIST_PAGE_SIZE, listMode, query]);
+
+  const boostedUsers = useMemo(() => {
+    const boost = Math.max(0, Math.min(30, journeyStreak));
+    const weight = 2;
+    const cheerBoost = boost * weight;
+
+    const list = [...users];
+    if (sort === "referral") {
+      return list.sort((a, b) => (b.referral_count ?? 0) - (a.referral_count ?? 0));
+    }
+    if (sort === "new") {
+      return list;
+    }
+
+    return list.sort((a, b) => ((b.cheer_count ?? 0) + cheerBoost) - ((a.cheer_count ?? 0) + cheerBoost));
+  }, [journeyStreak, sort, users]);
+
+  const listUsers = useMemo(() => {
+    if (listMode === "cheer") {
+      return [...users].sort((a, b) => (b.cheer_count ?? 0) - (a.cheer_count ?? 0));
+    }
+    if (listMode === "referral") {
+      return [...users].sort((a, b) => (b.referral_count ?? 0) - (a.referral_count ?? 0));
+    }
+    return boostedUsers;
+  }, [boostedUsers, listMode, users]);
+
+  const listTotal = listUsers.length;
+  const maxPages = Math.max(1, Math.min(2, Math.ceil(listTotal / LIST_PAGE_SIZE)));
+  const page = Math.min(listPage, maxPages) as 1 | 2;
+  const start = (page - 1) * LIST_PAGE_SIZE;
+  const end = start + LIST_PAGE_SIZE;
+  const pageUsers = listUsers.slice(start, end);
+
+  const listTitle = listMode === "cheer" ? "Cheer Ranking" : listMode === "referral" ? "Referral Ranking" : "Discovery Results";
+
   const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new"; label: string }> = [
     { id: "all", label: "全アカウント" },
     { id: "cheer", label: "Cheer急上昇" },
@@ -263,6 +343,86 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Discovery" sub="全ユーザー探索・推しレーダー" onBack={() => setView("home")} t={t} roleColor={roleColor} />
+
+      {listMode ? (
+        <SectionCard t={t} accentColor={roleColor}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+            <div>
+              <SLabel text={listTitle} color={roleColor} size={10} />
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub }}>
+                一覧表示（タップでプロフィールプレビュー） · {start + 1}-{Math.min(end, listTotal)}/{listTotal}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setListMode(null)}
+              style={{ borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontWeight: 900, fontSize: 12, padding: "10px 12px", cursor: "pointer" }}
+            >
+              ← 戻る
+            </button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setListPage(1)}
+                style={{
+                  borderRadius: 999,
+                  border: `1px solid ${t.border}`,
+                  background: page === 1 ? `${roleColor}22` : "rgba(255,255,255,0.03)",
+                  color: page === 1 ? roleColor : t.text,
+                  fontWeight: 900,
+                  fontSize: 11,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                1
+              </button>
+              <button
+                type="button"
+                onClick={() => setListPage(2)}
+                disabled={maxPages < 2}
+                style={{
+                  borderRadius: 999,
+                  border: `1px solid ${t.border}`,
+                  background: page === 2 ? `${roleColor}22` : "rgba(255,255,255,0.03)",
+                  color: maxPages < 2 ? "rgba(255,255,255,0.25)" : page === 2 ? roleColor : t.text,
+                  fontWeight: 900,
+                  fontSize: 11,
+                  padding: "8px 12px",
+                  cursor: maxPages < 2 ? "default" : "pointer",
+                  opacity: maxPages < 2 ? 0.6 : 1,
+                }}
+              >
+                2
+              </button>
+            </div>
+            {page === 2 && listTotal > LIST_PAGE_SIZE * 2 ? (
+              <span style={{ fontSize: 10, color: t.sub, opacity: 0.85 }}>
+                3ページ目以降は検索で絞り込み推奨
+              </span>
+            ) : null}
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {pageUsers.map((u, i) => (
+              <ArcadeDiscoveryRow
+                key={`${listMode ?? "results"}-${u.slug}`}
+                user={u}
+                rank={start + i + 1}
+                score={listMode === "referral" ? String(u.referral_count) : `★ ${u.cheer_count}`}
+                accentColor={roleColor}
+                onOpen={() => onOpenProfile?.(u.slug)}
+              />
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      {listMode ? null : (
+        <>
 
       {topHero ? (
         <AdCard ad={topHero} size="hero" />
@@ -275,7 +435,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
 
       <SectionCard t={t} accentColor={roleColor}>
         <SLabel text="Vizion Radar" color={roleColor} size={10} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8, marginBottom: 8 }}>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${isPc ? 4 : 2}, minmax(0, 1fr))`, gap: 8, marginBottom: 8 }}>
           <div style={{ position: "relative" }}>
             <input
               value={q}
@@ -353,7 +513,12 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12 }}>
         <SectionCard t={t}>
-          <SLabel text="Cheer Ranking" color="#FFD600" size={10} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+            <SLabel text="Cheer Ranking" color="#FFD600" size={10} />
+            <button type="button" onClick={() => setListMode("cheer")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+              もっと見る→
+            </button>
+          </div>
           <div style={{ display: "grid", gap: 8 }}>
             {picks.cheer.slice(0, 5).map((u, i) => (
               <ArcadeDiscoveryRow
@@ -369,7 +534,12 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
         </SectionCard>
 
         <SectionCard t={t}>
-          <SLabel text="Referral Ranking" color={roleColor} size={10} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+            <SLabel text="Referral Ranking" color={roleColor} size={10} />
+            <button type="button" onClick={() => setListMode("referral")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+              もっと見る→
+            </button>
+          </div>
           <div style={{ display: "grid", gap: 8 }}>
             {picks.referral.slice(0, 5).map((u, i) => (
               <ArcadeDiscoveryRow
@@ -386,14 +556,24 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
       </div>
 
       <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="Discovery Results" color="#fff" size={10} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+          <SLabel text="Discovery Results" color="#fff" size={10} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, opacity: 0.8, whiteSpace: "nowrap" }}>
+              Journey継続で露出が上がります（現在: 連続{journeyStreak}日）
+            </span>
+            <button type="button" onClick={() => setListMode("results")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+              もっと見る→
+            </button>
+          </div>
+        </div>
         {loading ? (
           <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
         ) : users.length === 0 ? (
           <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
-            {users.map((u, i) => (
+            {boostedUsers.slice(0, 10).map((u, i) => (
               <ArcadeDiscoveryRow
                 key={u.slug}
                 user={u}
@@ -414,6 +594,8 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
           <SLabel text="AD SLOT" color="#FFD600" size={10} />
           <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>サイド広告枠（空き枠）</p>
         </SectionCard>
+      )}
+        </>
       )}
     </div>
   );

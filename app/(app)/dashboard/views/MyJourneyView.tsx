@@ -76,6 +76,7 @@ export function MyJourneyView({
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -87,6 +88,18 @@ export function MyJourneyView({
   const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+    const key = `myjourney-welcome:${getTodayString()}`;
+    const already = localStorage.getItem(key);
+    if (already) return;
+    if (todayLog) {
+      localStorage.setItem(key, "1");
+      return;
+    }
+    setWelcomeModalOpen(true);
+  }, [hasLoaded, todayLog]);
 
   useEffect(() => {
     setTemplateSuggestions(getRandomJourneyTemplateSuggestions(profile.role));
@@ -208,6 +221,55 @@ export function MyJourneyView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {welcomeModalOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="案内を閉じる"
+            onClick={() => {
+              localStorage.setItem(`myjourney-welcome:${getTodayString()}`, "1");
+              setWelcomeModalOpen(false);
+            }}
+            style={{ position: "fixed", inset: 0, zIndex: 90, border: "none", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)", cursor: "pointer" }}
+          />
+          <div style={{ position: "fixed", inset: 0, zIndex: 91, display: "grid", placeItems: "center", padding: 16 }}>
+            <div style={{ width: "100%", maxWidth: 440, borderRadius: 16, border: `1px solid ${t.border}`, background: t.bg, padding: 16, boxShadow: "0 18px 60px rgba(0,0,0,0.55)" }}>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: t.text }}>今日の一歩、記録しよう</p>
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
+                一言だけでもOK。続けた分だけ、あなたのJourneyが資産になります。
+              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem(`myjourney-welcome:${getTodayString()}`, "1");
+                    setWelcomeModalOpen(false);
+                  }}
+                  style={{ border: "none", background: "transparent", color: t.sub, fontSize: 11, fontWeight: 900, cursor: "pointer", padding: 0 }}
+                >
+                  あとで記録する
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem(`myjourney-welcome:${getTodayString()}`, "1");
+                    setWelcomeModalOpen(false);
+                    requestAnimationFrame(() => {
+                      const el = document.getElementById("myjourney-entry");
+                      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      (el as HTMLTextAreaElement | null)?.focus?.();
+                    });
+                  }}
+                  style={{ borderRadius: 12, border: `1px solid ${roleColor}35`, background: `${roleColor}18`, color: roleColor, fontWeight: 900, fontSize: 12, padding: "10px 12px", cursor: "pointer" }}
+                >
+                  いま記録する
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
+
       <ViewHeader title="My Journey" sub="記録画面" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
       <SectionCard t={t}>
@@ -219,7 +281,14 @@ export function MyJourneyView({
         <CardHeader
           title="Today's Hype"
           color={roleColor}
-          meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>}
+          meta={(
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>
+              <span style={{ fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, whiteSpace: "nowrap" }}>
+                連続{streak}日🔥
+              </span>
+            </div>
+          )}
         />
 
         <div style={{ display: "grid", gap: 12 }}>
@@ -260,6 +329,7 @@ export function MyJourneyView({
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
                   <textarea
+                    id="myjourney-entry"
                     value={content}
                     onChange={(event) => setContent(event.target.value.slice(0, JOURNEY_MAX_CHARS))}
                     maxLength={JOURNEY_MAX_CHARS}
@@ -486,52 +556,6 @@ export function MyJourneyView({
                 <p style={{ margin: 0, fontSize: 12, color: t.sub }}>この日の記録はありません。</p>
               )}
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {weekLogs.length === 0 ? (
-                <p style={{ margin: 0, fontSize: 12, color: t.sub }}>この週の記録はまだありません。</p>
-              ) : (
-                (weekExpanded ? weekLogs : weekLogs.slice(0, 3)).map((log) => {
-                  const meta = getConditionMeta(log.condition_score);
-                  return (
-                    <div
-                      key={log.log_date}
-                      style={{
-                        borderRadius: 14,
-                        border: `1px solid ${t.border}`,
-                        background: "rgba(255,255,255,0.02)",
-                        padding: "12px 14px",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, letterSpacing: "0.12em", textTransform: "uppercase" }}>{log.log_date}</span>
-                        <span style={{ fontSize: 12, color: t.text, fontWeight: 800 }}>{meta?.emoji ?? "🙂"} {meta?.label ?? ""} / {log.condition_score ?? "-"}点</span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: 13, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{log.content}</p>
-                    </div>
-                  );
-                })
-              )}
-
-              {weekLogs.length > 3 ? (
-                <button
-                  type="button"
-                  onClick={() => setWeekExpanded((v) => !v)}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    border: `1px solid ${t.border}`,
-                    background: "rgba(255,255,255,0.03)",
-                    color: t.text,
-                    cursor: "pointer",
-                    fontWeight: 900,
-                    fontSize: 12,
-                  }}
-                >
-                  {weekExpanded ? "閉じる" : "もっと見る →"}
-                </button>
-              ) : null}
-            </div>
           </div>
         </SectionCard>
 
@@ -569,8 +593,9 @@ export function MyJourneyView({
 
             return (
               <div style={{ display: "grid", gap: 10 }}>
-                <div style={{ borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
-                  <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none" style={{ display: "block" }}>
+                <div style={{ width: "100%", maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+                  <div style={{ borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
+                    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none" style={{ display: "block" }}>
                     <defs>
                       <linearGradient id="vzWeekLine" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor={roleColor} stopOpacity={0.95} />
@@ -603,7 +628,8 @@ export function MyJourneyView({
                         </g>
                       );
                     })}
-                  </svg>
+                    </svg>
+                  </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 8 }}>
