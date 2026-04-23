@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, type MouseEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import QRCode from "qrcode";
+import NextImage from "next/image";
 import type { ProfileData, LatestCheerItem } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "../types";
 import { CardHeader } from "./ui";
@@ -314,8 +315,6 @@ export function ProfileCardSection({
     const vzId = profile.serialId ?? "VZ-2026-000001";
     const cheerCount = profile.cheerCount ?? 0;
     const latestCheers = profile.latestCheers ?? [];
-    const latestCheer = latestCheers[0];
-    const joinDate = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
     const isFounding = profile.isFoundingMember ?? false;
     const isPublicMode = mode === "public";
 
@@ -466,7 +465,7 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />
                                 {profile.profileImageUrl ? (
-                                    <img src={profile.profileImageUrl} alt={profile.displayName} style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", zIndex: 3, ...photoMask }} />
+                                    <NextImage src={profile.profileImageUrl} alt={profile.displayName} width={1} height={1} unoptimized sizes="(max-width: 768px) 62vw, 62%" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", zIndex: 3, ...photoMask }} />
                                 ) : (
                                     <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", zIndex: 3, ...photoMask }}>{initials}</div>
                                 )}
@@ -543,7 +542,7 @@ export function ProfileCardSection({
                                     </div>
                                 </div>
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
-                                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+                                    <NextImage src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
                                 </div>
                             </div>
 
@@ -553,13 +552,13 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none" }} />
                                 <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
                                 {profile.profileImageUrl ? (
-                                    <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
+                                    <NextImage src={profile.profileImageUrl} alt="" width={1} height={1} unoptimized sizes="(max-width: 768px) 60vw, 60%" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
                                 ) : (
                                     <div style={{ position: "absolute", right: 0, top: 0, width: "60%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", pointerEvents: "none", userSelect: "none", ...photoMaskSoft }}>{initials}</div>
                                 )}
                                 <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 13px 16px" }}>
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
-                                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
+                                        <NextImage src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={120} height={30} style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                                             <span style={{ width: 5, height: 5, borderRadius: "50%", background: rl, boxShadow: `0 0 5px ${rl}`, flexShrink: 0, display: "inline-block" }} />
                                             <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{ROLE_LABEL[profile.role]}</span>
@@ -589,7 +588,7 @@ export function ProfileCardSection({
                                                 <span style={{ fontFamily: "monospace", fontSize: 7.5, color: "rgba(255,255,255,0.5)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>vizion-connection.jp/u/{profile.slug}</span>
                                             </div>
                                             {qrDataUrl ? (
-                                                <img src={qrDataUrl} alt="QR" style={{ width: 44, height: 44, borderRadius: 3, flexShrink: 0 }} />
+                                                <NextImage src={qrDataUrl} alt="QR" width={44} height={44} unoptimized style={{ width: 44, height: 44, borderRadius: 3, flexShrink: 0 }} />
                                             ) : (
                                                 <div style={{ width: 44, height: 44, borderRadius: 3, background: "rgba(255,255,255,0.1)", flexShrink: 0 }} />
                                             )}
@@ -674,7 +673,7 @@ export function ProfileCardSection({
                 </div>
             ) : null}
 
-            <ShareMenu profile={profile} t={t} rl={rl} compact={isPublicMode} />
+            <ShareMenu profile={profile} rl={rl} compact={isPublicMode} />
 
             {cheerModalOpen && (
                 <CheerCommentsModal
@@ -700,7 +699,8 @@ function CheerCommentsModal({
 }) {
     return (
         <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4">
-            <div className="max-h-[80vh] w-[min(540px,100%)] overflow-y-auto rounded-[16px]" style={{ border: `1px solid ${roleColor}55`, background: "#0b0b13", boxShadow: `0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px ${roleColor}25` }}>
+            <button type="button" onClick={onClose} aria-label="close" className="fixed inset-0 z-0 border-none bg-transparent" />
+            <div className="relative z-10 max-h-[80vh] w-[min(540px,100%)] overflow-y-auto rounded-[16px]" style={{ border: `1px solid ${roleColor}55`, background: "#0b0b13", boxShadow: `0 16px 60px rgba(0,0,0,0.6), 0 0 0 1px ${roleColor}25` }}>
                 <div className="flex items-center justify-between border-b border-white/8 px-4 py-[14px]">
                     <p className="m-0 text-[13px] font-black text-white">Latest Cheer</p>
                     <button type="button" onClick={onClose} className="cursor-pointer rounded-[8px] px-[10px] py-[6px] text-[12px] font-bold text-white" style={{ border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.06)" }}>閉じる</button>
@@ -718,13 +718,12 @@ function CheerCommentsModal({
                     )}
                 </div>
             </div>
-            <button type="button" onClick={onClose} aria-label="close" className="fixed inset-0 z-[-1] border-none bg-transparent" />
         </div>
     );
 }
 
 // ── シェアメニュー ─────────────────────────────────────────────────────────────
-function ShareMenu({ profile, t, rl, compact = false }: { profile: ProfileData; t: ThemeColors; rl: string; compact?: boolean }) {
+function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl: string; compact?: boolean }) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [storiesLoading, setStoriesLoading] = useState(false);

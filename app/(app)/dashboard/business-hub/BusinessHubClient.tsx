@@ -4,28 +4,28 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getPlanFeatures } from "@/features/business/plan-features";
+import type { BusinessHubAnalytics } from "@/lib/supabase/business-hub";
 
 type SponsorPlan = "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
 
-const baseMetrics = {
-  impressions: 18240,
-  clicks: 486,
-  cheers: 39,
-  sports: [
-    { label: "サッカー", value: 42 },
-    { label: "バスケ", value: 28 },
-    { label: "陸上", value: 18 },
-  ],
-  regions: [
-    { label: "関東", value: 52 },
-    { label: "関西", value: 27 },
-    { label: "九州", value: 21 },
-  ],
-  monthly: [72, 84, 96, 88, 104, 118],
-  ab: [
-    { label: "A案", ctr: "2.8%", note: "説明重視" },
-    { label: "B案", ctr: "3.4%", note: "写真重視" },
-  ],
+type BusinessHubMetrics = {
+  impressions: number;
+  clicks: number;
+  cheers: number;
+  sports: Array<{ label: string; value: number }>;
+  regions: Array<{ label: string; value: number }>;
+  monthly: number[];
+  ab: Array<{ label: string; ctr: string; note: string }>;
+};
+
+const EMPTY_METRICS: BusinessHubMetrics = {
+  impressions: 0,
+  clicks: 0,
+  cheers: 0,
+  sports: [],
+  regions: [],
+  monthly: [],
+  ab: [],
 };
 
 function Section({
@@ -144,7 +144,48 @@ export default function BusinessHubClient({
 }) {
   const features = getPlanFeatures(sponsorPlan);
   const [lastRealtimeAt, setLastRealtimeAt] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState(baseMetrics);
+  const [metrics, setMetrics] = useState<BusinessHubMetrics>(EMPTY_METRICS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
+
+  async function fetchAnalytics() {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/business-hub/analytics", { cache: "no-store" });
+      const json = (await res.json()) as
+        | { success: true; analytics: BusinessHubAnalytics }
+        | { success: false; error: string };
+
+      if (!res.ok || !json.success) {
+        setMetrics(EMPTY_METRICS);
+        setHasData(false);
+        return;
+      }
+
+      const analytics = json.analytics;
+      const nextMetrics: BusinessHubMetrics = {
+        impressions: analytics.kpis.impressions,
+        clicks: analytics.kpis.clicks,
+        cheers: 0,
+        sports: [],
+        regions: [],
+        monthly: analytics.timeline.map((point) => point.impressions),
+        ab: [],
+      };
+
+      setMetrics(nextMetrics);
+      setHasData(analytics.kpis.impressions > 0 || analytics.kpis.clicks > 0);
+    } catch {
+      setMetrics(EMPTY_METRICS);
+      setHasData(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void fetchAnalytics();
+  }, []);
 
   useEffect(() => {
     if (sponsorPlan !== "legacy") return;
@@ -153,12 +194,7 @@ export default function BusinessHubClient({
       .channel("business_hub_ads_realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "ads" }, () => {
         setLastRealtimeAt(new Date().toLocaleTimeString("ja-JP"));
-        setMetrics((prev) => ({
-          ...prev,
-          impressions: prev.impressions + 12,
-          clicks: prev.clicks + 1,
-          cheers: prev.cheers + 1,
-        }));
+        void fetchAnalytics();
       })
       .subscribe();
 
@@ -202,13 +238,29 @@ export default function BusinessHubClient({
         </section>
 
         <Section title="基本指標" sub="現在の広告運用サマリーです。">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            <MetricCard label="表示回数" value={metrics.impressions.toLocaleString()} />
-            <MetricCard label="クリック数" value={metrics.clicks.toLocaleString()} />
-            {sponsorPlan === "signal" || sponsorPlan === "presence" || sponsorPlan === "legacy" ? (
-              <MetricCard label="Cheer連動数" value={metrics.cheers.toLocaleString()} />
-            ) : null}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <MetricCard label="表示回数" value="..." />
+              <MetricCard label="クリック数" value="..." />
+              {sponsorPlan === "signal" || sponsorPlan === "presence" || sponsorPlan === "legacy" ? (
+                <MetricCard label="Cheer連動数" value="..." />
+              ) : null}
+            </div>
+          ) : !hasData ? (
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+              <p className="text-sm leading-7 text-white/55">
+                まだ分析データがありません。広告表示やクリックが発生すると、ここに時系列の推移が表示されます。
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <MetricCard label="表示回数" value={metrics.impressions.toLocaleString()} />
+              <MetricCard label="クリック数" value={metrics.clicks.toLocaleString()} />
+              {sponsorPlan === "signal" || sponsorPlan === "presence" || sponsorPlan === "legacy" ? (
+                <MetricCard label="Cheer連動数" value={metrics.cheers.toLocaleString()} />
+              ) : null}
+            </div>
+          )}
         </Section>
 
         <Section title="レポート" sub="プラン別に確認できるレポート内容が変わります。">
