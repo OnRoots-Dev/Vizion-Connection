@@ -30,6 +30,7 @@ export function NextPhaseSection() {
                 "Discovery（アスリート検索・一覧）",
                 "ランキングページ",
                 "collectカード機能",
+                "Voice Lab",
                 "Cheerによる応援・信頼の可視化",
                 "ミッション・ポイントシステム",
                 "Business Hub（企業向け広告・効果測定）",
@@ -60,7 +61,7 @@ export function NextPhaseSection() {
             <h3 className="mb-2 font-display text-[clamp(22px,2.5vw,32px)] font-black text-white">次に広がる機能</h3>
             <p className="mb-6 font-mono text-[11px] tracking-wider text-white/30">ROLLING RELEASES</p>
             <ul className="space-y-3">
-              {["Voice Lab", "Cheerコメント", "Trainer Hub", "Members Hub"].map((item, i) => (
+              {["Cheerコメント", "Trainer Hub", "Members Hub"].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 font-body text-[clamp(13px,1.2vw,15px)] text-white/40">
                   <span className="h-[5px] w-[5px] shrink-0 rounded-full bg-white/20" />
                   {item}

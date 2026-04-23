@@ -36,6 +36,7 @@ export function NowNextSection() {
               <li>・Discovery（アスリート検索・一覧）</li>
               <li>・ランキングページ</li>
               <li>・collectカード機能</li>
+              <li>・Voice Lab</li>
               <li>・Cheerによる応援・信頼の可視化</li>
               <li>・ミッション・ポイントシステム</li>
               <li>・Business Hub（企業向け広告・効果測定）</li>

@@ -170,7 +170,7 @@ export function CheerDiscoverySection() {
             Cheerは「誰が誰を応援したか」が記録される<strong className="text-white/80">信頼の履歴</strong>です。
           </p>
           <ul className="space-y-3">
-            {["誰が応援したか、いつ応援したかを記録", "連打・不正操作は構造的に制限", "将来の推薦アルゴリズムの根拠データに使用"].map((item, i) => (
+            {["誰が応援したか、いつ応援したかを記録", "連打・不正操作は構造的に制限", "信頼スコアの根拠データとして蓄積"].map((item, i) => (
               <li key={i} className="flex items-start gap-3 font-body text-[clamp(12px,1.1vw,14px)] text-white/45">
                 <span className="mt-[3px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#FFD600]" />
                 {item}
