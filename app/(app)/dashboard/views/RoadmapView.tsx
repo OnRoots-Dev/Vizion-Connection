@@ -10,7 +10,7 @@ const PHASES_DATA = [
         id: "early", num: "01", label: "先行登録フェーズ", status: "current" as const,
         period: "2026年 3月 –", tagline: "役割を名乗れ。信頼を刻め。",
         desc: "すべての始まり。プロフィールカードを手に入れた者が、最初の歴史を作る。",
-        progress: 95,
+        progress: 100,
         items: [
             { name: "ダッシュボード", done: true },
             { name: "通知", done: true },
