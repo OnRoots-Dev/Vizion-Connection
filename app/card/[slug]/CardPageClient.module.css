@@ -1,0 +1,271 @@
+.page {
+  min-height: 100vh;
+  background: #07070e;
+  color: #fff;
+}
+
+:global(*) {
+  box-sizing: border-box;
+  scrollbar-width: none;
+}
+
+:global(*::-webkit-scrollbar) {
+  display: none;
+}
+
+:global(a) {
+  text-decoration: none;
+}
+
+.roleAthlete {
+  --rl: #c1272d;
+  --rl08: rgba(193, 39, 45, 0.08);
+  --rl12: rgba(193, 39, 45, 0.12);
+  --rl15: rgba(193, 39, 45, 0.15);
+  --rl20: rgba(193, 39, 45, 0.2);
+  --rl30: rgba(193, 39, 45, 0.3);
+  --rl40: rgba(193, 39, 45, 0.4);
+}
+
+.roleTrainer {
+  --rl: #1a7a4a;
+  --rl08: rgba(26, 122, 74, 0.08);
+  --rl12: rgba(26, 122, 74, 0.12);
+  --rl15: rgba(26, 122, 74, 0.15);
+  --rl20: rgba(26, 122, 74, 0.2);
+  --rl30: rgba(26, 122, 74, 0.3);
+  --rl40: rgba(26, 122, 74, 0.4);
+}
+
+.roleMembers {
+  --rl: #b8860b;
+  --rl08: rgba(184, 134, 11, 0.08);
+  --rl12: rgba(184, 134, 11, 0.12);
+  --rl15: rgba(184, 134, 11, 0.15);
+  --rl20: rgba(184, 134, 11, 0.2);
+  --rl30: rgba(184, 134, 11, 0.3);
+  --rl40: rgba(184, 134, 11, 0.4);
+}
+
+.roleBusiness {
+  --rl: #1b3a8c;
+  --rl08: rgba(27, 58, 140, 0.08);
+  --rl12: rgba(27, 58, 140, 0.12);
+  --rl15: rgba(27, 58, 140, 0.15);
+  --rl20: rgba(27, 58, 140, 0.2);
+  --rl30: rgba(27, 58, 140, 0.3);
+  --rl40: rgba(27, 58, 140, 0.4);
+}
+
+.roleDefault {
+  --rl: #a78bfa;
+  --rl08: rgba(167, 139, 250, 0.08);
+  --rl12: rgba(167, 139, 250, 0.12);
+  --rl15: rgba(167, 139, 250, 0.15);
+  --rl20: rgba(167, 139, 250, 0.2);
+  --rl30: rgba(167, 139, 250, 0.3);
+  --rl40: rgba(167, 139, 250, 0.4);
+}
+
+.backgroundGlow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, var(--rl12) 0%, transparent 70%);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 51;
+  padding: 0 16px 32px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.modalInner {
+  border-radius: 20px;
+  padding: 20px 18px;
+  background: #0d0d1a;
+  border: 1px solid var(--rl30);
+  box-shadow: 0 0 48px var(--rl15), 0 24px 60px rgba(0, 0, 0, 0.8);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.label {
+  margin: 0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: monospace;
+}
+
+.modalName {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.previewWrap {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--rl20);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.previewImg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+.shareUrlCard {
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: #0d0d1a;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.urlBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.urlText {
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copyButton {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 10px;
+  background: var(--rl);
+  border: none;
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copyButtonCopied {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border-radius: 10px;
+  background: rgba(50, 210, 120, 0.12);
+  border: none;
+  color: #32d278;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.openShareButton {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--rl40);
+  background: var(--rl15);
+  color: var(--rl);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.referralCard {
+  border-radius: 16px;
+  padding: 22px 20px;
+  background: var(--rl08);
+  border: 1px solid var(--rl20);
+  text-align: center;
+}
+
+.referralText {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 16px;
+  line-height: 1.7;
+}
+
+.referralName {
+  color: #fff;
+  font-weight: 700;
+}
+
+.referralLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 28px;
+  border-radius: 12px;
+  background: var(--rl);
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+}

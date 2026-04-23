@@ -8,9 +8,20 @@ import type { UserRole, CareerEpisode } from "@/types/career";
 import { Field, WizardInput, WizardTextarea, Toggle } from "./WizardUI";
 
 export default function EpisodeSubModal() {
-  const { isEpisodeModalOpen, editingEpisode, closeEpisodeModal, saveEpisode, data, roleColor } = useCareerWizard();
-  const color = roleColor();
+  const { isEpisodeModalOpen, editingEpisode, closeEpisodeModal, saveEpisode, data } = useCareerWizard();
   const cfg = ROLE_CONFIG[(data.role || "Athlete") as UserRole];
+
+  const roleColorTextClass =
+    data.role === "Trainer" ? "text-[#1a7a4a]" :
+    data.role === "Members" ? "text-[#b8860b]" :
+    data.role === "Business" ? "text-[#1b3a8c]" :
+    "text-[#c1272d]";
+
+  const roleBgClass =
+    data.role === "Trainer" ? "bg-[#1a7a4a]" :
+    data.role === "Members" ? "bg-[#b8860b]" :
+    data.role === "Business" ? "bg-[#1b3a8c]" :
+    "bg-[#c1272d]";
 
   const [draft, setDraft] = useState<Omit<CareerEpisode, "id">>({
     period: "", role: "", org: "", desc: "", milestone: "", tags: [], isCurrent: false,
@@ -41,21 +52,16 @@ export default function EpisodeSubModal() {
     <AnimatePresence>
       {isEpisodeModalOpen && (
         <motion.div key="ep-modal"
-          className="absolute inset-0 z-30 flex flex-col overflow-hidden"
-          style={{ background: "#0c0c16", borderRadius: "inherit" }}
+          className="absolute inset-0 z-30 flex flex-col overflow-hidden rounded-[inherit] bg-[#0c0c16]"
           initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", stiffness: 360, damping: 34 }}>
-          <div className="flex items-center gap-3 px-5 pt-5 pb-4 flex-shrink-0"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-            <button onClick={closeEpisodeModal}
-              className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.4)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "white"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}>
+          <div className="flex flex-shrink-0 items-center gap-3 border-b border-white/10 px-5 pb-4 pt-5">
+            <button onClick={closeEpisodeModal} aria-label="Back"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white">
               <ArrowLeft size={14} />
             </button>
             <div>
-              <p className="font-mono text-[8.5px] tracking-[0.22em] uppercase mb-0.5" style={{ color }}>
+              <p className={`${roleColorTextClass} mb-0.5 font-mono text-[8.5px] uppercase tracking-[0.22em]`}>
                 Career Episode
               </p>
               <h3 className="text-[15px] font-extrabold tracking-[-0.02em]">
@@ -71,10 +77,7 @@ export default function EpisodeSubModal() {
               <div className="flex gap-1.5 flex-wrap mt-2">
                 {QUICK_PERIODS.map((p) => (
                   <button key={p} type="button" onClick={() => set("period", p)}
-                    className="font-mono text-[9px] tracking-[0.1em] px-2.5 py-1.5 rounded-full border transition-all"
-                    style={{ borderColor: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.3)" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}>
+                    className="rounded-full border border-white/10 px-2.5 py-1.5 font-mono text-[9px] tracking-widest text-white/40 transition-colors hover:border-white/20 hover:text-white/70">
                     {p}
                   </button>
                 ))}
@@ -105,11 +108,10 @@ export default function EpisodeSubModal() {
             </Field>
           </div>
 
-          <div className="px-5 pb-5 pt-3 flex-shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <div className="flex-shrink-0 border-t border-white/10 px-5 pb-5 pt-3">
             <button type="button" onClick={handleSave}
               disabled={!draft.role && !draft.org}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-[13px] text-white tracking-[0.04em] transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none"
-              style={{ background: color }}>
+              className={`${roleBgClass} w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-[13px] font-bold tracking-[0.04em] text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-30`}>
               <Check size={14} />
               {editingEpisode?.id ? "変更を保存" : "追加する"}
             </button>

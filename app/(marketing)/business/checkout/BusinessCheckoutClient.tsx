@@ -272,6 +272,7 @@ export default function BusinessCheckoutClient({
                       {errorMessage && <p className="mt-0.5 text-[.72rem] text-[#ff6b5b]">{errorMessage}</p>}
                     </div>
                     <button
+                      type="button"
                       onClick={handleCheckout}
                       disabled={state === "loading"}
                       className="shrink-0 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.8rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white hover:shadow-[0_0_32px_rgba(0,210,255,0.45)] disabled:cursor-not-allowed disabled:opacity-45"

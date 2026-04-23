@@ -90,10 +90,8 @@ export default function CareerWizardModal({ onClose, contained = false }: { onCl
 
           {/* Close */}
           <button onClick={onClose}
-            className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "white"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}>
+            className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all bg-white/5 border border-white/10 text-white/35 hover:bg-white/10 hover:text-white"
+            aria-label="閉じる">
             <X size={12} />
           </button>
 
