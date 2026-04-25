@@ -5,12 +5,11 @@ import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
-export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfilePatch }: {
+export function SettingsView({ profile, t, roleColor, onBack, onProfilePatch }: {
     profile: ProfileData;
     t: ThemeColors;
     roleColor: string;
     onBack: () => void;
-    onLogout: () => void;
     onProfilePatch: (patch: Partial<ProfileData>) => void;
 }) {
     const ROLE_LABEL: Record<string, string> = { Athlete: "Athlete", Trainer: "Trainer", Members: "Members", Business: "Business" };
@@ -169,6 +168,23 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
 
             <ViewHeader title="Settings" sub="アカウント設定" onBack={onBack} t={t} roleColor={roleColor} />
 
+            <SectionCard t={t}>
+                <SLabel text="アカウント情報" />
+                {[
+                    { k: "表示名", v: profile.displayName },
+                    { k: "ID", v: `@${profile.slug}`, mono: true },
+                    { k: "Role", v: ROLE_LABEL[profile.role], color: roleColor },
+                    { k: "メール", v: profile.email },
+                    { k: "認証", v: profile.verified ? "✓ 認証済み" : "未認証", color: profile.verified ? "#32D278" : "#FF5050" },
+                    { k: "登録日", v: new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" }) },
+                ].map(({ k, v, mono, color }) => (
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${t.border}` }}>
+                        <span style={{ fontSize: 10, color: t.sub, opacity: 0.5, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{k}</span>
+                        <span style={{ fontSize: 11, fontFamily: mono ? "monospace" : "inherit", color: color ?? t.text, maxWidth: "62%", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", fontWeight: color ? 700 : 400 }}>{v}</span>
+                    </div>
+                ))}
+            </SectionCard>
+
             <SectionCard t={t} accentColor={roleColor}>
                 <SLabel text="サポート" color={roleColor} />
                 <button
@@ -192,22 +208,6 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
                     不具合報告・機能要望・取材などはこちらから送信できます。
                 </p>
-            </SectionCard>
-            <SectionCard t={t}>
-                <SLabel text="アカウント情報" />
-                {[
-                    { k: "表示名", v: profile.displayName },
-                    { k: "ID", v: `@${profile.slug}`, mono: true },
-                    { k: "Role", v: ROLE_LABEL[profile.role], color: roleColor },
-                    { k: "メール", v: profile.email },
-                    { k: "認証", v: profile.verified ? "✓ 認証済み" : "未認証", color: profile.verified ? "#32D278" : "#FF5050" },
-                    { k: "登録日", v: new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" }) },
-                ].map(({ k, v, mono, color }) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${t.border}` }}>
-                        <span style={{ fontSize: 10, color: t.sub, opacity: 0.5, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{k}</span>
-                        <span style={{ fontSize: 11, fontFamily: mono ? "monospace" : "inherit", color: color ?? t.text, maxWidth: "62%", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "right", fontWeight: color ? 700 : 400 }}>{v}</span>
-                    </div>
-                ))}
             </SectionCard>
 
             <SectionCard t={t} accentColor={roleColor}>
@@ -269,10 +269,10 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                 </div>
             </SectionCard>
             <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Visibility" color={roleColor} />
+                <SLabel text="アカウント公開設定" color={roleColor} />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>公開プロフィール設定</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: t.text }}>アカウント公開設定</span>
                         <span style={{ fontSize: 11, color: t.sub }}>
                             {isPublic ? "現在公開中。プロフィールページとカードページを閲覧できます。" : "現在非公開。外部からはプロフィールを見られません。"}
                         </span>
@@ -281,7 +281,7 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                         type="button"
                         onClick={() => void handleVisibilityToggle()}
                         disabled={savingVisibility}
-                        aria-label="プロフィール公開設定"
+                        aria-label="アカウント公開設定"
                         style={{ position: "relative", width: 52, height: 30, borderRadius: 999, background: isPublic ? roleColor : t.border, border: "none", cursor: savingVisibility ? "wait" : "pointer", transition: "background 0.2s", flexShrink: 0, padding: 0, opacity: savingVisibility ? 0.7 : 1 }}
                     >
                         <span style={{ position: "absolute", top: 3, left: isPublic ? 25 : 3, width: 24, height: 24, borderRadius: "50%", background: t.text, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.25)" }} />
@@ -324,9 +324,6 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
                 ) : null}
             </SectionCard>
 
-            <button onClick={onLogout} className="vz-btn" style={{ width: "100%", padding: "12px 0", borderRadius: 12, background: "rgba(255,80,80,0.08)", border: "1px solid rgba(255,80,80,0.2)", color: "#FF5050", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                ログアウト
-            </button>
         </div>
     );
 }
