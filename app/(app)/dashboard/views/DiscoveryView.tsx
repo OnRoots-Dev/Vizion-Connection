@@ -192,7 +192,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   const [region, setRegion] = useState("");
   const [prefecture, setPrefecture] = useState("");
   const [sport, setSport] = useState("");
-  const [sort, setSort] = useState<"all" | "cheer" | "referral" | "new">("all");
+  const [sort, setSort] = useState<"all" | "cheer" | "referral" | "new" | "newcomer">("all");
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<DiscoveryUser[]>([]);
   const [picks, setPicks] = useState<{ cheer: DiscoveryUser[]; referral: DiscoveryUser[] }>({ cheer: [], referral: [] });
@@ -307,7 +307,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
     if (sort === "referral") {
       return list.sort((a, b) => (b.referral_count ?? 0) - (a.referral_count ?? 0));
     }
-    if (sort === "new") {
+    if (sort === "new" || sort === "newcomer") {
       return list;
     }
 
@@ -333,11 +333,12 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
 
   const listTitle = listMode === "cheer" ? "Cheer Ranking" : listMode === "referral" ? "Referral Ranking" : "Discovery Results";
 
-  const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new"; label: string }> = [
+  const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new" | "newcomer"; label: string }> = [
     { id: "all", label: "全アカウント" },
     { id: "cheer", label: "Cheer急上昇" },
     { id: "referral", label: "紹介加速" },
     { id: "new", label: "新着" },
+    { id: "newcomer", label: "新人検索" },
   ];
 
   return (

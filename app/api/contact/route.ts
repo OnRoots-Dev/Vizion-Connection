@@ -3,6 +3,11 @@ import { createContact } from "@/lib/supabase/contacts";
 import { z } from "zod";
 import { contactLimiter, getIp } from "@/lib/ratelimit";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { Resend } from "resend";
+import { env } from "@/lib/env";
+
+const resend = new Resend(env.RESEND_API_KEY);
+const CONTACT_TO = "contact@vizion-connection.jp";
 
 const schema = z.object({
   category: z.enum(["広告・スポンサー", "取材・メディア", "不具合・バグ報告", "機能要望", "その他"]),
@@ -36,6 +41,29 @@ export async function POST(req: Request) {
 
     const { category, name, email, message } = parsed.data;
     await createContact({ category, name, email, message });
+
+    const { error: mailError } = await resend.emails.send({
+      from: env.FROM_EMAIL,
+      to: CONTACT_TO,
+      replyTo: email,
+      subject: `【Vizion Connection】お問い合わせ：${category}`,
+      html: `
+<!DOCTYPE html>
+<html lang="ja">
+  <body style="margin:0;padding:24px;font-family:Arial,Helvetica,sans-serif;background:#ffffff;color:#111;">
+    <h2 style="margin:0 0 16px;">お問い合わせを受け付けました</h2>
+    <p style="margin:0 0 8px;"><strong>カテゴリ：</strong>${category}</p>
+    <p style="margin:0 0 8px;"><strong>お名前：</strong>${name}</p>
+    <p style="margin:0 0 16px;"><strong>メール：</strong>${email}</p>
+    <pre style="white-space:pre-wrap;word-break:break-word;background:#f6f6f8;border:1px solid #e5e5ea;padding:12px;border-radius:10px;line-height:1.6;">${message}</pre>
+  </body>
+</html>
+      `.trim(),
+    });
+
+    if (mailError) {
+      console.error("[contact] resend mail error", mailError);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {

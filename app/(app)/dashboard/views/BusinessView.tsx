@@ -39,6 +39,7 @@ type BusinessAd = {
     startsAt: string;
     endsAt: string | null;
     isActive: boolean;
+    status?: "pending" | "approved" | "rejected";
     adScope: "regional" | "national" | null;
     prefecture: string | null;
     metrics: {
@@ -452,6 +453,9 @@ export function BusinessHubView({
     const toggleAd = async (ad: BusinessAd) => {
         setError(null);
         try {
+            if (ad.status && ad.status !== "approved") {
+                throw new Error("広告は審査中のため、配信状態を変更できません");
+            }
             const response = await fetch(`/api/business-hub/ads/${ad.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -600,8 +604,13 @@ export function BusinessHubView({
                                                 <div style={{ marginTop: 6, fontSize: 11, color: t.sub }}>{ad.bodyText || "本文未設定"}</div>
                                             </div>
                                             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                                                {ad.status ? (
+                                                    <span style={{ padding: "5px 10px", borderRadius: 999, border: `1px solid ${ad.status === "approved" ? "rgba(50,210,120,0.35)" : ad.status === "rejected" ? "rgba(255,107,107,0.35)" : `${accent}45`}`, background: ad.status === "approved" ? "rgba(50,210,120,0.12)" : ad.status === "rejected" ? "rgba(255,107,107,0.12)" : `${accent}12`, color: ad.status === "approved" ? "#7ff0a7" : ad.status === "rejected" ? "#ffb3b3" : accent, fontSize: 10, fontWeight: 800 }}>
+                                                        {ad.status === "pending" ? "審査中" : ad.status === "approved" ? "承認" : "却下"}
+                                                    </span>
+                                                ) : null}
                                                 <span style={{ padding: "5px 10px", borderRadius: 999, border: `1px solid ${ad.isActive ? `${accent}45` : t.border}`, background: ad.isActive ? `${accent}14` : "rgba(255,255,255,0.04)", color: ad.isActive ? accent : t.sub, fontSize: 10, fontWeight: 800 }}>{ad.isActive ? "配信中" : "停止中"}</span>
-                                                <button type="button" onClick={() => void toggleAd(ad)} style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>{ad.isActive ? "停止" : "再開"}</button>
+                                                <button type="button" onClick={() => void toggleAd(ad)} disabled={Boolean(ad.status) && ad.status !== "approved"} style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 11, fontWeight: 700, cursor: Boolean(ad.status) && ad.status !== "approved" ? "not-allowed" : "pointer", opacity: Boolean(ad.status) && ad.status !== "approved" ? 0.5 : 1 }}>{ad.isActive ? "停止" : "再開"}</button>
                                                 <button type="button" onClick={() => { setEditingAdId(ad.id); setAdForm({ headline: ad.headline, bodyText: ad.bodyText ?? "", imageUrl: ad.imageUrl ?? "", linkUrl: ad.linkUrl ?? "", prefecture: ad.prefecture ?? "", startsAt: ad.startsAt.slice(0, 10), endsAt: ad.endsAt ? ad.endsAt.slice(0, 10) : "" }); }} style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>編集</button>
                                             </div>
                                         </div>

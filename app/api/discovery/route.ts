@@ -61,6 +61,8 @@ export async function GET(req: NextRequest) {
     const sport = (req.nextUrl.searchParams.get("sport") ?? "").trim();
     const sort = req.nextUrl.searchParams.get("sort") ?? "all";
 
+    const newcomerSince = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
     let query = supabaseServer
         .from("users")
         .select("slug,display_name,role,avatar_url,profile_image_url,cheer_count,region,prefecture,sport,created_at,sponsor_plan")
@@ -74,6 +76,10 @@ export async function GET(req: NextRequest) {
     if (prefecture) query = query.ilike("prefecture", `%${prefecture}%`);
     if (sport) query = query.ilike("sport", `%${sport}%`);
     if (q) query = query.or(`slug.ilike.%${q}%,display_name.ilike.%${q}%`);
+
+    if (sort === "newcomer") {
+        query = query.gte("created_at", newcomerSince);
+    }
 
     const [{ data: users }, { data: refs }] = await Promise.all([
         query,
@@ -118,7 +124,7 @@ export async function GET(req: NextRequest) {
         }
         if (sort === "cheer") return b.cheer_count - a.cheer_count;
         if (sort === "referral") return b.referral_count - a.referral_count;
-        if (sort === "new") return String(b.created_at).localeCompare(String(a.created_at));
+        if (sort === "new" || sort === "newcomer") return String(b.created_at).localeCompare(String(a.created_at));
         return (b.cheer_count + b.referral_count * 4) - (a.cheer_count + a.referral_count * 4);
     });
 

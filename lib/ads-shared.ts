@@ -2,6 +2,7 @@ export interface AdItem {
     id: string;
     businessId: number;
     plan: string;
+    status?: "pending" | "approved" | "rejected";
     adSize: "small" | "medium" | "large" | "hero" | null;
     adScope: "regional" | "national" | null;
     region: string | null;

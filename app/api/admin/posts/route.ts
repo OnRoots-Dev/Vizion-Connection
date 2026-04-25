@@ -18,7 +18,7 @@ export async function GET() {
 
         const { data, error } = await supabaseServer
             .from("news_posts")
-            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls, created_at")
+            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls")
             .order("published_at", { ascending: false });
 
         if (error) {
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
                 is_published: Boolean(parsed.data.isPublished),
                 gallery_image_urls: galleryUrls,
             })
-            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls, created_at")
+            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls")
             .single();
 
         if (error || !data) {

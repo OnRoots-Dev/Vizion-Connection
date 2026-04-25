@@ -24,10 +24,12 @@ import type { AdItem } from "@/lib/ads-shared";
 import { NewsView } from "./views/NewsView";
 import { VoiceLabView } from "./views/VoiceLabView";
 import { NotificationsView } from "./views/NotificationsView";
+import { ContactView } from "./views/ContactView";
 import { CollectionsView } from "./views/CollectionsView";
 import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import { AdminPostsView } from "./views/admin/AdminPostsView";
+import AdminAdsView from "./views/admin/AdminAdsView";
 import { OffersView } from "./views/OffersView";
 import { MyJourneyView } from "./views/MyJourneyView";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
@@ -268,6 +270,8 @@ export default function DashboardClient({
         switch (view) {
             case "home":
                 return <HomeView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleMenuSetView} />;
+            case "contact":
+                return <ContactView t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} />;
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":
@@ -276,6 +280,8 @@ export default function DashboardClient({
                 return <NotificationsView t={t} roleColor={roleColor} setView={handleSetView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "admin_posts":
                 return <AdminPostsView t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "admin_ads":
+                return <AdminAdsView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "card":
                 return <CardView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "profile":

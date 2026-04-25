@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 function resolveInitialView(view?: string): DashboardView {
     const allowed: DashboardView[] = [
         "home",
+        "contact",
         "notifications",
         "hub",
         "collections",

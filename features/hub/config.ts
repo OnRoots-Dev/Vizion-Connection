@@ -161,9 +161,10 @@ export const HUB_CONFIGS: Record<UserRole, HubConfig> = {
             {
                 id: "ads",
                 title: "広告",
-                summary: "広告枠・配信の確認",
-                detail: "広告の運用状況を確認します。",
-                actionLabel: "Hubで詳細を確認中",
+                summary: "広告の審査・承認",
+                detail: "Businessアカウントから申請された広告の審査（承認/却下）と、掲載状態の管理ができます。",
+                actionLabel: "広告審査を開く",
+                targetView: "admin_ads",
             },
         ],
     },

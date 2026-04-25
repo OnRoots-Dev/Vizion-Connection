@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
 
         const { data, error } = await supabaseServer
             .from("news_posts")
-            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls, created_at")
+            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls")
             .eq("id", id)
             .maybeSingle();
 
@@ -65,7 +65,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
             .from("news_posts")
             .update(patch)
             .eq("id", id)
-            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls, created_at")
+            .select("id, title, category, body, author, published_at, is_published, gallery_image_urls")
             .single();
 
         if (error || !data) {

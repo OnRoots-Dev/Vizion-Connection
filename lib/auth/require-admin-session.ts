@@ -14,13 +14,17 @@ export async function requireAdminProfile() {
         throw new Error("UNAUTHORIZED");
     }
 
-    if (!canManageVoiceLabByEmail(session.email)) {
-        throw new Error("FORBIDDEN");
-    }
-
     const profile = await findUserBySlug(session.slug);
     if (!profile) {
         throw new Error("NOT_FOUND");
+    }
+
+    if (profile.role !== "Admin") {
+        throw new Error("FORBIDDEN");
+    }
+
+    if (!canManageVoiceLabByEmail(session.email)) {
+        throw new Error("FORBIDDEN");
     }
 
     return profile;

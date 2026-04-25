@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Pencil, Eye, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { ROLE_CONFIG } from "@/types/career";
 import type { UserRole } from "@/types/career";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
-import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
+import UnifiedProfileModal from "@/components/unified-profile/UnifiedProfileModal";
 
 // ─── Props ────────────────────────────────────────────────
 
@@ -39,7 +40,6 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
     resetWizard,
     initFromUser,
     initFromCareerProfile,
-    roleColor,
   } = useCareerWizard();
 
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -67,11 +67,6 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
     // career_profilesのデータ（あれば上書き）
     if (careerProfile) {
       initFromCareerProfile(careerProfile);
-    }
-
-    // 初回（キャリアなし）なら自動でウィザードを開く
-    if (!careerProfile) {
-      setWizardOpen(true);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -138,7 +133,15 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
             style={{ background: `${color}18`, border: `1px solid ${color}30` }}
           >
             {user.avatarUrl
-              ? <img src={user.avatarUrl} alt="" className="w-full h-full object-cover rounded-2xl" />
+              ? (
+                <Image
+                  src={user.avatarUrl}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover rounded-2xl"
+                />
+              )
               : cfg?.icon ?? "👤"}
           </div>
           <div>
@@ -238,7 +241,7 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
                   <Pencil size={15} />
                 </div>
                 <div className="text-left flex-1">
-                  <p className="text-[13px] font-bold">キャリアページを編集</p>
+                  <p className="text-[13px] font-bold">プロフィール・キャリアを編集</p>
                   <p className="text-[11px] mt-0.5" style={{ color: "var(--vz-sub, rgba(255,255,255,0.45))" }}>
                     {(careerProfile?.episodes?.length ?? 0)}件のエピソード ·{" "}
                     {(careerProfile?.skills?.length ?? 0)}スキル
@@ -357,7 +360,7 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
               }}
             >
               <Sparkles size={14} />
-              作成をはじめる（約3分）
+              プロフィール・キャリアを登録する
             </button>
           </motion.div>
         )}
@@ -366,7 +369,12 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
       {/* ── Wizard modal ────────────────────────────────── */}
       <AnimatePresence>
         {wizardOpen && (
-          <CareerWizardModal contained onClose={() => setWizardOpen(false)} />
+          <UnifiedProfileModal
+            isOpen={wizardOpen}
+            onClose={() => setWizardOpen(false)}
+            user={user}
+            onCompleted={() => setWizardOpen(false)}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -24,6 +24,9 @@ export async function GET() {
     const message = error instanceof Error ? error.message : "UNKNOWN";
     if (message === "UNAUTHORIZED") return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
     if (message === "FORBIDDEN") return NextResponse.json({ success: false, error: "Businessアカウントのみ利用できます" }, { status: 403 });
+    if (message.includes("広告テーブルの更新が必要")) {
+      return NextResponse.json({ success: false, error: message }, { status: 500 });
+    }
     return NextResponse.json({ success: false, error: "広告一覧の取得に失敗しました" }, { status: 500 });
   }
 }

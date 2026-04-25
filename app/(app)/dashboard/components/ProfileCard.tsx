@@ -115,101 +115,166 @@ async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTM
     ctx.fillStyle = roleAccent;
     ctx.fillRect(0, H * 0.75, W, H * 0.25);
 
-    // 3. 上部ロゴ
+    // SECTION 2: Top area (y: 80-200)
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "700 26px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
-    ctx.fillText("VIZION CONNECTION", W / 2, 96);
-    ctx.strokeStyle = "rgba(255,255,255,0.1)";
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(W / 2 - 180, 112); ctx.lineTo(W / 2 + 180, 112); ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = "700 28px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+    ctx.fillText("VIZION CONNECTION", W / 2, 108);
 
-    // 4. コンテンツ
-    const X = 80;
-    let y = Math.round(H * 0.56);
+    // Role color horizontal line (centered)
+    ctx.fillStyle = rl;
+    ctx.fillRect(W / 2 - 60, 130, 120, 2);
 
-    // バッジ（Canvas直描画）
+    // SECTION 3: Center profile photo (y: 280-680)
+    const cx = W / 2;
+    const cy = 480;
+    const r = 200;
+    const ringR = 206;
+    const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+
+    if (profileImg) {
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 40;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        const scale = Math.max((r * 2) / profileImg.width, (r * 2) / profileImg.height);
+        const dw = profileImg.width * scale;
+        const dh = profileImg.height * scale;
+        ctx.drawImage(profileImg, cx - dw / 2, cy - dh / 2, dw, dh);
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.strokeStyle = rl;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.restore();
+    } else {
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 40;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.closePath();
+        const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        g.addColorStop(0, bg1);
+        g.addColorStop(1, "#000000");
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.strokeStyle = rl;
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "900 120px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+        ctx.fillText(initials, cx, cy + 44);
+    }
+
+    // SECTION 4: Main content (y: 720 onwards, center-aligned)
+    ctx.textAlign = "center";
+    const centerX = W / 2;
+    let y = 720;
+
+    // FOUNDING MEMBER badge (centered)
     const badgeLabel = isFounding ? "⬡  FOUNDING MEMBER" : "EARLY PARTNER";
     const badgeColor = isFounding ? "#FFD600" : "#7ab8ff";
     ctx.font = "700 24px 'SF Mono', 'Fira Code', monospace";
-    const bPad = 20;
-    const bW = ctx.measureText(badgeLabel).width + bPad * 2;
+    const bPadX = 20;
+    const bW = ctx.measureText(badgeLabel).width + bPadX * 2;
     const bH = 44;
-    roundedRect(X, y, bW, bH, 5);
+    const badgeX = centerX - bW / 2;
+    roundedRect(badgeX, y, bW, bH, 5);
     ctx.fillStyle = badgeColor + "18"; ctx.fill();
     ctx.strokeStyle = badgeColor + "55"; ctx.lineWidth = 1.5;
-    roundedRect(X, y, bW, bH, 5); ctx.stroke();
-    ctx.textAlign = "left";
+    roundedRect(badgeX, y, bW, bH, 5); ctx.stroke();
     ctx.fillStyle = badgeColor;
-    ctx.fillText(badgeLabel, X + bPad, y + 30);
+    ctx.fillText(badgeLabel, centerX, y + 30);
     y += bH + 28;
 
-    // 表示名（自動縮小）
+    // Display name (auto shrink, centered)
     let nameSize = 96;
     ctx.font = `900 ${nameSize}px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif`;
-    while (ctx.measureText(profile.displayName).width > W - X * 2 && nameSize > 52) {
+    while (ctx.measureText(profile.displayName).width > W - 160 && nameSize > 52) {
         nameSize -= 4;
         ctx.font = `900 ${nameSize}px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif`;
     }
     ctx.fillStyle = "#ffffff";
     ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 16;
-    ctx.fillText(profile.displayName, X, y + Math.round(nameSize * 0.82));
+    ctx.fillText(profile.displayName, centerX, y + Math.round(nameSize * 0.82));
     ctx.shadowBlur = 0;
     y += nameSize + 16;
 
-    // ロール
+    // Role label
     ctx.font = "700 34px -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.fillStyle = rl;
-    ctx.fillText(ROLE_LABEL[profile.role] ?? profile.role, X, y);
+    ctx.fillText(ROLE_LABEL[profile.role] ?? profile.role, centerX, y);
     y += 46;
 
-    // スポーツ
+    // Sport (optional)
     if (profile.sport) {
         ctx.font = "400 30px -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.fillStyle = "rgba(255,255,255,0.55)";
-        ctx.fillText(profile.sport, X, y);
+        ctx.fillText(profile.sport, centerX, y);
         y += 40;
     }
 
-    // 地域
+    // Region (optional)
     if (profile.region) {
         ctx.font = "400 26px -apple-system, BlinkMacSystemFont, sans-serif";
         ctx.fillStyle = "rgba(255,255,255,0.38)";
-        ctx.fillText(profile.region + (profile.prefecture ? ` / ${profile.prefecture}` : ""), X, y);
+        ctx.fillText(profile.region + (profile.prefecture ? ` / ${profile.prefecture}` : ""), centerX, y);
         y += 38;
     }
 
-    y += 20;
+    y += 22;
 
-    // Cheer数
+    // Cheer count (centered)
     const cheerCount = profile.cheerCount ?? 0;
-    ctx.font = "900 56px 'SF Mono', monospace";
+    ctx.font = "900 72px 'SF Mono', monospace";
     ctx.fillStyle = "#FFD600";
-    ctx.fillText(String(cheerCount), X, y);
-    const numW = ctx.measureText(String(cheerCount)).width;
-    ctx.font = "500 26px -apple-system, sans-serif";
+    ctx.fillText(String(cheerCount), centerX, y);
+    y += 58;
+    ctx.font = "600 26px -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.4)";
-    ctx.fillText(" Cheer", X + numW + 8, y - 4);
-    y += 68;
-
-    // 仕切り線
-    ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(X, y); ctx.lineTo(W - X, y); ctx.stroke();
+    ctx.fillText("Cheer", centerX, y);
     y += 44;
 
-    // 招待テキスト
+    // Thin divider line (centered)
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 200, y);
+    ctx.lineTo(centerX + 200, y);
+    ctx.stroke();
+    y += 44;
+
+    // Invite text
     ctx.font = "500 30px -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.45)";
-    ctx.fillText("一緒にはじめよう", X, y);
+    ctx.fillText("一緒にはじめよう", centerX, y);
     y += 46;
 
-    // 招待URL
+    // Referral URL
     ctx.font = "700 32px 'SF Mono', 'Fira Code', monospace";
     ctx.fillStyle = rl;
-    ctx.fillText(`vizion-connection.jp/r/${profile.slug}`, X, y);
-    y += 54;
+    ctx.fillText(`vizion-connection.jp/r/${profile.slug}`, centerX, y);
+    y += 40;
 
-    // QRコード
+    // SECTION 5: Bottom area — QR code centered after 40px gap
+    y += 40;
     const qrDataUrl = await QRCode.toDataURL(
         `https://vizion-connection.jp/r/${profile.slug}`,
         { width: 200, margin: 2, color: { dark: "#ffffff", light: "#00000000" } }
@@ -218,23 +283,26 @@ async function buildStoriesCanvas(profile: ProfileData, rl: string): Promise<HTM
         const qrImg = new Image();
         qrImg.onload = () => {
             const qrSize = 160;
-            roundedRect(X, y, qrSize + 16, qrSize + 16, 12);
-            ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fill();
-            ctx.drawImage(qrImg, X + 8, y + 8, qrSize, qrSize);
+            const box = qrSize + 16;
+            const x0 = centerX - box / 2;
+            roundedRect(x0, y, box, box, 12);
+            ctx.fillStyle = "rgba(255,255,255,0.06)";
+            ctx.fill();
+            ctx.drawImage(qrImg, centerX - qrSize / 2, y + 8, qrSize, qrSize);
             resolve();
         };
         qrImg.onerror = () => resolve();
         qrImg.src = qrDataUrl;
     });
 
-    // 最下部
+    // Serial ID + tagline at bottom
     ctx.textAlign = "center";
     ctx.font = "600 22px 'SF Mono', monospace";
     ctx.fillStyle = "rgba(255,255,255,0.18)";
-    ctx.fillText(profile.serialId ?? "", W / 2, H - 64);
+    ctx.fillText(profile.serialId ?? "", centerX, H - 64);
     ctx.font = "400 20px -apple-system, sans-serif";
     ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillText("Beyond the Limit, Connect the Trust.", W / 2, H - 36);
+    ctx.fillText("Beyond the Limit, Connect the Trust.", centerX, H - 36);
 
     return canvas;
 }
@@ -727,6 +795,7 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [storiesLoading, setStoriesLoading] = useState(false);
+    const [storiesDownloaded, setStoriesDownloaded] = useState(false);
 
     const url = typeof window !== "undefined" ? `${window.location.origin}/u/${profile.slug}` : `/u/${profile.slug}`;
 
@@ -745,7 +814,7 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
         const role = roleLabel[profile.role] ?? profile.role;
         const sport = profile.sport ? ` · ${profile.sport}` : "";
         const cheer = (profile.cheerCount ?? 0).toLocaleString();
-        const text = `${profile.displayName}（${role}${sport}）さんのVizion Connectionプロフィール 🔥\n⭐ Cheer ${cheer}\n\nスポーツの新しいつながりを、ここから。\n#VizionConnection`;
+        const text = `${profile.displayName}（${role}${sport}）のVizion Connectionプロフィール 🔥\n⭐ Cheer ${cheer} / スポーツの信頼を、可視化する。\n#VizionConnection #スポーツ`;
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank", "width=600,height=500,noopener");
         setOpen(false);
     }
@@ -760,22 +829,36 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
             );
             const file = new File([blob], `vizion-${profile.slug}.png`, { type: "image/png" });
 
-            // Web Share API（iOS/Androidのネイティブシェアシートを直接起動）
-            if (navigator.canShare?.({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: `${profile.displayName} | Vizion Connection`,
-                    text: `一緒にはじめよう → vizion-connection.jp/r/${profile.slug}`,
-                });
-            } else {
-                // フォールバック：ダウンロード
-                const objUrl = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = objUrl;
-                a.download = `vizion-stories-${profile.slug}.png`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+            // Mobile: try Web Share API first (user can choose Instagram from share sheet)
+            try {
+                if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+                    await navigator.share({
+                        files: [file],
+                        title: `${profile.displayName} | Vizion Connection`,
+                        text: `一緒にはじめよう → vizion-connection.jp/r/${profile.slug}`,
+                    });
+                    return;
+                }
+            } catch (err: unknown) {
+                if (err instanceof Error && err.name === "AbortError") {
+                    // fall back to download
+                } else {
+                    // fall back to download
+                }
             }
+
+            // Fallback: auto-download
+            const objUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = objUrl;
+            a.download = `vizion-stories-${profile.slug}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(objUrl), 1000);
+
+            setStoriesDownloaded(true);
+            setTimeout(() => setStoriesDownloaded(false), 5000);
         } catch (err: unknown) {
             if (err instanceof Error && err.name === "AbortError") return; // キャンセル
             console.error("[handleStories]", err);
@@ -797,21 +880,26 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
 
     const menuItems = [
         {
+            key: "x",
             label: "Xに投稿", sub: "OG画像付きでツイート",
             icon: <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>,
             color: "#ffffff", bg: "rgba(255,255,255,0.06)", border: "rgba(255,255,255,0.1)", onClick: handleX, loading: false,
         },
         {
-            label: "Instagram Stories", sub: "写真をフル背景にしたカードを投稿",
+            key: "stories",
+            label: storiesDownloaded ? "画像を保存しました ✓" : "Instagram Stories",
+            sub: storiesDownloaded ? "Instagramアプリを開いてストーリーズに追加" : "写真をフル背景にしたカードを投稿",
             icon: <svg viewBox="0 0 24 24" width={14} height={14} fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z" /></svg>,
             color: "#e1306c", bg: "linear-gradient(135deg,rgba(240,148,51,.1),rgba(188,24,136,.1))", border: "rgba(225,48,108,0.2)", onClick: handleStories, loading: storiesLoading,
         },
         {
+            key: "copy",
             label: copied ? "コピーしました ✓" : "URLをコピー", sub: "プロフィールURLをコピー",
             icon: <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>,
             color: copied ? "#32D278" : "rgba(255,255,255,0.55)", bg: copied ? "rgba(50,210,120,0.08)" : "rgba(255,255,255,0.04)", border: copied ? "rgba(50,210,120,0.25)" : "rgba(255,255,255,0.08)", onClick: handleCopyUrl, loading: false,
         },
         {
+            key: "native",
             label: "その他のアプリでシェア", sub: "Web Share API / LINEなど",
             icon: <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>,
             color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.07)", onClick: handleNativeShare, loading: false,
@@ -844,20 +932,32 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
                         </div>
                         <div className="p-[6px]">
                             {menuItems.map((item) => (
-                                <button key={item.label} onClick={item.onClick} disabled={item.loading}
-                                    className="mb-1 flex w-full items-center gap-[10px] rounded-[9px] px-3 py-[10px] text-left transition-[filter] duration-150"
-                                    style={{ background: item.bg, border: `1px solid ${item.border}`, color: item.color, cursor: item.loading ? "wait" : "pointer" }}
-                                >
-                                    <span className="flex w-5 shrink-0 justify-center">
-                                        {item.loading
-                                            ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: "spin .8s linear infinite" }}><path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" /></svg>
-                                            : item.icon}
-                                    </span>
-                                    <span className="flex-1">
-                                        <span className="block text-[12px] font-bold leading-[1.3]">{item.label}</span>
-                                        <span className="mt-px block text-[10px] opacity-45">{item.sub}</span>
-                                    </span>
-                                </button>
+                                <div key={item.key}>
+                                    <button onClick={item.onClick} disabled={item.loading}
+                                        className="mb-1 flex w-full items-center gap-[10px] rounded-[9px] px-3 py-[10px] text-left transition-[filter] duration-150"
+                                        style={{ background: item.bg, border: `1px solid ${item.border}`, color: item.color, cursor: item.loading ? "wait" : "pointer" }}
+                                    >
+                                        <span className="flex w-5 shrink-0 justify-center">
+                                            {item.loading
+                                                ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ animation: "spin .8s linear infinite" }}><path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" /></svg>
+                                                : item.icon}
+                                        </span>
+                                        <span className="flex-1">
+                                            <span className="block text-[12px] font-bold leading-[1.3]">{item.label}</span>
+                                            <span className="mt-px block text-[10px] opacity-45">{item.sub}</span>
+                                        </span>
+                                    </button>
+
+                                    {item.key === "stories" && storiesDownloaded && (
+                                        <button
+                                            onClick={() => window.open("instagram://", "_blank")}
+                                            className="mb-1 flex w-full items-center justify-center gap-[8px] rounded-[9px] px-3 py-[10px] text-[12px] font-bold"
+                                            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.75)" }}
+                                        >
+                                            Instagramを開く
+                                        </button>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     </div>

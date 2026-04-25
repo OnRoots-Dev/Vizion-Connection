@@ -1,6 +1,7 @@
 // app/(auth)/thanks/page.tsx
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface Props {
     searchParams: Promise<{ type?: string }>;
@@ -13,8 +14,8 @@ export default async function ThanksPage({ searchParams }: Props) {
         verify: {
             icon: "✉️",
             title: "メールを確認してください",
-            desc: "認証メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
-            sub: "メールが届かない場合は迷惑メールフォルダをご確認ください。",
+            desc: "認証メールを送信しました。",
+            sub: null,
             cta: null,
         },
         verified: {
@@ -47,34 +48,53 @@ export default async function ThanksPage({ searchParams }: Props) {
                 <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
             </Link>
 
-            <div className="w-full max-w-sm text-center space-y-6">
-                <div
+            <motion.div
+                className="w-full max-w-sm text-center space-y-6"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+            >
+                <motion.div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto"
                     style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
                 >
                     {content.icon}
-                </div>
+                </motion.div>
 
-                <div className="space-y-2">
+                <motion.div
+                    className="space-y-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut", delay: 0.12 }}
+                >
                     <h1 className="text-xl font-bold text-white">{content.title}</h1>
                     <p className="text-sm text-white/50 leading-relaxed">{content.desc}</p>
                     {content.sub && (
                         <p className="text-xs text-white/30">{content.sub}</p>
                     )}
-                </div>
+                </motion.div>
 
                 {content.cta && (
-                    <Link
-                        href={content.cta.href}
-                        className="inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold transition-all"
-                        style={{
-                            background: "#a78bfa",
-                            color: "#000",
-                            boxShadow: "0 0 24px rgba(167,139,250,0.4)",
-                        }}
+                    <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, ease: "easeOut", delay: 0.18 }}
                     >
-                        {content.cta.label}
-                    </Link>
+                        <Link
+                            href={content.cta.href}
+                            className="inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold transition-all"
+                            style={{
+                                background: "#a78bfa",
+                                color: "#000",
+                                boxShadow: "0 0 24px rgba(167,139,250,0.4)",
+                            }}
+                        >
+                            {content.cta.label}
+                        </Link>
+                    </motion.div>
                 )}
 
                 <p className="text-xs text-white/20 pt-2">
@@ -82,7 +102,7 @@ export default async function ThanksPage({ searchParams }: Props) {
                         トップに戻る
                     </Link>
                 </p>
-            </div>
+            </motion.div>
         </div>
     );
 }

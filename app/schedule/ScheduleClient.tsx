@@ -397,6 +397,41 @@ export default function ScheduleClient({
     setCalendarDate(new Date(arg.view.currentStart));
   }, []);
 
+  const handlePrev = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (api) {
+      api.prev();
+      return;
+    }
+    setCalendarDate((current) => {
+      const next = new Date(current);
+      next.setMonth(next.getMonth() - 1);
+      return next;
+    });
+  }, []);
+
+  const handleNext = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (api) {
+      api.next();
+      return;
+    }
+    setCalendarDate((current) => {
+      const next = new Date(current);
+      next.setMonth(next.getMonth() + 1);
+      return next;
+    });
+  }, []);
+
+  const handleToday = useCallback(() => {
+    const api = calendarRef.current?.getApi();
+    if (api) {
+      api.today();
+      return;
+    }
+    setCalendarDate(new Date());
+  }, []);
+
   const onEventClick = useCallback((arg: EventClickArg) => {
     const s = (arg.event.extendedProps as any)?.schedule as Schedule | undefined;
     if (!s) return;
@@ -505,9 +540,9 @@ export default function ScheduleClient({
           loading={loading}
           events={fcEvents}
           onChangeView={onChangeView}
-          onPrev={() => calendarRef.current?.getApi()?.prev()}
-          onToday={() => calendarRef.current?.getApi()?.today()}
-          onNext={() => calendarRef.current?.getApi()?.next()}
+          onPrev={handlePrev}
+          onToday={handleToday}
+          onNext={handleNext}
           onCreate={openCreate}
           onCreateAt={(d) => openCreateAt(d)}
           onDatesSet={onDatesSet}

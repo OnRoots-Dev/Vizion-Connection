@@ -20,7 +20,15 @@ const STEP_COMPONENTS = [
   StepStats, StepEpisodes, StepSkills, StepContact, StepComplete,
 ];
 
-export default function CareerWizardModal({ onClose, contained = false }: { onClose?: () => void; contained?: boolean }) {
+export default function CareerWizardModal({
+  onClose,
+  contained = false,
+  onCompleted,
+}: {
+  onClose?: () => void;
+  contained?: boolean;
+  onCompleted?: () => void;
+}) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
     data, isSaving, saveError, saveToApi,
@@ -42,6 +50,7 @@ export default function CareerWizardModal({ onClose, contained = false }: { onCl
     if (isLastContentStep) {
       const ok = await saveToApi();
       if (!ok) return; // saveErrorが表示される
+      onCompleted?.();
     }
     nextStep();
   };

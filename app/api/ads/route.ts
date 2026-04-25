@@ -9,6 +9,7 @@ type AdRow = {
     sponsor?: string | null;
     business_id: number | null;
     is_active: boolean;
+    status?: string | null;
     sport_category: string | null;
     starts_at: string | null;
     ends_at: string | null;
@@ -37,13 +38,13 @@ export async function GET(req: NextRequest) {
 
     {
         const result = await buildQuery(
-            "id, headline, image_url, link_url, sponsor, business_id, is_active, sport_category, starts_at, ends_at, position",
+            "id, headline, image_url, link_url, sponsor, business_id, is_active, status, sport_category, starts_at, ends_at, position",
         );
         data = (result as { data: unknown[] | null }).data ?? null;
         error = (result as { error: { message: string } | null }).error ?? null;
     }
 
-    if (error?.message && (error.message.includes("column ads.sponsor does not exist") || error.message.includes("column ads.position does not exist"))) {
+    if (error?.message && (error.message.includes("column ads.sponsor does not exist") || error.message.includes("column ads.position does not exist") || error.message.includes("column ads.status does not exist"))) {
         const result = await buildQuery("id, headline, image_url, link_url, business_id, is_active, sport_category, starts_at, ends_at");
         data = (result as { data: unknown[] | null }).data ?? null;
         error = (result as { error: { message: string } | null }).error ?? null;
@@ -51,7 +52,9 @@ export async function GET(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const rows = ((data ?? []) as AdRow[]).filter((row) => isActiveNow(row, now));
+    const rows = ((data ?? []) as AdRow[])
+        .filter((row) => isActiveNow(row, now))
+        .filter((row) => (row.status ? String(row.status) === "approved" : true));
 
     const businessIds = Array.from(
         new Set(

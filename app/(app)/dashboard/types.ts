@@ -6,10 +6,12 @@ export type Theme = "dark" | "dim" | "light";
 
 export type DashboardView =
     | "home"
+    | "contact"
     | "notifications"
     | "hub"
     | "offers"
     | "admin_posts"
+    | "admin_ads"
     | "collections"
     | "journey"
     | "card"

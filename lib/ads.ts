@@ -14,11 +14,16 @@ function toAd(row: Record<string, unknown>): AdItem {
   const adScopeValue = row.ad_scope ?? row.adScope;
   const planValue = row.plan ?? row.plan_id ?? "";
   const regionValue = row.region ?? row.prefecture ?? null;
+  const statusValue = row.status ? String(row.status) : "";
 
   return {
     id: String(row.id),
     businessId: Number(row.business_id ?? 0),
     plan: String(planValue),
+    status:
+      statusValue === "pending" || statusValue === "approved" || statusValue === "rejected"
+        ? (statusValue as NonNullable<AdItem["status"]>)
+        : undefined,
     adSize: row.ad_size
       ? (String(row.ad_size) as AdItem["adSize"])
       : null,
@@ -44,22 +49,21 @@ export async function getAdsForUser(userRegion?: string | null, _sport?: string)
   try {
     const normalizedRegion = userRegion?.trim() ?? "";
 
-    const nationalPromise = supabaseServer
+    const buildBaseQuery = () => supabaseServer
       .from("ads")
       .select("*")
+      .eq("is_active", true);
+
+    const nationalPromise = buildBaseQuery()
       .eq("ad_scope", "national")
       .is("region", null)
-      .eq("is_active", true)
       .order("plan_priority", { ascending: false })
       .limit(1);
 
     const regionalPromise = normalizedRegion
-      ? supabaseServer
-          .from("ads")
-          .select("*")
+      ? buildBaseQuery()
           .eq("ad_scope", "regional")
           .eq("region", normalizedRegion)
-          .eq("is_active", true)
       : Promise.resolve({ data: [], error: null } as { data: any[]; error: null });
 
     const [nationalRes, regionalRes] = await Promise.all([nationalPromise, regionalPromise]);
@@ -67,7 +71,9 @@ export async function getAdsForUser(userRegion?: string | null, _sport?: string)
     const nationalAds = nationalRes.error ? [] : (nationalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
     const regionalAds = regionalRes.error ? [] : (regionalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
 
-    return [...nationalAds, ...shuffle(regionalAds).slice(0, 2)];
+    const onlyApprovedIfStatusExists = (ad: AdItem) => (ad.status ? ad.status === "approved" : true);
+
+    return [...nationalAds, ...shuffle(regionalAds).slice(0, 2)].filter(onlyApprovedIfStatusExists);
   } catch (err) {
     console.error("[getAdsForUser]", err);
     return [];

@@ -177,7 +177,7 @@ export async function createUser(params: {
             referrer_slug: params.referrerSlug ?? null,
             is_founding_member: params.isFoundingMember ?? false,
             ambassador_code: params.ambassadorCode ?? null,
-            is_public: true,
+            is_public: params.role === "Admin" ? false : true,
             verified: false,
         })
         .select().single();
@@ -185,10 +185,9 @@ export async function createUser(params: {
     if (error || !data) { console.error("[createUser]", error); return null; }
 
     const seq = data.id;
-    const year = new Date().getFullYear();
-    const serialId = `VZ-${year}-${seq.toString().padStart(6, "0")}`;
-    await supabase.from("users").update({ seq, serial_id: serialId }).eq("id", seq);
+    await updateUserSerialId(params.slug, seq, randA, randB);
 
+    const serialId = `VZ-${randA}-${randB}-${seq.toString().padStart(5, "0")}`;
     return toProfile({ ...data, seq, serial_id: serialId });
 }
 

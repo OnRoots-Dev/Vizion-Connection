@@ -31,6 +31,7 @@ export type BusinessHubAd = {
   startsAt: string;
   endsAt: string | null;
   isActive: boolean;
+  status?: "pending" | "approved" | "rejected";
   adScope: "regional" | "national" | null;
   prefecture: string | null;
   metrics: {
@@ -84,6 +85,7 @@ function safePercent(numerator: number, denominator: number) {
 }
 
 function normalizeAdRow(row: Record<string, unknown>, metrics: { clicks: number; conversions: number }): BusinessHubAd {
+  const statusValue = row.status ? String(row.status) : "";
   return {
     id: String(row.id),
     headline: String(row.headline ?? "無題の広告"),
@@ -93,6 +95,10 @@ function normalizeAdRow(row: Record<string, unknown>, metrics: { clicks: number;
     startsAt: String(row.starts_at ?? new Date().toISOString()),
     endsAt: row.ends_at ? String(row.ends_at) : null,
     isActive: Boolean(row.is_active),
+    status:
+      statusValue === "pending" || statusValue === "approved" || statusValue === "rejected"
+        ? (statusValue as NonNullable<BusinessHubAd["status"]>)
+        : undefined,
     adScope: row.ad_scope ? (String(row.ad_scope) as BusinessHubAd["adScope"]) : null,
     prefecture: row.prefecture ? String(row.prefecture) : null,
     metrics,
@@ -166,18 +172,47 @@ export async function getBusinessHubAnalytics(profile: ProfileRecord, days = 7):
 }
 
 export async function listBusinessHubAds(profile: ProfileRecord): Promise<BusinessHubAd[]> {
-  const { data: ads, error } = await supabaseServer
-    .from("ads")
-    .select("id, headline, body_text, image_url, link_url, starts_at, ends_at, is_active, ad_scope, prefecture, created_at")
-    .eq("business_id", profile.id)
-    .order("created_at", { ascending: false });
+  const selectWithStatusAndScope = "id, headline, body_text, image_url, link_url, starts_at, ends_at, is_active, status, ad_scope, prefecture, created_at";
+  const selectWithoutStatusAndScope = "id, headline, body_text, image_url, link_url, starts_at, ends_at, is_active, prefecture, created_at";
+  const selectWithoutStatusScopePrefecture = "id, headline, body_text, image_url, link_url, starts_at, ends_at, is_active, created_at";
+
+  const query = async (selectColumns: string) =>
+    supabaseServer
+      .from("ads")
+      .select(selectColumns)
+      .eq("business_id", profile.id)
+      .order("created_at", { ascending: false });
+
+  let ads: unknown[] | null = null;
+  let error: { message: string } | null = null;
+
+  {
+    const result = await query(selectWithStatusAndScope);
+    ads = (result as { data: unknown[] | null }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error?.message && (error.message.includes("column ads.status does not exist") || error.message.includes("column ads.ad_scope does not exist"))) {
+    const result = await query(selectWithoutStatusAndScope);
+    ads = (result as { data: unknown[] | null }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error?.message && error.message.includes("column ads.prefecture does not exist")) {
+    const result = await query(selectWithoutStatusScopePrefecture);
+    ads = (result as { data: unknown[] | null }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
 
   if (error) {
     console.error("[listBusinessHubAds]", error);
+    if (error.message.includes("column ads.")) {
+      throw new Error("広告テーブルの更新が必要です（マイグレーション未適用の可能性があります）。");
+    }
     return [];
   }
 
-  const adIds = (ads ?? []).map((row) => String(row.id));
+  const adIds = (ads ?? []).map((row) => String((row as { id?: unknown }).id));
   const metricsMap = new Map<string, { clicks: number; conversions: number }>();
   if (adIds.length > 0) {
     const { data: events } = await supabaseServer
@@ -194,7 +229,10 @@ export async function listBusinessHubAds(profile: ProfileRecord): Promise<Busine
     }
   }
 
-  return (ads ?? []).map((row) => normalizeAdRow(row as Record<string, unknown>, metricsMap.get(String(row.id)) ?? { clicks: 0, conversions: 0 }));
+  return (ads ?? []).map((row) => {
+    const id = String((row as { id?: unknown }).id);
+    return normalizeAdRow(row as Record<string, unknown>, metricsMap.get(id) ?? { clicks: 0, conversions: 0 });
+  });
 }
 
 export async function createBusinessHubAd(profile: ProfileRecord, input: {
@@ -225,12 +263,28 @@ export async function createBusinessHubAd(profile: ProfileRecord, input: {
     headline: input.headline,
     body_text: input.bodyText ?? null,
     is_active: true,
+    status: "pending",
     starts_at: startsAt,
     ends_at: endsAt,
   };
 
-  const { data, error } = await supabaseServer.from("ads").insert(payload).select("*").single();
-  if (error) {
+  let data: unknown = null;
+  let error: { message: string } | null = null;
+
+  {
+    const result = await supabaseServer.from("ads").insert(payload).select("*").single();
+    data = (result as { data: unknown }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error?.message && error.message.includes("column ads.prefecture does not exist")) {
+    const { prefecture: _prefecture, ...payloadWithoutPrefecture } = payload;
+    const result = await supabaseServer.from("ads").insert(payloadWithoutPrefecture).select("*").single();
+    data = (result as { data: unknown }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error || !data) {
     console.error("[createBusinessHubAd]", error);
     throw new Error("広告を作成できませんでした");
   }
@@ -258,7 +312,7 @@ export async function updateBusinessHubAd(profile: ProfileRecord, adId: string, 
   if (typeof input.endsAt != "undefined") patch.ends_at = input.endsAt ? new Date(input.endsAt).toISOString() : null;
   if (typeof input.isActive == "boolean") patch.is_active = input.isActive;
 
-  const { data, error } = await supabaseServer
+  const updateBase = () => supabaseServer
     .from("ads")
     .update(patch)
     .eq("id", adId)
@@ -266,7 +320,23 @@ export async function updateBusinessHubAd(profile: ProfileRecord, adId: string, 
     .select("*")
     .single();
 
-  if (error) {
+  let data: unknown = null;
+  let error: { message: string } | null = null;
+
+  {
+    const result = await updateBase();
+    data = (result as { data: unknown }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error?.message && error.message.includes("column ads.prefecture does not exist") && Object.prototype.hasOwnProperty.call(patch, "prefecture")) {
+    delete patch.prefecture;
+    const result = await updateBase();
+    data = (result as { data: unknown }).data ?? null;
+    error = (result as { error: { message: string } | null }).error ?? null;
+  }
+
+  if (error || !data) {
     console.error("[updateBusinessHubAd]", error);
     throw new Error("広告を更新できませんでした");
   }

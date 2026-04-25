@@ -168,6 +168,31 @@ export function SettingsView({ profile, t, roleColor, onBack, onLogout, onProfil
             ) : null}
 
             <ViewHeader title="Settings" sub="アカウント設定" onBack={onBack} t={t} roleColor={roleColor} />
+
+            <SectionCard t={t} accentColor={roleColor}>
+                <SLabel text="サポート" color={roleColor} />
+                <button
+                    type="button"
+                    onClick={() => (window.location.href = "/dashboard?view=contact")}
+                    style={{
+                        width: "100%",
+                        padding: "12px 12px",
+                        borderRadius: 12,
+                        background: "rgba(255,255,255,0.03)",
+                        border: `1px solid ${t.border}`,
+                        color: t.text,
+                        fontSize: 13,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        textAlign: "left",
+                    }}
+                >
+                    問い合わせ
+                </button>
+                <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
+                    不具合報告・機能要望・取材などはこちらから送信できます。
+                </p>
+            </SectionCard>
             <SectionCard t={t}>
                 <SLabel text="アカウント情報" />
                 {[

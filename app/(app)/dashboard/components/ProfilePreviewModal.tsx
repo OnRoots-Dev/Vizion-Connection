@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
 import type { PublicProfileData } from "@/features/profile/types";
 
 export function ProfilePreviewModal({
@@ -122,7 +124,15 @@ export function ProfilePreviewModal({
                 <div className="flex flex-col gap-[14px]">
                   <div className="flex items-center gap-3">
                     <div className="h-16 w-16 overflow-hidden rounded-full bg-white/8">
-                      {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" /> : null}
+                      {profile.avatarUrl ? (
+                        <Image
+                          src={profile.avatarUrl}
+                          alt={profile.displayName}
+                          width={64}
+                          height={64}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
                     </div>
                     <div>
                       <p className="mb-1 mt-0 text-[20px] font-black text-white">{profile.displayName}</p>
@@ -199,9 +209,13 @@ export function ProfilePreviewModal({
                     {profile.sport ? <span className="rounded-full bg-white/6 px-[10px] py-[5px] text-[11px] text-white">{profile.sport}</span> : null}
                   </div>
                   <p className="m-0 text-[13px] leading-[1.8] text-white/70">{profile.bio ?? "プロフィール未設定です。"}</p>
-                  <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex w-fit rounded-xl bg-white/8 px-[14px] py-[10px] font-bold text-white no-underline">
-                    公開プロフィールを新しいタブで開く
-                  </a>
+                  <Link
+                    href={`/u/${profile.slug}`}
+                    onClick={onClose}
+                    className="inline-flex w-fit rounded-xl bg-white/8 px-[14px] py-[10px] font-bold text-white no-underline"
+                  >
+                    詳しく見る →
+                  </Link>
                 </div>
               ) : (
                 <p className="m-0 text-white/55">プロフィールを表示できませんでした。</p>

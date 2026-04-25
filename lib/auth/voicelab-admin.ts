@@ -17,5 +17,5 @@ export function canManageVoiceLabByEmail(email?: string | null) {
         return true;
     }
 
-    return normalized.endsWith("@vizion-connection.jp");
+    return false;
 }

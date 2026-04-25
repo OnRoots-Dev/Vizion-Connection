@@ -25,6 +25,11 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "公開設定の形式が正しくありません" }, { status: 400 });
   }
 
+  if (user.role === "Admin") {
+    await updateUserProfile(user.slug, { isPublic: false });
+    return NextResponse.json({ error: "Adminアカウントは公開できません" }, { status: 403 });
+  }
+
   await updateUserProfile(user.slug, { isPublic: parsed.data.isPublic });
 
   return NextResponse.json({ ok: true, isPublic: parsed.data.isPublic });

@@ -126,6 +126,36 @@ export default function ScheduleCalendar({
 
       {isMobileList ? (
         <div className="flex flex-col gap-3">
+          <div className="hidden">
+            <FullCalendar
+              ref={calendarRef as any}
+              plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+              initialView={view}
+              initialDate={date}
+              headerToolbar={false}
+              height="auto"
+              editable={canEdit}
+              selectable={false}
+              dayMaxEvents={true}
+              nowIndicator={true}
+              expandRows={true}
+              weekends={true}
+              listDayFormat={{ month: "numeric", day: "numeric", weekday: "short" }}
+              listDaySideFormat={{ weekday: "short" }}
+              slotMinTime="00:00:00"
+              slotMaxTime="24:00:00"
+              slotDuration="00:30:00"
+              events={events}
+              datesSet={onDatesSet}
+              eventClick={onEventClick}
+              dateClick={onDateClick}
+              eventDrop={onEventDrop}
+              eventResize={onEventResize}
+              eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
+              eventContent={renderEventContent}
+            />
+          </div>
+
           <div className="rounded-[18px] border border-border bg-card/40 p-2">
             <DaySlider
               selected={mobileSelected}

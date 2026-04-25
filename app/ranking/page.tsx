@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -91,8 +92,6 @@ export default async function RankingPage({
             <Link
               key={user.slug}
               href={`/u/${user.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="rounded-[24px] border border-white/10 bg-white/[0.03] p-5 transition hover:border-white/20 hover:bg-white/[0.05]"
             >
               <div className="mb-4 flex items-center justify-between">
@@ -109,7 +108,15 @@ export default async function RankingPage({
               </div>
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 overflow-hidden rounded-full bg-white/10">
-                  {user.avatar_url ? <img src={user.avatar_url} alt={user.display_name} className="h-full w-full object-cover" /> : null}
+                  {user.avatar_url ? (
+                    <Image
+                      src={user.avatar_url}
+                      alt={user.display_name}
+                      width={56}
+                      height={56}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-lg font-black">{user.display_name}</p>
