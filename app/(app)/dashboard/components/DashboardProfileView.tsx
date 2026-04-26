@@ -1,410 +1,375 @@
 "use client";
 
-import type { ProfileData } from "@/features/profile/types";
-import type { ThemeColors } from "../DashboardClient";
-import type { DashboardView } from "../DashboardClient";
 import { useEffect, useMemo, useState } from "react";
-import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
+import type { ProfileData } from "@/features/profile/types";
+import type { ThemeColors, DashboardView } from "../DashboardClient";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
+import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
-import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
+import UnifiedProfileModal from "@/components/unified-profile/UnifiedProfileModal";
 
 const ROLE_LABEL: Record<string, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
+  Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
 };
+
 const ROLE_GRADIENT: Record<string, string> = {
-    Athlete: "#2D0000", Trainer: "#001A0A", Members: "#1A0F00", Business: "#000A24",
+  Athlete: "#2D0000", Trainer: "#001A0A", Members: "#1A0F00", Business: "#000A24",
 };
+
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
+function hasProfileSignal(profile: ProfileData) {
+  return Boolean(profile.bio?.trim() || profile.region || profile.prefecture || profile.sport || profile.sportsCategory || profile.stance || profile.avatarUrl || profile.profileImageUrl || profile.claim?.trim());
+}
+
+function hasCareerSignal(careerProfile?: CareerProfileRow | null) {
+  return Boolean(careerProfile?.tagline || careerProfile?.bio_career || careerProfile?.stats?.length || careerProfile?.episodes?.length || careerProfile?.skills?.length);
+}
+
 export function DashboardProfileView({
-    profile, t, roleColor, onBack, setView, careerProfile,
+  profile,
+  t,
+  roleColor,
+  onBack,
+  setView,
+  careerProfile,
+  onProfileRefresh,
+  onCareerRefresh,
 }: {
-    profile: ProfileData;
-    t: ThemeColors;
-    roleColor: string;
-    onBack: () => void;
-    setView?: (view: DashboardView) => void;
-    careerProfile?: CareerProfileRow | null;
+  profile: ProfileData;
+  t: ThemeColors;
+  roleColor: string;
+  onBack: () => void;
+  setView?: (view: DashboardView) => void;
+  careerProfile?: CareerProfileRow | null;
+  onProfileRefresh?: () => Promise<unknown>;
+  onCareerRefresh?: () => Promise<unknown>;
 }) {
-    const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
-    const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
-    const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-    const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
-    const snsLinks = [
-        { label: "X", href: profile.xUrl, path: X_PATH },
-        { label: "Instagram", href: profile.instagram, path: IG_PATH },
-        { label: "TikTok", href: profile.tiktok, path: TK_PATH },
-    ].filter((s) => s.href);
+  const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
+  const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
+  const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
+  const needsInitialRegistration = !hasProfileSignal(profile) && !hasCareerSignal(careerProfile);
+  const snsLinks = [
+    { label: "X", href: profile.xUrl, path: X_PATH },
+    { label: "Instagram", href: profile.instagram, path: IG_PATH },
+    { label: "TikTok", href: profile.tiktok, path: TK_PATH },
+  ].filter((s) => s.href);
 
-    const [showCalendar, setShowCalendar] = useState(false);
-    const [monthSchedules, setMonthSchedules] = useState<Schedule[]>([]);
-    const [monthSchedulesLoading, setMonthSchedulesLoading] = useState(true);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  const [registrationRefreshing, setRegistrationRefreshing] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [monthSchedules, setMonthSchedules] = useState<Schedule[]>([]);
+  const [monthSchedulesLoading, setMonthSchedulesLoading] = useState(true);
 
-    const monthRange = useMemo(() => {
-        const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
-        return { start, end };
-    }, []);
-
-    const refreshMonthSchedules = () => {
-        setMonthSchedulesLoading(true);
-        const qs = new URLSearchParams({
-            start: monthRange.start.toISOString(),
-            end: monthRange.end.toISOString(),
-        });
-        fetch(`/api/schedules/mine?${qs.toString()}`, { cache: "no-store" })
-            .then(async (r) => {
-                const data = await r.json().catch(() => ({}));
-                if (!r.ok || data?.success === false) {
-                    console.error("[DashboardProfileView] fetch month schedules failed", { status: r.status, data });
-                    setMonthSchedules([]);
-                    return;
-                }
-                setMonthSchedules(Array.isArray(data?.schedules) ? data.schedules : []);
-            })
-            .catch((err) => {
-                console.error("[DashboardProfileView] fetch month schedules error", err);
-                setMonthSchedules([]);
-            })
-            .finally(() => setMonthSchedulesLoading(false));
+  const monthRange = useMemo(() => {
+    const now = new Date();
+    return {
+      start: new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0),
+      end: new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0),
     };
+  }, []);
 
-    useEffect(() => {
-        refreshMonthSchedules();
-    }, [monthRange.end, monthRange.start]);
+  useEffect(() => {
+    const qs = new URLSearchParams({ start: monthRange.start.toISOString(), end: monthRange.end.toISOString() });
+    setMonthSchedulesLoading(true);
+    fetch(`/api/schedules/mine?${qs.toString()}`, { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        setMonthSchedules(r.ok && Array.isArray(data?.schedules) ? data.schedules : []);
+      })
+      .catch(() => setMonthSchedules([]))
+      .finally(() => setMonthSchedulesLoading(false));
+  }, [monthRange.end, monthRange.start, showCalendar]);
 
-    useEffect(() => {
-        if (!showCalendar) refreshMonthSchedules();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showCalendar]);
+  const careerStats = careerProfile?.stats?.filter((stat) => stat?.label || stat?.value).slice(0, 4) ?? [];
+  const careerEpisodes = careerProfile?.episodes?.slice(0, 3) ?? [];
+  const careerSkills = careerProfile?.skills?.slice(0, 5) ?? [];
+  const profileFacts = [
+    { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
+    { label: "Cheer", value: String(profile.cheerCount ?? 0), color: "#FFD600" },
+    serialDisplay ? { label: "Vizion ID", value: serialDisplay } : null,
+    profile.sport ? { label: "Sport / Job", value: profile.sport } : null,
+    profile.region ? { label: "Area", value: profile.region } : null,
+    profile.prefecture ? { label: "Prefecture", value: profile.prefecture } : null,
+    { label: "Joined", value: joinedAt },
+  ].filter(Boolean) as Array<{ label: string; value: string; color?: string }>;
 
-    const monthSchedulesOverlapping = useMemo(() => {
-        const start = monthRange.start.getTime();
-        const end = monthRange.end.getTime();
-        return monthSchedules.filter((s) => {
-            const st = new Date(s.start_at).getTime();
-            const ed = s.end_at ? new Date(s.end_at).getTime() : st;
-            // overlap [st, ed] with [start, end)
-            return st < end && ed >= start;
-        });
-    }, [monthRange.end, monthRange.start, monthSchedules]);
+  const monthSchedulesOverlapping = monthSchedules
+    .filter((s) => {
+      const st = new Date(s.start_at).getTime();
+      const ed = s.end_at ? new Date(s.end_at).getTime() : st;
+      return st < monthRange.end.getTime() && ed >= monthRange.start.getTime();
+    })
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
-    const careerStats = careerProfile?.stats?.filter((stat) => stat?.label || stat?.value).slice(0, 4) ?? [];
-    const careerEpisodes = careerProfile?.episodes?.slice(0, 4) ?? [];
-    const careerSkills = careerProfile?.skills?.slice(0, 4) ?? [];
-    const profileFacts: Array<{ label: string; value: string; color?: string } | null> = [
-        { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
-        { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), color: "#FFD600" },
-        { label: "Vizion ID", value: profile.serialId ?? "" },
-        { label: "参加日", value: joinedAt },
-        { label: "Sport / Job", value: profile.sport ?? "—" },
-        profile.sportsCategory ? { label: "Category", value: profile.sportsCategory } : null,
-        profile.stance ? { label: "Stance", value: profile.stance } : null,
-        { label: "Area", value: profile.region ?? "—" },
-        { label: "Prefecture", value: profile.prefecture ?? "—" },
-    ];
+  async function handleCompleted() {
+    setRegistrationRefreshing(true);
+    await Promise.allSettled([
+      onProfileRefresh ? onProfileRefresh() : Promise.resolve(),
+      onCareerRefresh ? onCareerRefresh() : Promise.resolve(),
+    ]);
+    setRegistrationRefreshing(false);
+    setRegistrationOpen(false);
+  }
 
-    return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <ViewHeader title="Profile" sub="プロフィール" onBack={onBack} t={t} roleColor={roleColor} />
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <ViewHeader title="Profile" sub="プロフィール" onBack={onBack} t={t} roleColor={roleColor} />
 
-            <div className="flex flex-col gap-0 overflow-hidden rounded-[18px]" style={{ border: `1px solid ${t.border}`, background: t.surface }}>
-            <div className="relative min-h-[228px] overflow-hidden">
-                {profile.profileImageUrl ? (
-                    <img src={profile.profileImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-45" />
-                ) : (
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, #050505 100%)` }}>
-                        <div className="absolute right-[-10%] top-[-30%] h-[300px] w-[300px]" style={{ background: `radial-gradient(circle, ${roleColor}28, transparent 65%)` }} />
-                    </div>
-                )}
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #07070e 0%, rgba(7,7,14,0.5) 45%, rgba(7,7,14,0.1) 100%)" }} />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(7,7,14,0.7) 0%, transparent 55%)" }} />
-                <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1}50 0%, transparent 60%)` }} />
+      <UnifiedProfileModal
+        isOpen={registrationOpen}
+        onClose={() => setRegistrationOpen(false)}
+        user={{
+          slug: profile.slug,
+          displayName: profile.displayName,
+          profileImageUrl: profile.profileImageUrl,
+          avatarUrl: profile.avatarUrl,
+          bio: profile.bio,
+          region: profile.region,
+          prefecture: profile.prefecture,
+          sportsCategory: profile.sportsCategory,
+          sport: profile.sport,
+          stance: profile.stance,
+          instagram: profile.instagram,
+          xUrl: profile.xUrl,
+          tiktok: profile.tiktok,
+          isPublic: profile.isPublic,
+        }}
+        onCompleted={() => { void handleCompleted(); }}
+      />
 
-                <div className="relative z-10 flex items-center justify-end px-[14px] pb-0 pt-3">
-                    <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-[6px] rounded-[9px] px-[10px] py-[6px] text-[10px] font-extrabold no-underline backdrop-blur-[8px]" style={{ background: `${roleColor}16`, border: `1px solid ${roleColor}35`, color: roleColor }}>
-                        公開ページを開く
-                        <svg width={11} height={11} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                        </svg>
+      <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
+        <div style={{ position: "relative", minHeight: 248 }}>
+          {profile.profileImageUrl ? (
+            <img src={profile.profileImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-45" />
+          ) : (
+            <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, ${t.bg} 100%)` }} />
+          )}
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${t.bg} 0%, rgba(0,0,0,0.16) 52%, rgba(0,0,0,0.04) 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1}66 0%, transparent 58%)` }} />
+
+          <div style={{ position: "relative", zIndex: 2, padding: 22 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+                {serialDisplay ? <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub }}>{serialDisplay}</span> : null}
+              </div>
+              <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, textDecoration: "none", fontSize: 11, fontWeight: 900 }}>
+                公開プロフィールを見る
+              </a>
+            </div>
+
+            <p style={{ margin: 0, fontSize: 10, fontFamily: "monospace", letterSpacing: "0.28em", textTransform: "uppercase", color: `${roleColor}dd` }}>
+              {ROLE_LABEL[profile.role] ?? profile.role}{profile.sport ? ` · ${profile.sport}` : ""}
+            </p>
+            <h2 style={{ margin: "8px 0 0", fontSize: "clamp(30px,5vw,44px)", fontWeight: 900, lineHeight: 0.95, letterSpacing: "-0.03em", color: "#fff" }}>
+              {profile.displayName}
+            </h2>
+            <p style={{ margin: "8px 0 0", fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.7)" }}>
+              @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
+            </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 18, flexWrap: "wrap" }}>
+              <div style={{ width: 60, height: 60, borderRadius: "50%", overflow: "hidden", border: `2px solid ${roleColor}`, background: `linear-gradient(145deg, ${bg1}, #111)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" /> : <span style={{ color: roleColor, fontFamily: "monospace", fontSize: 22, fontWeight: 900 }}>{initials}</span>}
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,210,0,0.52)" }}>Cheer</p>
+                <p style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, lineHeight: 1, fontFamily: "monospace", color: "#FFD600" }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
+              </div>
+              {snsLinks.length > 0 ? (
+                <div style={{ display: "flex", gap: 8, marginLeft: "auto", flexWrap: "wrap" }}>
+                  {snsLinks.map((s) => (
+                    <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${roleColor}18`, border: `1px solid ${roleColor}28`, color: roleColor }}>
+                      <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor"><path d={s.path} /></svg>
                     </a>
+                  ))}
                 </div>
-
-                <div className="relative z-[2] px-[18px] pb-[18px] pt-[14px]">
-                    <div className="mb-3 inline-flex">
-                        {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
-                    </div>
-                    {serialDisplay && <span className="ml-2 font-mono text-[10px] tracking-[0.1em]" style={{ color: t.sub }}>{serialDisplay}</span>}
-
-                    <div className="mb-1 flex items-center gap-2">
-                        <span className="block h-[3px] w-5 shrink-0 rounded-[2px]" style={{ background: roleColor }} />
-                        <span className="font-mono text-[9px] font-extrabold uppercase tracking-[0.3em]" style={{ color: `${roleColor}cc` }}>
-                            {ROLE_LABEL[profile.role] ?? profile.role}
-                            {profile.sportsCategory ? ` · ${profile.sportsCategory}` : ""}
-                            {profile.sport ? ` · ${profile.sport}` : ""}
-                            {profile.stance ? ` · ${profile.stance}` : ""}
-                        </span>
-                    </div>
-
-                    <h2 className="mb-[2px] mt-0 text-[clamp(28px,5.2vw,38px)] font-black leading-none tracking-[-0.03em] text-white" style={{ textShadow: "0 2px 20px rgba(0,0,0,0.6)" }}>
-                        {profile.displayName}
-                    </h2>
-                    <p className="mb-[14px] mt-0 font-mono text-[10px]" style={{ color: t.sub }}>
-                        @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
-                    </p>
-
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border-2" style={{ borderColor: `${roleColor}90`, background: `linear-gradient(145deg, ${bg1}, #111)`, boxShadow: `0 0 16px ${roleColor}40` }}>
-                            {profile.avatarUrl
-                                ? <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
-                                : <span className="font-mono text-[16px] font-black" style={{ color: `${roleColor}cc` }}>{initials}</span>}
-                        </div>
-                        <div>
-                            <span className="mb-px block font-mono text-[8px] uppercase tracking-[0.2em]" style={{ color: "rgba(255,210,0,0.5)" }}>CHEER</span>
-                            <span className="font-mono text-[26px] font-black leading-none tracking-[-0.02em] text-[#FFD600]">
-                                {(profile.cheerCount ?? 0).toLocaleString()}
-                            </span>
-                        </div>
-                        {snsLinks.length > 0 && (
-                            <div className="ml-auto flex gap-[6px]">
-                                {snsLinks.map((s) => (
-                                    <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full no-underline" style={{ background: `${roleColor}15`, border: `1px solid ${roleColor}30`, color: roleColor }}>
-                                        <svg viewBox="0 0 24 24" width={11} height={11} fill="currentColor"><path d={s.path} /></svg>
-                                    </a>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+              ) : null}
             </div>
 
-            <div className="flex flex-col gap-[14px] p-4">
-                <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <p className="m-0 text-[10px] font-extrabold uppercase tracking-[0.16em]" style={{ color: t.sub }}>Profile</p>
-                                <h3 className="mb-0 mt-[6px] text-[20px] font-black" style={{ color: t.text }}>基本プロフィール</h3>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setView?.("edit")}
-                                className="inline-flex items-center gap-[6px] rounded-[8px] px-[10px] py-[6px] text-[10px] font-extrabold"
-                                style={{ border: `1px solid ${roleColor}28`, background: `${roleColor}10`, color: roleColor, cursor: setView ? "pointer" : "default", opacity: setView ? 1 : 0.7 }}
-                            >
-                                プロフィールを編集
-                            </button>
-                        </div>
+            {profile.claim?.trim() ? (
+              <div style={{ marginTop: 16, maxWidth: 620, borderRadius: 18, border: `1px solid ${roleColor}28`, background: `${roleColor}12`, padding: "14px 16px" }}>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, fontWeight: 800, color: "#fff" }}>&quot;{profile.claim.trim()}&quot;</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
 
-                        {profile.claim?.trim() ? (
-                            <div className="relative overflow-hidden rounded-[12px] px-4 py-[14px]" style={{ background: `${roleColor}10`, border: `1px solid ${roleColor}25` }}>
-                                <div className="absolute right-3 top-[6px] select-none font-mono text-[22px] font-black" style={{ color: `${roleColor}22` }}>&quot;</div>
-                                <p className="m-0 text-[13px] font-black leading-[1.8]" style={{ color: t.text }}>
-                                    &quot;{profile.claim.trim()}&quot;
-                                </p>
-                            </div>
-                        ) : null}
+        <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", padding: 18, borderTop: `1px solid ${t.border}`, background: t.text === "#111111" ? "rgba(17,17,17,0.02)" : "rgba(255,255,255,0.02)" }}>
+          <MetricCard label="公開状態" value={profile.isPublic ? "PUBLIC" : "PRIVATE"} sub={profile.isPublic ? "公開プロフィールで閲覧可能" : "外部には表示されません"} tone={profile.isPublic ? roleColor : "#FF5050"} t={t} />
+          <MetricCard label="キャリア登録" value={hasCareerSignal(careerProfile) ? "READY" : "DRAFT"} sub={hasCareerSignal(careerProfile) ? `${careerEpisodes.length}エピソード / ${careerSkills.length}スキル` : "初回登録で土台をつくる"} tone={hasCareerSignal(careerProfile) ? "#FFD600" : t.sub} t={t} />
+          <MetricCard label="公開導線" value={`/u/${profile.slug}`} sub="SNS・紹介導線で利用" tone={t.text} t={t} />
+        </div>
+      </section>
 
-                        {profile.bio && (
-                            <div className="relative overflow-hidden rounded-[12px] px-4 py-[14px]" style={{ background: t.surface, border: `1px solid ${t.border}` }}>
-                                <div className="absolute bottom-[20%] left-0 top-[20%] w-[3px] rounded-r-[2px]" style={{ background: `linear-gradient(to bottom, transparent, ${roleColor}, transparent)` }} />
-                                <p className="m-0 pl-1 text-[13px] leading-[1.8] opacity-[0.82]" style={{ color: t.text }}>{profile.bio}</p>
-                            </div>
-                        )}
+      {needsInitialRegistration ? (
+        <section style={{ borderRadius: 24, border: `1px solid ${roleColor}28`, background: `linear-gradient(145deg, ${roleColor}12, ${t.surface})`, padding: 22 }}>
+          <p style={{ margin: 0, fontSize: 10, fontFamily: "monospace", letterSpacing: "0.22em", textTransform: "uppercase", color: roleColor }}>First Profile Setup</p>
+          <h3 style={{ margin: "10px 0 8px", fontSize: 28, fontWeight: 900, color: t.text, lineHeight: 1.1 }}>まずはプロフィールとキャリアを登録する</h3>
+          <p style={{ margin: 0, maxWidth: 720, fontSize: 13, color: t.sub, lineHeight: 1.9 }}>初回登録では、公開プロフィールに必要な基本情報とキャリア内容をまとめて登録します。完了後はこのページに項目ごとの内容が並びます。</p>
+          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", marginTop: 16 }}>
+            {["プロフィール情報", "画像・公開導線", "キャッチコピー", "実績・スキル"].map((label, index) => (
+              <div key={label} style={{ padding: "14px 16px", borderRadius: 16, border: `1px solid ${t.border}`, background: t.surface }}>
+                <p style={{ margin: "0 0 6px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Step 0{index + 1}</p>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: t.text }}>{label}</p>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => setRegistrationOpen(true)} disabled={registrationRefreshing} style={{ marginTop: 18, padding: "14px 18px", borderRadius: 16, border: "none", background: roleColor, color: "#050508", fontSize: 13, fontWeight: 900, cursor: registrationRefreshing ? "wait" : "pointer" }}>
+            {registrationRefreshing ? "更新中..." : "プロフィール・キャリアを登録"}
+          </button>
+        </section>
+      ) : null}
 
-                        <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
-                            {profileFacts.filter((v): v is { label: string; value: string; color?: string } => Boolean(v?.value)).map(({ label, value, color }) => (
-                                <div key={label} className="rounded-[12px] p-3" style={{ background: t.surface, border: `1px solid ${t.border}` }}>
-                                    <p className="mb-[5px] mt-0 font-mono text-[8px] uppercase tracking-[0.18em]" style={{ color: t.sub }}>{label}</p>
-                                    <p className="m-0 break-words text-[13px] font-black" style={{ color: color ?? t.text }}>{value}</p>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="rounded-[12px] px-3 py-[10px]" style={{ background: profile.isPublic ? `${roleColor}08` : "rgba(255,80,80,0.06)", border: `1px solid ${profile.isPublic ? `${roleColor}20` : "rgba(255,80,80,0.2)"}` }}>
-                            <p className="mb-[2px] mt-0 text-[11px] font-bold" style={{ color: profile.isPublic ? roleColor : "#ff5050" }}>
-                                {profile.isPublic ? "✓ 公開中" : "非公開"}
-                            </p>
-                            <p className="m-0 text-[9px]" style={{ color: t.sub }}>プロフィールの公開設定</p>
-                            <button
-                                type="button"
-                                onClick={() => setView?.("settings")}
-                                className="mt-2 inline-flex items-center gap-[5px] rounded-[8px] px-[10px] py-[5px] text-[10px] font-bold"
-                                style={{ background: t.surface, border: `1px solid ${t.border}`, color: t.sub, cursor: setView ? "pointer" : "default" }}
-                            >
-                                設定を変更
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style={{ marginTop: 14, padding: "14px 14px", borderRadius: 14, background: t.surface, border: `1px solid ${t.border}` }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
-                            <div>
-                                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontWeight: 900, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace", opacity: 0.7 }}>Schedule</p>
-                                <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 900, color: t.text }}>当月の予定</p>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setView?.("schedule")}
-                                    style={{ padding: "8px 12px", borderRadius: 12, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: roleColor, fontWeight: 900, cursor: setView ? "pointer" : "default", fontSize: 11, opacity: setView ? 1 : 0.7 }}
-                                >
-                                    スケジュール管理へ
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCalendar((v) => !v)}
-                                    style={{ padding: "8px 12px", borderRadius: 12, border: `1px solid ${t.border}`, background: showCalendar ? `${roleColor}12` : "rgba(255,255,255,0.04)", color: showCalendar ? roleColor : t.sub, fontWeight: 900, cursor: "pointer", fontSize: 11 }}
-                                >
-                                    {showCalendar ? "一覧に戻る" : "カレンダーで見る"}
-                                </button>
-                            </div>
-                        </div>
-
-                        {showCalendar ? (
-                            <ScheduleClient profile={profile} embedded />
-                        ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                {monthSchedulesLoading ? (
-                                    <p style={{ margin: 0, fontSize: 12, color: t.sub }}>読み込み中...</p>
-                                ) : monthSchedules.length === 0 ? (
-                                    <p style={{ margin: 0, fontSize: 12, color: t.sub }}>今月の予定はまだありません。</p>
-                                ) : (
-                                    monthSchedulesOverlapping
-                                        .slice()
-                                        .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
-                                        .map((s) => (
-                                            <div key={s.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 10px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
-                                                <div style={{ minWidth: 0 }}>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                                        <span style={{ fontSize: 10, fontFamily: "monospace", color: CATEGORY_CONFIG[s.category]?.color ?? roleColor, fontWeight: 900 }}>
-                                                            {CATEGORY_CONFIG[s.category]?.label ?? s.category}
-                                                        </span>
-                                                        {!s.is_public ? (
-                                                            <span style={{ fontSize: 9, fontWeight: 900, color: t.sub, border: `1px solid ${t.border}`, borderRadius: 999, padding: "2px 8px" }}>非公開</span>
-                                                        ) : null}
-                                                    </div>
-                                                    <p style={{ margin: "6px 0 0", fontSize: 13, fontWeight: 900, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.title}</p>
-                                                    <p style={{ margin: "4px 0 0", fontSize: 11, color: t.sub }}>{new Date(s.start_at).toLocaleString("ja-JP")}{s.end_at ? ` - ${new Date(s.end_at).toLocaleString("ja-JP")}` : ""}</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {snsLinks.length > 0 && (
-                            <div style={{ padding: "12px 14px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}` }}>
-                                <p style={{ margin: "0 0 10px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.18em", textTransform: "uppercase", color: t.sub }}>SNS</p>
-                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                    {snsLinks.map((s) => (
-                                        <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 10, background: `${roleColor}10`, border: `1px solid ${roleColor}25`, color: roleColor, fontWeight: 800, fontSize: 12, textDecoration: "none" }}>
-                                            <svg viewBox="0 0 24 24" width={11} height={11} fill="currentColor"><path d={s.path} /></svg>
-                                            {s.label}
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 4 }}>
-                    <div>
-                        <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase" }}>Career Public Content</p>
-                        <h3 style={{ margin: "6px 0 0", fontSize: 20, color: t.text, fontWeight: 900 }}>キャリア公開内容</h3>
-                        <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub }}>公開プロフィールで見せるキャリア情報をここから管理します。</p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setView?.("career")}
-                        style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 8, border: `1px solid ${roleColor}28`, background: `${roleColor}10`, color: roleColor, fontSize: 10, fontWeight: 800, cursor: setView ? "pointer" : "default", opacity: setView ? 1 : 0.7 }}
-                    >
-                        キャリア内容を編集
-                    </button>
-                </div>
-
-                {careerProfile?.tagline && (
-                    <div style={{ padding: "12px 14px", borderRadius: 10, background: `${roleColor}10`, border: `1px solid ${roleColor}30`, fontSize: 13, fontWeight: 700, color: roleColor }}>
-                        &quot;{careerProfile.tagline}&quot;
-                    </div>
-                )}
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {careerProfile?.bio_career ? (
-                            <div style={{ padding: "14px 16px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 12, color: t.text, lineHeight: 1.8, opacity: 0.82 }}>
-                                {careerProfile.bio_career}
-                            </div>
-                        ) : (
-                            <div style={{ padding: "14px 16px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 12, color: t.sub }}>
-                                キャリア紹介文はまだ設定されていません。
-                            </div>
-                        )}
-
-                        {careerEpisodes.length > 0 ? (
-                            <div style={{ display: "grid", gap: 8 }}>
-                                {careerEpisodes.map((ep, i) => (
-                                    <div key={ep.id ?? i} style={{ borderRadius: 12, border: `1px solid ${t.border}`, background: t.surface, padding: "12px 14px" }}>
-                                        <p style={{ margin: 0, fontSize: 13, color: t.text, fontWeight: 800 }}>{ep.role}</p>
-                                        <p style={{ margin: "3px 0 4px", fontSize: 11, color: t.sub }}>{ep.org}</p>
-                                        <p style={{ margin: 0, fontSize: 10, color: t.sub, fontFamily: "monospace" }}>{ep.period}</p>
-                                        {ep.milestone ? <p style={{ margin: "7px 0 0", fontSize: 10, color: roleColor, fontWeight: 700 }}>⭐ {ep.milestone}</p> : null}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null}
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {careerStats.length > 0 && (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
-                                {careerStats.map((stat, index) => {
-                                    const statColor = stat.color === "gold" ? "#FFD600" : stat.color === "role" ? roleColor : t.text;
-                                    return (
-                                        <div key={`${stat.label}-${index}`} style={{ padding: "12px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}` }}>
-                                            <p style={{ margin: "0 0 6px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.18em", textTransform: "uppercase", color: t.sub }}>{stat.label}</p>
-                                            <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: statColor }}>{stat.value || "-"}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        {careerSkills.length > 0 ? (
-                            <div style={{ padding: "12px 14px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}` }}>
-                                <p style={{ margin: "0 0 10px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.18em", textTransform: "uppercase", color: t.sub }}>Skills</p>
-                                <div style={{ display: "grid", gap: 8 }}>
-                                    {careerSkills.map((skill) => (
-                                        <div key={skill.name}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                                <span style={{ fontSize: 12, color: skill.isHighlight ? roleColor : t.text, fontWeight: skill.isHighlight ? 800 : 600 }}>{skill.name}</span>
-                                                <span style={{ fontSize: 11, color: t.sub, fontFamily: "monospace" }}>{skill.level}</span>
-                                            </div>
-                                            <div style={{ height: 4, borderRadius: 999, background: t.border, overflow: "hidden" }}>
-                                                <div style={{ width: `${skill.level}%`, height: "100%", borderRadius: 999, background: skill.isHighlight ? "linear-gradient(90deg,#FFD600,#FFD60088)" : `linear-gradient(90deg, ${roleColor}, ${roleColor}66)` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div style={{ padding: "14px 16px", borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 12, color: t.sub }}>
-                                キャリアの公開内容はまだ設定されていません。まずは肩書き、実績、スキルから入れるのがおすすめです。
-                            </div>
-                        )}
-                    </div>
-                </div>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 0.9fr)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionFrame title="基本プロフィール" eyebrow="Profile Signals" t={t} action={needsInitialRegistration ? "初回登録を開く" : "プロフィールを編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("edit")} roleColor={roleColor}>
+            {profile.bio?.trim() ? <TextPanel text={profile.bio} t={t} /> : <EmptyPanel text="プロフィール紹介文はまだ設定されていません。" t={t} />}
+            <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+              {profileFacts.map((fact) => <FactCard key={fact.label} {...fact} t={t} />)}
             </div>
+          </SectionFrame>
+
+          <SectionFrame title="プロフィール・キャリア登録内容" eyebrow="Career Profile" t={t} action={needsInitialRegistration ? "登録モーダルを開く" : "キャリア内容を編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("career")} roleColor={roleColor}>
+            {hasCareerSignal(careerProfile) ? (
+              <>
+                {careerProfile?.tagline ? <div style={{ borderRadius: 18, border: `1px solid ${roleColor}28`, background: `${roleColor}10`, padding: "14px 16px", fontSize: 14, fontWeight: 800, color: roleColor }}>{careerProfile.tagline}</div> : null}
+                {careerProfile?.bio_career ? <TextPanel text={careerProfile.bio_career} t={t} /> : null}
+                {careerStats.length > 0 ? <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>{careerStats.map((stat, i) => <FactCard key={`${stat.label}-${i}`} label={stat.label} value={stat.value || "-"} color={stat.color === "gold" ? "#FFD600" : stat.color === "role" ? roleColor : t.text} t={t} />)}</div> : null}
+                {careerEpisodes.length > 0 ? <div style={{ display: "grid", gap: 10 }}>{careerEpisodes.map((ep, i) => <EpisodeCard key={ep.id ?? i} episode={ep} roleColor={roleColor} t={t} />)}</div> : null}
+                {careerSkills.length > 0 ? <SkillPanel skills={careerSkills} roleColor={roleColor} t={t} /> : null}
+              </>
+            ) : (
+              <EmptyPanel text="キャリアの公開内容はまだ未登録です。キャッチコピー、実績、スキルから先に入力しておくと公開プロフィールが締まります。" t={t} />
+            )}
+          </SectionFrame>
         </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionFrame title="当月の予定" eyebrow="Schedule" t={t} action={showCalendar ? "一覧に戻る" : "カレンダーで見る"} onAction={() => setShowCalendar((v) => !v)} roleColor={roleColor} secondaryAction="スケジュール管理へ" onSecondaryAction={() => setView?.("schedule")}>
+            {showCalendar ? (
+              <ScheduleClient profile={profile} embedded />
+            ) : monthSchedulesLoading ? (
+              <p style={{ margin: 0, fontSize: 12, color: t.sub }}>読み込み中...</p>
+            ) : monthSchedulesOverlapping.length === 0 ? (
+              <EmptyPanel text="今月の予定はまだありません。" t={t} />
+            ) : (
+              <div style={{ display: "grid", gap: 10 }}>
+                {monthSchedulesOverlapping.map((s) => (
+                  <div key={s.id} style={{ borderRadius: 16, border: `1px solid ${t.border}`, background: t.surface, padding: "12px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, fontFamily: "monospace", color: CATEGORY_CONFIG[s.category]?.color ?? roleColor, fontWeight: 900 }}>{CATEGORY_CONFIG[s.category]?.label ?? s.category}</span>
+                      {!s.is_public ? <span style={{ fontSize: 9, fontWeight: 900, color: t.sub, border: `1px solid ${t.border}`, borderRadius: 999, padding: "2px 8px" }}>非公開</span> : null}
+                    </div>
+                    <p style={{ margin: "8px 0 0", fontSize: 13, fontWeight: 900, color: t.text }}>{s.title}</p>
+                    <p style={{ margin: "5px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>{new Date(s.start_at).toLocaleString("ja-JP")}{s.end_at ? ` - ${new Date(s.end_at).toLocaleString("ja-JP")}` : ""}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionFrame>
+
+          <SectionFrame title="公開導線" eyebrow="Share Design" t={t} roleColor={roleColor}>
+            <div style={{ borderRadius: 18, border: `1px solid ${roleColor}22`, background: `linear-gradient(145deg, ${roleColor}12, ${t.surface})`, padding: "16px 18px" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 11, color: t.sub, lineHeight: 1.8 }}>公開プロフィールとモーダルプレビューは、現在の登録内容がそのまま反映されます。公開ページを広げる前に、プロフィールとキャリアの見え方をここで整えます。</p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, textDecoration: "none", fontSize: 11, fontWeight: 900 }}>公開ページを確認</a>
+                <button type="button" onClick={() => setView?.("cheer")} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: t.surface, color: t.sub, fontSize: 11, fontWeight: 900, cursor: setView ? "pointer" : "default" }}>拡散導線を見る</button>
+              </div>
+            </div>
+          </SectionFrame>
         </div>
-    );
+      </div>
+    </div>
+  );
+}
+
+function SectionFrame({ title, eyebrow, t, roleColor, action, onAction, secondaryAction, onSecondaryAction, children }: { title: string; eyebrow: string; t: ThemeColors; roleColor: string; action?: string; onAction?: () => void; secondaryAction?: string; onSecondaryAction?: () => void; children: React.ReactNode }) {
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 14, padding: 18, borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub }}>{eyebrow}</p>
+          <h3 style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 900, color: t.text }}>{title}</h3>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {secondaryAction ? <button type="button" onClick={onSecondaryAction} style={{ padding: "9px 12px", borderRadius: 12, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: roleColor, fontSize: 11, fontWeight: 900, cursor: onSecondaryAction ? "pointer" : "default" }}>{secondaryAction}</button> : null}
+          {action ? <button type="button" onClick={onAction} style={{ padding: "9px 12px", borderRadius: 12, border: `1px solid ${roleColor}28`, background: `${roleColor}10`, color: roleColor, fontSize: 11, fontWeight: 900, cursor: onAction ? "pointer" : "default" }}>{action}</button> : null}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function MetricCard({ label, value, sub, tone, t }: { label: string; value: string; sub: string; tone: string; t: ThemeColors }) {
+  return (
+    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "14px 16px" }}>
+      <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: tone, wordBreak: "break-word" }}>{value}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.6 }}>{sub}</p>
+    </div>
+  );
+}
+
+function TextPanel({ text, t }: { text: string; t: ThemeColors }) {
+  return <div style={{ padding: "16px 18px", borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface }}><p style={{ margin: 0, fontSize: 13, color: t.text, lineHeight: 1.9, whiteSpace: "pre-wrap" }}>{text}</p></div>;
+}
+
+function EmptyPanel({ text, t }: { text: string; t: ThemeColors }) {
+  return <div style={{ padding: "15px 16px", borderRadius: 16, border: `1px solid ${t.border}`, background: t.text === "#111111" ? "rgba(17,17,17,0.02)" : "rgba(255,255,255,0.02)", fontSize: 12, color: t.sub, lineHeight: 1.8 }}>{text}</div>;
+}
+
+function FactCard({ label, value, color, t }: { label: string; value: string; color?: string; t: ThemeColors }) {
+  return (
+    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "14px 16px" }}>
+      <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>{label}</p>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: color ?? t.text, wordBreak: "break-word" }}>{value}</p>
+    </div>
+  );
+}
+
+function EpisodeCard({ episode, roleColor, t }: { episode: NonNullable<CareerProfileRow["episodes"]>[number]; roleColor: string; t: ThemeColors }) {
+  return (
+    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "15px 16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: t.text }}>{episode.role}</p>
+          <p style={{ margin: "5px 0 0", fontSize: 11, color: t.sub }}>{episode.org}</p>
+        </div>
+        <span style={{ padding: "4px 8px", borderRadius: 999, border: `1px solid ${t.border}`, background: `${roleColor}10`, color: roleColor, fontSize: 10, fontWeight: 800, fontFamily: "monospace" }}>{episode.period}</span>
+      </div>
+      {episode.desc ? <p style={{ margin: "10px 0 0", fontSize: 12, color: t.sub, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{episode.desc}</p> : null}
+      {episode.tags?.length ? <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>{episode.tags.map((tag) => <span key={tag} style={{ padding: "5px 9px", borderRadius: 999, border: `1px solid ${t.border}`, background: t.text === "#111111" ? "rgba(17,17,17,0.02)" : "rgba(255,255,255,0.02)", color: t.sub, fontSize: 10 }}>{tag}</span>)}</div> : null}
+      {episode.milestone ? <p style={{ margin: "10px 0 0", fontSize: 11, fontWeight: 800, color: roleColor }}>★ {episode.milestone}</p> : null}
+    </div>
+  );
+}
+
+function SkillPanel({ skills, roleColor, t }: { skills: NonNullable<CareerProfileRow["skills"]>; roleColor: string; t: ThemeColors }) {
+  return (
+    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
+      <p style={{ margin: "0 0 12px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Skills</p>
+      <div style={{ display: "grid", gap: 10 }}>
+        {skills.map((skill) => (
+          <div key={skill.name}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 5 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: skill.isHighlight ? roleColor : t.text }}>{skill.name}</span>
+              <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub }}>{skill.level}</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 999, background: t.border, overflow: "hidden" }}>
+              <div style={{ width: `${skill.level}%`, height: "100%", borderRadius: 999, background: skill.isHighlight ? "linear-gradient(90deg,#FFD600,#FFD60088)" : `linear-gradient(90deg, ${roleColor}, ${roleColor}88)` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

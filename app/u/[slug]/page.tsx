@@ -46,6 +46,10 @@ const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
 
+function roleColorForLink(_role: UserRole, fallback: string) {
+    return fallback;
+}
+
 interface Props { params: Promise<{ slug: string }>; }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -126,6 +130,12 @@ export default async function UserProfilePage({ params }: Props) {
             : profile.role === "Business"
                 ? "Portfolio"
                 : "Community";
+    const spotlightItems = [
+        { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), tone: "#FFD600", sub: "リアクション" },
+        { label: "Collect", value: String(collectorCount), tone: rl, sub: "コレクション数" },
+        { label: "Career", value: careerProfile?.tagline ?? "Profile Ready", tone: "#FFFFFF", sub: careerProfile ? "キャリアタグライン" : "公開プロフィール" },
+        { label: "Link", value: `@${profile.slug}`, tone: roleColorForLink(profile.role, rl), sub: "共有しやすいURL" },
+    ];
 
     return (
         <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", overflowX: "hidden" }}>
@@ -281,6 +291,18 @@ export default async function UserProfilePage({ params }: Props) {
                     <div className="tkinner">
                         {Array.from({ length: 10 }).map((_, i) => (
                             <span key={i} className="tkitem">{profile.displayName} · {ROLE_LABEL[profile.role]} · VIZION CONNECTION ·</span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="u3" style={{ padding: "18px 20px 0" }}>
+                    <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
+                        {spotlightItems.map((item) => (
+                            <div key={item.label} style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
+                                <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>{item.label}</p>
+                                <p style={{ margin: 0, fontSize: item.label === "Career" ? 15 : 22, fontWeight: 900, color: item.tone, lineHeight: 1.3, wordBreak: "break-word" }}>{item.value}</p>
+                                <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{item.sub}</p>
+                            </div>
                         ))}
                     </div>
                 </div>

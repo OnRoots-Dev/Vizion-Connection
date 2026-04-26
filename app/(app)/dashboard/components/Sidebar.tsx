@@ -29,7 +29,7 @@ type NavLeaf = {
     badge?: "notifications";
 };
 
-type NavAction = {
+type NavActionLeaf = {
     type: "action";
     id: string;
     label: string;
@@ -43,10 +43,10 @@ type NavSubmenu = {
     id: string;
     label: string;
     icon: string;
-    items: NavLeaf[];
+    items: Array<NavLeaf | NavActionLeaf>;
 };
 
- type NavEntry = NavLeaf | NavSubmenu | NavAction;
+type NavEntry = NavLeaf | NavSubmenu;
 
 type NavSection = {
     group: string;
@@ -63,13 +63,14 @@ interface Props {
     t: ThemeColors;
     onLogout: () => void;
     onClose: () => void;
-    isMobileLayout: boolean;
 }
 
-export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, setTheme, t, onLogout, onClose, isMobileLayout }: Props) {
+export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, setTheme, t, onLogout, onClose }: Props) {
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
     const hubMenuLabel = getHubMenuLabel(profile.role);
+    const nestedSurface = theme === "light" ? "rgba(17,17,17,0.03)" : "rgba(255,255,255,0.02)";
+    const themeChipSurface = theme === "light" ? "rgba(17,17,17,0.04)" : "rgba(255,255,255,0.04)";
 
     const isPaidPlan = Boolean(profile.sponsorPlan);
     const planLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
@@ -80,7 +81,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 group: "CORE",
                 items: [
                     { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" },
-                    ...(!isMobileLayout ? [{ type: "item" as const, id: "notifications" as const, label: "Notifications", badge: "notifications" as const, icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" }] : []),
+                    { type: "item", id: "notifications", label: "Notifications", badge: "notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" },
                 ],
             },
             {
@@ -123,30 +124,39 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                             { type: "item", id: "referral", label: "Referral", icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" },
                         ],
                     },
-                    ...(!isMobileLayout
-                        ? [
+                ],
+            },
+            {
+                group: "ACCOUNT",
+                items: [
+                    {
+                        type: "submenu",
+                        id: "account",
+                        label: "Account",
+                        icon: "M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.964 0a9 9 0 10-11.964 0m11.964 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z",
+                        items: [
                             {
-                                type: "item" as const,
-                                id: "settings" as const,
+                                type: "item",
+                                id: "settings",
                                 label: "Setting",
                                 icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
                             },
                             {
-                                type: "action" as const,
+                                type: "action",
                                 id: "logout",
                                 label: "LOG OUT",
                                 icon: "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9",
                                 onClick: onLogout,
-                                tone: "danger" as const,
+                                tone: "danger",
                             },
-                        ]
-                        : []),
+                        ],
+                    },
                 ],
             },
         ];
 
         return sections;
-    }, [isMobileLayout, onLogout, profile.role]);
+    }, [onLogout, profile.role]);
 
     const isSubmenuOpen = (submenuId: string) => openSubmenu === submenuId;
 
@@ -160,17 +170,26 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
         transition: "all 0.15s ease",
     });
 
-    function renderLeaf(item: NavLeaf, nested = false) {
-        const active = view === item.id;
+    function renderLeaf(item: NavLeaf | NavActionLeaf, nested = false) {
+        const active = item.type === "item" && view === item.id;
         return (
             <button
                 key={item.id}
-                onClick={() => { setView(item.id); onClose(); }}
+                onClick={() => {
+                    if (item.type === "item") {
+                        setView(item.id);
+                    } else {
+                        item.onClick();
+                    }
+                    onClose();
+                }}
                 className={`${NAV_ITEM_BASE} ${nested ? "mb-1 pl-[18px]" : ""}`}
                 style={{
                     ...itemStyle(active),
-                    background: active ? `${roleColor}18` : nested ? "rgba(255,255,255,0.02)" : "transparent",
+                    background: active ? `${roleColor}18` : nested ? nestedSurface : "transparent",
                     border: active ? `1px solid ${roleColor}30` : nested ? `1px solid ${t.border}` : "1px solid transparent",
+                    color: item.type === "action" && item.tone === "danger" ? "#FF5050" : active ? roleColor : t.sub,
+                    opacity: item.type === "action" ? 1 : active ? 1 : 0.76,
                 }}
             >
                 {active && (
@@ -180,7 +199,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                 </svg>
                 <span>{item.label}</span>
-                {item.badge === "notifications" && notificationUnreadCount > 0 && (
+                {item.type === "item" && item.badge === "notifications" && notificationUnreadCount > 0 && (
                     <span
                         className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-[999px] px-[5px] text-[9px] font-black leading-none"
                         style={{
@@ -199,28 +218,8 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
         if (entry.type === "item") {
             return renderLeaf(entry);
         }
-        if (entry.type === "action") {
-            return (
-                <button
-                    key={entry.id}
-                    type="button"
-                    onClick={entry.onClick}
-                    className={NAV_ITEM_BASE}
-                    style={{
-                        ...itemStyle(false),
-                        color: entry.tone === "danger" ? "#FF5050" : t.sub,
-                        opacity: 1,
-                    }}
-                >
-                    <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d={entry.icon} />
-                    </svg>
-                    <span>{entry.label}</span>
-                </button>
-            );
-        }
 
-        const childActive = entry.items.some((item) => item.id === view);
+        const childActive = entry.items.some((item) => item.type === "item" && item.id === view);
         const open = childActive || isSubmenuOpen(entry.id);
 
         return (
@@ -327,7 +326,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                                         : "有料プランにアップグレード"
                                     : hubMenuLabel}
                             </p>
-                            <p className="mb-0 mt-px font-mono text-[8px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                            <p className="mb-0 mt-px font-mono text-[8px]" style={{ color: t.sub, opacity: theme === "light" ? 0.82 : 0.65 }}>
                                 {profile.role === "Business"
                                     ? isPaidPlan
                                         ? "現在のHub体験を利用中"
@@ -365,7 +364,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         <button
                             key={val} onClick={() => setTheme(val)} title={lbl}
                             className="flex-1 cursor-pointer rounded-[8px] border-none px-1 py-[6px] text-[12px] transition-all duration-200"
-                            style={{ background: theme === val ? `${roleColor}20` : "rgba(255,255,255,0.04)", color: theme === val ? roleColor : t.sub, fontWeight: theme === val ? 700 : 400, outline: theme === val ? `1px solid ${roleColor}40` : "none" }}
+                            style={{ background: theme === val ? `${roleColor}20` : themeChipSurface, color: theme === val ? roleColor : t.sub, fontWeight: theme === val ? 700 : 400, outline: theme === val ? `1px solid ${roleColor}40` : "none" }}
                         >
                             {emoji}
                         </button>
@@ -390,7 +389,7 @@ function AnimateSubmenu({ open, roleColor, t, children }: { open: boolean; roleC
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
         >
-            <div className="rounded-[12px] border p-[6px]" style={{ borderColor: t.border, background: `linear-gradient(180deg, ${roleColor}08, rgba(255,255,255,0.01))` }}>
+            <div className="rounded-[12px] border p-[6px]" style={{ borderColor: t.border, background: `linear-gradient(180deg, ${roleColor}08, ${t.surface})` }}>
                 {children}
             </div>
         </motion.div>

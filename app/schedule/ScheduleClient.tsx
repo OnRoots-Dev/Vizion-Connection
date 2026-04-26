@@ -397,10 +397,16 @@ export default function ScheduleClient({
     setCalendarDate(new Date(arg.view.currentStart));
   }, []);
 
+  const handleSelectCalendarDate = useCallback((nextDate: Date) => {
+    setCalendarDate(new Date(nextDate));
+    calendarRef.current?.getApi()?.gotoDate(nextDate);
+  }, []);
+
   const handlePrev = useCallback(() => {
     const api = calendarRef.current?.getApi();
     if (api) {
       api.prev();
+      setCalendarDate(new Date(api.getDate()));
       return;
     }
     setCalendarDate((current) => {
@@ -414,6 +420,7 @@ export default function ScheduleClient({
     const api = calendarRef.current?.getApi();
     if (api) {
       api.next();
+      setCalendarDate(new Date(api.getDate()));
       return;
     }
     setCalendarDate((current) => {
@@ -427,6 +434,7 @@ export default function ScheduleClient({
     const api = calendarRef.current?.getApi();
     if (api) {
       api.today();
+      setCalendarDate(new Date(api.getDate()));
       return;
     }
     setCalendarDate(new Date());
@@ -458,7 +466,10 @@ export default function ScheduleClient({
   const onChangeView = useCallback(
     (v: "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek") => {
       setCalendarView(v);
-      calendarRef.current?.getApi()?.changeView(v);
+      const api = calendarRef.current?.getApi();
+      if (!api) return;
+      api.changeView(v);
+      setCalendarDate(new Date(api.getDate()));
     },
     []
   );
@@ -535,6 +546,7 @@ export default function ScheduleClient({
           calendarRef={calendarRef as any}
           view={calendarView}
           date={calendarDate}
+          onSelectDate={handleSelectCalendarDate}
           canEdit={canEdit}
           embedded={embedded}
           loading={loading}

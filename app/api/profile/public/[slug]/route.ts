@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
+import { getCareerProfile } from "@/lib/supabase/career-profiles";
+import { getCollectorCount } from "@/lib/supabase/collections";
 
 export async function GET(
   _req: NextRequest,
@@ -17,5 +19,17 @@ export async function GET(
     return NextResponse.json({ success: false, reason: result.reason }, { status });
   }
 
-  return NextResponse.json({ success: true, profile: result.data });
+  const [careerProfile, collectorCount] = await Promise.all([
+    getCareerProfile(slug),
+    getCollectorCount(slug),
+  ]);
+
+  const canExposeCareer = session?.slug === slug || careerProfile?.visibility === "public";
+
+  return NextResponse.json({
+    success: true,
+    profile: result.data,
+    careerProfile: canExposeCareer ? careerProfile : null,
+    collectorCount,
+  });
 }

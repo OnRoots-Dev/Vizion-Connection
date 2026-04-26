@@ -20,6 +20,7 @@ export default function ScheduleCalendar({
   calendarRef,
   view,
   date,
+  onSelectDate,
   canEdit,
   embedded,
   loading,
@@ -40,6 +41,7 @@ export default function ScheduleCalendar({
   calendarRef: React.RefObject<FullCalendar | null>;
   view: CalendarView;
   date: Date;
+  onSelectDate: (d: Date) => void;
   canEdit: boolean;
   embedded: boolean;
   loading: boolean;
@@ -86,6 +88,20 @@ export default function ScheduleCalendar({
     onChangeView("listWeek");
   }, [isMobile, onChangeView, view]);
 
+  useEffect(() => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    const current = api.getDate();
+    if (
+      current.getFullYear() === date.getFullYear() &&
+      current.getMonth() === date.getMonth() &&
+      current.getDate() === date.getDate()
+    ) {
+      return;
+    }
+    api.gotoDate(date);
+  }, [calendarRef, date]);
+
   const onClickEventFromList = (id: string) => {
     const api = calendarRef.current?.getApi();
     const ev = api?.getEventById(id);
@@ -101,13 +117,16 @@ export default function ScheduleCalendar({
     const d = arg.date;
     const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
     const dateLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+    const showDateLabel = view !== "dayGridMonth";
     return (
       <div className="flex flex-col items-center leading-none">
         <div className="text-[10px] font-bold text-muted-foreground">{weekday}</div>
-        <div className="mt-0.5 text-[12px] font-extrabold text-foreground">{dateLabel}</div>
+        {showDateLabel ? (
+          <div className="mt-0.5 text-[12px] font-extrabold text-foreground">{dateLabel}</div>
+        ) : null}
       </div>
     );
-  }, []);
+  }, [view]);
 
   return (
     <div className="w-full">
@@ -185,6 +204,7 @@ export default function ScheduleCalendar({
                 ref={calendarRef as any}
                 plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
                 initialView={view}
+                initialDate={date}
                 headerToolbar={false}
                 height={embedded ? "auto" : "auto"}
                 editable={canEdit}
@@ -222,7 +242,7 @@ export default function ScheduleCalendar({
         <div className="flex items-start gap-4">
           <CalendarSidebar
             selectedDate={date}
-            onSelectDate={(d) => calendarRef.current?.getApi()?.gotoDate(d)}
+            onSelectDate={onSelectDate}
             onCreate={onCreate}
             canEdit={canEdit}
           />
@@ -234,6 +254,7 @@ export default function ScheduleCalendar({
                   ref={calendarRef as any}
                   plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
                   initialView={view}
+                  initialDate={date}
                   headerToolbar={false}
                   height={embedded ? "auto" : "auto"}
                   editable={canEdit}

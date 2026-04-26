@@ -20,10 +20,8 @@ export default function CalendarSidebar({
   const selectedMonthKey = useMemo(() => `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`, [selectedDate]);
 
   useEffect(() => {
-    if (selectedMonthKey !== `${month.getFullYear()}-${month.getMonth()}`) {
-      setMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
-    }
-  }, [month, selectedDate, selectedMonthKey]);
+    setMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+  }, [selectedMonthKey, selectedDate]);
 
   return (
     <aside className="hidden w-[280px] shrink-0 flex-col gap-3 md:flex">
