@@ -77,6 +77,7 @@ export default function UnifiedProfileModal({
   const [profileData, setProfileData] = useState<UnifiedProfileData>(initialProfileData);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [hydrating, setHydrating] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -85,6 +86,56 @@ export default function UnifiedProfileModal({
     setSaving(false);
     setSaveError("");
   }, [isOpen, initialProfileData]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    async function hydrate() {
+      setHydrating(true);
+      try {
+        const [meRes, careerRes] = await Promise.all([
+          fetch("/api/profile/save/me", { cache: "no-store" }),
+          fetch("/api/career-profile", { cache: "no-store" }),
+        ]);
+
+        const meJson: unknown = await meRes.json().catch(() => ({}));
+        const careerJson: unknown = await careerRes.json().catch(() => null);
+
+        if (cancelled) return;
+
+        const profile = (meRes.ok && typeof (meJson as any)?.profile === "object" && (meJson as any).profile)
+          ? (meJson as any).profile
+          : null;
+
+        setProfileData((prev) => ({
+          ...prev,
+          displayName: typeof profile?.displayName === "string" ? profile.displayName : prev.displayName,
+          bio: typeof profile?.bio === "string" ? profile.bio : prev.bio,
+          region: typeof profile?.region === "string" ? profile.region : prev.region,
+          prefecture: typeof profile?.prefecture === "string" ? profile.prefecture : prev.prefecture,
+          sportsCategory: typeof profile?.sportsCategory === "string" ? profile.sportsCategory : prev.sportsCategory,
+          sport: typeof profile?.sport === "string" ? profile.sport : prev.sport,
+          stance: typeof profile?.stance === "string" ? profile.stance : prev.stance,
+          instagram: typeof profile?.instagram === "string" ? profile.instagram : prev.instagram,
+          xUrl: typeof profile?.xUrl === "string" ? profile.xUrl : prev.xUrl,
+          tiktok: typeof profile?.tiktok === "string" ? profile.tiktok : prev.tiktok,
+          profileImageUrl: typeof profile?.profileImageUrl === "string" ? profile.profileImageUrl : prev.profileImageUrl,
+          avatarUrl: typeof profile?.avatarUrl === "string" ? profile.avatarUrl : prev.avatarUrl,
+          isPublic: typeof profile?.isPublic === "boolean" ? profile.isPublic : prev.isPublic,
+        }));
+
+        // キャリアモーダル側は Zustand が持つので、ここでは「存在確認」だけしておく
+        // （必要なら後で CareerWizardModal 側に init API を追加）
+        void careerJson;
+      } finally {
+        if (!cancelled) setHydrating(false);
+      }
+    }
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -330,8 +381,13 @@ export default function UnifiedProfileModal({
 
               <main
                 className="flex-1 min-h-0 overflow-y-auto p-4 pb-24"
-                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y", overflowY: "auto" }}
+                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y", overflowY: "auto", paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}
               >
+                {hydrating ? (
+                  <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                    読み込み中...
+                  </div>
+                ) : null}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}

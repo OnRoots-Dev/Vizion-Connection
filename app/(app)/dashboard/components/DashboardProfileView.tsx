@@ -190,7 +190,7 @@ export function DashboardProfileView({
   }
 
   const overviewSection = (
-    <SectionFrame title="基本プロフィール" eyebrow="Profile Signals" t={t} action={needsInitialRegistration ? "初回登録を開く" : "プロフィールを編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("career")} roleColor={roleColor}>
+    <SectionFrame title="基本プロフィール" eyebrow="Profile Signals" t={t} action={needsInitialRegistration ? "初回登録を開く" : "プロフィール・キャリアを編集"} onAction={() => setRegistrationOpen(true)} roleColor={roleColor}>
       {profile.bio?.trim() ? <TextPanel text={profile.bio} t={t} /> : <EmptyPanel text="プロフィール紹介文はまだ設定されていません。" t={t} />}
       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
         {profileFacts.map((fact) => <FactCard key={fact.label} {...fact} t={t} />)}
@@ -199,7 +199,7 @@ export function DashboardProfileView({
   );
 
   const careerSection = (
-    <SectionFrame title="プロフィール・キャリア登録内容" eyebrow="Career Profile" t={t} action={needsInitialRegistration ? "登録モーダルを開く" : "キャリア内容を編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("career")} roleColor={roleColor}>
+    <SectionFrame title="プロフィール・キャリア登録内容" eyebrow="Career Profile" t={t} action={needsInitialRegistration ? "登録モーダルを開く" : "プロフィール・キャリアを編集"} onAction={() => setRegistrationOpen(true)} roleColor={roleColor}>
       {hasCareerSignal(careerProfile) ? (
         <>
           {careerProfile?.tagline ? <div style={{ borderRadius: 18, border: `1px solid ${roleColor}28`, background: `${roleColor}10`, padding: "14px 16px", fontSize: 14, fontWeight: 800, color: roleColor }}>{careerProfile.tagline}</div> : null}

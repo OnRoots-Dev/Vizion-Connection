@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const type = formData.get("type");
     const file = formData.get("file");
 
-    if (type !== "profile" && type !== "avatar") {
+    if (type !== "profile" && type !== "avatar" && type !== "career") {
         return NextResponse.json({ error: "不正なアップロード種別です" }, { status: 400 });
     }
     if (!(file instanceof File)) {
