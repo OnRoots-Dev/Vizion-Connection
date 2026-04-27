@@ -249,8 +249,8 @@ export default function UnifiedProfileModal({
               </div>
             </header>
 
-            <div className="flex-1 min-h-0 overflow-hidden md:flex">
-              <div className="border-b border-white/10 px-4 py-3 md:hidden">
+            <div className="flex flex-1 min-h-0 flex-col overflow-hidden md:flex-row">
+              <div className="shrink-0 border-b border-white/10 px-4 py-3 md:hidden">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">
