@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +31,18 @@ async function getRanking(role?: string) {
     .select("slug, display_name, role, avatar_url, cheer_count, region, sport, is_founding_member")
     .eq("is_deleted", false)
     .eq("is_public", true)
-    .order("cheer_count", { ascending: false })
-    .limit(50);
+    .limit(200);
   if (role) query = query.eq("role", role);
   const { data } = await query;
-  return data ?? [];
+  const users = data ?? [];
+  const weeklyMap = await getWeeklyCheerCounts(users.map((user) => String(user.slug)));
+  return users
+    .map((user) => ({ ...user, weekly_cheer_count: weeklyMap.get(String(user.slug)) ?? 0 }))
+    .sort((a, b) => {
+      if (b.weekly_cheer_count !== a.weekly_cheer_count) return b.weekly_cheer_count - a.weekly_cheer_count;
+      return Number(b.cheer_count ?? 0) - Number(a.cheer_count ?? 0);
+    })
+    .slice(0, 50);
 }
 
 export default async function RankingPage({
@@ -57,7 +65,7 @@ export default async function RankingPage({
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-black tracking-[0.22em] text-white/35">PUBLIC RANKING</p>
+            <p className="text-[11px] font-black tracking-[0.22em] text-white/35">PUBLIC WEEKLY RANKING</p>
             <h1 className="mt-2 text-4xl font-black">Cheer Ranking</h1>
           </div>
           <Link href="/" className="text-sm text-white/55 underline-offset-4 hover:underline">トップへ戻る</Link>
@@ -125,7 +133,7 @@ export default async function RankingPage({
               </div>
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="text-white/55">{user.region ?? "地域未設定"}{user.sport ? ` / ${user.sport}` : ""}</span>
-                <span className="font-mono font-black text-[#FFD600]">★ {user.cheer_count}</span>
+                <span className="font-mono font-black text-[#FFD600]">今週 {user.weekly_cheer_count}</span>
               </div>
             </Link>
               );

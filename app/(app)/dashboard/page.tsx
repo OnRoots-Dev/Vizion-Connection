@@ -29,6 +29,7 @@ function resolveInitialView(view?: string): DashboardView {
         "business",
         "edit",
         "settings",
+        "action_history",
         "missions",
     ];
     return allowed.includes(view as DashboardView) ? (view as DashboardView) : "home";

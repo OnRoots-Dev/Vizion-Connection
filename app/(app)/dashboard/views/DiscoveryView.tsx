@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { AdItem } from "@/lib/ads-shared";
@@ -16,6 +17,7 @@ type DiscoveryUser = {
   avatar_url?: string | null;
   profile_image_url?: string | null;
   cheer_count: number;
+  weekly_cheer_count: number;
   referral_count: number;
   region?: string | null;
   prefecture?: string | null;
@@ -42,18 +44,34 @@ function getRankIcon(rank: number) {
   return null;
 }
 
+function compareWeeklyCheer(a: DiscoveryUser, b: DiscoveryUser) {
+  if ((b.weekly_cheer_count ?? 0) !== (a.weekly_cheer_count ?? 0)) return (b.weekly_cheer_count ?? 0) - (a.weekly_cheer_count ?? 0);
+  if ((b.cheer_count ?? 0) !== (a.cheer_count ?? 0)) return (b.cheer_count ?? 0) - (a.cheer_count ?? 0);
+  if ((b.referral_count ?? 0) !== (a.referral_count ?? 0)) return (b.referral_count ?? 0) - (a.referral_count ?? 0);
+  return a.slug.localeCompare(b.slug);
+}
+
+function compareReferral(a: DiscoveryUser, b: DiscoveryUser) {
+  if ((b.referral_count ?? 0) !== (a.referral_count ?? 0)) return (b.referral_count ?? 0) - (a.referral_count ?? 0);
+  if ((b.weekly_cheer_count ?? 0) !== (a.weekly_cheer_count ?? 0)) return (b.weekly_cheer_count ?? 0) - (a.weekly_cheer_count ?? 0);
+  if ((b.cheer_count ?? 0) !== (a.cheer_count ?? 0)) return (b.cheer_count ?? 0) - (a.cheer_count ?? 0);
+  return a.slug.localeCompare(b.slug);
+}
+
 function ArcadeDiscoveryRow({
   user,
   rank,
   score,
   accentColor,
   onOpen,
+  scoreTone = "default",
 }: {
   user: DiscoveryUser;
   rank: number;
   score: string;
   accentColor: string;
   onOpen: () => void;
+  scoreTone?: "default" | "gold";
 }) {
   const roleColor = ROLE_COLORS[user.role] ?? accentColor;
   const rankIcon = getRankIcon(rank);
@@ -171,7 +189,7 @@ function ArcadeDiscoveryRow({
           <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.sport || "活動情報なし"}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: score.includes("★") ? "#FFD600" : "#fff", lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: scoreTone === "gold" ? "#FFD600" : "#fff", lineHeight: 1 }}>{score}</div>
           <div style={{ marginTop: 4, fontSize: 10, color: "#fff", fontWeight: 800 }}>Check →</div>
         </div>
       </div>
@@ -198,6 +216,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   const [picks, setPicks] = useState<{ cheer: DiscoveryUser[]; referral: DiscoveryUser[] }>({ cheer: [], referral: [] });
   const [isPc, setIsPc] = useState(false);
   const [listMode, setListMode] = useState<null | "cheer" | "referral" | "results">(null);
+  const [radarTab, setRadarTab] = useState<"all" | "cheer" | "referral" | "newcomer">("all");
   const LIST_PAGE_SIZE = 24;
   const [listPage, setListPage] = useState<1 | 2>(1);
 
@@ -299,27 +318,31 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
   }, [LIST_PAGE_SIZE, listMode, query]);
 
   const boostedUsers = useMemo(() => {
-    const boost = Math.max(0, Math.min(30, journeyStreak));
-    const weight = 2;
-    const cheerBoost = boost * weight;
-
     const list = [...users];
     if (sort === "referral") {
-      return list.sort((a, b) => (b.referral_count ?? 0) - (a.referral_count ?? 0));
+      return list.sort(compareReferral);
+    }
+    if (sort === "cheer") {
+      return list.sort(compareWeeklyCheer);
     }
     if (sort === "new" || sort === "newcomer") {
       return list;
     }
 
-    return list.sort((a, b) => ((b.cheer_count ?? 0) + cheerBoost) - ((a.cheer_count ?? 0) + cheerBoost));
-  }, [journeyStreak, sort, users]);
+    return list.sort((a, b) => {
+      const aScore = (a.weekly_cheer_count ?? 0) + (a.referral_count ?? 0) * 4;
+      const bScore = (b.weekly_cheer_count ?? 0) + (b.referral_count ?? 0) * 4;
+      if (bScore !== aScore) return bScore - aScore;
+      return compareWeeklyCheer(a, b);
+    });
+  }, [sort, users]);
 
   const listUsers = useMemo(() => {
     if (listMode === "cheer") {
-      return [...users].sort((a, b) => (b.cheer_count ?? 0) - (a.cheer_count ?? 0));
+      return [...users].sort(compareWeeklyCheer);
     }
     if (listMode === "referral") {
-      return [...users].sort((a, b) => (b.referral_count ?? 0) - (a.referral_count ?? 0));
+      return [...users].sort(compareReferral);
     }
     return boostedUsers;
   }, [boostedUsers, listMode, users]);
@@ -333,19 +356,26 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
 
   const listTitle = listMode === "cheer" ? "Cheer Ranking" : listMode === "referral" ? "Referral Ranking" : "Discovery Results";
 
-  const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "new" | "newcomer"; label: string }> = [
+  const sortTabs: Array<{ id: "all" | "cheer" | "referral" | "newcomer"; label: string }> = [
     { id: "all", label: "全アカウント" },
-    { id: "cheer", label: "Cheer急上昇" },
-    { id: "referral", label: "紹介加速" },
-    { id: "new", label: "新着" },
-    { id: "newcomer", label: "新人検索" },
+    { id: "cheer", label: "Cheerランキング" },
+    { id: "referral", label: "紹介数ランキング" },
+    { id: "newcomer", label: "新着" },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Discovery" sub="全ユーザー探索・推しレーダー" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
+      <AnimatePresence mode="wait" initial={false}>
       {listMode ? (
+        <motion.div
+          key={`discovery-list-${listMode}`}
+          initial={{ opacity: 0, y: 16, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.985 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        >
         <SectionCard t={t} accentColor={roleColor}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
             <div>
@@ -407,23 +437,40 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
             ) : null}
           </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`${listMode}-${page}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              style={{ display: "grid", gap: 8 }}
+            >
             {pageUsers.map((u, i) => (
               <ArcadeDiscoveryRow
                 key={`${listMode ?? "results"}-${u.slug}`}
                 user={u}
                 rank={start + i + 1}
-                score={listMode === "referral" ? String(u.referral_count) : `★ ${u.cheer_count}`}
+                score={listMode === "referral" ? String(u.referral_count) : String(u.weekly_cheer_count)}
                 accentColor={roleColor}
+                scoreTone={listMode === "referral" ? "default" : "gold"}
                 onOpen={() => onOpenProfile?.(u.slug)}
               />
             ))}
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </SectionCard>
+        </motion.div>
       ) : null}
 
       {listMode ? null : (
-        <>
+        <motion.div
+          key="discovery-main"
+          initial={{ opacity: 0, y: 16, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.985 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        >
 
       {topHero ? (
         <AdCard ad={topHero} size="hero" />
@@ -434,7 +481,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
         </SectionCard>
       )}
 
-      <SectionCard t={t} accentColor={roleColor}>
+      <div style={{ margin: "8px 0" }}>
         <SLabel text="Vizion Radar" color={roleColor} size={10} />
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${isPc ? 4 : 2}, minmax(0, 1fr))`, gap: 8, marginBottom: 8 }}>
           <div style={{ position: "relative" }}>
@@ -505,88 +552,136 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {sortTabs.map((tab) => (
-            <button key={tab.id} onClick={() => { setLoading(true); setSort(tab.id); }} style={{ padding: "5px 10px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 10, background: sort === tab.id ? `${roleColor}22` : "rgba(255,255,255,0.05)", color: sort === tab.id ? roleColor : t.sub, outline: sort === tab.id ? `1px solid ${roleColor}40` : "none" }}>
+            <button
+              key={tab.id}
+              onClick={() => {
+                setLoading(true);
+                setRadarTab(tab.id);
+                setSort(tab.id);
+              }}
+              style={{ padding: "5px 10px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 10, background: sort === tab.id ? `${roleColor}22` : "rgba(255,255,255,0.05)", color: sort === tab.id ? roleColor : t.sub, outline: sort === tab.id ? `1px solid ${roleColor}40` : "none" }}
+            >
               {tab.label}
             </button>
           ))}
         </div>
-      </SectionCard>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12 }}>
-        <SectionCard t={t}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
-            <SLabel text="Cheer Ranking" color="#FFD600" size={10} />
-            <button type="button" onClick={() => setListMode("cheer")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
-              もっと見る→
-            </button>
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {picks.cheer.slice(0, 5).map((u, i) => (
-              <ArcadeDiscoveryRow
-                key={`c-${u.slug}`}
-                user={u}
-                rank={i + 1}
-                score={`★ ${u.cheer_count}`}
-                accentColor="#FFD600"
-                onOpen={() => onOpenProfile?.(u.slug)}
-              />
-            ))}
-          </div>
-        </SectionCard>
-
-        <SectionCard t={t}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
-            <SLabel text="Referral Ranking" color={roleColor} size={10} />
-            <button type="button" onClick={() => setListMode("referral")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
-              もっと見る→
-            </button>
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {picks.referral.slice(0, 5).map((u, i) => (
-              <ArcadeDiscoveryRow
-                key={`r-${u.slug}`}
-                user={u}
-                rank={i + 1}
-                score={String(u.referral_count)}
-                accentColor={roleColor}
-                onOpen={() => onOpenProfile?.(u.slug)}
-              />
-            ))}
-          </div>
-        </SectionCard>
       </div>
 
-      <SectionCard t={t} accentColor={roleColor}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-          <SLabel text="Discovery Results" color="#fff" size={10} />
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, opacity: 0.8, whiteSpace: "nowrap" }}>
-              Journey継続で露出が上がります（現在: 連続{journeyStreak}日）
-            </span>
-            <button type="button" onClick={() => setListMode("results")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
-              もっと見る→
-            </button>
-          </div>
-        </div>
-        {loading ? (
-          <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
-        ) : users.length === 0 ? (
-          <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
-        ) : (
-          <div style={{ display: "grid", gap: 8 }}>
-            {boostedUsers.slice(0, 10).map((u, i) => (
-              <ArcadeDiscoveryRow
-                key={u.slug}
-                user={u}
-                rank={i + 1}
-                score={`★ ${u.cheer_count}`}
-                accentColor={roleColor}
-                onOpen={() => onOpenProfile?.(u.slug)}
-              />
-            ))}
-          </div>
-        )}
-      </SectionCard>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={`radar-pane-${radarTab}`}
+          initial={{ opacity: 0, x: -14 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -14 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {radarTab === "cheer" ? (
+            <SectionCard t={t}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+                <SLabel text="Weekly Cheer Ranking" color="#FFD600" size={10} />
+                <button type="button" onClick={() => setListMode("cheer")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+                  もっと見る→
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {picks.cheer.slice(0, 5).map((u, i) => (
+                  <ArcadeDiscoveryRow
+                    key={`c-${u.slug}`}
+                    user={u}
+                    rank={i + 1}
+                    score={String(u.weekly_cheer_count)}
+                    accentColor="#FFD600"
+                    scoreTone="gold"
+                    onOpen={() => onOpenProfile?.(u.slug)}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+          ) : radarTab === "referral" ? (
+            <SectionCard t={t}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
+                <SLabel text="Referral Ranking" color={roleColor} size={10} />
+                <button type="button" onClick={() => setListMode("referral")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+                  もっと見る→
+                </button>
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {picks.referral.slice(0, 5).map((u, i) => (
+                  <ArcadeDiscoveryRow
+                    key={`r-${u.slug}`}
+                    user={u}
+                    rank={i + 1}
+                    score={String(u.referral_count)}
+                    accentColor={roleColor}
+                    onOpen={() => onOpenProfile?.(u.slug)}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+          ) : radarTab === "newcomer" ? (
+            <SectionCard t={t} accentColor={roleColor}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+                <SLabel text="New Results" color="#fff" size={10} />
+                <button type="button" onClick={() => setListMode("results")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+                  もっと見る→
+                </button>
+              </div>
+              {loading ? (
+                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
+              ) : users.length === 0 ? (
+                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {users.slice(0, 10).map((u, i) => (
+                    <ArcadeDiscoveryRow
+                      key={u.slug}
+                      user={u}
+                      rank={i + 1}
+                      score={String(u.weekly_cheer_count)}
+                      accentColor={roleColor}
+                      scoreTone="gold"
+                      onOpen={() => onOpenProfile?.(u.slug)}
+                    />
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          ) : (
+            <SectionCard t={t} accentColor={roleColor}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+                <SLabel text="Discovery Results" color="#fff" size={10} />
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, opacity: 0.8, whiteSpace: "nowrap" }}>
+                    Journey継続で露出が上がります（現在: 連続{journeyStreak}日）
+                  </span>
+                  <button type="button" onClick={() => setListMode("results")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
+                    もっと見る→
+                  </button>
+                </div>
+              </div>
+              {loading ? (
+                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
+              ) : users.length === 0 ? (
+                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {boostedUsers.slice(0, 10).map((u, i) => (
+                    <ArcadeDiscoveryRow
+                      key={u.slug}
+                      user={u}
+                      rank={i + 1}
+                      score={String(u.weekly_cheer_count)}
+                      accentColor={roleColor}
+                      scoreTone="gold"
+                      onOpen={() => onOpenProfile?.(u.slug)}
+                    />
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {bottomAd ? (
         <AdCard ad={bottomAd} size="medium" />
@@ -596,8 +691,9 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
           <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>サイド広告枠（空き枠）</p>
         </SectionCard>
       )}
-        </>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -33,6 +33,7 @@ import AdminAdsView from "./views/admin/AdminAdsView";
 import { OffersView } from "./views/OffersView";
 import { MyJourneyView } from "./views/MyJourneyView";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
+import { ActionHistoryView } from "./views/ActionHistoryView";
 
 type DashboardNewsPost = {
     id: string;
@@ -310,7 +311,9 @@ export default function DashboardClient({
             case "referral":
                 return <ReferralView profile={profile} referralUrl={referralUrl} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "settings":
-                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={goBack} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
+                return <SettingsView profile={profile} t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
+            case "action_history":
+                return <ActionHistoryView t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} />;
             case "missions":
                 return <MissionsView profile={profile} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "roadmap":

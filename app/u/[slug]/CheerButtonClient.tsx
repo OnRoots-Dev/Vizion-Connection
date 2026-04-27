@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { dispatchPublicProfileEngagement } from "./engagement-events";
 
 interface Props {
     slug: string;
@@ -22,6 +23,9 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
         const t = window.setTimeout(() => setNotesBurst(0), 900);
         return () => window.clearTimeout(t);
     }, [notesBurst]);
+    useEffect(() => {
+        setCheerCount(initialCheerCount);
+    }, [initialCheerCount]);
 
     async function handleCheer() {
         if (cheered || loading || isOwn) return;
@@ -40,6 +44,7 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                 setCheered(true);
                 setComment("");
                 setNotesBurst((n) => n + 1);
+                dispatchPublicProfileEngagement({ slug, cheerCount: data.cheerCount });
             } else {
                 setErrorMsg(data.error ?? "Cheerできませんでした");
             }
@@ -71,15 +76,17 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                 placeholder="応援コメント（任意）"
                 style={{
                     width: "100%",
-                    minHeight: 72,
+                    minHeight: 74,
                     resize: "vertical",
-                    borderRadius: 12,
-                    padding: "10px 12px",
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.11)",
+                    borderRadius: 18,
+                    padding: "12px 14px",
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
                     color: "rgba(255,255,255,0.92)",
                     fontSize: 12,
                     lineHeight: 1.5,
+                    outline: "none",
                 }}
                 disabled={cheered || loading}
             />
@@ -89,19 +96,40 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                 disabled={cheered || loading}
                 whileTap={{ scale: 0.98 }}
                 style={{
-                    width: "100%", padding: "13px",
-                    borderRadius: "12px",
-                    fontSize: "14px", fontWeight: 800, cursor: cheered ? "default" : "pointer",
+                    width: "100%", padding: "15px 16px",
+                    borderRadius: "18px",
+                    fontSize: "14px", fontWeight: 900, cursor: cheered ? "default" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                     transition: "all 0.25s",
-                    letterSpacing: "0.03em",
+                    letterSpacing: "0.02em",
                     position: "relative",
                     overflow: "hidden",
                     ...(cheered
-                        ? { background: `${roleColor}12`, color: roleColor, border: `1px solid ${roleColor}30` }
-                        : { background: roleColor, color: "#000" }),
+                        ? {
+                            background: `linear-gradient(135deg, ${roleColor}26, rgba(255,255,255,0.08))`,
+                            color: "#fff",
+                            border: `1px solid ${roleColor}55`,
+                            boxShadow: `0 14px 34px ${roleColor}22, inset 0 1px 0 rgba(255,255,255,0.12)`,
+                        }
+                        : {
+                            background: `linear-gradient(135deg, ${roleColor} 0%, #ffffff 180%)`,
+                            color: "#050508",
+                            border: "1px solid rgba(255,255,255,0.22)",
+                            boxShadow: `0 18px 40px ${roleColor}30, inset 0 1px 0 rgba(255,255,255,0.45)`,
+                        }),
                 }}
             >
+                {!cheered ? (
+                    <span
+                        style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.26) 50%, transparent 80%)",
+                            transform: "translateX(-120%)",
+                            animation: loading ? "none" : "cheerShine 2.8s ease-in-out infinite",
+                        }}
+                    />
+                ) : null}
                 {loading ? (
                     <>
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -120,8 +148,21 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                     </>
                 ) : (
                     <>
-                        <span style={{ fontSize: "14px" }}>★</span>
-                        + 1 Cheer する · {cheerCount.toLocaleString()}
+                        <span style={{ fontSize: "15px" }}>★</span>
+                        +1 Cheer を送る
+                        <span
+                            style={{
+                                marginLeft: 4,
+                                padding: "4px 9px",
+                                borderRadius: 999,
+                                background: "rgba(5,5,8,0.18)",
+                                fontFamily: "monospace",
+                                fontSize: 11,
+                                color: "#050508",
+                            }}
+                        >
+                            {cheerCount.toLocaleString()}
+                        </span>
                     </>
                 )}
                 <AnimatePresence>
@@ -148,6 +189,13 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                     ) : null}
                 </AnimatePresence>
             </motion.button>
+            <style>{`
+                @keyframes cheerShine {
+                    0%, 100% { transform: translateX(-120%); opacity: 0; }
+                    15% { opacity: 0.95; }
+                    55% { transform: translateX(120%); opacity: 0; }
+                }
+            `}</style>
             {errorMsg && (
                 <p style={{ textAlign: "center", fontSize: "11px", color: "rgba(255,80,80,0.7)", marginTop: "6px" }}>
                     {errorMsg}

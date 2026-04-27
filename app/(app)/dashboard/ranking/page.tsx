@@ -3,6 +3,7 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
 
 export const dynamic = "force-dynamic";
 
@@ -24,11 +25,18 @@ async function getRanking(role?: string) {
         .select("slug, display_name, role, avatar_url, profile_image_url, cheer_count, is_founding_member, serial_id, sport, region")
         .eq("is_deleted", false)
         .eq("is_public", true)
-        .order("cheer_count", { ascending: false })
-        .limit(50);
+        .limit(200);
     if (role) query = query.eq("role", role);
     const { data } = await query;
-    return data ?? [];
+    const users = data ?? [];
+    const weeklyMap = await getWeeklyCheerCounts(users.map((user) => String(user.slug)));
+    return users
+        .map((user) => ({ ...user, weekly_cheer_count: weeklyMap.get(String(user.slug)) ?? 0 }))
+        .sort((a, b) => {
+            if (b.weekly_cheer_count !== a.weekly_cheer_count) return b.weekly_cheer_count - a.weekly_cheer_count;
+            return Number(b.cheer_count ?? 0) - Number(a.cheer_count ?? 0);
+        })
+        .slice(0, 50);
 }
 
 export default async function RankingPage({
@@ -57,7 +65,7 @@ export default async function RankingPage({
                             VIZION CONNECTION
                         </p>
                         <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0, letterSpacing: "-0.02em" }}>
-                            ⭐ Cheer Ranking
+                            ⭐ Weekly Cheer Ranking
                         </h1>
                     </div>
                     <Link href="/dashboard" style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
@@ -127,7 +135,7 @@ export default async function RankingPage({
                                         <p style={{ fontSize: 9, fontFamily: "monospace", color: rl, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.1em" }}>{ROLE_LABEL[user.role]}</p>
                                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                             <span style={{ fontSize: 10, color: "#FFD600" }}>★</span>
-                                            <span style={{ fontSize: 18, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 }}>{user.cheer_count}</span>
+                                            <span style={{ fontSize: 18, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 }}>{user.weekly_cheer_count}</span>
                                         </div>
                                         {/* 台座 */}
                                         <div style={{ width: "100%", height: podiumH, background: `${rl}10`, border: `1px solid ${rl}20`, borderRadius: 8, marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -181,9 +189,9 @@ export default async function RankingPage({
                                     <div style={{ textAlign: "right", flexShrink: 0 }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
-                                            <span style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace", color: "#FFD600" }}>{user.cheer_count}</span>
+                                            <span style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace", color: "#FFD600" }}>{user.weekly_cheer_count}</span>
                                         </div>
-                                        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "monospace" }}>CHEER</p>
+                                        <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "monospace" }}>THIS WEEK</p>
                                     </div>
                                 </div>
                             </Link>

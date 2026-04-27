@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getPlanFeatures, PLAN_PRIORITY } from "@/features/business/plan-features";
 import { ROLE_DISCOVERY_OPTIONS } from "@/lib/discovery-filters";
+import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
 
 type DiscoveryUserRow = {
     slug: string;
@@ -17,8 +18,18 @@ type DiscoveryUserRow = {
     sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
 };
 
-function randomSort() {
-    return Math.random() - 0.5;
+function compareWeeklyCheer(a: { weekly_cheer_count: number; cheer_count: number; referral_count: number; slug: string }, b: { weekly_cheer_count: number; cheer_count: number; referral_count: number; slug: string }) {
+    if (b.weekly_cheer_count !== a.weekly_cheer_count) return b.weekly_cheer_count - a.weekly_cheer_count;
+    if (b.cheer_count !== a.cheer_count) return b.cheer_count - a.cheer_count;
+    if (b.referral_count !== a.referral_count) return b.referral_count - a.referral_count;
+    return a.slug.localeCompare(b.slug);
+}
+
+function compareReferral(a: { weekly_cheer_count: number; cheer_count: number; referral_count: number; slug: string }, b: { weekly_cheer_count: number; cheer_count: number; referral_count: number; slug: string }) {
+    if (b.referral_count !== a.referral_count) return b.referral_count - a.referral_count;
+    if (b.weekly_cheer_count !== a.weekly_cheer_count) return b.weekly_cheer_count - a.weekly_cheer_count;
+    if (b.cheer_count !== a.cheer_count) return b.cheer_count - a.cheer_count;
+    return a.slug.localeCompare(b.slug);
 }
 
 function ensureRoleVisible<T extends { role: string }>(users: T[], roleName: string, visibleCount: number, minVisible: number) {
@@ -90,6 +101,7 @@ export async function GET(req: NextRequest) {
             .not("referrer_slug", "is", null)
             .limit(1000),
     ]);
+    const weeklyCheerMap = await getWeeklyCheerCounts(((users ?? []) as DiscoveryUserRow[]).map((user) => user.slug));
 
     const referralMap = new Map<string, number>();
     for (const row of refs ?? []) {
@@ -105,6 +117,7 @@ export async function GET(req: NextRequest) {
         avatar_url: u.avatar_url,
         profile_image_url: u.profile_image_url,
         cheer_count: u.cheer_count ?? 0,
+        weekly_cheer_count: weeklyCheerMap.get(u.slug) ?? 0,
         referral_count: referralMap.get(u.slug) ?? 0,
         region: u.region,
         prefecture: u.prefecture,
@@ -118,34 +131,16 @@ export async function GET(req: NextRequest) {
     const sorted = [...mapped].sort((a, b) => {
         if (a.discovery_fixed !== b.discovery_fixed) return a.discovery_fixed ? -1 : 1;
         if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
-        if (a.plan_priority === b.plan_priority) {
-            const randomDiff = randomSort();
-            if (randomDiff !== 0) return randomDiff;
-        }
-        if (sort === "cheer") return b.cheer_count - a.cheer_count;
-        if (sort === "referral") return b.referral_count - a.referral_count;
+        if (sort === "cheer") return compareWeeklyCheer(a, b);
+        if (sort === "referral") return compareReferral(a, b);
         if (sort === "new" || sort === "newcomer") return String(b.created_at).localeCompare(String(a.created_at));
-        return (b.cheer_count + b.referral_count * 4) - (a.cheer_count + a.referral_count * 4);
+        const scoreDiff = (b.weekly_cheer_count + b.referral_count * 4) - (a.weekly_cheer_count + a.referral_count * 4);
+        if (scoreDiff !== 0) return scoreDiff;
+        return compareWeeklyCheer(a, b);
     });
 
-    const byCheerBase = [...mapped].sort((a, b) => {
-        if (a.discovery_fixed !== b.discovery_fixed) return a.discovery_fixed ? -1 : 1;
-        if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
-        if (a.plan_priority === b.plan_priority) {
-            const randomDiff = randomSort();
-            if (randomDiff !== 0) return randomDiff;
-        }
-        return b.cheer_count - a.cheer_count;
-    });
-    const byReferralBase = [...mapped].sort((a, b) => {
-        if (a.discovery_fixed !== b.discovery_fixed) return a.discovery_fixed ? -1 : 1;
-        if (b.plan_priority !== a.plan_priority) return b.plan_priority - a.plan_priority;
-        if (a.plan_priority === b.plan_priority) {
-            const randomDiff = randomSort();
-            if (randomDiff !== 0) return randomDiff;
-        }
-        return b.referral_count - a.referral_count;
-    });
+    const byCheerBase = [...mapped].sort(compareWeeklyCheer);
+    const byReferralBase = [...mapped].sort(compareReferral);
 
     const finalUsers = !role
         ? ensureRoleVisible(sorted, "Business", 12, sort === "all" ? 2 : 1)

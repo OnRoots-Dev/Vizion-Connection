@@ -22,6 +22,8 @@ export const COOKIE_OPTIONS = {
     sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7日
+    domain:
+        process.env.NODE_ENV === "production" ? ".vizion-connection.jp" : undefined,
 };
 
 export async function setSessionCookie(token: string): Promise<void> {

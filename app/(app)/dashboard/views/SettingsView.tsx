@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react";
 import type { ProfileData } from "@/features/profile/types";
-import type { ThemeColors } from "@/app/(app)/dashboard/types";
+import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
-export function SettingsView({ profile, t, roleColor, onBack, onProfilePatch }: {
+export function SettingsView({ profile, t, roleColor, onBack, setView, onProfilePatch }: {
     profile: ProfileData;
     t: ThemeColors;
     roleColor: string;
     onBack: () => void;
+    setView: (view: DashboardView) => void;
     onProfilePatch: (patch: Partial<ProfileData>) => void;
 }) {
-    const ROLE_LABEL: Record<string, string> = { Athlete: "Athlete", Trainer: "Trainer", Members: "Members", Business: "Business" };
+    const ROLE_LABEL: Record<string, string> = { Athlete: "Athlete", Trainer: "Trainer", Members: "Members", Business: "Business", Admin: "Admin" };
     const [isPublic, setIsPublic] = useState(profile.isPublic !== false);
     const [savingVisibility, setSavingVisibility] = useState(false);
     const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
@@ -189,7 +190,7 @@ export function SettingsView({ profile, t, roleColor, onBack, onProfilePatch }: 
                 <SLabel text="サポート" color={roleColor} />
                 <button
                     type="button"
-                    onClick={() => (window.location.href = "/dashboard?view=contact")}
+                    onClick={() => setView("contact")}
                     style={{
                         width: "100%",
                         padding: "12px 12px",
@@ -207,6 +208,27 @@ export function SettingsView({ profile, t, roleColor, onBack, onProfilePatch }: 
                 </button>
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
                     不具合報告・機能要望・取材などはこちらから送信できます。
+                </p>
+                <button
+                    type="button"
+                    onClick={() => setView("action_history")}
+                    style={{
+                        width: "100%",
+                        padding: "12px 12px",
+                        borderRadius: 12,
+                        background: "rgba(255,255,255,0.03)",
+                        border: `1px solid ${t.border}`,
+                        color: t.text,
+                        fontSize: 13,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        textAlign: "left",
+                    }}
+                >
+                    アクション履歴
+                </button>
+                <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
+                    このアカウントに紐づく通知や進行履歴を、SPA画面でまとめて確認できます。
                 </p>
             </SectionCard>
 

@@ -25,6 +25,7 @@ import PublicProfileRealtime from "./PublicProfileRealtime";
 import PublicProfileTabs from "./PublicProfileTabs";
 import { supabaseServer } from "@/lib/supabase/server";
 import { CATEGORY_CONFIG } from "@/types/schedule";
+import PublicProfileCountValue from "./PublicProfileCountValue";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#B8860B", Business: "#1B3A8C",
@@ -130,13 +131,6 @@ export default async function UserProfilePage({ params }: Props) {
             : profile.role === "Business"
                 ? "Portfolio"
                 : "Community";
-    const spotlightItems = [
-        { label: "Cheer", value: (profile.cheerCount ?? 0).toLocaleString(), tone: "#FFD600", sub: "リアクション" },
-        { label: "Collect", value: String(collectorCount), tone: rl, sub: "コレクション数" },
-        { label: "Career", value: careerProfile?.tagline ?? "Profile Ready", tone: "#FFFFFF", sub: careerProfile ? "キャリアタグライン" : "公開プロフィール" },
-        { label: "Link", value: `@${profile.slug}`, tone: roleColorForLink(profile.role, rl), sub: "共有しやすいURL" },
-    ];
-
     return (
         <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", overflowX: "hidden" }}>
             <PublicProfileRealtime slug={slug} />
@@ -263,15 +257,17 @@ export default async function UserProfilePage({ params }: Props) {
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,210,0,.45)" }}>CHEER</span>
-                                <span style={{ fontSize: 36, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1, letterSpacing: "-.025em", textShadow: "0 0 24px rgba(255,214,0,.5)" }}>{(profile.cheerCount ?? 0).toLocaleString()}</span>
+                                <span style={{ fontSize: 36, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1, letterSpacing: "-.025em", textShadow: "0 0 24px rgba(255,214,0,.5)" }}>
+                                    <PublicProfileCountValue slug={slug} initialValue={profile.cheerCount ?? 0} field="cheerCount" />
+                                </span>
                             </div>
                             {/* コレクト数 */}
-                            {collectorCount > 0 && (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                                    <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: `${rl}88` }}>COLLECTED</span>
-                                    <span style={{ fontSize: 28, fontWeight: 900, color: rl, fontFamily: "monospace", lineHeight: 1 }}>{collectorCount}</span>
-                                </div>
-                            )}
+                            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                                <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: `${rl}88` }}>COLLECTED</span>
+                                <span style={{ fontSize: 28, fontWeight: 900, color: rl, fontFamily: "monospace", lineHeight: 1 }}>
+                                    <PublicProfileCountValue slug={slug} initialValue={collectorCount} field="collectorCount" />
+                                </span>
+                            </div>
                             {snsLinks.length > 0 && (
                                 <div style={{ display: "flex", gap: 7, marginLeft: "auto" }}>
                                     {snsLinks.map(s => (
@@ -297,13 +293,30 @@ export default async function UserProfilePage({ params }: Props) {
 
                 <div className="u3" style={{ padding: "18px 20px 0" }}>
                     <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" }}>
-                        {spotlightItems.map((item) => (
-                            <div key={item.label} style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
-                                <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>{item.label}</p>
-                                <p style={{ margin: 0, fontSize: item.label === "Career" ? 15 : 22, fontWeight: 900, color: item.tone, lineHeight: 1.3, wordBreak: "break-word" }}>{item.value}</p>
-                                <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{item.sub}</p>
-                            </div>
-                        ))}
+                        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Cheer</p>
+                            <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#FFD600", lineHeight: 1.3, wordBreak: "break-word" }}>
+                                <PublicProfileCountValue slug={slug} initialValue={profile.cheerCount ?? 0} field="cheerCount" />
+                            </p>
+                            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>リアクション</p>
+                        </div>
+                        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Collect</p>
+                            <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: rl, lineHeight: 1.3, wordBreak: "break-word" }}>
+                                <PublicProfileCountValue slug={slug} initialValue={collectorCount} field="collectorCount" />
+                            </p>
+                            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>コレクション数</p>
+                        </div>
+                        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Career</p>
+                            <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#FFFFFF", lineHeight: 1.3, wordBreak: "break-word" }}>{careerProfile?.tagline ?? "Profile Ready"}</p>
+                            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{careerProfile ? "キャリアタグライン" : "公開プロフィール"}</p>
+                        </div>
+                        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", padding: "14px 16px" }}>
+                            <p style={{ margin: "0 0 8px", fontSize: 8, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>Link</p>
+                            <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: roleColorForLink(profile.role, rl), lineHeight: 1.3, wordBreak: "break-word" }}>@{profile.slug}</p>
+                            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>共有しやすいURL</p>
+                        </div>
                     </div>
                 </div>
 

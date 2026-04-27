@@ -28,6 +28,7 @@ export type DashboardView =
     | "business"
     | "edit"
     | "settings"
+    | "action_history"
     | "missions";
 
 export interface ThemeColors {

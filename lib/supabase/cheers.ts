@@ -137,6 +137,36 @@ export async function hasAlreadyCheered(toSlug: string, fromSlug: string): Promi
     return !!data;
 }
 
+export function getCurrentWeekStartIso(now = new Date()): string {
+    return getJstPeriodStarts(now).weekStart;
+}
+
+export async function getWeeklyCheerCounts(toSlugs: string[], now = new Date()): Promise<Map<string, number>> {
+    if (toSlugs.length === 0) return new Map();
+
+    const weekStart = getCurrentWeekStartIso(now);
+    const { data, error } = await supabase
+        .from("cheers")
+        .select("to_slug")
+        .in("to_slug", toSlugs)
+        .gte("created_at", weekStart)
+        .limit(10000);
+
+    if (error) {
+        console.error("[getWeeklyCheerCounts]", error);
+        return new Map();
+    }
+
+    const counts = new Map<string, number>();
+    for (const row of data ?? []) {
+        const slug = String((row as { to_slug?: string | null }).to_slug ?? "");
+        if (!slug) continue;
+        counts.set(slug, (counts.get(slug) ?? 0) + 1);
+    }
+
+    return counts;
+}
+
 export async function addCheerWithComment(fromUserId: number, toUserId: number, comment: string): Promise<boolean> {
     try {
         const [{ data: fromUser }, { data: toUser }] = await Promise.all([
