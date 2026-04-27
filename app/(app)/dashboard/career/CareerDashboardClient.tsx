@@ -343,21 +343,22 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
           >
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ background: "var(--vz-surface, rgba(255,255,255,0.03))", border: "1px solid var(--vz-border, rgba(255,255,255,0.07))" }}
+              style={{ background: "var(--vz-surface, rgba(255,255,255,0.03))", border: "1px solid var(--vz-border, rgba(255,255,255,0.07))", color: color }}
             >
-              <Sparkles size={24} className="text-white/25" />
+              <Sparkles size={24} />
             </div>
             <h2 className="text-[18px] font-extrabold tracking-[-0.025em] mb-2">
               キャリアページを作ろう
             </h2>
-            <p className="text-[13px] text-white/38 leading-relaxed mb-7 max-w-xs mx-auto">
+            <p className="text-[13px] leading-relaxed mb-7 max-w-xs mx-auto" style={{ color: "var(--vz-sub, rgba(255,255,255,0.45))" }}>
               いくつかの質問に答えるだけで、プロフェッショナルなキャリアストーリーページが自動生成されます。
             </p>
             <button
               onClick={() => setWizardOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-[13px] text-white transition-all hover:brightness-110 active:scale-[0.97]"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-[13px] transition-all hover:brightness-110 active:scale-[0.97]"
               style={{
                 background: color,
+                color: "#050508",
                 boxShadow: `0 0 28px ${color}40`,
               }}
             >
@@ -383,5 +384,4 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
     </div>
   );
 }
-
 

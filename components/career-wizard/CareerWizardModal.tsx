@@ -95,7 +95,7 @@ export default function CareerWizardModal({
           </div>
         )}
 
-        <div className="relative z-10 max-h-[58dvh] overflow-y-auto px-5 pb-2">
+        <div className="relative z-10 max-h-[58dvh] overflow-y-auto px-5 pb-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
           <AnimatePresence mode="wait">
             <motion.div key={currentStepIndex}
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
@@ -231,7 +231,7 @@ export default function CareerWizardModal({
           )}
 
           {/* Step content */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-2">
+          <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
             <AnimatePresence mode="wait">
               <motion.div key={currentStepIndex}
                 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
@@ -298,7 +298,6 @@ export default function CareerWizardModal({
     </>
   );
 }
-
 
 
 

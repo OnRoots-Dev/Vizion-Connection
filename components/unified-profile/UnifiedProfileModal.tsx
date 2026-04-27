@@ -212,6 +212,7 @@ export default function UnifiedProfileModal({
       {isOpen ? (
         <motion.div
           className="fixed inset-0 z-50 overflow-y-auto p-2 sm:p-4"
+          style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -227,7 +228,7 @@ export default function UnifiedProfileModal({
           />
 
           <motion.div
-            className="relative mx-auto my-2 flex max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
+            className="relative mx-auto my-2 flex w-full max-w-3xl min-h-0 flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
             style={{ height: "calc(100dvh - 16px)", maxHeight: "calc(100dvh - 16px)" }}
             initial={{ y: 80, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -328,7 +329,7 @@ export default function UnifiedProfileModal({
                 </div>
               </aside>
 
-              <main className="flex-1 min-h-0 overflow-y-auto p-4">
+              <main className="flex-1 min-h-0 overflow-y-auto p-4 pb-24" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}
