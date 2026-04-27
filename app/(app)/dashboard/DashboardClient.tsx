@@ -10,7 +10,6 @@ import type { Theme, DashboardView } from "./types";
 import type { ProfileData } from "@/features/profile/types";
 import { HomeView } from "./views/HomeView";
 import { CardView } from "./views/CardView";
-import { EditView } from "./views/EditView";
 import { CheerView } from "./views/CheerView";
 import { CheerGraphView } from "./views/CheerGraphView";
 import { CareerSPAWrapper } from "./views/CareerSPAWrapper";
@@ -34,6 +33,9 @@ import { OffersView } from "./views/OffersView";
 import { MyJourneyView } from "./views/MyJourneyView";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { ActionHistoryView } from "./views/ActionHistoryView";
+import { AthleteHubView } from "./views/AthleteHubView";
+import { MemberHubView } from "./views/MemberHubView";
+import { TrainerHubView } from "./views/TrainerHubView";
 
 type DashboardNewsPost = {
     id: string;
@@ -296,7 +298,8 @@ export default function DashboardClient({
             case "voicelab":
                 return <VoiceLabView t={t} roleColor={roleColor} setView={handleSetView} ads={ads} canManageVoiceLab={canManageVoiceLab} />;
             case "edit":
-                return <EditView profile={profile} t={t} roleColor={roleColor} onBack={goBack} onSave={handleProfileUpdate} />;
+                handleSetView("career");
+                return null;
             case "cheer":
                 return <CheerView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "cheer_graph":
@@ -306,6 +309,18 @@ export default function DashboardClient({
             case "discovery":
                 return <DiscoveryView t={t} roleColor={roleColor} setView={handleSetView} ads={ads} onOpenProfile={setSelectedProfileSlug} />;
             case "hub":
+                switch (profile.role) {
+                    case "Athlete":
+                        return <AthleteHubView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
+                    case "Trainer":
+                        return <TrainerHubView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
+                    case "Members":
+                        return <MemberHubView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
+                    case "Business":
+                    case "Admin":
+                    default:
+                        return <BusinessView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} ads={ads} canManageAdmin={canManageVoiceLab} />;
+                }
             case "business":
                 return <BusinessView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} ads={ads} canManageAdmin={canManageVoiceLab} />;
             case "referral":

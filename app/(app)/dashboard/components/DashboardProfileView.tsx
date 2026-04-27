@@ -190,7 +190,7 @@ export function DashboardProfileView({
   }
 
   const overviewSection = (
-    <SectionFrame title="基本プロフィール" eyebrow="Profile Signals" t={t} action={needsInitialRegistration ? "初回登録を開く" : "プロフィールを編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("edit")} roleColor={roleColor}>
+    <SectionFrame title="基本プロフィール" eyebrow="Profile Signals" t={t} action={needsInitialRegistration ? "初回登録を開く" : "プロフィールを編集"} onAction={() => needsInitialRegistration ? setRegistrationOpen(true) : setView?.("career")} roleColor={roleColor}>
       {profile.bio?.trim() ? <TextPanel text={profile.bio} t={t} /> : <EmptyPanel text="プロフィール紹介文はまだ設定されていません。" t={t} />}
       <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
         {profileFacts.map((fact) => <FactCard key={fact.label} {...fact} t={t} />)}
