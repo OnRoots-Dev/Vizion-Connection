@@ -211,7 +211,7 @@ export default function UnifiedProfileModal({
     <AnimatePresence>
       {isOpen ? (
         <motion.div
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-50 overflow-y-auto p-2 sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -227,7 +227,8 @@ export default function UnifiedProfileModal({
           />
 
           <motion.div
-            className="relative mx-auto flex h-full max-w-3xl flex-col overflow-hidden border-x border-white/10 bg-[#07070e]"
+            className="relative mx-auto my-2 flex max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
+            style={{ maxHeight: "calc(100dvh - 16px)" }}
             initial={{ y: 80, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.96 }}
@@ -248,7 +249,7 @@ export default function UnifiedProfileModal({
               </div>
             </header>
 
-            <div className="flex-1 overflow-hidden md:flex">
+            <div className="flex-1 min-h-0 overflow-hidden md:flex">
               <div className="border-b border-white/10 px-4 py-3 md:hidden">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -327,7 +328,7 @@ export default function UnifiedProfileModal({
                 </div>
               </aside>
 
-              <main className="flex-1 overflow-y-auto p-4">
+              <main className="flex-1 min-h-0 overflow-y-auto p-4">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}
