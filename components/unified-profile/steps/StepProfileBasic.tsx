@@ -56,14 +56,72 @@ export default function StepProfileBasic({
       </div>
 
       <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-        <h4 className="text-sm font-black text-white">エリア</h4>
+        <h4 className="text-sm font-black text-white">活動エリア</h4>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="region">
-            <TextInput value={data.region} onChange={(v) => onChange("region", v)} placeholder="関東" />
+          <Field label="region（地方）">
+            <SelectInput
+              value={data.region}
+              onChange={(v) => onChange("region", v)}
+              placeholder="選択してください"
+              options={["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"]}
+            />
           </Field>
-          <Field label="prefecture">
-            <TextInput value={data.prefecture} onChange={(v) => onChange("prefecture", v)} placeholder="東京都" />
+          <Field label="prefecture（都道府県）">
+            <SelectInput
+              value={data.prefecture}
+              onChange={(v) => onChange("prefecture", v)}
+              placeholder="選択してください"
+              options={[
+                "北海道",
+                "青森県",
+                "岩手県",
+                "宮城県",
+                "秋田県",
+                "山形県",
+                "福島県",
+                "茨城県",
+                "栃木県",
+                "群馬県",
+                "埼玉県",
+                "千葉県",
+                "東京都",
+                "神奈川県",
+                "新潟県",
+                "富山県",
+                "石川県",
+                "福井県",
+                "山梨県",
+                "長野県",
+                "岐阜県",
+                "静岡県",
+                "愛知県",
+                "三重県",
+                "滋賀県",
+                "京都府",
+                "大阪府",
+                "兵庫県",
+                "奈良県",
+                "和歌山県",
+                "鳥取県",
+                "島根県",
+                "岡山県",
+                "広島県",
+                "山口県",
+                "徳島県",
+                "香川県",
+                "愛媛県",
+                "高知県",
+                "福岡県",
+                "佐賀県",
+                "長崎県",
+                "熊本県",
+                "大分県",
+                "宮崎県",
+                "鹿児島県",
+                "沖縄県",
+              ]}
+            />
           </Field>
         </div>
       </div>
@@ -129,6 +187,35 @@ export default function StepProfileBasic({
         </button>
       </div>
     </div>
+  );
+}
+
+function SelectInput({
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  options: string[];
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/20"
+    >
+      <option value="" disabled>
+        {placeholder}
+      </option>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
   );
 }
 

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         displayName: body.displayName,
         bio: body.bio,
         region: body.region,
-        ...(user.prefecture ? {} : { prefecture: body.prefecture }),
+        prefecture: body.prefecture,
         sportsCategory: body.sportsCategory,
         sport: body.sport,
         stance: body.stance,

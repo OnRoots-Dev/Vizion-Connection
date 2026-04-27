@@ -25,7 +25,7 @@ export const env = {
   FROM_EMAIL: process.env.FROM_EMAIL ?? "noreply@vizion-connection.jp",
 
   // App
-  NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
+  NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.vizion-connection.jp",
   VOICELAB_ADMIN_EMAILS: optionalEnv("VOICELAB_ADMIN_EMAILS"),
 
   // Square（決済リンク）- 遅延評価のためoptional
