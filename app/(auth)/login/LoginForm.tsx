@@ -6,6 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
         <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -57,9 +59,9 @@ export default function LoginForm() {
     return (
         <div className="vc-auth-shell">
 
-            <Link href="/" className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
+            <a href={MARKETING_HOME_URL} className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
                 <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="h-[13vw] w-auto" />
-            </Link>
+            </a>
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">

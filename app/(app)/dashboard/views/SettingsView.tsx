@@ -5,6 +5,8 @@ import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
+const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+
 export function SettingsView({ profile, t, roleColor, onBack, setView, onProfilePatch }: {
     profile: ProfileData;
     t: ThemeColors;
@@ -119,7 +121,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
             }
 
             await fetch("/api/logout", { method: "POST" });
-            window.location.href = "/";
+            window.location.assign(MARKETING_HOME_URL);
         } catch (error) {
             setDeleteMsg(error instanceof Error ? error.message : "通信エラーが発生しました");
         } finally {

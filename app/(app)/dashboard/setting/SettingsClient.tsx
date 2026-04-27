@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { UserRecord } from "@/features/auth/types";
 
+const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
 };
@@ -82,7 +84,7 @@ export default function SettingsClient({ user, onBack }: { user: UserRecord; onB
             const data = await res.json();
             if (data.ok) {
                 await fetch("/api/logout", { method: "POST" });
-                router.replace("/");
+                window.location.assign(MARKETING_HOME_URL);
             } else {
                 setDeleteMsg(data.error ?? "エラーが発生しました");
             }

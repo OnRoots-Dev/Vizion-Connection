@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerSchema } from "@/features/auth/validation/register-schema";
 
+const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+
 type Role = "Athlete" | "Trainer" | "Members" | "Business";
 
 const ROLES: { value: Role; label: string; color: string; border: string; desc: string }[] = [
@@ -92,9 +94,9 @@ export default function RegisterForm() {
     return (
         <div className="vc-auth-shell">
 
-            <Link href="/" className="mb-4 tracking-[0.2em]">
+            <a href={MARKETING_HOME_URL} className="mb-4 tracking-[0.2em]">
                 <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={300} height={80} priority className="inline-block w-auto h-20" />
-            </Link>
+            </a>
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">

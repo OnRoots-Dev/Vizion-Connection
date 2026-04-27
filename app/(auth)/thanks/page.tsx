@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+
 interface Props {
     searchParams: Promise<{ type?: string }>;
 }
@@ -44,9 +46,9 @@ export default async function ThanksPage({ searchParams }: Props) {
         <div className="min-h-screen flex flex-col items-center justify-center px-4"
             style={{ background: "#07070e" }}>
 
-            <Link href="/" className="mb-12 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
+            <a href={MARKETING_HOME_URL} className="mb-12 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
                 <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
-            </Link>
+            </a>
 
             <motion.div
                 className="w-full max-w-sm text-center space-y-6"
@@ -98,9 +100,9 @@ export default async function ThanksPage({ searchParams }: Props) {
                 )}
 
                 <p className="text-xs text-white/20 pt-2">
-                    <Link href="/" className="hover:text-white/40 transition-colors">
+                    <a href={MARKETING_HOME_URL} className="hover:text-white/40 transition-colors">
                         トップに戻る
-                    </Link>
+                    </a>
                 </p>
             </motion.div>
         </div>
