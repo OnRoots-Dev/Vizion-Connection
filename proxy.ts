@@ -28,7 +28,10 @@ export async function proxy(req: NextRequest) {
     const isApp = host.startsWith("app.");
 
     if (isApp) {
-        const isRSC = req.nextUrl.searchParams.has("_rsc");
+        const isRSC =
+            req.nextUrl.searchParams.has("_rsc") ||
+            req.headers.has("rsc") ||
+            req.headers.has("next-router-state-tree");
         if (isRSC) return NextResponse.next();
 
         const isMarketing = MARKETING_PATHS.some((p) => pathname === p);
