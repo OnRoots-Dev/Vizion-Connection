@@ -133,7 +133,6 @@ export default function UnifiedProfileModal({
       }
 
       setCurrentStep(3);
-      onCompleted?.();
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "エラーが発生しました");
       setCurrentStep(2);
@@ -229,7 +228,7 @@ export default function UnifiedProfileModal({
 
           <motion.div
             className="relative mx-auto my-2 flex w-full max-w-3xl min-h-0 flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
-            style={{ height: "calc(100dvh - 16px)", maxHeight: "calc(100dvh - 16px)" }}
+            style={{ height: "calc(100vh - 16px)", maxHeight: "calc(100vh - 16px)" }}
             initial={{ y: 80, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.96 }}
@@ -329,7 +328,10 @@ export default function UnifiedProfileModal({
                 </div>
               </aside>
 
-              <main className="flex-1 min-h-0 overflow-y-auto p-4 pb-24" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
+              <main
+                className="flex-1 min-h-0 overflow-y-auto p-4 pb-24"
+                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y", overflowY: "auto" }}
+              >
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}

@@ -377,7 +377,6 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
             isOpen={wizardOpen}
             onClose={() => setWizardOpen(false)}
             user={user}
-            onCompleted={() => setWizardOpen(false)}
           />
         )}
       </AnimatePresence>

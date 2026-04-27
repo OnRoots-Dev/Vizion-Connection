@@ -131,13 +131,28 @@ export default function StepProfileBasic({
 
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="sportsCategory">
-            <TextInput value={data.sportsCategory} onChange={(v) => onChange("sportsCategory", v)} placeholder="球技" />
+            <SelectInput
+              value={data.sportsCategory}
+              onChange={(v) => onChange("sportsCategory", v)}
+              placeholder="選択してください"
+              options={["球技", "格闘技", "陸上", "水泳", "体操", "ウィンタースポーツ", "その他"]}
+            />
           </Field>
           <Field label="sport">
-            <TextInput value={data.sport} onChange={(v) => onChange("sport", v)} placeholder="サッカー" />
+            <SelectInput
+              value={data.sport}
+              onChange={(v) => onChange("sport", v)}
+              placeholder="選択してください"
+              options={["サッカー", "野球", "バスケットボール", "バレーボール", "テニス", "ゴルフ", "ラグビー", "陸上", "水泳", "格闘技", "その他"]}
+            />
           </Field>
           <Field label="stance">
-            <TextInput value={data.stance} onChange={(v) => onChange("stance", v)} placeholder="競技力向上に集中" />
+            <SelectInput
+              value={data.stance}
+              onChange={(v) => onChange("stance", v)}
+              placeholder="選択してください"
+              options={["競技力向上に集中", "指導・コーチング", "マネジメント", "ビジネス", "コミュニティ", "その他"]}
+            />
           </Field>
         </div>
       </div>
