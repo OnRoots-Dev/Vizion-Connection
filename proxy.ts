@@ -21,19 +21,42 @@ const APP_PATHS = [
   "/thanks",
 ];
 
+function normalizeHost(value: string | null | undefined): string {
+    if (!value) return "";
+    return value.split(",")[0]?.trim().split(":")[0]?.toLowerCase() ?? "";
+}
+
+function getRequestHost(req: NextRequest): string {
+    return normalizeHost(
+        req.headers.get("x-forwarded-host") ??
+        req.headers.get("host") ??
+        req.nextUrl.host
+    );
+}
+
+function isNextInternalRequest(req: NextRequest): boolean {
+    const purpose = req.headers.get("purpose") ?? req.headers.get("sec-purpose") ?? "";
+    return (
+        req.nextUrl.searchParams.has("_rsc") ||
+        req.headers.has("rsc") ||
+        req.headers.has("next-router-state-tree") ||
+        req.headers.has("next-router-prefetch") ||
+        purpose.toLowerCase().includes("prefetch")
+    );
+}
+
 export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
+    const host = getRequestHost(req);
+    const isApp = host === "app.vizion-connection.jp" || host.startsWith("app.");
+    const isInternalRequest = isNextInternalRequest(req);
 
-    const host = req.headers.get("host") ?? "";
-    const isApp = host.startsWith("app.");
+    // Avoid cross-origin redirects for App Router internals such as RSC and prefetch.
+    if (isInternalRequest) {
+        return NextResponse.next();
+    }
 
     if (isApp) {
-        const isRSC =
-            req.nextUrl.searchParams.has("_rsc") ||
-            req.headers.has("rsc") ||
-            req.headers.has("next-router-state-tree");
-        if (isRSC) return NextResponse.next();
-
         const isMarketing = MARKETING_PATHS.some((p) => pathname === p);
         if (isMarketing) {
             return NextResponse.redirect(new URL("https://vizion-connection.jp" + pathname));
