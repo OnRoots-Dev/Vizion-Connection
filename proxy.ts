@@ -28,6 +28,9 @@ export async function proxy(req: NextRequest) {
     const isApp = host.startsWith("app.");
 
     if (isApp) {
+        const isRSC = req.nextUrl.searchParams.has("_rsc");
+        if (isRSC) return NextResponse.next();
+
         const isMarketing = MARKETING_PATHS.some((p) => pathname === p);
         if (isMarketing) {
             return NextResponse.redirect(new URL("https://vizion-connection.jp" + pathname));
