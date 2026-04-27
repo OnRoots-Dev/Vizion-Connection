@@ -86,6 +86,7 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
     window.location.href = "/dashboard";
   };
   const completePct = Math.round((completedCount / completeness.length) * 100);
+  const hideBaseContent = embedded && wizardOpen;
 
   return (
     <div
@@ -119,10 +120,11 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
         </span>
       </header>}
 
+      {!hideBaseContent ? (
       <div className="max-w-[600px] mx-auto px-5 py-4">
 
         {/* ── Profile header ────────────────────────────── */}
-        <motion.div
+        {!embedded ? <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 mb-6"
@@ -156,7 +158,7 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
               {user.sport ? ` · ${user.sport}` : ""}
             </p>
           </div>
-        </motion.div>
+        </motion.div> : null}
 
         {hasCareer ? (
           <>
@@ -365,6 +367,7 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
           </motion.div>
         )}
       </div>
+      ) : null}
 
       {/* ── Wizard modal ────────────────────────────────── */}
       <AnimatePresence>
@@ -380,6 +383,5 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
     </div>
   );
 }
-
 
 

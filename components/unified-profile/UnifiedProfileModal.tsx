@@ -228,7 +228,7 @@ export default function UnifiedProfileModal({
 
           <motion.div
             className="relative mx-auto my-2 flex max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
-            style={{ maxHeight: "calc(100dvh - 16px)" }}
+            style={{ height: "calc(100dvh - 16px)", maxHeight: "calc(100dvh - 16px)" }}
             initial={{ y: 80, opacity: 0, scale: 0.96 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.96 }}
