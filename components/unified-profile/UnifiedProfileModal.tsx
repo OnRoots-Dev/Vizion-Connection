@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
 import StepProfileBasic from "@/components/unified-profile/steps/StepProfileBasic";
 import StepProfileMedia from "@/components/unified-profile/steps/StepProfileMedia";
 import StepProfileComplete from "@/components/unified-profile/steps/StepProfileComplete";
@@ -193,6 +194,7 @@ export default function UnifiedProfileModal({
   }
 
   const progressPct = (currentStep / 6) * 100;
+  const pct = Math.round(progressPct);
 
   const steps: Array<{ n: StepNumber; label: string; enabled: boolean }> = [
     { n: 1, label: "プロフィール情報", enabled: true },
@@ -260,128 +262,80 @@ export default function UnifiedProfileModal({
   return (
     <AnimatePresence>
       {isOpen ? (
-        <motion.div
-          className="fixed inset-0 z-50 overflow-y-auto p-2 sm:p-4"
-          style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <motion.button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="absolute inset-0 bg-black/70"
+        <>
+          <motion.div
+            className="fixed inset-0 z-40"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={onClose}
           />
 
           <motion.div
-            className="relative mx-auto my-2 flex w-full max-w-3xl min-h-0 flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#07070e]"
-            style={{ height: "calc(100vh - 16px)", maxHeight: "calc(100vh - 16px)" }}
-            initial={{ y: 80, opacity: 0, scale: 0.96 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 60, opacity: 0, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <header className="flex items-center gap-3 border-b border-white/10 bg-black/20 px-4 py-4">
-              <motion.button
-                type="button"
+            <motion.div
+              className="relative w-full max-w-[480px] flex flex-col overflow-hidden"
+              style={{
+                background: "#0c0c16",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: "28px",
+                maxHeight: "92dvh",
+              }}
+              initial={{ y: 80, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 60, opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
+                style={{ background: "#ffffff" }}
+              />
+
+              <button
                 onClick={onClose}
-                whileTap={{ scale: 0.97 }}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/80"
+                className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all bg-white/5 border border-white/10 text-white/35 hover:bg-white/10 hover:text-white"
+                aria-label="閉じる"
               >
-                閉じる
-              </motion.button>
-              <div className="min-w-0">
-                <p className="truncate text-xs font-black uppercase tracking-[0.2em] text-white/40">Registration</p>
-                <h2 className="truncate text-base font-black text-white">プロフィール / キャリア登録</h2>
-              </div>
-            </header>
+                <X size={12} />
+              </button>
 
-            <div className="flex flex-1 min-h-0 flex-col overflow-hidden md:flex-row">
-              <div className="shrink-0 border-b border-white/10 px-4 py-3 md:hidden">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">
-                      Step {currentStep}/6
-                    </p>
-                    <p className="mt-1 truncate text-sm font-semibold text-white">{steps[currentStep - 1]?.label}</p>
-                  </div>
-                  <div className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70">
-                    {Math.round(progressPct)}%
-                  </div>
+              <div className="relative z-10 px-5 pt-4 pb-0 pr-14 flex-shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span
+                    className="font-mono text-[9px] tracking-[0.24em] uppercase"
+                    style={{ color: "rgba(255,255,255,0.35)" }}
+                  >
+                    {steps[currentStep - 1]?.label} · {currentStep}/6
+                  </span>
+                  <motion.span
+                    key={pct}
+                    className="font-mono text-[13px] font-medium"
+                    style={{ color: "rgba(255,255,255,0.85)" }}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {pct}%
+                  </motion.span>
                 </div>
-
-                <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
+                <div className="h-[2px] rounded-full overflow-hidden mb-4" style={{ background: "rgba(255,255,255,0.06)" }}>
                   <motion.div
-                    className="h-full rounded-full bg-white"
+                    className="h-full rounded-full"
+                    style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35))" }}
                     animate={{ width: `${progressPct}%` }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   />
                 </div>
               </div>
 
-              <aside className="hidden md:flex md:w-48 md:flex-col md:border-r md:border-white/10">
-                <div className="border-b border-white/10 px-4 py-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/40">Steps</p>
-                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-                    <motion.div
-                      className="h-full rounded-full bg-white"
-                      animate={{ width: `${progressPct}%` }}
-                      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-2">
-                  <div className="space-y-1">
-                    {steps.map((s) => {
-                      const isActive = s.n === currentStep;
-                      const isDone = s.n < currentStep;
-                      const isUpcoming = s.n > currentStep;
-
-                      const base = "w-full rounded-xl border px-3 py-2 text-left transition-colors";
-                      const tones = isActive
-                        ? "border-white/20 bg-white/10 text-white"
-                        : isDone
-                          ? "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                          : "border-white/10 bg-white/5 text-white/35";
-
-                      return (
-                        <button
-                          key={s.n}
-                          type="button"
-                          onClick={() => {
-                            if (!isUpcoming) setCurrentStep(s.n);
-                          }}
-                          disabled={isUpcoming}
-                          className={`${base} ${tones} disabled:cursor-not-allowed`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-black uppercase tracking-[0.18em]">Step {s.n}</p>
-                              <p className="mt-1 truncate text-xs font-semibold">{s.label}</p>
-                            </div>
-                            <div className="shrink-0">
-                              {isDone ? (
-                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-xs font-black text-white">
-                                  ✓
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </aside>
-
-              <main
-                className="flex-1 min-h-0 overflow-y-auto p-4 pb-24"
-                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y", overflowY: "auto", paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}
+              <div
+                className="relative z-10 flex-1 overflow-y-auto px-5 pb-6"
+                style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}
               >
                 {hydrating ? (
                   <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
@@ -399,10 +353,10 @@ export default function UnifiedProfileModal({
                     {stepContent}
                   </motion.div>
                 </AnimatePresence>
-              </main>
-            </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </>
       ) : null}
     </AnimatePresence>
   );
