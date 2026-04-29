@@ -151,6 +151,8 @@ interface WizardStore {
   removeSkill: (name: string) => void;
 
   // Persistence
+  saveProfileToApi: () => Promise<boolean>;
+  saveCareerToApi: () => Promise<boolean>;
   saveToApi: () => Promise<boolean>;
   resetWizard: () => void;
 
@@ -356,7 +358,7 @@ export const useCareerWizard = create<WizardStore>()(
           })),
 
         // ── API保存 ───────────────────────────────────
-        saveToApi: async () => {
+        saveProfileToApi: async () => {
           set({ isSaving: true, saveError: null });
           try {
             const { data } = get();
@@ -380,11 +382,27 @@ export const useCareerWizard = create<WizardStore>()(
                 isPublic: data.isPublic,
               }),
             });
+
             if (!profileRes.ok) {
               const err = await profileRes.json().catch(() => ({}));
               set({ saveError: (err as any)?.error ?? "プロフィールの保存に失敗しました" });
               return false;
             }
+
+            return true;
+          } catch (e) {
+            console.error("[saveProfileToApi]", e);
+            set({ saveError: "ネットワークエラーが発生しました" });
+            return false;
+          } finally {
+            set({ isSaving: false });
+          }
+        },
+
+        saveCareerToApi: async () => {
+          set({ isSaving: true, saveError: null });
+          try {
+            const { data } = get();
 
             const res = await fetch("/api/career-profile", {
               method: "POST",
@@ -406,19 +424,28 @@ export const useCareerWizard = create<WizardStore>()(
                 visibility:   data.visibility,
               }),
             });
+
             if (!res.ok) {
-              const err = await res.json();
-              set({ saveError: err.error ?? "保存に失敗しました" });
+              const err = await res.json().catch(() => ({}));
+              set({ saveError: (err as any)?.error ?? "保存に失敗しました" });
               return false;
             }
+
             return true;
           } catch (e) {
-            console.error("[saveToApi]", e);
+            console.error("[saveCareerToApi]", e);
             set({ saveError: "ネットワークエラーが発生しました" });
             return false;
           } finally {
             set({ isSaving: false });
           }
+        },
+
+        saveToApi: async () => {
+          const okProfile = await get().saveProfileToApi();
+          if (!okProfile) return false;
+          const okCareer = await get().saveCareerToApi();
+          return okCareer;
         },
 
         resetWizard: () =>

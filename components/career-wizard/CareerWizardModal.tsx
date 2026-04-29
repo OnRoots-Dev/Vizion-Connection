@@ -44,7 +44,7 @@ export default function CareerWizardModal({
 }) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
-    data, isSaving, saveError, saveToApi,
+    data, isSaving, saveError, saveProfileToApi, saveCareerToApi,
     isEpisodeModalOpen,
     progressPct, currentPhase, roleColor, isCurrentStepSkippable,
   } = useCareerWizard();
@@ -56,12 +56,18 @@ export default function CareerWizardModal({
   const isLastContentStep = currentStepIndex === TOTAL_STEPS - 1;
   const isFirstStep = currentStepIndex === 0;
   const canSkip = isCurrentStepSkippable();
+  const currentStepId = STEPS[currentStepIndex]?.id;
 
   const StepComponent = STEP_COMPONENTS[currentStepIndex] ?? StepComplete;
 
   const handleNext = async () => {
+    if (currentStepId === "profile_media") {
+      const ok = await saveProfileToApi();
+      if (!ok) return;
+    }
+
     if (isLastContentStep) {
-      const ok = await saveToApi();
+      const ok = await saveCareerToApi();
       if (!ok) return; // saveErrorが表示される
       onCompleted?.();
     }
