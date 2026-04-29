@@ -15,15 +15,18 @@ import { ROLE_CONFIG } from "@/types/career";
 // ─── Step definitions ──────────────────────────────────────
 
 export const STEPS = [
-  { id: "role",      label: "役割",      phase: 0, skippable: false },
-  { id: "tagline",   label: "キャッチコピー", phase: 0, skippable: true  },
-  { id: "location",  label: "活動拠点",  phase: 0, skippable: true  },
-  { id: "bio",       label: "自己紹介",  phase: 1, skippable: true  },
-  { id: "stats",     label: "数値実績",  phase: 1, skippable: true  },
-  { id: "episodes",  label: "年表",      phase: 1, skippable: true  },
-  { id: "skills",    label: "スキル",    phase: 2, skippable: true  },
-  { id: "contact",   label: "連絡先",    phase: 2, skippable: true  },
-  { id: "complete",  label: "完成",      phase: 2, skippable: false },
+  { id: "role",          label: "役割",            phase: 0, skippable: false },
+  { id: "profile_basic", label: "プロフィール情報", phase: 0, skippable: false },
+  { id: "profile_media", label: "プロフィール画像", phase: 0, skippable: true },
+  { id: "tagline",       label: "キャッチコピー",   phase: 0, skippable: true  },
+  { id: "location",      label: "活動拠点",        phase: 0, skippable: true  },
+  { id: "bio",           label: "自己紹介",        phase: 1, skippable: true  },
+  { id: "stats",         label: "数値実績",        phase: 1, skippable: true  },
+  { id: "episodes",      label: "年表",            phase: 1, skippable: true  },
+  { id: "skills",        label: "スキル",          phase: 2, skippable: true  },
+  { id: "contact",       label: "連絡先",          phase: 2, skippable: true  },
+  { id: "career_media",  label: "キャリア画像",    phase: 2, skippable: true  },
+  { id: "complete",      label: "完成",            phase: 2, skippable: false },
 ] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
@@ -39,6 +42,24 @@ const INITIAL_DATA: CareerWizardState = {
   slug: "",
   sport: "",
   existingRegion: "",
+
+  // profile（編集対象）
+  displayName: "",
+  bio: "",
+  region: "",
+  prefecture: "",
+  sportsCategory: "",
+  sportProfile: "",
+  stance: "",
+  instagram: "",
+  xUrl: "",
+  tiktok: "",
+  profileImageUrl: "",
+  avatarUrl: "",
+  isPublic: true,
+
+  careerImageUrl: "",
+
   // career_profiles テーブルへ保存
   tagline: "",
   bioCareer: "",
@@ -87,6 +108,14 @@ interface WizardStore {
     slug: string;
     sport?: string;
     region?: string;
+    prefecture?: string;
+    sportsCategory?: string;
+    stance?: string;
+    bio?: string;
+    displayName?: string;
+    profileImageUrl?: string;
+    avatarUrl?: string | null;
+    isPublic?: boolean;
     instagram?: string;
     xUrl?: string;
     tiktok?: string;
@@ -198,9 +227,24 @@ export const useCareerWizard = create<WizardStore>()(
               slug: user.slug,
               sport: user.sport ?? "",
               existingRegion: user.region ?? "",
-              snsX:         user.xUrl      ?? "",
+              displayName: user.displayName ?? user.name,
+              bio: user.bio ?? "",
+              region: user.region ?? "",
+              prefecture: user.prefecture ?? "",
+              sportsCategory: user.sportsCategory ?? "",
+              sportProfile: user.sport ?? "",
+              stance: user.stance ?? "",
+              instagram: user.instagram ?? "",
+              xUrl: user.xUrl ?? "",
+              tiktok: user.tiktok ?? "",
+              profileImageUrl: user.profileImageUrl ?? "",
+              avatarUrl: user.avatarUrl ?? "",
+              isPublic: user.isPublic !== false,
+
+              // career側にも SNS を反映（公開ページのCTA用）
+              snsX: user.xUrl ?? "",
               snsInstagram: user.instagram ?? "",
-              snsTiktok: "",
+              snsTiktok: user.tiktok ?? "",
             },
           })),
 
@@ -316,6 +360,32 @@ export const useCareerWizard = create<WizardStore>()(
           set({ isSaving: true, saveError: null });
           try {
             const { data } = get();
+
+            const profileRes = await fetch("/api/profile/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                displayName: data.displayName,
+                bio: data.bio,
+                region: data.region,
+                prefecture: data.prefecture,
+                sportsCategory: data.sportsCategory,
+                sport: data.sportProfile,
+                stance: data.stance,
+                instagram: data.instagram,
+                xUrl: data.xUrl,
+                tiktok: data.tiktok,
+                profileImageUrl: data.profileImageUrl,
+                avatarUrl: data.avatarUrl,
+                isPublic: data.isPublic,
+              }),
+            });
+            if (!profileRes.ok) {
+              const err = await profileRes.json().catch(() => ({}));
+              set({ saveError: (err as any)?.error ?? "プロフィールの保存に失敗しました" });
+              return false;
+            }
+
             const res = await fetch("/api/career-profile", {
               method: "POST",
               headers: { "Content-Type": "application/json" },

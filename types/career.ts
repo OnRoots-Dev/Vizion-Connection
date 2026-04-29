@@ -42,6 +42,23 @@ export interface CareerWizardState {
   sport: string;          // users.sport
   existingRegion: string; // users.region（参考表示用）
 
+  // ── プロフィール（users テーブルへ保存）
+  displayName: string;
+  bio: string;
+  region: string;
+  prefecture: string;
+  sportsCategory: string;
+  sportProfile: string;
+  stance: string;
+  instagram: string;
+  xUrl: string;
+  tiktok: string;
+  profileImageUrl: string;
+  avatarUrl: string;
+  isPublic: boolean;
+
+  careerImageUrl: string;
+
   // ── career_profiles テーブルへ保存
   tagline: string;
   bioCareer: string;

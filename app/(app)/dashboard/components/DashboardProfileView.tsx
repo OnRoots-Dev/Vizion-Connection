@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors, DashboardView } from "../DashboardClient";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
@@ -9,7 +10,9 @@ import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
-import UnifiedProfileModal from "@/components/unified-profile/UnifiedProfileModal";
+import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
+import { useCareerWizard } from "@/hooks/useCareerWizard";
+import ShareButtonClient from "@/components/profile/ShareButtonClient";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS", Admin: "ADMIN",
@@ -63,6 +66,7 @@ export function DashboardProfileView({
   const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
   const needsInitialRegistration = !hasProfileSignal(profile) && !hasCareerSignal(careerProfile);
+  const canPublish = profile.role !== "Admin";
   const snsLinks = [
     { label: "X", href: profile.xUrl, path: X_PATH },
     { label: "Instagram", href: profile.instagram, path: IG_PATH },
@@ -77,7 +81,9 @@ export function DashboardProfileView({
   const [viewportWidth, setViewportWidth] = useState<number | null>(null);
   const [mobileSection, setMobileSection] = useState<MobileSectionId>("overview");
   const publicProfileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
-  const [isPublic, setIsPublic] = useState(profile.isPublic !== false);
+  const referralUrl = `https://vizion-connection.jp/r/${profile.slug}`;
+  const { initFromUser, initFromCareerProfile } = useCareerWizard();
+  const [isPublic, setIsPublic] = useState(canPublish ? profile.isPublic !== false : false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
 
@@ -109,7 +115,7 @@ export function DashboardProfileView({
   }, []);
 
   useEffect(() => {
-    setIsPublic(profile.isPublic !== false);
+    setIsPublic(canPublish ? profile.isPublic !== false : false);
   }, [profile.isPublic]);
 
   const careerStats = careerProfile?.stats?.filter((stat) => stat?.label || stat?.value).slice(0, 4) ?? [];
@@ -120,7 +126,6 @@ export function DashboardProfileView({
   const profileFacts = [
     { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
     { label: "Cheer", value: String(profile.cheerCount ?? 0), color: "#FFD600" },
-    serialDisplay ? { label: "Vizion ID", value: serialDisplay } : null,
     profile.sport ? { label: "Sport / Job", value: profile.sport } : null,
     profile.region ? { label: "Area", value: profile.region } : null,
     profile.prefecture ? { label: "Prefecture", value: profile.prefecture } : null,
@@ -145,22 +150,28 @@ export function DashboardProfileView({
     setRegistrationOpen(false);
   }
 
-  async function handleShareProfile() {
-    try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share({
-          title: `${profile.displayName} | Vizion Connection`,
-          text: `${profile.displayName}さんのプロフィールはこちら`,
-          url: publicProfileUrl,
-        });
-      } else if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(publicProfileUrl);
-      }
-      await fetch("/api/share/complete", { method: "POST" }).catch(() => undefined);
-    } catch {
-      // noop
-    }
-  }
+  useEffect(() => {
+    if (!registrationOpen) return;
+    initFromUser({
+      role: profile.role as any,
+      name: profile.displayName,
+      slug: profile.slug,
+      sport: profile.sport,
+      region: profile.region,
+      prefecture: profile.prefecture,
+      sportsCategory: profile.sportsCategory,
+      stance: profile.stance,
+      bio: profile.bio,
+      displayName: profile.displayName,
+      profileImageUrl: profile.profileImageUrl,
+      avatarUrl: profile.avatarUrl,
+      isPublic: canPublish ? profile.isPublic !== false : false,
+      instagram: profile.instagram,
+      xUrl: profile.xUrl,
+      tiktok: profile.tiktok,
+    });
+    if (careerProfile) initFromCareerProfile(careerProfile);
+  }, [canPublish, careerProfile, initFromCareerProfile, initFromUser, profile, registrationOpen]);
 
   async function handleVisibilityToggle() {
     const nextValue = !isPublic;
@@ -314,27 +325,14 @@ export function DashboardProfileView({
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Profile" sub="プロフィール" onBack={onBack} t={t} roleColor={roleColor} />
 
-      <UnifiedProfileModal
-        isOpen={registrationOpen}
-        onClose={() => setRegistrationOpen(false)}
-        user={{
-          slug: profile.slug,
-          displayName: profile.displayName,
-          profileImageUrl: profile.profileImageUrl,
-          avatarUrl: profile.avatarUrl,
-          bio: profile.bio,
-          region: profile.region,
-          prefecture: profile.prefecture,
-          sportsCategory: profile.sportsCategory,
-          sport: profile.sport,
-          stance: profile.stance,
-          instagram: profile.instagram,
-          xUrl: profile.xUrl,
-          tiktok: profile.tiktok,
-          isPublic: profile.isPublic,
-        }}
-        onCompleted={() => { void handleCompleted(); }}
-      />
+      <AnimatePresence>
+        {registrationOpen ? (
+          <CareerWizardModal
+            onClose={() => setRegistrationOpen(false)}
+            onCompleted={() => { void handleCompleted(); }}
+          />
+        ) : null}
+      </AnimatePresence>
 
       <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
         <div style={{ position: "relative", minHeight: 248 }}>
@@ -350,7 +348,6 @@ export function DashboardProfileView({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
-                {serialDisplay ? <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub }}>{serialDisplay}</span> : null}
               </div>
               <a href={`/u/${profile.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, textDecoration: "none", fontSize: 11, fontWeight: 900 }}>
                 公開プロフィールを見る
@@ -360,12 +357,17 @@ export function DashboardProfileView({
             <p style={{ margin: 0, fontSize: 10, fontFamily: "monospace", letterSpacing: "0.28em", textTransform: "uppercase", color: `${roleColor}dd` }}>
               {ROLE_LABEL[profile.role] ?? profile.role}{profile.sport ? ` · ${profile.sport}` : ""}
             </p>
-            <h2 style={{ margin: "8px 0 0", fontSize: "clamp(30px,5vw,44px)", fontWeight: 900, lineHeight: 0.95, letterSpacing: "-0.03em", color: "#fff" }}>
+            <h2 style={{ margin: "8px 0 0", fontSize: "clamp(26px,4.6vw,40px)", fontWeight: 900, lineHeight: 0.95, letterSpacing: "-0.03em", color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {profile.displayName}
             </h2>
             <p style={{ margin: "8px 0 0", fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.7)" }}>
               @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
             </p>
+            {serialDisplay ? (
+              <p style={{ margin: "6px 0 0", fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.7)" }}>
+                {serialDisplay}
+              </p>
+            ) : null}
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginTop: 18, flexWrap: "wrap" }}>
               <div style={{ width: 60, height: 60, borderRadius: "50%", overflow: "hidden", border: `2px solid ${roleColor}`, background: `linear-gradient(145deg, ${bg1}, #111)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -386,67 +388,53 @@ export function DashboardProfileView({
                   </div>
                 ) : null}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
-                  <button
-                    type="button"
-                    onClick={() => void handleVisibilityToggle()}
-                    disabled={savingVisibility}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 12px",
-                      borderRadius: 999,
-                      border: `1px solid ${isPublic ? `${roleColor}32` : "rgba(255,80,80,0.24)"}`,
-                      background: isPublic ? `${roleColor}12` : "rgba(255,80,80,0.1)",
-                      color: isPublic ? roleColor : "#ff9b9b",
-                      fontSize: 11,
-                      fontWeight: 900,
-                      cursor: savingVisibility ? "wait" : "pointer",
-                      opacity: savingVisibility ? 0.7 : 1,
-                    }}
-                  >
-                    <span
+                  {canPublish ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleVisibilityToggle()}
+                      disabled={savingVisibility}
                       style={{
-                        position: "relative",
-                        width: 26,
-                        height: 14,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "9px 12px",
                         borderRadius: 999,
-                        background: isPublic ? roleColor : "rgba(255,255,255,0.18)",
-                        transition: "background 0.2s",
-                        flexShrink: 0,
+                        border: `1px solid ${isPublic ? `${roleColor}32` : "rgba(255,80,80,0.24)"}`,
+                        background: isPublic ? `${roleColor}12` : "rgba(255,80,80,0.1)",
+                        color: isPublic ? roleColor : "#ff9b9b",
+                        fontSize: 11,
+                        fontWeight: 900,
+                        cursor: savingVisibility ? "wait" : "pointer",
+                        opacity: savingVisibility ? 0.7 : 1,
                       }}
                     >
                       <span
                         style={{
-                          position: "absolute",
-                          top: 2,
-                          left: isPublic ? 14 : 2,
-                          width: 10,
-                          height: 10,
-                          borderRadius: "50%",
-                          background: "#fff",
-                          transition: "left 0.2s",
+                          position: "relative",
+                          width: 26,
+                          height: 14,
+                          borderRadius: 999,
+                          background: isPublic ? roleColor : "rgba(255,255,255,0.18)",
+                          transition: "background 0.2s",
+                          flexShrink: 0,
                         }}
-                      />
-                    </span>
-                    {savingVisibility ? "更新中..." : isPublic ? "公開中" : "非公開"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleShareProfile()}
-                    style={{
-                      padding: "9px 12px",
-                      borderRadius: 999,
-                      border: `1px solid ${roleColor}30`,
-                      background: `${roleColor}12`,
-                      color: roleColor,
-                      fontSize: 11,
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    シェア
-                  </button>
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: 2,
+                            left: isPublic ? 14 : 2,
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            background: "#fff",
+                            transition: "left 0.2s",
+                          }}
+                        />
+                      </span>
+                      {savingVisibility ? "更新中..." : isPublic ? "公開中" : "非公開"}
+                    </button>
+                  ) : null}
                 </div>
                 {visibilityMessage ? (
                   <p style={{ margin: 0, fontSize: 10, color: visibilityMessage.includes("失敗") || visibilityMessage.includes("できません") ? "#ff9b9b" : "rgba(255,255,255,0.62)" }}>
@@ -464,6 +452,16 @@ export function DashboardProfileView({
           </div>
         </div>
 
+      </section>
+
+      <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface, padding: 18 }}>
+        <ShareButtonClient
+          profileUrl={publicProfileUrl}
+          referralUrl={referralUrl}
+          displayName={profile.displayName}
+          roleColor={roleColor}
+          slug={profile.slug}
+        />
       </section>
 
       {needsInitialRegistration ? (

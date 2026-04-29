@@ -6,6 +6,8 @@ import { useCareerWizard, STEPS, PHASE_LABELS, TOTAL_STEPS } from "@/hooks/useCa
 import EpisodeSubModal from "./EpisodeSubModal";
 
 import StepRole      from "./steps/StepRole";
+import StepProfileBasicWizard from "./steps/StepProfileBasicWizard";
+import StepProfileMediaWizard from "./steps/StepProfileMediaWizard";
 import StepTagline   from "./steps/StepTagline";
 import StepLocation  from "./steps/StepLocation";
 import StepBio       from "./steps/StepBio";
@@ -13,11 +15,22 @@ import StepStats     from "./steps/StepStats";
 import StepEpisodes  from "./steps/StepEpisodes";
 import StepSkills    from "./steps/StepSkills";
 import StepContact   from "./steps/StepContact";
+import StepCareerMediaWizard from "./steps/StepCareerMediaWizard";
 import StepComplete  from "./steps/StepComplete";
 
 const STEP_COMPONENTS = [
-  StepRole, StepTagline, StepLocation, StepBio,
-  StepStats, StepEpisodes, StepSkills, StepContact, StepComplete,
+  StepRole,
+  StepProfileBasicWizard,
+  StepProfileMediaWizard,
+  StepTagline,
+  StepLocation,
+  StepBio,
+  StepStats,
+  StepEpisodes,
+  StepSkills,
+  StepContact,
+  StepCareerMediaWizard,
+  StepComplete,
 ];
 
 export default function CareerWizardModal({

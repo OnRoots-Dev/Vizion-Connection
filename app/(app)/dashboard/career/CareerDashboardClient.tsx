@@ -10,7 +10,7 @@ import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { ROLE_CONFIG } from "@/types/career";
 import type { UserRole } from "@/types/career";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
-import UnifiedProfileModal from "@/components/unified-profile/UnifiedProfileModal";
+import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
 
 // ─── Props ────────────────────────────────────────────────
 
@@ -37,7 +37,6 @@ interface Props {
 export default function CareerDashboardClient({ user, careerProfile, onBack, embedded = false }: Props) {
   const {
     data,
-    resetWizard,
     initFromUser,
     initFromCareerProfile,
   } = useCareerWizard();
@@ -49,10 +48,9 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
   const color = cfg?.color ?? "#C1272D";
   const hasCareer = !!(careerProfile || data.episodes.length > 0 || data.tagline);
 
-  // ── サーバーデータをストアに読み込む ────────────────────────
   useEffect(() => {
-    resetWizard();
-    // usersテーブルのデータ
+    if (!wizardOpen) return;
+
     initFromUser({
       role: role,
       name: user.displayName,
@@ -62,13 +60,13 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
       instagram: user.instagram,
       xUrl: user.xUrl,
       tiktok: user.tiktok,
+      avatarUrl: user.avatarUrl,
     });
 
-    // career_profilesのデータ（あれば上書き）
     if (careerProfile) {
       initFromCareerProfile(careerProfile);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [careerProfile, initFromCareerProfile, initFromUser, role, user, wizardOpen]);
 
   const completeness = [
     { icon: "💬", label: "キャッチコピー", ok: !!(careerProfile?.tagline || data.tagline) },
@@ -373,10 +371,9 @@ export default function CareerDashboardClient({ user, careerProfile, onBack, emb
       {/* ── Wizard modal ────────────────────────────────── */}
       <AnimatePresence>
         {wizardOpen && (
-          <UnifiedProfileModal
-            isOpen={wizardOpen}
+          <CareerWizardModal
             onClose={() => setWizardOpen(false)}
-            user={user}
+            onCompleted={() => setWizardOpen(false)}
           />
         )}
       </AnimatePresence>
