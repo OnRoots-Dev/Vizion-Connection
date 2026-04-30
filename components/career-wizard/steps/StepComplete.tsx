@@ -9,6 +9,74 @@ export default function StepComplete() {
   const color = roleColor();
   const router = useRouter();
 
+  const ROLE_LABEL: Record<string, string> = {
+    Athlete: "ATHLETE",
+    Trainer: "TRAINER",
+    Members: "MEMBERS",
+    Business: "BUSINESS",
+    Admin: "ADMIN",
+  };
+
+  const CAREER_VISIBILITY_LABEL: Record<string, string> = {
+    public: "全体公開",
+    members: "メンバーのみ",
+    private: "非公開（下書き）",
+  };
+
+  const profileRows = [
+    { label: "あなたの役割", value: ROLE_LABEL[data.role] ?? data.role },
+    { label: "表示名（アカウント名）", value: data.displayName || data.name },
+    { label: "ひとこと", value: data.bio },
+    { label: "region（地方）", value: data.region },
+    { label: "prefecture（都道府県）", value: data.prefecture },
+    { label: "sportsCategory", value: data.sportsCategory },
+    { label: "sport", value: data.sportProfile },
+    { label: "stance", value: data.stance },
+    { label: "Instagram", value: data.instagram },
+    { label: "X", value: data.xUrl },
+    { label: "TikTok", value: data.tiktok },
+    { label: "公開設定", value: data.isPublic ? "公開" : "非公開" },
+  ].filter((r) => String(r.value ?? "").trim().length > 0);
+
+  const careerRows = [
+    { label: "キャッチコピー", value: data.tagline },
+    { label: "活動拠点", value: data.countryName },
+    { label: "キャリア自己紹介", value: data.bioCareer },
+    {
+      label: "実績（数字）",
+      value: data.stats
+        .filter((s) => (s?.value ?? "").trim().length > 0)
+        .map((s) => `${s.label || "実績"}: ${s.value}`)
+        .join(" / "),
+    },
+    {
+      label: "エピソード",
+      value: data.episodes.length
+        ? data.episodes
+            .slice(0, 6)
+            .map((e) => `${e.period}${e.period && e.role ? " · " : ""}${e.role}`.trim())
+            .filter(Boolean)
+            .join(" / ")
+        : "",
+    },
+    {
+      label: "スキル",
+      value: data.skills.length
+        ? data.skills
+            .slice(0, 12)
+            .map((s) => `${s.name}${s.isHighlight ? "★" : ""}`)
+            .join(" / ")
+        : "",
+    },
+    { label: "CTAタイトル", value: data.ctaTitle },
+    { label: "補足テキスト", value: data.ctaSub },
+    { label: "ボタンテキスト", value: data.ctaBtn },
+    { label: "X (Twitter)", value: data.snsX },
+    { label: "Instagram", value: data.snsInstagram },
+    { label: "TikTok", value: data.snsTiktok },
+    { label: "公開設定", value: CAREER_VISIBILITY_LABEL[data.visibility] ?? data.visibility },
+  ].filter((r) => String(r.value ?? "").trim().length > 0);
+
   const items = [
     { icon: "💬", label: "キャッチコピー", ok: !!data.tagline },
     { icon: "📝", label: "自己紹介",       ok: !!data.bioCareer },
@@ -52,6 +120,40 @@ export default function StepComplete() {
           </div>
         ))}
       </motion.div>
+
+      <div className="text-left mb-6">
+        <div className="mb-3">
+          <p className="m-0 font-mono text-[9px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.25)" }}>
+            プロフィール
+          </p>
+          <div className="mt-2 rounded-2xl border p-3.5" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.07)" }}>
+            <dl className="m-0 grid grid-cols-1 gap-2">
+              {profileRows.map((r) => (
+                <div key={r.label} className="flex items-start justify-between gap-3">
+                  <dt className="shrink-0 text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>{r.label}</dt>
+                  <dd className="m-0 text-[12px] leading-relaxed text-right" style={{ color: "rgba(255,255,255,0.7)" }}>{r.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+
+        <div>
+          <p className="m-0 font-mono text-[9px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.25)" }}>
+            キャリア
+          </p>
+          <div className="mt-2 rounded-2xl border p-3.5" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.07)" }}>
+            <dl className="m-0 grid grid-cols-1 gap-2">
+              {careerRows.map((r) => (
+                <div key={r.label} className="flex items-start justify-between gap-3">
+                  <dt className="shrink-0 text-[11px] font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>{r.label}</dt>
+                  <dd className="m-0 text-[12px] leading-relaxed text-right" style={{ color: "rgba(255,255,255,0.7)" }}>{r.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col gap-2.5">
         {data.slug && (
           <motion.button initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}

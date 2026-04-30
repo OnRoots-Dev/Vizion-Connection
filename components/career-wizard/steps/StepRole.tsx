@@ -17,7 +17,7 @@ export default function StepRole() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 1 / 8" title="あなたの役割は？"
+      <StepHeader eyebrow="Step 1 / 11" title="あなたの役割は？"
         hint="選択するとページテーマが変わります。あとで変更できます。" />
       <div className="grid grid-cols-2 gap-2.5">
         {ROLES.map((roleId, i) => {

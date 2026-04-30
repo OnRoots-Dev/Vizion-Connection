@@ -50,13 +50,15 @@ export default function CareerWizardModal({
   } = useCareerWizard();
 
   const color = roleColor();
-  const pct = progressPct();
   const phase = currentPhase();
   const isCompleteStep = currentStepIndex === TOTAL_STEPS;
   const isLastContentStep = currentStepIndex === TOTAL_STEPS - 1;
   const isFirstStep = currentStepIndex === 0;
   const canSkip = isCurrentStepSkippable();
   const currentStepId = STEPS[currentStepIndex]?.id;
+  const stepLabel = `${currentStepIndex + 1}/${TOTAL_STEPS}`;
+
+  const pct = progressPct();
 
   const StepComponent = STEP_COMPONENTS[currentStepIndex] ?? StepComplete;
 
@@ -100,9 +102,9 @@ export default function CareerWizardModal({
               <span className="font-mono text-[9px] tracking-[0.24em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>
                 {PHASE_LABELS[phase]} · {currentStepIndex + 1}/{TOTAL_STEPS}
               </span>
-              <motion.span key={pct} className="font-mono text-[13px] font-medium" style={{ color }}
+              <motion.span key={stepLabel} className="font-mono text-[13px] font-medium" style={{ color }}
                 initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
-                {pct}%
+                {stepLabel}
               </motion.span>
             </div>
             <div className="h-[2px] rounded-full overflow-hidden mb-4" style={{ background: "rgba(255,255,255,0.06)" }}>

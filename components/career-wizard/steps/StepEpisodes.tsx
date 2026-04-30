@@ -13,7 +13,7 @@ export default function StepEpisodes() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 6 / 8" title="キャリア年表"
+      <StepHeader eyebrow="Step 8 / 11" title="キャリア年表"
         hint="時代ごとのエピソードを追加。1つからOK。" />
       <EpisodeTips tips={cfg.episodeTips} />
       <AnimatePresence>

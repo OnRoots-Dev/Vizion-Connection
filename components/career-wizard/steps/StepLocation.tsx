@@ -31,7 +31,7 @@ export default function StepLocation() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 3 / 8" title="活動拠点"
+      <StepHeader eyebrow="Step 5 / 11" title="活動拠点"
         hint="現在の活動国・地域を選んでください" />
 
       <Field label="活動国">

@@ -9,7 +9,7 @@ export default function StepBio() {
   const cfg = ROLE_CONFIG[(data.role || "Athlete") as UserRole];
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 4 / 8" title="キャリア自己紹介"
+      <StepHeader eyebrow="Step 6 / 11" title="キャリア自己紹介"
         hint="プロフィールの自己紹介とは別に、キャリアページ専用の紹介文を書けます。" />
       <HintBullets items={cfg.bioBullets} />
       <Field label="キャリアストーリー">

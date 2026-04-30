@@ -13,7 +13,7 @@ export default function StepContact() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 8 / 8" title="コンタクト設定"
+      <StepHeader eyebrow="Step 10 / 11" title="コンタクト設定"
         hint="ページ末尾のCTAセクションに表示されます" />
       <Field label="CTAタイトル">
         <WizardInput value={data.ctaTitle} onChange={(v) => setField("ctaTitle", v)}

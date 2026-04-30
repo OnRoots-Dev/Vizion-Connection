@@ -12,7 +12,7 @@ export default function StepStats() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 5 / 8" title="数字で語る実績"
+      <StepHeader eyebrow="Step 7 / 11" title="数字で語る実績"
         hint="ヒーローセクションに大きく表示されます。空欄はスキップされます。" />
       {data.stats.map((stat, i) => {
         const tmpl = cfg.stats[i];

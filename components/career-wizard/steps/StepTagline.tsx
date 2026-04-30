@@ -15,7 +15,7 @@ export default function StepTagline() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 2 / 8" title="基本プロフィール" />
+      <StepHeader eyebrow="Step 4 / 11" title="基本プロフィール" />
 
       {/* 現在のusers.display_name / sport を参考表示 */}
       {data.name && (

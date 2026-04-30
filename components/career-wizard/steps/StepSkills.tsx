@@ -19,7 +19,7 @@ export default function StepSkills() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 7 / 8" title="スキル・強み" hint={cfg.skillsHint} />
+      <StepHeader eyebrow="Step 9 / 11" title="スキル・強み" hint={cfg.skillsHint} />
       <div className="flex items-center gap-3 mb-4 p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
         <div className="flex items-center gap-1.5">
           <div className="w-3.5 h-3.5 rounded-full bg-yellow-400 flex-shrink-0"/>
