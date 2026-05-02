@@ -141,8 +141,8 @@ export default function ShareButtonClient({ profileUrl, referralUrl, displayName
 
             {open ? (
                 <>
-                    <button type="button" className="fixed inset-0 z-40 border-none bg-transparent" aria-label="close" onClick={() => setOpen(false)} />
-                    <div className="absolute right-0 z-50 mt-2 w-[280px] overflow-hidden rounded-[14px]" style={{ background: "#0f0f1c", border: `1px solid ${roleColor}30`, boxShadow: `0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px ${roleColor}15` }}>
+                    <button type="button" className="fixed inset-0 z-[200] border-none bg-transparent" aria-label="close" onClick={() => setOpen(false)} />
+                    <div className="absolute right-0 z-[210] mt-2 w-[280px] overflow-hidden rounded-[14px]" style={{ background: "#0f0f1c", border: `1px solid ${roleColor}30`, boxShadow: `0 8px 40px rgba(0,0,0,0.7), 0 0 0 1px ${roleColor}15` }}>
                         <div className="border-b px-[14px] pb-[9px] pt-[11px]" style={{ borderBottomColor: `${roleColor}18` }}>
                             <p className="m-0 font-mono text-[9px] font-extrabold uppercase tracking-[0.2em]" style={{ color: "rgba(255,255,255,0.25)" }}>Share</p>
                         </div>

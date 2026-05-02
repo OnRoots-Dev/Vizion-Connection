@@ -335,23 +335,26 @@ export function DashboardProfileView({
         ) : null}
       </AnimatePresence>
 
-      <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
-        <div style={{ position: "relative", minHeight: 248 }}>
-          {profile.profileImageUrl ? (
-            <Image
-              src={profile.profileImageUrl}
-              alt=""
-              fill
-              sizes="(min-width: 1120px) 900px, 100vw"
-              className="absolute inset-0 object-cover object-top opacity-45"
-            />
-          ) : (
-            <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, ${t.bg} 100%)` }} />
-          )}
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${t.bg} 0%, rgba(0,0,0,0.16) 52%, rgba(0,0,0,0.04) 100%)` }} />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1}66 0%, transparent 58%)` }} />
+      <section style={{ overflow: "visible", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface, position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 24 }}>
+          <div style={{ position: "relative", minHeight: 248 }}>
+            {profile.profileImageUrl ? (
+              <Image
+                src={profile.profileImageUrl}
+                alt=""
+                fill
+                sizes="(min-width: 1120px) 900px, 100vw"
+                className="absolute inset-0 object-cover object-top opacity-45"
+              />
+            ) : (
+              <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, ${t.bg} 100%)` }} />
+            )}
+            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${t.bg} 0%, rgba(0,0,0,0.16) 52%, rgba(0,0,0,0.04) 100%)` }} />
+            <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1}66 0%, transparent 58%)` }} />
+          </div>
+        </div>
 
-          <div style={{ position: "relative", zIndex: 2, padding: isSingleColumn ? 18 : 22 }}>
+        <div style={{ position: "relative", zIndex: 2, minHeight: 248, padding: isSingleColumn ? 18 : 22 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
@@ -466,19 +469,17 @@ export function DashboardProfileView({
                 <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, fontWeight: 800, color: "#fff" }}>&quot;{profile.claim.trim()}&quot;</p>
               </div>
             ) : null}
+
+            <div style={{ position: "absolute", right: isSingleColumn ? 14 : 18, bottom: isSingleColumn ? 14 : 18, zIndex: 20 }}>
+              <ShareButtonClient
+                profileUrl={publicProfileUrl}
+                referralUrl={referralUrl}
+                displayName={profile.displayName}
+                roleColor={roleColor}
+                slug={profile.slug}
+              />
+            </div>
           </div>
-        </div>
-
-      </section>
-
-      <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface, padding: 18 }}>
-        <ShareButtonClient
-          profileUrl={publicProfileUrl}
-          referralUrl={referralUrl}
-          displayName={profile.displayName}
-          roleColor={roleColor}
-          slug={profile.slug}
-        />
       </section>
 
       {needsInitialRegistration ? (

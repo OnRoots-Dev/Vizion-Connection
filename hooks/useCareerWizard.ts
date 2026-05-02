@@ -15,7 +15,6 @@ import { ROLE_CONFIG } from "@/types/career";
 // ─── Step definitions ──────────────────────────────────────
 
 export const STEPS = [
-  { id: "role",          label: "役割",            phase: 0, skippable: false },
   { id: "profile_basic", label: "プロフィール情報", phase: 0, skippable: false },
   { id: "profile_media", label: "プロフィール画像", phase: 0, skippable: true },
   { id: "tagline",       label: "キャッチコピー",   phase: 0, skippable: true  },

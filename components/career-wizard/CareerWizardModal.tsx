@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import { useCareerWizard, STEPS, PHASE_LABELS, TOTAL_STEPS } from "@/hooks/useCareerWizard";
 import EpisodeSubModal from "./EpisodeSubModal";
 
-import StepRole      from "./steps/StepRole";
 import StepProfileBasicWizard from "./steps/StepProfileBasicWizard";
 import StepProfileMediaWizard from "./steps/StepProfileMediaWizard";
 import StepTagline   from "./steps/StepTagline";
@@ -19,7 +18,6 @@ import StepCareerMediaWizard from "./steps/StepCareerMediaWizard";
 import StepComplete  from "./steps/StepComplete";
 
 const STEP_COMPONENTS = [
-  StepRole,
   StepProfileBasicWizard,
   StepProfileMediaWizard,
   StepTagline,
@@ -148,7 +146,7 @@ export default function CareerWizardModal({
               </button>
             )}
             <motion.button onClick={handleNext}
-              disabled={isSaving || (currentStepIndex === 0 && !data.role)}
+              disabled={isSaving}
               whileTap={{ scale: 0.97 }}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] tracking-[0.04em] text-white transition-all hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none"
               style={{ background: color }}>
