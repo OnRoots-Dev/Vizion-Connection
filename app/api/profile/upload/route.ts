@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
+import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { profileLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const type = formData.get("type");
     const file = formData.get("file");
 
-    if (type !== "profile" && type !== "avatar" && type !== "career") {
+    if (type !== "profile" && type !== "avatar" && type !== "career" && type !== "banner") {
         return NextResponse.json({ error: "不正なアップロード種別です" }, { status: 400 });
     }
     if (!(file instanceof File)) {
@@ -52,7 +52,9 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = getFileExtension(file);
-    const path = `${user.slug}/${type}-${Date.now()}.${ext}`;
+    const path = type === "banner"
+        ? `banners/${user.id}/banner.webp`
+        : `${user.slug}/${type}-${Date.now()}.${ext}`;
     const bytes = Buffer.from(await file.arrayBuffer());
 
     const upload = await supabaseServer.storage.from("profiles").upload(path, bytes, {
@@ -66,5 +68,12 @@ export async function POST(req: NextRequest) {
     }
 
     const { data } = supabaseServer.storage.from("profiles").getPublicUrl(path);
+
+    if (type === "banner") {
+        const ok = await updateUserProfile(user.slug, { bannerUrl: data.publicUrl });
+        if (!ok) {
+            return NextResponse.json({ error: "プロフィールの更新に失敗しました" }, { status: 500 });
+        }
+    }
     return NextResponse.json({ ok: true, url: data.publicUrl });
 }

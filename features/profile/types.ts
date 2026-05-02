@@ -23,6 +23,7 @@ export interface ProfileData {
     createdAt: string;
     serialId?: string;
     profileImageUrl?: string;
+    bannerUrl?: string;
     cardBgUrl?: string;
     avatarUrl?: string;
     bio?: string;
@@ -66,6 +67,7 @@ export interface PublicProfileData {
     createdAt: string;
     serialId?: string;
     profileImageUrl?: string;
+    bannerUrl?: string;
     cardBgUrl?: string;
     bio?: string;
     region?: string;

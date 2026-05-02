@@ -14,6 +14,7 @@ export type UnifiedProfileUser = {
   slug: string;
   displayName?: string;
   profileImageUrl?: string;
+  bannerUrl?: string;
   avatarUrl?: string | null;
   bio?: string;
   region?: string;
@@ -39,6 +40,7 @@ export type UnifiedProfileData = {
   xUrl: string;
   tiktok: string;
   profileImageUrl: string;
+  bannerUrl: string;
   avatarUrl: string;
   isPublic: boolean;
 };
@@ -69,6 +71,7 @@ export default function UnifiedProfileModal({
       xUrl: user.xUrl ?? "",
       tiktok: user.tiktok ?? "",
       profileImageUrl: user.profileImageUrl ?? "",
+      bannerUrl: user.bannerUrl ?? "",
       avatarUrl: user.avatarUrl ?? "",
       isPublic: user.isPublic !== false,
     };
@@ -121,6 +124,7 @@ export default function UnifiedProfileModal({
           xUrl: typeof profile?.xUrl === "string" ? profile.xUrl : prev.xUrl,
           tiktok: typeof profile?.tiktok === "string" ? profile.tiktok : prev.tiktok,
           profileImageUrl: typeof profile?.profileImageUrl === "string" ? profile.profileImageUrl : prev.profileImageUrl,
+          bannerUrl: typeof profile?.bannerUrl === "string" ? profile.bannerUrl : prev.bannerUrl,
           avatarUrl: typeof profile?.avatarUrl === "string" ? profile.avatarUrl : prev.avatarUrl,
           isPublic: typeof profile?.isPublic === "boolean" ? profile.isPublic : prev.isPublic,
         }));
@@ -170,6 +174,7 @@ export default function UnifiedProfileModal({
           xUrl: profileData.xUrl,
           tiktok: profileData.tiktok,
           profileImageUrl: profileData.profileImageUrl,
+          bannerUrl: profileData.bannerUrl,
           avatarUrl: profileData.avatarUrl,
           isPublic: profileData.isPublic,
         }),
@@ -213,8 +218,10 @@ export default function UnifiedProfileModal({
       <div className="space-y-4">
         <StepProfileMedia
           profileImageUrl={profileData.profileImageUrl}
+          bannerUrl={profileData.bannerUrl}
           avatarUrl={profileData.avatarUrl}
           onProfileImageChange={(url) => setProfileData((p) => ({ ...p, profileImageUrl: url }))}
+          onBannerChange={(url) => setProfileData((p) => ({ ...p, bannerUrl: url }))}
           onAvatarChange={(url) => setProfileData((p) => ({ ...p, avatarUrl: url }))}
           onBack={() => setCurrentStep(1)}
           onNext={() => void handleSaveAndGoComplete()}

@@ -18,6 +18,7 @@ type UserRow = {
     rand_b: string | null;
     avatar_url: string | null;
     profile_image_url: string | null;
+    banner_url: string | null;
     bio: string | null;
     region: string | null;
     prefecture: string | null;
@@ -66,6 +67,7 @@ function toProfile(row: UserRow) {
         randB: row.rand_b,
         avatarUrl: row.avatar_url,
         profileImageUrl: row.profile_image_url,
+        bannerUrl: row.banner_url,
         bio: row.bio,
         region: row.region,
         prefecture: row.prefecture,
@@ -200,6 +202,7 @@ const CAMEL_TO_SNAKE: Record<string, string> = {
     sportsCategory: "sports_category", stance: "stance", claim: "claim",
     instagram: "instagram", xUrl: "x_url", tiktok: "tiktok",
     avatarUrl: "avatar_url", profileImageUrl: "profile_image_url",
+    bannerUrl: "banner_url",
     proofUrl: "proof_url", isPublic: "is_public", hasShared: "has_shared",
 };
 

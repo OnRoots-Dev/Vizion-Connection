@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
         xUrl: body.xUrl,
         tiktok: body.tiktok,
         profileImageUrl: body.profileImageUrl,
+        bannerUrl: body.bannerUrl,
         avatarUrl: body.avatarUrl,
         ...(typeof body.isPublic === "boolean" ? { isPublic: body.isPublic } : {}),
     });

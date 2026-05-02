@@ -1,6 +1,6 @@
 export async function uploadImageToSupabase(
     file: File,
-    type: "profile" | "avatar",
+    type: "profile" | "avatar" | "banner",
 ): Promise<string> {
     const formData = new FormData();
     formData.append("file", file);

@@ -45,6 +45,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     serialId: user.serialId ?? undefined,
 
                     profileImageUrl: user.profileImageUrl ?? undefined,
+                    bannerUrl: user.bannerUrl ?? undefined,
                     avatarUrl: user.avatarUrl ?? undefined,
                     bio: user.bio ?? undefined,
                     region: user.region ?? undefined,

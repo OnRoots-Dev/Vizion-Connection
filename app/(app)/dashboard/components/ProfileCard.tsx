@@ -385,6 +385,7 @@ export function ProfileCardSection({
     const latestCheers = profile.latestCheers ?? [];
     const isFounding = profile.isFoundingMember ?? false;
     const isPublicMode = mode === "public";
+    const bannerSrc = profile.bannerUrl || profile.profileImageUrl;
 
     const snsLinks = [
         { label: "X", href: profile.xUrl, path: X_PATH },
@@ -532,8 +533,8 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", top: "-12%", right: "-10%", width: 220, height: 220, background: "radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)", filter: "blur(12px)", opacity: 0.9, pointerEvents: "none" }} />
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />
-                                {profile.profileImageUrl ? (
-                                    <NextImage src={profile.profileImageUrl} alt={profile.displayName} width={1} height={1} unoptimized sizes="(max-width: 768px) 62vw, 62%" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", zIndex: 3, ...photoMask }} />
+                                {bannerSrc ? (
+                                    <NextImage src={bannerSrc} alt={profile.displayName} width={1} height={1} unoptimized sizes="(max-width: 768px) 62vw, 62%" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none", zIndex: 3, ...photoMask }} />
                                 ) : (
                                     <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", zIndex: 3, ...photoMask }}>{initials}</div>
                                 )}
@@ -619,8 +620,8 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none" }} />
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none" }} />
                                 <div className="v12-shim" style={{ position: "absolute", inset: 0, zIndex: 10, borderRadius: 14, opacity: 0, pointerEvents: "none" }} />
-                                {profile.profileImageUrl ? (
-                                    <NextImage src={profile.profileImageUrl} alt="" width={1} height={1} unoptimized sizes="(max-width: 768px) 60vw, 60%" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center top", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
+                                {bannerSrc ? (
+                                    <NextImage src={bannerSrc} alt="" width={1} height={1} unoptimized sizes="(max-width: 768px) 60vw, 60%" style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "60%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none", opacity: 0.7, ...photoMaskSoft }} />
                                 ) : (
                                     <div style={{ position: "absolute", right: 0, top: 0, width: "60%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", pointerEvents: "none", userSelect: "none", ...photoMaskSoft }}>{initials}</div>
                                 )}

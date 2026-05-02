@@ -3,18 +3,23 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
+import BannerCropModal from "@/components/profile/BannerCropModal";
 
 export default function StepProfileMedia({
   profileImageUrl,
+  bannerUrl,
   avatarUrl,
   onProfileImageChange,
+  onBannerChange,
   onAvatarChange,
   onNext,
   onBack,
 }: {
   profileImageUrl: string;
+  bannerUrl: string;
   avatarUrl: string;
   onProfileImageChange: (url: string) => void;
+  onBannerChange: (url: string) => void;
   onAvatarChange: (url: string) => void;
   onNext: () => void;
   onBack: () => void;
@@ -24,8 +29,11 @@ export default function StepProfileMedia({
 
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [avatarError, setAvatarError] = useState("");
+  const [bannerError, setBannerError] = useState("");
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
 
   async function handleImageUpload(type: "profile" | "avatar") {
     const input = type === "profile" ? profileInputRef.current : avatarInputRef.current;
@@ -63,6 +71,27 @@ export default function StepProfileMedia({
 
   return (
     <div className="space-y-6">
+      <BannerCropModal
+        isOpen={bannerModalOpen}
+        onClose={() => {
+          if (!uploadingBanner) setBannerModalOpen(false);
+        }}
+        onComplete={(blob) => {
+          const file = new File([blob], "banner.webp", { type: "image/webp" });
+          setUploadingBanner(true);
+          setBannerError("");
+          uploadImageToSupabase(file, "banner")
+            .then((url) => {
+              onBannerChange(url);
+              setBannerModalOpen(false);
+            })
+            .catch((e) => {
+              setBannerError(e instanceof Error ? e.message : "画像アップロードに失敗しました");
+            })
+            .finally(() => setUploadingBanner(false));
+        }}
+      />
+
       <div>
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Step 2</p>
         <h3 className="mt-1 text-xl font-black text-white">プロフィール画像</h3>
@@ -72,6 +101,54 @@ export default function StepProfileMedia({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:col-span-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">バナー画像</p>
+              <p className="mt-1 text-sm text-white/60">公開プロフィールのヘッダーに表示されます（3:1でクロップ）。</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBannerModalOpen(true)}
+              disabled={uploadingBanner}
+              className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
+            >
+              {uploadingBanner ? "アップロード中..." : "画像を変更"}
+            </button>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/20" style={{ aspectRatio: "3 / 1" }}>
+            {bannerUrl ? (
+              <Image src={bannerUrl} alt="banner" fill className="object-cover" />
+            ) : (
+              <div className="absolute inset-0" style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))" }} />
+            )}
+            <div className="pointer-events-none absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent 60%)" }} />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {bannerUrl ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onBannerChange("");
+                  setBannerError("");
+                }}
+                disabled={uploadingBanner}
+                className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70 disabled:opacity-60"
+              >
+                削除
+              </button>
+            ) : null}
+          </div>
+
+          {bannerError ? (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {bannerError}
+            </div>
+          ) : null}
+        </div>
+
         <ImageUploadCard
           label="プロフィール画像"
           description="カード背景・プロフィールのヒーロー画像です。"
@@ -117,10 +194,10 @@ export default function StepProfileMedia({
         <button
           type="button"
           onClick={onNext}
-          disabled={uploadingProfile || uploadingAvatar}
+          disabled={uploadingProfile || uploadingAvatar || uploadingBanner}
           className="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-black disabled:opacity-60"
         >
-          {uploadingProfile || uploadingAvatar ? "アップロード中..." : "保存して次へ"}
+          {uploadingProfile || uploadingAvatar || uploadingBanner ? "アップロード中..." : "保存して次へ"}
         </button>
       </div>
     </div>
