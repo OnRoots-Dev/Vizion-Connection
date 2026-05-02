@@ -50,6 +50,7 @@ function applyCors(req: NextRequest, res: NextResponse): NextResponse {
             "rsc",
             "next-router-state-tree",
             "next-router-prefetch",
+            "next-router-segment-prefetch",
             "next-url",
             "content-type",
             "x-requested-with",

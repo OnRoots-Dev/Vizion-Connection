@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
           { key: "Access-Control-Allow-Methods", value: "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
           {
             key: "Access-Control-Allow-Headers",
-            value: "rsc,next-router-state-tree,next-router-prefetch,next-url,content-type",
+            value: "rsc,next-router-state-tree,next-router-prefetch,next-router-segment-prefetch,next-url,content-type",
           },
         ],
       },
