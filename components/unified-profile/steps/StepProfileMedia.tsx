@@ -94,17 +94,17 @@ export default function StepProfileMedia({
 
       <div>
         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/40">Step 2</p>
-        <h3 className="mt-1 text-xl font-black text-white">プロフィール画像</h3>
+        <h3 className="mt-1 text-xl font-black text-white">画像設定</h3>
         <p className="mt-2 text-sm leading-6 text-white/70">
-          プロフィール画像とアバター画像をアップロードできます（最大5MB）。
+          カード画像・プロフィール画像・プロフィールバナー画像をアップロードできます（最大5MB）。
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:col-span-2">
+      <div className="space-y-4">
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-black text-white">バナー画像</p>
+              <p className="text-sm font-black text-white">プロフィールバナー画像</p>
               <p className="mt-1 text-sm text-white/60">公開プロフィールのヘッダーに表示されます（3:1でクロップ）。</p>
             </div>
             <button
@@ -113,7 +113,7 @@ export default function StepProfileMedia({
               disabled={uploadingBanner}
               className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
             >
-              {uploadingBanner ? "アップロード中..." : "画像を変更"}
+              {uploadingBanner ? "アップロード中..." : (bannerUrl ? "画像を変更" : "画像を設定")}
             </button>
           </div>
 
@@ -150,8 +150,8 @@ export default function StepProfileMedia({
         </div>
 
         <ImageUploadCard
-          label="プロフィール画像"
-          description="カード背景・プロフィールのヒーロー画像です。"
+          label="カード画像"
+          description="プロフィールカードの大きい画像として表示されます。"
           type="profile"
           currentUrl={profileImageUrl}
           inputRef={profileInputRef}
@@ -166,8 +166,8 @@ export default function StepProfileMedia({
         />
 
         <ImageUploadCard
-          label="アバター画像"
-          description="アイコンとして表示される写真です。"
+          label="プロフィール画像"
+          description="アイコンなどに表示される写真です。"
           type="avatar"
           currentUrl={avatarUrl}
           inputRef={avatarInputRef}

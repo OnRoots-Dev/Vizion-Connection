@@ -12,11 +12,12 @@ export default function StepProfileComplete({
     bio: string;
     profileImageUrl: string;
     avatarUrl: string;
+    bannerUrl: string;
   };
   onContinueToCareer: () => void;
   onClose: () => void;
 }) {
-  const hasAnyImage = Boolean(profileData.profileImageUrl || profileData.avatarUrl);
+  const hasAnyImage = Boolean(profileData.profileImageUrl || profileData.avatarUrl || profileData.bannerUrl);
 
   return (
     <div className="space-y-6">
@@ -44,14 +45,14 @@ export default function StepProfileComplete({
           <SummaryRow label="画像" value={hasAnyImage ? "アップロード済み" : "未アップロード"} />
         </div>
 
-        {(profileData.profileImageUrl || profileData.avatarUrl) ? (
+        {(profileData.profileImageUrl || profileData.avatarUrl || profileData.bannerUrl) ? (
           <div className="mt-4 flex flex-wrap gap-3">
             {profileData.profileImageUrl ? (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-white/60">プロフィール画像</p>
+                <p className="text-xs font-semibold text-white/60">カード画像</p>
                 <Image
                   src={profileData.profileImageUrl}
-                  alt="プロフィール画像"
+                  alt="カード画像"
                   width={80}
                   height={80}
                   className="h-20 w-20 rounded-2xl border border-white/10 object-cover"
@@ -60,13 +61,25 @@ export default function StepProfileComplete({
             ) : null}
             {profileData.avatarUrl ? (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-white/60">アバター画像</p>
+                <p className="text-xs font-semibold text-white/60">プロフィール画像</p>
                 <Image
                   src={profileData.avatarUrl}
-                  alt="アバター画像"
+                  alt="プロフィール画像"
                   width={80}
                   height={80}
                   className="h-20 w-20 rounded-2xl border border-white/10 object-cover"
+                />
+              </div>
+            ) : null}
+            {profileData.bannerUrl ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-white/60">プロフィールバナー画像</p>
+                <Image
+                  src={profileData.bannerUrl}
+                  alt="プロフィールバナー画像"
+                  width={240}
+                  height={80}
+                  className="h-20 w-60 rounded-2xl border border-white/10 object-cover"
                 />
               </div>
             ) : null}

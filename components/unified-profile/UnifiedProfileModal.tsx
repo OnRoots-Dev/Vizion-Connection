@@ -203,7 +203,7 @@ export default function UnifiedProfileModal({
 
   const steps: Array<{ n: StepNumber; label: string; enabled: boolean }> = [
     { n: 1, label: "プロフィール情報", enabled: true },
-    { n: 2, label: "プロフィール画像", enabled: true },
+    { n: 2, label: "画像設定", enabled: true },
     { n: 3, label: "プロフィール完了", enabled: true },
     { n: 4, label: "キャリア情報", enabled: true },
     { n: 5, label: "キャリア画像", enabled: true },
@@ -246,6 +246,7 @@ export default function UnifiedProfileModal({
           bio: profileData.bio,
           profileImageUrl: profileData.profileImageUrl,
           avatarUrl: profileData.avatarUrl,
+          bannerUrl: profileData.bannerUrl,
         }}
         onContinueToCareer={() => setCurrentStep(4)}
         onClose={onClose}
@@ -291,6 +292,7 @@ export default function UnifiedProfileModal({
                 background: "#0c0c16",
                 border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: "28px",
+                height: "92dvh",
                 maxHeight: "92dvh",
               }}
               initial={{ y: 80, opacity: 0, scale: 0.96 }}
