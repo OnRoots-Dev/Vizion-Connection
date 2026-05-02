@@ -4,6 +4,23 @@ import { cookies } from "next/headers";
 
 export const SESSION_COOKIE_NAME = "vizion_session";
 
+function shouldSetCookieDomain(): string | undefined {
+    if (process.env.NODE_ENV !== "production") return undefined;
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) return ".vizion-connection.jp";
+
+    try {
+        const hostname = new URL(baseUrl).hostname;
+        if (hostname === "vizion-connection.jp" || hostname.endsWith(".vizion-connection.jp")) {
+            return ".vizion-connection.jp";
+        }
+        return undefined;
+    } catch {
+        return ".vizion-connection.jp";
+    }
+}
+
 function shouldUseSecureCookie(): boolean {
     // Local dev runs on http://localhost; secure cookies would be dropped and login would fail.
     // Prefer explicit production flag so .env pointing to the prod domain doesn't force secure locally.
@@ -22,8 +39,7 @@ export const COOKIE_OPTIONS = {
     sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7日
-    domain:
-        process.env.NODE_ENV === "production" ? ".vizion-connection.jp" : undefined,
+    domain: shouldSetCookieDomain(),
 };
 
 export async function setSessionCookie(token: string): Promise<void> {
