@@ -6,6 +6,7 @@ import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard
 import ShareButton from "./ShareButton";
 import type { PublicProfileData } from "@/features/profile/types";
 import type { ProfileData } from "@/features/profile/types";
+import Image from "next/image";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
@@ -151,13 +152,14 @@ export default function CardPageClient({
                                 {/* カード見本プレビュー */}
                                 <div className={`mb-3.5 overflow-hidden rounded-xl border bg-black/30 ${roleSurfaceBorderClass}`}>
                                     {/* OG画像プレビュー（/api/og/slug から取得） */}
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
+                                    <Image
                                         src={`/api/og/${profile.slug}?format=og`}
                                         alt="カードプレビュー"
+                                        width={1200}
+                                        height={630}
+                                        unoptimized
                                         className="block h-auto w-full rounded-xl"
                                         onError={(e) => {
-                                            // 画像読み込み失敗時は非表示
                                             (e.target as HTMLImageElement).style.display = "none";
                                         }}
                                     />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPublicUsers } from "@/lib/supabase/data/users.server";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,15 @@ export default async function PublicDiscoveryPage({
             >
               <div className="mb-3 flex items-center gap-3">
                 <div className="h-14 w-14 overflow-hidden rounded-full bg-white/10">
-                  {user.avatarUrl ? <img src={user.avatarUrl} alt={user.displayName} className="h-full w-full object-cover" /> : null}
+                  {user.avatarUrl ? (
+                    <Image
+                      src={user.avatarUrl}
+                      alt={user.displayName}
+                      width={56}
+                      height={56}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-lg font-black">{user.displayName}</p>

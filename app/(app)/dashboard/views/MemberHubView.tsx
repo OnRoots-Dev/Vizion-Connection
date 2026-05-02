@@ -10,6 +10,7 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import type { MemberHubSummary } from "@/lib/supabase/member-hub";
 import type { AdItem } from "@/lib/ads-shared";
 import type { CollectionCardItem } from "@/components/collections/CollectionCarousel";
+import Image from "next/image";
 
 const numberFormatter = new Intl.NumberFormat("ja-JP");
 
@@ -209,7 +210,11 @@ export function MembersHubView({
                     }}
                   >
                     <span style={{ width: 22, height: 22, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {card.avatarUrl ? <img src={card.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 11, fontWeight: 900 }}>{card.displayName.slice(0, 1)}</span>}
+                      {card.avatarUrl ? (
+                        <Image src={card.avatarUrl} alt="" width={22} height={22} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <span style={{ fontSize: 11, fontWeight: 900 }}>{card.displayName.slice(0, 1)}</span>
+                      )}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 900, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{card.displayName}</span>
                   </button>
@@ -222,7 +227,9 @@ export function MembersHubView({
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                     <div style={{ width: 54, height: 54, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.08)", flexShrink: 0 }}>
-                      {activeMyHubCard.avatarUrl ? <img src={activeMyHubCard.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
+                      {activeMyHubCard.avatarUrl ? (
+                        <Image src={activeMyHubCard.avatarUrl} alt="" width={54} height={54} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : null}
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 900, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeMyHubCard.displayName}</div>
@@ -321,7 +328,11 @@ export function MembersHubView({
               ) : summary.support.users.map((user) => (
                 <div key={user.slug} style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
                   <div style={{ width: 42, height: 42, borderRadius: "50%", overflow: "hidden", background: "rgba(255,214,0,0.12)", border: "1px solid rgba(255,214,0,0.28)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FFD600", fontWeight: 900, flexShrink: 0 }}>
-                    {user.avatarUrl ? <img src={user.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : user.displayName.slice(0, 1)}
+                    {user.avatarUrl ? (
+                      <Image src={user.avatarUrl} alt="" width={42} height={42} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      user.displayName.slice(0, 1)
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: t.text }}>{user.displayName}</div>

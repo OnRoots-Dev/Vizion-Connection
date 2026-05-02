@@ -3,6 +3,8 @@ import { z } from "zod";
 import { verifySession } from "@/lib/auth/session";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { recordDiscoveryEvent } from "@/lib/supabase/discovery-events";
+import { discoveryTrackLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 
 const schema = z.object({
   eventType: z.enum(["impression", "detail_open", "search"]),
@@ -13,6 +15,17 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const csrfError = validateCSRF(req);
+    if (csrfError) return csrfError as unknown as NextResponse;
+
+    const { success } = await discoveryTrackLimiter.limit(getIp(req));
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: "しばらく時間をおいてから再度お試しください" },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {

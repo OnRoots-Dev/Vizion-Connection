@@ -5,10 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionCookie } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
-import {
-  getCareerProfile,
-  upsertCareerProfile,
-} from "@/lib/supabase/career-profiles";
+import { getMyCareerProfile, saveMyCareerProfile } from "@/features/career-profile/server/career-service";
 
 // ────────────────────────────────────────────────────────────
 // 設定
@@ -111,7 +108,7 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const data = await getCareerProfile(session.slug);
+  const data = await getMyCareerProfile(session.slug);
   return NextResponse.json(data ?? null);
 }
 
@@ -150,13 +147,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const ok = await upsertCareerProfile(session.slug, {
-    ...parsed,
-    episodes: parsed.episodes?.map((ep) => ({
-      ...ep,
-      id: ep.id ?? "",
-    })),
-  });
+  const ok = await saveMyCareerProfile(session.slug, parsed);
 
   if (!ok) {
     return NextResponse.json({ error: "Save failed" }, { status: 500 });

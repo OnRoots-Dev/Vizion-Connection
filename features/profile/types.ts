@@ -15,7 +15,7 @@ export interface ProfileData {
     slug: string;
     displayName: string;
     role: UserRole;
-    email: string;
+    email?: string;
     plan?: "free" | "paid";
     verified: boolean;
     points: number;

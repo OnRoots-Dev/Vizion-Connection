@@ -60,7 +60,6 @@ export async function verifyEmailToken(token: string): Promise<VerifyResult> {
             userId: String(user.id),
             slug: user.slug,
             role: user.role,
-            email: user.email,
         });
 
         return {
@@ -94,13 +93,11 @@ export async function verifyEmailToken(token: string): Promise<VerifyResult> {
         points: user.points ?? 0,
     });
 
-    
     // 7. セッション発行
     const sessionToken = signSession({
         userId: String(user.id),
         slug: user.slug,
         role: user.role,
-        email: user.email,
     });
 
     return {

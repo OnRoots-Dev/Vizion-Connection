@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -128,7 +129,7 @@ export default async function RankingPage({
                                         {/* アバター */}
                                         <div style={{ width: rank === 1 ? 60 : 48, height: rank === 1 ? 60 : 48, borderRadius: "50%", overflow: "hidden", background: `${rl}20`, border: `2px solid ${rl}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: rank === 1 ? 22 : 18, fontWeight: 900, color: rl, marginBottom: 8, flexShrink: 0 }}>
                                             {user.avatar_url
-                                                ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                ? <Image src={user.avatar_url} alt="" width={rank === 1 ? 60 : 48} height={rank === 1 ? 60 : 48} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                                 : user.display_name[0]?.toUpperCase()}
                                         </div>
                                         <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: "0 0 2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{user.display_name}</p>
@@ -169,7 +170,7 @@ export default async function RankingPage({
                                     {/* アバター */}
                                     <div style={{ width: 40, height: 40, borderRadius: "50%", overflow: "hidden", background: `${rl}20`, border: `1.5px solid ${rl}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, color: rl, flexShrink: 0 }}>
                                         {user.avatar_url
-                                            ? <img src={user.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            ? <Image src={user.avatar_url} alt="" width={40} height={40} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                             : user.display_name[0]?.toUpperCase()}
                                     </div>
                                     {/* 情報 */}

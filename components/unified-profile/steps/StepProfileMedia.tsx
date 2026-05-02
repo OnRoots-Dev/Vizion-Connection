@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
 
 export default function StepProfileMedia({
@@ -153,7 +154,13 @@ function ImageUploadCard({
       <div className="flex items-center gap-3">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
           {currentUrl ? (
-            <img src={currentUrl} alt={label} className="h-full w-full object-cover" />
+            <Image
+              src={currentUrl}
+              alt={label}
+              width={80}
+              height={80}
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="text-xs font-semibold text-white/30">No Image</div>
           )}

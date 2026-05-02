@@ -4,12 +4,17 @@ import { z } from "zod";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
+import { profileLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 
 const bodySchema = z.object({
   isPublic: z.boolean(),
 });
 
 export async function PATCH(req: NextRequest) {
+  const csrfError = validateCSRF(req);
+  if (csrfError) return csrfError as unknown as NextResponse;
+
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -19,6 +24,9 @@ export async function PATCH(req: NextRequest) {
 
   const user = await findUserBySlug(session.slug);
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const { success } = await profileLimiter.limit(getIp(req));
+  if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {

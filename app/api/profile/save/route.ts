@@ -5,8 +5,12 @@ import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.ser
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { profileLimiter, getIp } from "@/lib/ratelimit";
 import { rewardOnetimeMission } from "@/lib/onetime-missions";
+import { validateCSRF } from "@/lib/security/csrf";
 
 export async function POST(req: NextRequest) {
+    const csrfError = validateCSRF(req);
+    if (csrfError) return csrfError as unknown as NextResponse;
+
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

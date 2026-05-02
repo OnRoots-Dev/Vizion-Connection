@@ -9,6 +9,7 @@ import type { UserRole } from "@/features/auth/types";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
+import Image from "next/image";
 
 const ROLE_LABEL_JA: Record<UserRole, string> = {
     Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス", Admin: "管理",
@@ -71,7 +72,14 @@ export default async function CardPage({ params }: Props) {
                         </a>
                     </div>
                     <Link href="/" style={{ display: "flex" }}>
-                        <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: "26px", width: "auto" }} />
+                        <Image
+                            src="/images/Vizion_Connection_logo-wt.png"
+                            alt="Vizion Connection"
+                            width={130}
+                            height={26}
+                            priority
+                            style={{ height: "26px", width: "auto" }}
+                        />
                     </Link>
                     <a href="/register" style={{ padding: "6px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: 700, textDecoration: "none" }}>
                         先行登録

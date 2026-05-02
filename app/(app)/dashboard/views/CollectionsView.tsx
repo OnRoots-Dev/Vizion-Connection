@@ -5,6 +5,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { CollectionCarousel, type CollectionCardItem } from "@/components/collections/CollectionCarousel";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+import Image from "next/image";
 
 type InlineAd = {
   id: string;
@@ -288,7 +289,13 @@ export function CollectionsView({
                     }}
                   >
                     {card.profileImageUrl ? (
-                      <img src={card.profileImageUrl} alt={card.displayName} style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: 0.9 }} />
+                      <Image
+                        src={card.profileImageUrl}
+                        alt={card.displayName}
+                        fill
+                        sizes={isMobile ? "50vw" : "33vw"}
+                        style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: 0.9 }}
+                      />
                     ) : null}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
                     <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />

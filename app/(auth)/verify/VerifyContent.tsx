@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 type VerifyState = "loading" | "success" | "error";
 
@@ -45,7 +46,14 @@ export default function VerifyContent() {
     return (
         <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
             <div className="w-full max-w-md text-center">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-24 w-auto mx-auto mb-10" />
+                <Image
+                    src="/images/Vizion_Connection_logo-wt.png"
+                    alt="Logo"
+                    width={320}
+                    height={96}
+                    priority
+                    className="h-24 w-auto mx-auto mb-10"
+                />
                 {state === "loading" && (
                     <div className="space-y-6">
                         <div className="flex justify-center">

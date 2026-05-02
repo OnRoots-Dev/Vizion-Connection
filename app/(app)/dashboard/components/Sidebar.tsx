@@ -5,6 +5,7 @@ import { useMemo, useState, type CSSProperties } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
 import { getPlanFeatures } from "@/features/business/plan-features";
+import Image from "next/image";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
@@ -268,7 +269,14 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
         <div className="flex h-full flex-col" style={{ background: t.bg, borderRight: `1px solid ${t.border}` }}>
             <div className="flex items-center justify-between gap-3 border-b px-[14px] pb-3 pt-4" style={{ borderBottomColor: t.border }}>
                 <div className="flex items-center gap-2">
-                    <img src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"} alt="Vizion Connection" className="h-[44px] w-auto" />
+                    <Image
+                        src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"}
+                        alt="Vizion Connection"
+                        width={220}
+                        height={44}
+                        priority
+                        className="h-[44px] w-auto"
+                    />
                 </div>
 
                 <div className="flex items-center gap-2" style={{ padding: "4px 0" }}>
@@ -303,7 +311,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 text-[13px] font-black" style={{ background: `${roleColor}20`, borderColor: `${roleColor}50`, color: roleColor, boxShadow: `0 0 10px ${roleColor}20` }}>
                         {profile.avatarUrl
-                            ? <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" />
+                            ? <Image src={profile.avatarUrl} alt={profile.displayName} width={36} height={36} className="h-full w-full object-cover" />
                             : profile.displayName[0].toUpperCase()
                         }
                     </div>

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { StepHeader, Field } from "@/components/career-wizard/WizardUI";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
+import Image from "next/image";
 
 export default function StepProfileMediaWizard() {
   const profileImageUrl = useCareerWizard((s) => s.data.profileImageUrl);
@@ -67,7 +68,13 @@ export default function StepProfileMediaWizard() {
           <div className="flex items-center gap-3">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
               {profileImageUrl ? (
-                <img src={profileImageUrl} alt="プロフィール画像" className="h-full w-full object-cover" />
+                <Image
+                  src={profileImageUrl}
+                  alt="プロフィール画像"
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="text-xs font-semibold text-white/30">No Image</div>
               )}
@@ -121,7 +128,13 @@ export default function StepProfileMediaWizard() {
           <div className="flex items-center gap-3">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="アバター画像" className="h-full w-full object-cover" />
+                <Image
+                  src={avatarUrl}
+                  alt="アバター画像"
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="text-xs font-semibold text-white/30">No Image</div>
               )}

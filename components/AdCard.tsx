@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { AdItem } from "@/lib/ads-shared";
+import Image from "next/image";
 
 export type AdSize = "small" | "medium" | "large" | "hero";
 
@@ -89,8 +90,13 @@ export default function AdCard({ ad, size, plan }: AdCardProps) {
             {resolvedSize === "hero" ? (
                 <div className="relative min-h-[180px]">
                     {ad.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={ad.imageUrl} alt={ad.headline} className="absolute inset-0 h-full w-full object-cover opacity-45" />
+                        <Image
+                            src={ad.imageUrl}
+                            alt={ad.headline}
+                            fill
+                            sizes="(min-width: 1024px) 800px, 100vw"
+                            className="object-cover opacity-45"
+                        />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/30" />
                     <div className="relative z-10 p-5">
@@ -112,8 +118,15 @@ export default function AdCard({ ad, size, plan }: AdCardProps) {
             ) : (
                 <>
                     {ad.imageUrl && resolvedSize !== "small" && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={ad.imageUrl} alt={ad.headline} className={resolvedSize === "large" ? "h-52 w-full object-cover" : "h-40 w-full object-cover"} />
+                        <div className={resolvedSize === "large" ? "relative h-52 w-full" : "relative h-40 w-full"}>
+                            <Image
+                                src={ad.imageUrl}
+                                alt={ad.headline}
+                                fill
+                                sizes="(min-width: 1024px) 700px, 100vw"
+                                className="object-cover"
+                            />
+                        </div>
                     )}
                     <div className="p-4">
                         <h3 className={resolvedSize === "small" ? "text-sm font-extrabold text-white" : "text-base font-extrabold text-white"}>{ad.headline}</h3>

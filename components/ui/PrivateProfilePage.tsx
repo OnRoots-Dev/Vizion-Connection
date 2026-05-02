@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface Props {
     displayName?: string;
@@ -14,10 +15,13 @@ export default function PrivateProfilePage({ displayName }: Props) {
             {/* Header */}
             <header className="border-b border-white/6 px-6 py-[14px]">
                 <Link href="/dashboard">
-                    <img
+                    <Image
                         src="/images/Vizion_Connection_logo-wt.png"
                         alt="Vizion Connection"
+                        width={196}
+                        height={28}
                         className="h-7 w-auto"
+                        priority
                     />
                 </Link>
             </header>

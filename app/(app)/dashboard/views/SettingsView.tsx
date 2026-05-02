@@ -177,7 +177,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                     { k: "表示名", v: profile.displayName },
                     { k: "ID", v: `@${profile.slug}`, mono: true },
                     { k: "Role", v: ROLE_LABEL[profile.role], color: roleColor },
-                    { k: "メール", v: profile.email },
+                    { k: "メール", v: profile.email ?? "" },
                     { k: "認証", v: profile.verified ? "✓ 認証済み" : "未認証", color: profile.verified ? "#32D278" : "#FF5050" },
                     { k: "登録日", v: new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" }) },
                 ].map(({ k, v, mono, color }) => (

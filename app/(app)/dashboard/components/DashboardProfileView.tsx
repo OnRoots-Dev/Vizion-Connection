@@ -13,6 +13,7 @@ import type { Schedule } from "@/types/schedule";
 import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
+import Image from "next/image";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS", Admin: "ADMIN",
@@ -337,7 +338,13 @@ export function DashboardProfileView({
       <section style={{ overflow: "hidden", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
         <div style={{ position: "relative", minHeight: 248 }}>
           {profile.profileImageUrl ? (
-            <img src={profile.profileImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-45" />
+            <Image
+              src={profile.profileImageUrl}
+              alt=""
+              fill
+              sizes="(min-width: 1120px) 900px, 100vw"
+              className="absolute inset-0 object-cover object-top opacity-45"
+            />
           ) : (
             <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, ${t.bg} 100%)` }} />
           )}
@@ -371,7 +378,17 @@ export function DashboardProfileView({
 
             <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginTop: 18, flexWrap: "wrap" }}>
               <div style={{ width: 60, height: 60, borderRadius: "50%", overflow: "hidden", border: `2px solid ${roleColor}`, background: `linear-gradient(145deg, ${bg1}, #111)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.displayName} className="h-full w-full object-cover" /> : <span style={{ color: roleColor, fontFamily: "monospace", fontSize: 22, fontWeight: 900 }}>{initials}</span>}
+                {profile.avatarUrl ? (
+                  <Image
+                    src={profile.avatarUrl}
+                    alt={profile.displayName}
+                    width={60}
+                    height={60}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span style={{ color: roleColor, fontFamily: "monospace", fontSize: 22, fontWeight: 900 }}>{initials}</span>
+                )}
               </div>
               <div>
                 <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,210,0,0.52)" }}>Cheer</p>

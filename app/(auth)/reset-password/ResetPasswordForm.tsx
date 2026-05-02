@@ -5,6 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 // ← 修正: 目アイコン
 function EyeIcon({ open }: { open: boolean }) {
@@ -85,7 +86,14 @@ export default function ResetPasswordForm() {
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-[#07070e] px-5 py-10 text-white">
             <Link href="/login" className="mb-10">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="h-[3vw] w-auto opacity-80" />
+                <Image
+                    src="/images/Vizion_Connection_logo-wt.png"
+                    alt="Vizion Connection"
+                    width={240}
+                    height={48}
+                    priority
+                    className="h-[3vw] w-auto opacity-80"
+                />
             </Link>
             <div className="vc-auth-card flex flex-col gap-5">
                 <div>
@@ -122,6 +130,7 @@ export default function ResetPasswordForm() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(v => !v)}
+                                    aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                                     className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center border-none bg-transparent text-white/30"
                                 >
                                     <EyeIcon open={showPassword} />

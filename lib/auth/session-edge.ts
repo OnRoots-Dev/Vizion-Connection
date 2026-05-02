@@ -43,7 +43,6 @@ function isValidPayload(payload: any): payload is SessionPayload {
         typeof payload.userId === "string" &&
         typeof payload.slug === "string" &&
         typeof payload.role === "string" &&
-        typeof payload.email === "string" &&
         typeof payload.exp === "number"
     );
 }

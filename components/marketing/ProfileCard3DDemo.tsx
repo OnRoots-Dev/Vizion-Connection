@@ -7,6 +7,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
+import Image from "next/image";
 import { ROLES, type RoleKey } from "./constants";
 import { FoundingMemberBadge, SnsIcon } from "../ui";
 
@@ -98,10 +99,12 @@ export function ProfileCard3DDemo() {
             <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
 
             {s.photo ? (
-              <img
+              <Image
                 src={s.photo}
                 alt={s.name}
-                loading="eager"
+                fill
+                sizes="(min-width: 768px) 440px, 100vw"
+                priority
                 className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
               />
@@ -150,7 +153,13 @@ export function ProfileCard3DDemo() {
             </div>
 
             <div className="absolute bottom-[10px] right-[12px] z-[7]">
-              <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto opacity-60 mix-blend-lighten" />
+              <Image
+                src="/images/Vizion_Connection_logo-wt.png"
+                alt="Logo"
+                width={240}
+                height={48}
+                className="h-12 w-auto opacity-60 mix-blend-lighten"
+              />
             </div>
           </div>
 
@@ -176,10 +185,11 @@ export function ProfileCard3DDemo() {
             <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
 
             {s.backPhoto ? (
-              <img
+              <Image
                 src={s.backPhoto}
                 alt={s.name}
-                loading="eager"
+                fill
+                sizes="(min-width: 768px) 440px, 100vw"
                 className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
                 style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               />
@@ -194,7 +204,13 @@ export function ProfileCard3DDemo() {
 
             <div className="absolute inset-0 z-[30] flex flex-col justify-between" style={{ padding: "14px 13px 16px" }}>
               <div className="pointer-events-none flex items-center justify-between">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-10 w-auto opacity-60 mix-blend-lighten" />
+                <Image
+                  src="/images/Vizion_Connection_logo-wt.png"
+                  alt="Logo"
+                  width={200}
+                  height={40}
+                  className="h-10 w-auto opacity-60 mix-blend-lighten"
+                />
                 <div className="flex items-center gap-[6px]">
                   <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full" style={{ background: s.rl, boxShadow: `0 0 6px ${s.rl}` }} />
                   <span className="font-mono text-[7.5px] font-[600] uppercase tracking-[0.18em] text-white/45">{s.label}</span>

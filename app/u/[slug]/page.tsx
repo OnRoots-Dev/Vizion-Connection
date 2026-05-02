@@ -26,6 +26,7 @@ import PublicProfileTabs from "./PublicProfileTabs";
 import { supabaseServer } from "@/lib/supabase/server";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import PublicProfileCountValue from "./PublicProfileCountValue";
+import Image from "next/image";
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#B8860B", Business: "#1B3A8C",
@@ -180,7 +181,14 @@ export default async function UserProfilePage({ params }: Props) {
             {/* Header */}
             <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(7,7,14,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
                 <div style={{ maxWidth: "980px", margin: "0 auto", padding: "0 20px", height: 76, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" style={{ height: 46, opacity: .95 }} />
+                    <Image
+                        src="/images/Vizion_Connection_logo-wt.png"
+                        alt="Vizion Connection"
+                        width={230}
+                        height={46}
+                        priority
+                        style={{ height: 46, width: "auto", opacity: 0.95 }}
+                    />
                 </div>
             </header>
 
@@ -189,7 +197,14 @@ export default async function UserProfilePage({ params }: Props) {
                 {/* HERO */}
                 <div className="noise" style={{ position: "relative", minHeight: 420, overflow: "hidden", borderRadius: 20, border: "1px solid rgba(255,255,255,0.08)", background: "#0d0d1a" }}>
                     {profile.profileImageUrl ? (
-                        <img src={profile.profileImageUrl} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", opacity: .38, filter: "saturate(1.2) contrast(1.05)" }} />
+                        <Image
+                            src={profile.profileImageUrl}
+                            alt=""
+                            fill
+                            sizes="(min-width: 980px) 980px, 100vw"
+                            priority
+                            style={{ objectFit: "cover", objectPosition: "center top", opacity: 0.38, filter: "saturate(1.2) contrast(1.05)" }}
+                        />
                     ) : (
                         <div style={{ position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, #050508 100%)` }}>
                             <div style={{ position: "absolute", inset: 0, fontSize: "22vw", fontWeight: 900, color: `${rl}07`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", userSelect: "none" }}>{initials}</div>
@@ -253,7 +268,17 @@ export default async function UserProfilePage({ params }: Props) {
                         </div>
                         <div className="u3" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                             <div className="float" style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${rl}`, background: `linear-gradient(145deg, ${bg1}, #111)`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 4px ${rl}18, 0 0 30px ${rl}45`, animation: "_glowPop 3s ease-in-out infinite, _float 3.8s ease-in-out infinite" }}>
-                                {profile.avatarUrl ? <img src={profile.avatarUrl} alt={profile.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 20, fontWeight: 900, color: `${rl}dd`, fontFamily: "monospace" }}>{initials}</span>}
+                                {profile.avatarUrl ? (
+                                    <Image
+                                        src={profile.avatarUrl}
+                                        alt={profile.displayName}
+                                        width={58}
+                                        height={58}
+                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                ) : (
+                                    <span style={{ fontSize: 20, fontWeight: 900, color: `${rl}dd`, fontFamily: "monospace" }}>{initials}</span>
+                                )}
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,210,0,.45)" }}>CHEER</span>

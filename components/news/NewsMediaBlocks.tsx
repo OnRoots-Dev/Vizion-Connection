@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 function getYouTubeEmbed(url: string): string | null {
     try {
         const parsed = new URL(url);
@@ -58,7 +60,15 @@ export function NewsMediaBlocks({
                             key={`${src}-${index}`}
                             className={`${index === 0 && gallery.length === 1 ? "" : ""} overflow-hidden rounded-[20px] border border-slate-200 bg-slate-100`}
                         >
-                            <img src={src} alt={`${title} ${index + 1}`} className="h-full w-full object-cover" />
+                            <div className="relative aspect-[16/10] w-full">
+                                <Image
+                                    src={src}
+                                    alt={`${title} ${index + 1}`}
+                                    fill
+                                    sizes="(min-width: 640px) 50vw, 100vw"
+                                    className="object-cover"
+                                />
+                            </div>
                         </figure>
                     ))}
                 </div>
@@ -84,7 +94,7 @@ export function NewsMediaBlocks({
                             <a
                                 href={videoUrl}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                                 className="rounded-full border border-white/20 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/10"
                             >
                                 動画を開く

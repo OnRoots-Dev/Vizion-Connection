@@ -7,7 +7,6 @@ export interface SessionPayload {
     userId: string;
     slug: string;
     role: string;
-    email: string;
     exp: number; // UNIX timestamp（秒）
 }
 
@@ -56,7 +55,6 @@ export function verifySession(token: string): SessionPayload | null {
             typeof payload.userId !== "string" ||
             typeof payload.slug !== "string" ||
             typeof payload.role !== "string" ||
-            typeof payload.email !== "string" ||
             typeof payload.exp !== "number"
         ) {
             return null;

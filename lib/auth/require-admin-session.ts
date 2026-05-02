@@ -23,7 +23,7 @@ export async function requireAdminProfile() {
         throw new Error("FORBIDDEN");
     }
 
-    if (!canManageVoiceLabByEmail(session.email)) {
+    if (!canManageVoiceLabByEmail(profile.email)) {
         throw new Error("FORBIDDEN");
     }
 

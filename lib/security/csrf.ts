@@ -14,17 +14,9 @@ function normalizeOrigin(value: string): string {
   }
 }
 
-function getAllowedOrigins(req: Request): string[] {
-  const requestOrigin = (() => {
-    try {
-      return new URL(req.url).origin;
-    } catch {
-      return "";
-    }
-  })();
-
+function getAllowedOrigins(): string[] {
   return [...new Set(
-    [...STATIC_ALLOWED_ORIGINS, requestOrigin]
+    STATIC_ALLOWED_ORIGINS
       .filter(Boolean)
       .map((value) => normalizeOrigin(value as string))
   )];
@@ -44,7 +36,7 @@ function extractOrigin(req: Request): string | null {
 
 export function validateCSRF(req: Request): Response | null {
   const origin = extractOrigin(req);
-  const allowedOrigins = getAllowedOrigins(req);
+  const allowedOrigins = getAllowedOrigins();
   if (!origin || !allowedOrigins.includes(normalizeOrigin(origin))) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,

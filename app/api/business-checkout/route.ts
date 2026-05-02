@@ -6,6 +6,7 @@ import { getSessionCookie } from "@/lib/auth/cookies";
 import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
 import { setUserPlan } from "@/lib/supabase/data/users.server";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -25,6 +26,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const session = verifySession(token);
         if (!session) {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
+        }
+
+        const profile = await findUserBySlug(session.slug);
+        if (!profile) {
+            return NextResponse.json({ success: false, error: "ユーザーが見つかりません" }, { status: 404 });
         }
 
         const { success } = await businessLimiter.limit(getIp(req));
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         if (plan.amount === 0) {
             await createBusinessOrder({
-                email: session.email,
+                email: profile.email,
                 slug: session.slug,
                 planId: plan.id,
                 planName: plan.name,
@@ -77,7 +83,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         await createBusinessOrder({
-            email: session.email,
+            email: profile.email,
             slug: session.slug,
             planId: plan.id,
             planName: plan.name,

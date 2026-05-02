@@ -1,7 +1,9 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 
 type NewsComment = {
     id: string;
@@ -210,9 +212,11 @@ export function NewsCommentsPanel({
                             }}
                         >
                             {comment.avatarUrl ? (
-                                <img
+                                <Image
                                     src={comment.avatarUrl}
                                     alt={comment.authorName}
+                                    width={44}
+                                    height={44}
                                     style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", display: "block" }}
                                 />
                             ) : (

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import SponsorBadge from "@/components/SponsorBadge";
+import Image from "next/image";
 
 export type CollectionCardItem = {
   targetSlug: string;
@@ -112,7 +113,13 @@ export function CollectionCarousel({
                 }}
               >
               {card.profileImageUrl ? (
-                <img src={card.profileImageUrl} alt={card.displayName} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.38 }} />
+                <Image
+                  src={card.profileImageUrl}
+                  alt={card.displayName}
+                  fill
+                  sizes={compact ? "300px" : "332px"}
+                  style={{ objectFit: "cover", opacity: 0.38 }}
+                />
               ) : null}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.74) 60%, rgba(0,0,0,0.97) 100%)" }} />
               <div style={{ position: "absolute", top: -10, right: -10, width: 180, height: 180, background: `radial-gradient(circle, ${cardRoleColor}32, transparent 72%)` }} />
@@ -130,7 +137,17 @@ export function CollectionCarousel({
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: compact ? 46 : 52, height: compact ? 46 : 52, borderRadius: "50%", overflow: "hidden", background: `${cardRoleColor}22`, border: `1px solid ${cardRoleColor}66`, display: "flex", alignItems: "center", justifyContent: "center", color: cardRoleColor, fontSize: 16, fontWeight: 800, flexShrink: 0, boxShadow: `0 0 18px ${cardRoleColor}22` }}>
-                    {card.avatarUrl ? <img src={card.avatarUrl} alt={card.displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : card.displayName.slice(0, 1)}
+                    {card.avatarUrl ? (
+                      <Image
+                        src={card.avatarUrl}
+                        alt={card.displayName}
+                        width={compact ? 46 : 52}
+                        height={compact ? 46 : 52}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      card.displayName.slice(0, 1)
+                    )}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ margin: "0 0 4px", fontSize: compact ? 16 : 18, fontWeight: 900, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#fff", letterSpacing: "-0.01em" }}>{card.displayName}</p>

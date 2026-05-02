@@ -5,6 +5,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { Switch } from "@/components/ui/switch";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import Image from "next/image";
 
 type EditorCategory = "interview" | "news" | "announcement" | "sports" | "event";
 
@@ -288,7 +289,7 @@ export default function PostEditorView({
 
                         {imagePreviewUrl ? (
                             <div style={{ borderRadius: 14, border: `1px solid ${t.border}`, overflow: "hidden", background: "rgba(255,255,255,0.02)" }}>
-                                <img src={imagePreviewUrl} alt="preview" style={{ width: "100%", height: "auto", display: "block" }} />
+                                <Image src={imagePreviewUrl} alt="preview" width={1200} height={675} style={{ width: "100%", height: "auto", display: "block" }} />
                             </div>
                         ) : null}
 

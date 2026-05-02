@@ -55,7 +55,6 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
         userId: String(user.id),
         slug: user.slug,
         role: user.role,
-        email: user.email,
     });
 
     return { success: true, slug: user.slug, role: user.role, token };

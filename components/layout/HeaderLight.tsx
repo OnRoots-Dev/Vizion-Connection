@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 
 export function HeaderLight() {
     const [open, setOpen] = useState(false);
@@ -10,7 +11,14 @@ export function HeaderLight() {
         <header className="fixed top-0 left-0 z-[100] w-full border-b border-black/8 bg-[rgba(245,245,247,0.72)] backdrop-blur-[20px] [backdrop-filter:saturate(180%)_blur(20px)] [-webkit-backdrop-filter:saturate(180%)_blur(20px)]">
             <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2 md:px-10">
                 <Link href="/">
-                    <img src="/images/Vizion_Connection_logo-bk.png" alt="Logo" className="h-12 w-auto" />
+                    <Image
+                        src="/images/Vizion_Connection_logo-bk.png"
+                        alt="Logo"
+                        width={240}
+                        height={48}
+                        className="h-12 w-auto"
+                        priority
+                    />
                 </Link>
 
                 {/* Desktop */}

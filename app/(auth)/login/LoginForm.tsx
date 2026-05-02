@@ -5,6 +5,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
@@ -59,8 +60,19 @@ export default function LoginForm() {
     return (
         <div className="vc-auth-shell">
 
-            <a href={MARKETING_HOME_URL} className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" className="h-[13vw] w-auto" />
+            <a
+                href={MARKETING_HOME_URL}
+                title="Vizion Connection"
+                className="tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase"
+            >
+                <Image
+                    src="/images/Vizion_Connection_logo-wt.png"
+                    alt="Vizion Connection"
+                    width={280}
+                    height={90}
+                    priority
+                    className="h-[13vw] w-auto"
+                />
             </a>
 
             <div className="w-full max-w-md">
@@ -97,6 +109,7 @@ export default function LoginForm() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(v => !v)}
+                                aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
                             >
                                 <EyeIcon open={showPassword} />

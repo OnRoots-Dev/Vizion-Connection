@@ -4,10 +4,17 @@ import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { CHAMPION_SLOTS } from "./constants";
+import Image from "next/image";
 
 export function ChampionPartnerBanner() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
+
+  const filledSlots = CHAMPION_SLOTS.map((slot) => {
+    if (!slot.filled) return slot;
+    const logo = slot.logo;
+    return { ...slot, logo };
+  });
 
   return (
     <div ref={ref} className="mx-auto max-w-[1200px]">
@@ -29,7 +36,7 @@ export function ChampionPartnerBanner() {
       </motion.div>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        {CHAMPION_SLOTS.map((slot, i) => (
+        {filledSlots.map((slot, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 14 }}
@@ -42,9 +49,18 @@ export function ChampionPartnerBanner() {
                 <div className="pointer-events-none absolute right-0 top-0 h-3 w-3 border-r-[2px] border-t-[2px] border-[#FF4646]/50" />
                 <div className="pointer-events-none absolute bottom-0 left-0 h-3 w-3 border-b-[2px] border-l-[2px] border-[#FF4646]/50" />
                 <div className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b-[2px] border-r-[2px] border-[#FF4646]/50" />
-                {slot.logo ? (
-                  <img src={slot.logo} alt={slot.name} className="max-h-[36px] max-w-[80%] object-contain opacity-80" />
-                ) : (
+                {slot.logo ? (() => {
+                  const logo = slot.logo;
+                  return (
+                    <Image
+                      src={logo}
+                      alt={slot.name ?? ""}
+                      width={160}
+                      height={36}
+                      className="max-h-[36px] max-w-[80%] object-contain opacity-80"
+                    />
+                  );
+                })() : (
                   <p className="font-display text-[11px] uppercase tracking-wider text-white/60">{slot.name}</p>
                 )}
               </div>

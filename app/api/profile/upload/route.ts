@@ -4,6 +4,8 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { verifySession } from "@/lib/auth/session";
 import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { profileLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -16,6 +18,9 @@ function getFileExtension(file: File) {
 }
 
 export async function POST(req: NextRequest) {
+    const csrfError = validateCSRF(req);
+    if (csrfError) return csrfError as unknown as NextResponse;
+
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,6 +30,9 @@ export async function POST(req: NextRequest) {
 
     const user = await findUserBySlug(session.slug);
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+    const { success } = await profileLimiter.limit(getIp(req));
+    if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
     const formData = await req.formData();
     const type = formData.get("type");

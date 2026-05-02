@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export function FooterLight() {
     return (
@@ -56,11 +57,17 @@ export function FooterLight() {
                 {/* Bottom */}
                 <div className="flex flex-col gap-6 md:flex-row md:justify-between md:items-end">
                     <div>
-                        <img src="/images/Vizion_Connection_logo-bk.png" alt="Logo" className="h-20 w-auto"
+                        <Image
+                            src="/images/Vizion_Connection_logo-bk.png"
+                            alt="Logo"
+                            width={320}
+                            height={80}
+                            className="h-20 w-auto"
                             onError={(e) => {
-                                const target = e.target as HTMLImageElement;
+                                const target = e.target as unknown as HTMLImageElement;
                                 target.style.display = "none";
-                                target.insertAdjacentHTML("afterend",
+                                target.insertAdjacentHTML(
+                                    "afterend",
                                     '<span style="font-size:18px;font-weight:900;letter-spacing:0.2em;text-transform:uppercase;color:#1d1d1f;">VIZION CONNECTION</span>'
                                 );
                             }}

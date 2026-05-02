@@ -272,14 +272,22 @@ export async function createBusinessHubAd(profile: ProfileRecord, input: {
   let error: { message: string } | null = null;
 
   {
-    const result = await supabaseServer.from("ads").insert(payload).select("*").single();
+    const result = await supabaseServer
+      .from("ads")
+      .insert(payload)
+      .select("id, headline, body_text, image_url, link_url, is_active, prefecture, created_at")
+      .single();
     data = (result as { data: unknown }).data ?? null;
     error = (result as { error: { message: string } | null }).error ?? null;
   }
 
   if (error?.message && error.message.includes("column ads.prefecture does not exist")) {
     const { prefecture: _prefecture, ...payloadWithoutPrefecture } = payload;
-    const result = await supabaseServer.from("ads").insert(payloadWithoutPrefecture).select("*").single();
+    const result = await supabaseServer
+      .from("ads")
+      .insert(payloadWithoutPrefecture)
+      .select("id, headline, body_text, image_url, link_url, is_active, created_at")
+      .single();
     data = (result as { data: unknown }).data ?? null;
     error = (result as { error: { message: string } | null }).error ?? null;
   }
@@ -317,7 +325,7 @@ export async function updateBusinessHubAd(profile: ProfileRecord, adId: string, 
     .update(patch)
     .eq("id", adId)
     .eq("business_id", profile.id)
-    .select("*")
+    .select("id, headline, body_text, image_url, link_url, is_active, prefecture, created_at")
     .single();
 
   let data: unknown = null;
@@ -353,7 +361,7 @@ export async function updateBusinessHubAd(profile: ProfileRecord, adId: string, 
 export async function listBusinessHubOffers(profile: ProfileRecord): Promise<BusinessHubOffer[]> {
   const { data, error } = await supabaseServer
     .from("business_offers")
-    .select("id, title, message, reward_amount, status, target_slug, created_at, updated_at")
+    .select("id, title, message, reward_amount, status, target_slug, business_slug, created_at, updated_at")
     .eq("business_slug", profile.slug)
     .order("created_at", { ascending: false });
 
@@ -422,7 +430,7 @@ export async function createBusinessHubOffer(profile: ProfileRecord, input: {
       reward_amount: input.rewardAmount,
       status: "sent",
     })
-    .select("*")
+    .select("id, title, message, reward_amount, status, target_slug, business_slug, created_at, updated_at")
     .single();
 
   if (error) {
@@ -452,7 +460,7 @@ export async function updateBusinessHubOfferStatus(profile: ProfileRecord, offer
     .update({ status })
     .eq("id", offerId)
     .eq("business_slug", profile.slug)
-    .select("*")
+    .select("id, title, message, reward_amount, status, target_slug, business_slug, created_at, updated_at")
     .single();
 
   if (error) {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
@@ -46,8 +47,15 @@ export default async function ThanksPage({ searchParams }: Props) {
         <div className="min-h-screen flex flex-col items-center justify-center px-4"
             style={{ background: "#07070e" }}>
 
-            <a href={MARKETING_HOME_URL} className="mb-12 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
-                <img src="/images/Vizion_Connection_logo-wt.png" alt="Logo" className="h-12 w-auto" />
+            <a href={MARKETING_HOME_URL} title="Vizion Connection" className="mb-12 tracking-[0.2em] text-sm font-bold text-white/60 hover:text-white transition-colors uppercase">
+                <Image
+                    src="/images/Vizion_Connection_logo-wt.png"
+                    alt="Logo"
+                    width={240}
+                    height={48}
+                    priority
+                    className="h-12 w-auto"
+                />
             </a>
 
             <motion.div

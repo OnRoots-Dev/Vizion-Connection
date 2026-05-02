@@ -7,6 +7,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { ProfilePreviewModal } from "@/app/(app)/dashboard/components/ProfilePreviewModal";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+import Image from "next/image";
 
 type InlineAd = {
   id: string;
@@ -141,7 +142,7 @@ export function CheerView({ profile, t, roleColor, setView }: {
                 >
                   <div style={{ width: 44, height: 44, borderRadius: 999, overflow: "hidden", border: `1px solid ${rowColor}45`, background: `${rowColor}18`, display: "flex", alignItems: "center", justifyContent: "center", color: rowColor, fontWeight: 900, fontFamily: "monospace", flexShrink: 0 }}>
                     {item.avatarUrl ? (
-                      <img src={item.avatarUrl} alt={item.fromDisplayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Image src={item.avatarUrl} alt={item.fromDisplayName} width={44} height={44} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       <span>{(item.fromDisplayName ?? "?").slice(0, 1)}</span>
                     )}

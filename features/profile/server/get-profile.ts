@@ -38,12 +38,12 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     displayName: user.displayName,
                     role: user.role,
                     plan: user.plan ?? "free",
-                    email: user.email,
                     verified: user.verified,
                     points: user.points,
                     referrerSlug: user.referrerSlug ?? undefined,
                     createdAt: user.createdAt,
                     serialId: user.serialId ?? undefined,
+
                     profileImageUrl: user.profileImageUrl ?? undefined,
                     avatarUrl: user.avatarUrl ?? undefined,
                     bio: user.bio ?? undefined,

@@ -148,7 +148,13 @@ export function ProfilePreviewModal({
                 <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
                   <div className="relative min-h-[300px] overflow-hidden px-6 pb-7 pt-6 sm:min-h-[320px] sm:pb-8 sm:pt-6">
                     {profile.profileImageUrl ? (
-                      <img src={profile.profileImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover object-top opacity-45" />
+                      <Image
+                        src={profile.profileImageUrl}
+                        alt=""
+                        fill
+                        sizes="(min-width: 768px) 760px, 100vw"
+                        className="absolute inset-0 object-cover object-top opacity-45"
+                      />
                     ) : (
                       <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${roleColor}22 0%, #07070d 80%)` }} />
                     )}

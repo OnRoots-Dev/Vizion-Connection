@@ -38,6 +38,11 @@ export const profileLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:profile",
 });
 
+// スケジュール作成/更新/削除：1分に20回
+export const scheduleLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:schedule",
+});
+
 // ビジネス決済：1時間に10回
 export const businessLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:business",
@@ -51,6 +56,11 @@ export const missionLimiter = new Ratelimit({
 // シェア：1時間に10回
 export const shareLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:share",
+});
+
+// discovery track：1分に60回
+export const discoveryTrackLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(60, "1 m"), prefix: "rl:discovery-track",
 });
 
 // パスワードリセット：IP 10分に5回, Email 10分に3回

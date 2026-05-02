@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function StepProfileComplete({
   profileData,
   onContinueToCareer,
@@ -47,9 +49,11 @@ export default function StepProfileComplete({
             {profileData.profileImageUrl ? (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-white/60">プロフィール画像</p>
-                <img
+                <Image
                   src={profileData.profileImageUrl}
                   alt="プロフィール画像"
+                  width={80}
+                  height={80}
                   className="h-20 w-20 rounded-2xl border border-white/10 object-cover"
                 />
               </div>
@@ -57,9 +61,11 @@ export default function StepProfileComplete({
             {profileData.avatarUrl ? (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-white/60">アバター画像</p>
-                <img
+                <Image
                   src={profileData.avatarUrl}
                   alt="アバター画像"
+                  width={80}
+                  height={80}
                   className="h-20 w-20 rounded-2xl border border-white/10 object-cover"
                 />
               </div>
