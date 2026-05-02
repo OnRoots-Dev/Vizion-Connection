@@ -41,6 +41,18 @@ const nextConfig: NextConfig = {
             : []),
         ],
       },
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "https://vizion-connection.jp" },
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          { key: "Access-Control-Allow-Methods", value: "GET,POST,PUT,PATCH,DELETE,OPTIONS" },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "rsc,next-router-state-tree,next-router-prefetch,next-url,content-type",
+          },
+        ],
+      },
     ];
   },
   images: {
