@@ -34,8 +34,19 @@ function extractOrigin(req: Request): string | null {
   }
 }
 
+function extractOriginFromHost(req: Request): string | null {
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const proto = (forwardedProto ?? "").split(",")[0]?.trim();
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = (forwardedHost ?? req.headers.get("host") ?? "").split(",")[0]?.trim();
+  if (!host) return null;
+
+  const scheme = proto || (host.includes("localhost") ? "http" : "https");
+  return `${scheme}://${host}`;
+}
+
 export function validateCSRF(req: Request): Response | null {
-  const origin = extractOrigin(req);
+  const origin = extractOrigin(req) ?? extractOriginFromHost(req);
   const allowedOrigins = getAllowedOrigins();
   if (!origin || !allowedOrigins.includes(normalizeOrigin(origin))) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {

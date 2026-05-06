@@ -470,7 +470,13 @@ export function DashboardProfileView({
               </div>
             ) : null}
 
-            <div style={{ position: "absolute", right: isSingleColumn ? 14 : 18, bottom: isSingleColumn ? 14 : 18, zIndex: 20 }}>
+            <div
+              style={
+                isSingleColumn
+                  ? { marginTop: 14, display: "flex", justifyContent: "flex-end" }
+                  : { position: "absolute", right: 18, bottom: 18, zIndex: 20 }
+              }
+            >
               <ShareButtonClient
                 profileUrl={publicProfileUrl}
                 referralUrl={referralUrl}
