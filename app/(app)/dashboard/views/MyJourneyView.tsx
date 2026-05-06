@@ -270,7 +270,7 @@ export function MyJourneyView({
         </>
       ) : null}
 
-      <ViewHeader title="My Journey" sub="記録画面" onBack={() => setView("home")} t={t} roleColor={roleColor} />
+      <ViewHeader title="Journey" sub="記録画面" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
       <SectionCard t={t}>
         <SLabel text="AD SLOT" color="#FFD600" />

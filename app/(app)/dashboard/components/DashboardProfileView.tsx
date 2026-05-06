@@ -374,8 +374,25 @@ export function DashboardProfileView({
               @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
             </p>
             {serialDisplay ? (
-              <p style={{ margin: "6px 0 0", fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.7)" }}>
-                {serialDisplay}
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  width: "fit-content",
+                  padding: "7px 12px",
+                  borderRadius: 999,
+                  fontSize: 14,
+                  fontFamily: "monospace",
+                  fontWeight: 900,
+                  letterSpacing: "0.16em",
+                  color: "rgba(255,255,255,0.86)",
+                  border: `1px solid ${roleColor}35`,
+                  background: `linear-gradient(135deg, ${roleColor}1e, rgba(255,255,255,0.06))`,
+                  boxShadow: `0 0 0 1px ${roleColor}12, 0 14px 40px rgba(0,0,0,0.45)`,
+                  textTransform: "uppercase",
+                }}
+              >
+                <span style={{ marginRight: 8, fontSize: 10, opacity: 0.65, letterSpacing: "0.22em" }}>VIZION ID</span>
+                <span style={{ color: roleColor }}>{serialDisplay}</span>
               </p>
             ) : null}
 
@@ -397,17 +414,18 @@ export function DashboardProfileView({
                 <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,210,0,0.52)" }}>Cheer</p>
                 <p style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, lineHeight: 1, fontFamily: "monospace", color: "#FFD600" }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginLeft: isSingleColumn ? 0 : "auto", alignItems: isSingleColumn ? "flex-start" : "flex-end" }}>
-                {snsLinks.length > 0 ? (
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {snsLinks.map((s) => (
-                      <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${roleColor}18`, border: `1px solid ${roleColor}28`, color: roleColor }}>
-                        <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor"><path d={s.path} /></svg>
-                      </a>
-                    ))}
-                  </div>
-                ) : null}
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginLeft: isSingleColumn ? 0 : "auto", alignItems: isSingleColumn ? "flex-start" : "flex-end", minWidth: isSingleColumn ? "auto" : 280 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
+                  {snsLinks.length > 0 ? (
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {snsLinks.map((s) => (
+                        <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer" style={{ width: 38, height: 38, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${roleColor}18`, border: `1px solid ${roleColor}28`, color: roleColor }}>
+                          <svg viewBox="0 0 24 24" width={13} height={13} fill="currentColor"><path d={s.path} /></svg>
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+
                   {canPublish ? (
                     <button
                       type="button"
@@ -426,6 +444,7 @@ export function DashboardProfileView({
                         fontWeight: 900,
                         cursor: savingVisibility ? "wait" : "pointer",
                         opacity: savingVisibility ? 0.7 : 1,
+                        flexShrink: 0,
                       }}
                     >
                       <span
@@ -456,8 +475,19 @@ export function DashboardProfileView({
                     </button>
                   ) : null}
                 </div>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
+                  <ShareButtonClient
+                    profileUrl={publicProfileUrl}
+                    referralUrl={referralUrl}
+                    displayName={profile.displayName}
+                    roleColor={roleColor}
+                    slug={profile.slug}
+                  />
+                </div>
+
                 {visibilityMessage ? (
-                  <p style={{ margin: 0, fontSize: 10, color: visibilityMessage.includes("失敗") || visibilityMessage.includes("できません") ? "#ff9b9b" : "rgba(255,255,255,0.62)" }}>
+                  <p style={{ margin: 0, fontSize: 10, color: visibilityMessage.includes("失敗") || visibilityMessage.includes("できません") ? "#ff9b9b" : "rgba(255,255,255,0.62)", textAlign: isSingleColumn ? "left" : "right" }}>
                     {visibilityMessage}
                   </p>
                 ) : null}
@@ -469,22 +499,6 @@ export function DashboardProfileView({
                 <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, fontWeight: 800, color: "#fff" }}>&quot;{profile.claim.trim()}&quot;</p>
               </div>
             ) : null}
-
-            <div
-              style={
-                isSingleColumn
-                  ? { marginTop: 14, display: "flex", justifyContent: "flex-end" }
-                  : { position: "absolute", right: 18, bottom: 18, zIndex: 20 }
-              }
-            >
-              <ShareButtonClient
-                profileUrl={publicProfileUrl}
-                referralUrl={referralUrl}
-                displayName={profile.displayName}
-                roleColor={roleColor}
-                slug={profile.slug}
-              />
-            </div>
           </div>
       </section>
 
