@@ -65,7 +65,7 @@ export function DashboardProfileView({
   const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
   const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
   const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
+  const serialDisplay = profile.serialId ? String(profile.serialId).padStart(4, "0") : null;
   const needsInitialRegistration = !hasProfileSignal(profile) && !hasCareerSignal(careerProfile);
   const canPublish = profile.role !== "Admin";
   const snsLinks = [
@@ -337,14 +337,14 @@ export function DashboardProfileView({
 
       <section style={{ overflow: "visible", borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface, position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: 24 }}>
-          <div style={{ position: "relative", minHeight: 248 }}>
+          <div style={{ position: "relative", minHeight: "clamp(220px, 28vw, 320px)" }}>
             {profile.profileImageUrl ? (
               <Image
                 src={profile.profileImageUrl}
                 alt=""
                 fill
                 sizes="(min-width: 1120px) 900px, 100vw"
-                className="absolute inset-0 object-cover object-top opacity-45"
+                className="absolute inset-0 object-cover object-center opacity-45"
               />
             ) : (
               <div className="absolute inset-0" style={{ background: `linear-gradient(145deg, ${bg1} 0%, ${t.bg} 100%)` }} />
@@ -354,7 +354,7 @@ export function DashboardProfileView({
           </div>
         </div>
 
-        <div style={{ position: "relative", zIndex: 2, minHeight: 248, padding: isSingleColumn ? 18 : 22 }}>
+        <div style={{ position: "relative", zIndex: 2, minHeight: "clamp(220px, 28vw, 320px)", padding: isSingleColumn ? 18 : 22 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
@@ -374,25 +374,8 @@ export function DashboardProfileView({
               @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
             </p>
             {serialDisplay ? (
-              <p
-                style={{
-                  margin: "10px 0 0",
-                  width: "fit-content",
-                  padding: "7px 12px",
-                  borderRadius: 999,
-                  fontSize: 14,
-                  fontFamily: "monospace",
-                  fontWeight: 900,
-                  letterSpacing: "0.16em",
-                  color: "rgba(255,255,255,0.86)",
-                  border: `1px solid ${roleColor}35`,
-                  background: `linear-gradient(135deg, ${roleColor}1e, rgba(255,255,255,0.06))`,
-                  boxShadow: `0 0 0 1px ${roleColor}12, 0 14px 40px rgba(0,0,0,0.45)`,
-                  textTransform: "uppercase",
-                }}
-              >
-                <span style={{ marginRight: 8, fontSize: 10, opacity: 0.65, letterSpacing: "0.22em" }}>VIZION ID</span>
-                <span style={{ color: roleColor }}>{serialDisplay}</span>
+              <p style={{ margin: "10px 0 0", fontFamily: "monospace", fontWeight: 900, letterSpacing: "0.22em", fontSize: 18, lineHeight: 1, color: "rgba(255,255,255,0.9)", textShadow: `0 0 14px ${roleColor}55, 0 0 40px rgba(0,0,0,0.55)` }}>
+                {serialDisplay}
               </p>
             ) : null}
 

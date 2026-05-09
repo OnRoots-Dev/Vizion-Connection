@@ -24,7 +24,7 @@ export async function requireAdminProfile() {
     }
 
     if (!canManageVoiceLabByEmail(profile.email)) {
-        throw new Error("FORBIDDEN");
+        throw new Error("FORBIDDEN_EMAIL");
     }
 
     return profile;

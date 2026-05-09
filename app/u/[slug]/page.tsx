@@ -27,6 +27,12 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import PublicProfileCountValue from "./PublicProfileCountValue";
 import Image from "next/image";
+import Link from "next/link";
+import ShareButtonClient from "@/components/profile/ShareButtonClient";
+import { Barlow, Barlow_Condensed } from "next/font/google";
+
+const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "900"] });
+const barlowCondensed = Barlow_Condensed({ subsets: ["latin"], weight: ["300", "400", "600", "700", "900"] });
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Members: "#B8860B", Business: "#1B3A8C",
@@ -132,6 +138,338 @@ export default async function UserProfilePage({ params }: Props) {
             : profile.role === "Business"
                 ? "Portfolio"
                 : "Community";
+
+    const isAthlete = profile.role === "Athlete";
+    const createdAt = new Date(profile.createdAt);
+    const monthsActive = Math.max(
+        1,
+        (new Date().getFullYear() - createdAt.getFullYear()) * 12 + (new Date().getMonth() - createdAt.getMonth()) + 1,
+    );
+    const profileUrl = `${env.NEXT_PUBLIC_BASE_URL}/u/${slug}`;
+
+    if (isAthlete) {
+        const displayNameParts = profile.displayName.split(/\s+/).filter(Boolean);
+        const nameFirst = displayNameParts.length >= 2 ? displayNameParts.slice(0, -1).join(" ") : "";
+        const nameLast = displayNameParts.length >= 2 ? displayNameParts.at(-1) ?? profile.displayName : profile.displayName;
+
+        const athleteEyebrow = ["Athlete", profile.sportsCategory, profile.sport].filter(Boolean).join(" · ");
+        const athleteBio = careerProfile?.bio_career || profile.bio || "";
+        const activeStatus = careerProfile?.tagline ? "現役・調整中" : "現役";
+        const recruitStatus = profile.sponsorPlan ? "スポンサー" : "スポンサー募集中";
+
+        return (
+            <div className={barlow.className} style={{ minHeight: "100vh", background: "#080c14", color: "#fff" }}>
+                <PublicProfileRealtime slug={slug} />
+                <style>{`
+                    :root{
+                      --blue:#1d4ed8;
+                      --blue-b:#3b82f6;
+                      --blue-l:#60a5fa;
+                      --green:#10b981;
+                      --gold:#f59e0b;
+                      --navy:#080c14;
+                      --navy2:#0c1020;
+                      --navy3:#111528;
+                      --g1:#8896b3;
+                      --g2:#4a5578;
+                    }
+                    *, *::before, *::after{ box-sizing:border-box; }
+                    a{ color:inherit; text-decoration:none; }
+                    .a-nav{
+                      display:flex;
+                      align-items:center;
+                      padding:0 40px;
+                      height:52px;
+                      background:rgba(8,12,20,.92);
+                      border-bottom:1px solid rgba(59,130,246,.07);
+                      position:sticky;
+                      top:0;
+                      z-index:50;
+                      backdrop-filter: blur(16px);
+                      -webkit-backdrop-filter: blur(16px);
+                    }
+                    .a-logo{
+                      font-family: var(--font-bebas), BebasNeue, sans-serif;
+                      font-size:20px;
+                      letter-spacing:4px;
+                      color:var(--blue-b);
+                      margin-right:auto;
+                      padding-top: 2px;
+                    }
+                    .a-nav-item{
+                      padding:6px 14px;
+                      font-size:10px;
+                      font-weight:700;
+                      letter-spacing:.16em;
+                      text-transform:uppercase;
+                      color:var(--g2);
+                      cursor:pointer;
+                      border-radius: 8px;
+                      transition: color .15s, background .15s;
+                    }
+                    .a-nav-item:hover{ color:#fff; background: rgba(255,255,255,0.04); }
+                    .a-nav-item.act{ color:#fff; }
+                    .a-hero{ display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 52px); }
+                    .a-hero-l{
+                      padding:56px;
+                      display:flex;
+                      flex-direction:column;
+                      justify-content:center;
+                      background:linear-gradient(105deg,var(--navy) 55%,rgba(8,12,20,.8) 100%);
+                    }
+                    .a-eyebrow-text{
+                      font-size:12px;
+                      font-weight:700;
+                      letter-spacing:.22em;
+                      text-transform:uppercase;
+                      color:var(--blue-l);
+                    }
+                    .a-name-first{
+                      font-family: ${barlowCondensed.style.fontFamily};
+                      font-size:48px;
+                      color:var(--g1);
+                      letter-spacing:.01em;
+                      margin-top: 12px;
+                    }
+                    .a-name-last{
+                      font-family: var(--font-bebas), BebasNeue, sans-serif;
+                      font-size:120px;
+                      line-height:.9;
+                      margin-top: 2px;
+                    }
+                    .a-catch{
+                      margin-top:16px;
+                      padding-left:12px;
+                      border-left:2px solid var(--blue);
+                      color:var(--g1);
+                      font-weight: 700;
+                      letter-spacing: .02em;
+                    }
+                    .a-bio{
+                      margin-top:20px;
+                      line-height:1.8;
+                      color:var(--g1);
+                      max-width:500px;
+                      white-space: pre-wrap;
+                    }
+                    .a-status-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; }
+                    .a-status{
+                      padding:6px 12px;
+                      border-radius:4px;
+                      font-size:10px;
+                      font-weight:700;
+                      letter-spacing:.12em;
+                      text-transform:uppercase;
+                    }
+                    .s-active{ background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:var(--green); }
+                    .s-recruit{ background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.3); color:var(--blue-l); }
+                    .s-event{ background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.25); color:var(--gold); }
+                    .a-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:28px; background:rgba(59,130,246,.1); }
+                    .a-stat{ background:var(--navy2); padding:20px; text-align:center; }
+                    .a-stat-num{ font-family: var(--font-bebas), BebasNeue, sans-serif; font-size:42px; }
+                    .a-stat-label{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--g2); margin-top: 4px; }
+                    .a-btns{ display:flex; gap:10px; margin-top:28px; flex-wrap: wrap; }
+                    .a-btn-p{ padding:14px 24px; background:var(--blue); border:none; color:#fff; font-weight:700; cursor:pointer; }
+                    .a-btn-cheer{ padding:14px 24px; background:transparent; border:1px solid rgba(245,158,11,.3); color:var(--gold); cursor:pointer; }
+                    .a-btn-g{ padding:14px 24px; background:transparent; border:1px solid rgba(255,255,255,.1); color:#fff; cursor:pointer; }
+                    .a-btn-p,.a-btn-cheer,.a-btn-g{ border-radius: 12px; transition: filter .15s, transform .15s; }
+                    .a-btn-p:hover,.a-btn-cheer:hover,.a-btn-g:hover{ filter: brightness(1.08); transform: translateY(-1px); }
+                    .a-hero-r{ display:flex; align-items:center; justify-content:center; background:linear-gradient(150deg,var(--navy3),#0f1830 100%); }
+                    .a-photo-mock{ width:70%; height:80%; position: relative; display:flex; align-items:center; justify-content:center; border:1px solid rgba(59,130,246,.15); color:rgba(59,130,246,.15); font-family: var(--font-bebas), BebasNeue, sans-serif; letter-spacing:.4em; overflow:hidden; border-radius: 18px; }
+                    .a-photo-mock img{ width:100%; height:100%; object-fit:cover; filter:saturate(1.05) contrast(1.05); opacity:.92; }
+                    .a-photo-overlay{ position:absolute; inset:0; background: linear-gradient(180deg, rgba(8,12,20,0.08), rgba(8,12,20,0.78)); }
+                    .a-section{ padding: 30px 56px 56px; }
+                    .a-section h2{ margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--blue-l); }
+                    .a-panel{ background: rgba(12,16,32,0.65); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; }
+                    @media (max-width:900px){
+                      .a-nav{ padding: 0 16px; overflow-x: auto; }
+                      .a-hero{ grid-template-columns:1fr; }
+                      .a-hero-l{ padding: 32px 18px; }
+                      .a-name-last{ font-size:72px; }
+                      .a-stats{ grid-template-columns:repeat(2,1fr); }
+                      .a-hero-r{ padding: 22px 0 34px; }
+                      .a-photo-mock{ width: 86%; height: 360px; }
+                      .a-section{ padding: 20px 18px 44px; }
+                    }
+                `}</style>
+
+                <div className="a-nav">
+                    <div className="a-logo">VIZION</div>
+                    <a className="a-nav-item act" href="#overview">Overview</a>
+                    <a className="a-nav-item" href="#career">Career</a>
+                    <a className="a-nav-item" href="#skills">Skills</a>
+                    <a className="a-nav-item" href="#gallery">Gallery</a>
+                    <a className="a-nav-item" href="#sns">SNS</a>
+                    <a className="a-nav-item" href="#cheer">Cheer</a>
+                    <a className="a-nav-item" href="#offer">Offer</a>
+                </div>
+
+                <section id="overview" className="a-hero" style={{ scrollMarginTop: 60 }}>
+                    <div className="a-hero-l">
+                        <div className="a-eyebrow-text">{athleteEyebrow}</div>
+                        {nameFirst ? <div className="a-name-first">{nameFirst}</div> : null}
+                        <div className="a-name-last">{nameLast}</div>
+
+                        {profile.claim?.trim() ? (
+                            <div className="a-catch">&quot;{profile.claim.trim()}&quot;</div>
+                        ) : (
+                            <div className="a-catch">&quot;速さは、嘘をつかない。&quot;</div>
+                        )}
+
+                        {athleteBio ? <div className="a-bio">{athleteBio}</div> : null}
+
+                        <div className="a-status-row">
+                            <div className="a-status s-active">{activeStatus}</div>
+                            <div className="a-status s-recruit">{recruitStatus}</div>
+                            <div className="a-status s-event">次戦 未設定</div>
+                        </div>
+
+                        <div className="a-stats">
+                            <div className="a-stat">
+                                <div className="a-stat-num">
+                                    <PublicProfileCountValue slug={slug} initialValue={profile.cheerCount ?? 0} field="cheerCount" />
+                                </div>
+                                <div className="a-stat-label">Cheer</div>
+                            </div>
+                            <div className="a-stat">
+                                <div className="a-stat-num">
+                                    <PublicProfileCountValue slug={slug} initialValue={collectorCount} field="collectorCount" />
+                                </div>
+                                <div className="a-stat-label">Supporters</div>
+                            </div>
+                            <div className="a-stat">
+                                <div className="a-stat-num">{profile.sponsorPlan ? "1" : "0"}</div>
+                                <div className="a-stat-label">Business Cheer</div>
+                            </div>
+                            <div className="a-stat">
+                                <div className="a-stat-num">{monthsActive}</div>
+                                <div className="a-stat-label">継続月</div>
+                            </div>
+                        </div>
+
+                        <div className="a-btns">
+                            <Link className="a-btn-p" href={`/r/${slug}`}>Offer を送る</Link>
+                            <a className="a-btn-cheer" href="#cheer">🔥 Cheer する</a>
+                            <a className="a-btn-g" href="#share">シェア</a>
+                        </div>
+                    </div>
+
+                    <div className="a-hero-r">
+                        <div className="a-photo-mock">
+                            {profile.profileImageUrl ? (
+                                <>
+                                    <Image
+                                        src={profile.profileImageUrl}
+                                        alt={profile.displayName}
+                                        fill
+                                        sizes="(min-width: 900px) 45vw, 86vw"
+                                        priority
+                                        style={{ objectFit: "cover", objectPosition: "center top" }}
+                                    />
+                                    <div className="a-photo-overlay" />
+                                </>
+                            ) : (
+                                "ATHLETE PHOTO"
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                <div className="a-section" id="career" style={{ scrollMarginTop: 60 }}>
+                    <h2>Career</h2>
+                    <div className="a-panel">
+                        <CareerSection
+                            roleColor={rl}
+                            bio={profile.bio}
+                            sport={profile.sport}
+                            region={profile.region}
+                            prefecture={profile.prefecture}
+                            joinedAt={joinedAt}
+                            roleLabel={ROLE_LABEL[profile.role]}
+                            cheerCount={profile.cheerCount ?? 0}
+                            isPublic={profile.isPublic}
+                            slug={slug}
+                            careerProfile={careerProfile}
+                        />
+                    </div>
+                </div>
+
+                <div className="a-section" id="skills" style={{ scrollMarginTop: 60 }}>
+                    <h2>Skills</h2>
+                    <div className="a-panel">
+                        {careerProfile?.skills?.length ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                {careerProfile.skills.map((sk) => (
+                                    <div key={sk.name} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center" }}>
+                                        <div style={{ minWidth: 0 }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                                <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.86)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sk.name}</span>
+                                                {sk.isHighlight ? <span style={{ fontSize: 10, color: "#FFD600", fontWeight: 900 }}>★</span> : null}
+                                            </div>
+                                            <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                                                <div style={{ width: `${sk.level}%`, height: "100%", borderRadius: 999, background: sk.isHighlight ? "linear-gradient(90deg, #FFD600, rgba(255,214,0,0.25))" : `linear-gradient(90deg, ${rl}, ${rl}45)` }} />
+                                            </div>
+                                        </div>
+                                        <div style={{ fontFamily: "monospace", fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 800 }}>{sk.level}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 13 }}>スキルはまだ登録されていません</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="a-section" id="gallery" style={{ scrollMarginTop: 60 }}>
+                    <h2>Gallery</h2>
+                    <div className="a-panel">
+                        <p style={{ margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 13 }}>ギャラリーは準備中です</p>
+                    </div>
+                </div>
+
+                <div className="a-section" id="sns" style={{ scrollMarginTop: 60 }}>
+                    <h2>SNS</h2>
+                    <div className="a-panel">
+                        {snsLinks.length ? (
+                            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                                {snsLinks.map((s) => (
+                                    <a key={s.label} href={s.href!} target="_blank" rel="noopener noreferrer"
+                                        style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.78)", fontSize: 12, fontWeight: 700 }}>
+                                        {s.label}
+                                    </a>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 13 }}>SNSリンクは未設定です</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="a-section" id="cheer" style={{ scrollMarginTop: 60 }}>
+                    <h2>Cheer</h2>
+                    <div className="a-panel">
+                        <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
+                    </div>
+                </div>
+
+                <div className="a-section" id="offer" style={{ scrollMarginTop: 60 }}>
+                    <h2>Offer</h2>
+                    <div className="a-panel" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <Link href={`/r/${slug}`} className="a-btn-p" style={{ display: "inline-flex", justifyContent: "center" }}>Offer を送る</Link>
+                        <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
+                    </div>
+                </div>
+
+                <div className="a-section" id="share" style={{ scrollMarginTop: 60, paddingTop: 10 }}>
+                    <h2>Share</h2>
+                    <div className="a-panel">
+                        <ShareButtonClient profileUrl={profileUrl} referralUrl={referralUrl} displayName={profile.displayName} roleColor={rl} slug={slug} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", overflowX: "hidden" }}>
             <PublicProfileRealtime slug={slug} />

@@ -87,7 +87,14 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
         return NextResponse.json({ ad: data });
     } catch (error) {
         const message = error instanceof Error ? error.message : "UNKNOWN";
-        const status = message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500;
-        return NextResponse.json({ error: status === 500 ? "Server error" : message }, { status });
+        const status = message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" || message === "FORBIDDEN_EMAIL" ? 403 : 500;
+        const errorPayload = (() => {
+            if (status === 500) return { error: "Server error" };
+            if (message === "FORBIDDEN_EMAIL") {
+                return { error: "FORBIDDEN_EMAIL", message: "管理者アクセスがメール許可リスト未登録のためブロックされました。運用側でVOICELAB_ADMIN_EMAILSに追加してください。" };
+            }
+            return { error: message };
+        })();
+        return NextResponse.json(errorPayload, { status });
     }
 }
