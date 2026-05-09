@@ -88,6 +88,7 @@ export async function proxy(req: NextRequest) {
     const host = getRequestHost(req);
     const isApp = host === "app.vizion-connection.jp" || host.startsWith("app.");
     const isInternalRequest = isNextInternalRequest(req);
+    const isLocalDevHost = host === "localhost" || host === "127.0.0.1";
 
     if (req.method === "OPTIONS") {
         return applyCors(req, new NextResponse(null, { status: 204 }));
@@ -95,6 +96,12 @@ export async function proxy(req: NextRequest) {
 
     // Avoid cross-origin redirects for App Router internals such as RSC and prefetch.
     if (isInternalRequest) {
+        return applyCors(req, NextResponse.next());
+    }
+
+    // Local development should stay on the same host.
+    // Otherwise it becomes impossible to test login flows locally.
+    if (process.env.NODE_ENV !== "production" || isLocalDevHost) {
         return applyCors(req, NextResponse.next());
     }
 

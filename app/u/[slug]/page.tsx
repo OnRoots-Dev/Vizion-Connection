@@ -157,6 +157,13 @@ export default async function UserProfilePage({ params }: Props) {
         const activeStatus = careerProfile?.tagline ? "現役・調整中" : "現役";
         const recruitStatus = profile.sponsorPlan ? "スポンサー" : "スポンサー募集中";
 
+        const photoUrl = profile.profileImageUrl || profile.avatarUrl || profile.bannerUrl || null;
+        const nextSchedule = publicSchedules[0] ?? null;
+        const nextScheduleDate = nextSchedule?.start_at
+            ? new Date(nextSchedule.start_at).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
+            : null;
+        const nextEventLabel = nextScheduleDate ? `次戦 ${nextScheduleDate}` : "次戦 未設定";
+
         return (
             <div className={barlow.className} style={{ minHeight: "100vh", background: "#080c14", color: "#fff" }}>
                 <PublicProfileRealtime slug={slug} />
@@ -321,7 +328,7 @@ export default async function UserProfilePage({ params }: Props) {
                         <div className="a-status-row">
                             <div className="a-status s-active">{activeStatus}</div>
                             <div className="a-status s-recruit">{recruitStatus}</div>
-                            <div className="a-status s-event">次戦 未設定</div>
+                            <div className="a-status s-event">{nextEventLabel}</div>
                         </div>
 
                         <div className="a-stats">
@@ -356,10 +363,10 @@ export default async function UserProfilePage({ params }: Props) {
 
                     <div className="a-hero-r">
                         <div className="a-photo-mock">
-                            {profile.profileImageUrl ? (
+                            {photoUrl ? (
                                 <>
                                     <Image
-                                        src={profile.profileImageUrl}
+                                        src={photoUrl}
                                         alt={profile.displayName}
                                         fill
                                         sizes="(min-width: 900px) 45vw, 86vw"
@@ -374,6 +381,36 @@ export default async function UserProfilePage({ params }: Props) {
                         </div>
                     </div>
                 </section>
+
+                {careerProfile?.stats?.length ? (
+                    <div className="a-section" id="performance" style={{ scrollMarginTop: 60, paddingTop: 10 }}>
+                        <h2>Performance</h2>
+                        <div className="a-panel">
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+                                {careerProfile.stats
+                                    .filter((s) => s?.label || s?.value)
+                                    .map((stat, i) => (
+                                        <div
+                                            key={`${stat.label ?? "stat"}-${i}`}
+                                            style={{
+                                                padding: "14px 16px",
+                                                borderRadius: 14,
+                                                background: "rgba(255,255,255,0.03)",
+                                                border: "1px solid rgba(255,255,255,0.06)",
+                                            }}
+                                        >
+                                            <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.26)", marginBottom: 6 }}>
+                                                {stat.label || "-"}
+                                            </div>
+                                            <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: stat.color === "gold" ? "#FFD600" : stat.color === "role" ? rl : "rgba(255,255,255,0.88)" }}>
+                                                {stat.value || "-"}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
 
                 <div className="a-section" id="career" style={{ scrollMarginTop: 60 }}>
                     <h2>Career</h2>
