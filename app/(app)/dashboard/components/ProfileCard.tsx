@@ -566,7 +566,7 @@ export function ProfileCardSection({
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
-                                            <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, color: "#FFD600" }}>{cheerCount}</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", color: "#FFD600" }}>{cheerCount}</span>
                                         </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />

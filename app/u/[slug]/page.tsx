@@ -169,9 +169,10 @@ export default async function UserProfilePage({ params }: Props) {
                 <PublicProfileRealtime slug={slug} />
                 <style>{`
                     :root{
-                      --blue:#1d4ed8;
-                      --blue-b:#3b82f6;
-                      --blue-l:#60a5fa;
+                      --accent:${rl};
+                      --accent-soft: color-mix(in srgb, ${rl} 70%, #ffffff);
+                      --accent-weak: color-mix(in srgb, ${rl} 24%, transparent);
+                      --accent-border: color-mix(in srgb, ${rl} 45%, transparent);
                       --green:#10b981;
                       --gold:#f59e0b;
                       --navy:#080c14;
@@ -182,40 +183,48 @@ export default async function UserProfilePage({ params }: Props) {
                     }
                     *, *::before, *::after{ box-sizing:border-box; }
                     a{ color:inherit; text-decoration:none; }
-                    .a-nav{
-                      display:flex;
-                      align-items:center;
-                      padding:0 40px;
-                      height:52px;
-                      background:rgba(8,12,20,.92);
-                      border-bottom:1px solid rgba(59,130,246,.07);
+                    .a-header{
                       position:sticky;
                       top:0;
-                      z-index:50;
-                      backdrop-filter: blur(16px);
-                      -webkit-backdrop-filter: blur(16px);
+                      z-index:60;
+                      border-bottom:1px solid rgba(255,255,255,0.08);
+                      background:rgba(8,12,20,.86);
+                      backdrop-filter: blur(22px);
+                      -webkit-backdrop-filter: blur(22px);
                     }
-                    .a-logo{
-                      font-family: var(--font-bebas), BebasNeue, sans-serif;
-                      font-size:20px;
-                      letter-spacing:4px;
-                      color:var(--blue-b);
-                      margin-right:auto;
-                      padding-top: 2px;
+                    .a-header-inner{
+                      max-width: 980px;
+                      margin: 0 auto;
+                      padding: 0 20px;
+                      height: 72px;
+                      display:flex;
+                      align-items:center;
+                      justify-content:center;
+                    }
+                    .a-subnav{
+                      display:flex;
+                      align-items:center;
+                      justify-content:center;
+                      gap: 8px;
+                      padding: 0 14px 14px;
+                      flex-wrap: wrap;
+                      border-top: 1px solid rgba(255,255,255,0.05);
                     }
                     .a-nav-item{
-                      padding:6px 14px;
+                      padding:7px 12px;
                       font-size:10px;
-                      font-weight:700;
+                      font-weight:800;
                       letter-spacing:.16em;
                       text-transform:uppercase;
-                      color:var(--g2);
+                      color:rgba(255,255,255,0.45);
                       cursor:pointer;
-                      border-radius: 8px;
-                      transition: color .15s, background .15s;
+                      border-radius: 999px;
+                      transition: color .15s, background .15s, border-color .15s;
+                      border: 1px solid rgba(255,255,255,0.08);
+                      background: rgba(255,255,255,0.03);
                     }
-                    .a-nav-item:hover{ color:#fff; background: rgba(255,255,255,0.04); }
-                    .a-nav-item.act{ color:#fff; }
+                    .a-nav-item:hover{ color:#fff; border-color: var(--accent-border); background: var(--accent-weak); }
+                    .a-nav-item.act{ color:#fff; border-color: var(--accent-border); background: var(--accent-weak); }
                     .a-hero{ display:grid; grid-template-columns:1fr 1fr; min-height:calc(100vh - 52px); }
                     .a-hero-l{
                       padding:56px;
@@ -229,7 +238,7 @@ export default async function UserProfilePage({ params }: Props) {
                       font-weight:700;
                       letter-spacing:.22em;
                       text-transform:uppercase;
-                      color:var(--blue-l);
+                      color:var(--accent-soft);
                     }
                     .a-name-first{
                       font-family: ${barlowCondensed.style.fontFamily};
@@ -247,7 +256,7 @@ export default async function UserProfilePage({ params }: Props) {
                     .a-catch{
                       margin-top:16px;
                       padding-left:12px;
-                      border-left:2px solid var(--blue);
+                      border-left:2px solid var(--accent);
                       color:var(--g1);
                       font-weight: 700;
                       letter-spacing: .02em;
@@ -269,27 +278,27 @@ export default async function UserProfilePage({ params }: Props) {
                       text-transform:uppercase;
                     }
                     .s-active{ background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:var(--green); }
-                    .s-recruit{ background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.3); color:var(--blue-l); }
+                    .s-recruit{ background: var(--accent-weak); border:1px solid var(--accent-border); color:var(--accent-soft); }
                     .s-event{ background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.25); color:var(--gold); }
-                    .a-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:28px; background:rgba(59,130,246,.1); }
+                    .a-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:28px; background: var(--accent-weak); }
                     .a-stat{ background:var(--navy2); padding:20px; text-align:center; }
                     .a-stat-num{ font-family: var(--font-bebas), BebasNeue, sans-serif; font-size:42px; }
                     .a-stat-label{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--g2); margin-top: 4px; }
                     .a-btns{ display:flex; gap:10px; margin-top:28px; flex-wrap: wrap; }
-                    .a-btn-p{ padding:14px 24px; background:var(--blue); border:none; color:#fff; font-weight:700; cursor:pointer; }
+                    .a-btn-p{ padding:14px 24px; background:var(--accent); border:1px solid var(--accent-border); color:#fff; font-weight:700; cursor:pointer; }
                     .a-btn-cheer{ padding:14px 24px; background:transparent; border:1px solid rgba(245,158,11,.3); color:var(--gold); cursor:pointer; }
                     .a-btn-g{ padding:14px 24px; background:transparent; border:1px solid rgba(255,255,255,.1); color:#fff; cursor:pointer; }
                     .a-btn-p,.a-btn-cheer,.a-btn-g{ border-radius: 12px; transition: filter .15s, transform .15s; }
                     .a-btn-p:hover,.a-btn-cheer:hover,.a-btn-g:hover{ filter: brightness(1.08); transform: translateY(-1px); }
                     .a-hero-r{ display:flex; align-items:center; justify-content:center; background:linear-gradient(150deg,var(--navy3),#0f1830 100%); }
-                    .a-photo-mock{ width:70%; height:80%; position: relative; display:flex; align-items:center; justify-content:center; border:1px solid rgba(59,130,246,.15); color:rgba(59,130,246,.15); font-family: var(--font-bebas), BebasNeue, sans-serif; letter-spacing:.4em; overflow:hidden; border-radius: 18px; }
+                    .a-photo-mock{ width:70%; height:80%; position: relative; display:flex; align-items:center; justify-content:center; border:1px solid var(--accent-border); color:var(--accent-weak); font-family: var(--font-bebas), BebasNeue, sans-serif; letter-spacing:.4em; overflow:hidden; border-radius: 18px; }
                     .a-photo-mock img{ width:100%; height:100%; object-fit:cover; filter:saturate(1.05) contrast(1.05); opacity:.92; }
                     .a-photo-overlay{ position:absolute; inset:0; background: linear-gradient(180deg, rgba(8,12,20,0.08), rgba(8,12,20,0.78)); }
                     .a-section{ padding: 30px 56px 56px; }
-                    .a-section h2{ margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--blue-l); }
+                    .a-section h2{ margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--accent-soft); }
                     .a-panel{ background: rgba(12,16,32,0.65); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; }
                     @media (max-width:900px){
-                      .a-nav{ padding: 0 16px; overflow-x: auto; }
+                      .a-header-inner{ padding: 0 16px; }
                       .a-hero{ grid-template-columns:1fr; }
                       .a-hero-l{ padding: 32px 18px; }
                       .a-name-last{ font-size:72px; }
@@ -300,16 +309,29 @@ export default async function UserProfilePage({ params }: Props) {
                     }
                 `}</style>
 
-                <div className="a-nav">
-                    <div className="a-logo">VIZION</div>
-                    <a className="a-nav-item act" href="#overview">Overview</a>
-                    <a className="a-nav-item" href="#career">Career</a>
-                    <a className="a-nav-item" href="#skills">Skills</a>
-                    <a className="a-nav-item" href="#gallery">Gallery</a>
-                    <a className="a-nav-item" href="#sns">SNS</a>
-                    <a className="a-nav-item" href="#cheer">Cheer</a>
-                    <a className="a-nav-item" href="#offer">Offer</a>
-                </div>
+                <header className="a-header">
+                    <div className="a-header-inner">
+                        <Image
+                            src="/images/Vizion_Connection_logo-wt.png"
+                            alt="Vizion Connection"
+                            width={230}
+                            height={46}
+                            priority
+                            style={{ height: 40, width: "auto", opacity: 0.95 }}
+                        />
+                    </div>
+                    <nav className="a-subnav">
+                        <a className="a-nav-item act" href="#overview">Overview</a>
+                        {careerProfile?.stats?.length ? <a className="a-nav-item" href="#performance">Performance</a> : null}
+                        <a className="a-nav-item" href="#career">Career</a>
+                        <a className="a-nav-item" href="#skills">Skills</a>
+                        <a className="a-nav-item" href="#gallery">Gallery</a>
+                        <a className="a-nav-item" href="#sns">SNS</a>
+                        <a className="a-nav-item" href="#cheer">Cheer</a>
+                        <a className="a-nav-item" href="#offer">Offer</a>
+                        <a className="a-nav-item" href="#share">Share</a>
+                    </nav>
+                </header>
 
                 <section id="overview" className="a-hero" style={{ scrollMarginTop: 60 }}>
                     <div className="a-hero-l">

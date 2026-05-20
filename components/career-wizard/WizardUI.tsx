@@ -45,13 +45,14 @@ export function Field({ label, children, className }: {
 }
 
 export function WizardInput({ value, onChange, placeholder, maxLength, type = "text", disabled }: {
-  value: string; onChange: (v: string) => void;
+  value?: string; onChange: (v: string) => void;
   placeholder?: string; maxLength?: number; type?: string; disabled?: boolean;
 }) {
   const color = useCareerWizard((s) => s.roleColor());
+  const safeValue = value ?? "";
   return (
     <input
-      type={type} value={value}
+      type={type} value={safeValue}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder} maxLength={maxLength} disabled={disabled}
       className="w-full rounded-xl px-4 py-3 text-[14px] text-white outline-none transition-all disabled:opacity-30"
@@ -66,16 +67,17 @@ export function WizardInput({ value, onChange, placeholder, maxLength, type = "t
 }
 
 export function WizardTextarea({ value, onChange, placeholder, rows = 4, maxLength }: {
-  value: string; onChange: (v: string) => void;
+  value?: string; onChange: (v: string) => void;
   placeholder?: string; rows?: number; maxLength?: number;
 }) {
   const color = useCareerWizard((s) => s.roleColor());
-  const len = value.length;
+  const safeValue = value ?? "";
+  const len = safeValue.length;
   const max = maxLength ?? 9999;
   return (
     <div>
       <textarea
-        value={value}
+        value={safeValue}
         onChange={(e) => onChange(e.target.value.slice(0, max))}
         placeholder={placeholder} rows={rows}
         className="w-full rounded-xl px-4 py-3 text-[14px] text-white outline-none resize-none leading-relaxed transition-all"

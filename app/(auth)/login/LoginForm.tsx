@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
@@ -23,7 +23,6 @@ function EyeIcon({ open }: { open: boolean }) {
 }
 
 export default function LoginForm() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get("redirect") ?? "/dashboard";
 
@@ -48,8 +47,9 @@ export default function LoginForm() {
                 setError(data.error ?? "メールアドレスまたはパスワードが正しくありません");
                 return;
             }
-            router.refresh();
-            router.push(redirectTo);
+            // Use a full navigation so the next request definitely carries
+            // the freshly-set httpOnly session cookie in production.
+            window.location.assign(redirectTo);
         } catch {
             setError("通信エラーが発生しました");
         } finally {

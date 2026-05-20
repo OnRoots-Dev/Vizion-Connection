@@ -9,16 +9,45 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 import { ROLES, type RoleKey } from "./constants";
-import { FoundingMemberBadge, SnsIcon } from "../ui";
+import { FoundingMemberBadge } from "../ui/FoundingMemberBadge";
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z";
 const YT_PATH = "M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z";
 
+function BackSnsIcon({
+  label,
+  href = "#",
+  color,
+  path,
+}: {
+  label: string;
+  href?: string;
+  color: string;
+  path: string;
+}) {
+  return (
+    <a
+      href={href}
+      target={href !== "#" ? "_blank" : undefined}
+      rel={href !== "#" ? "noopener noreferrer" : undefined}
+      title={label}
+      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] no-underline"
+      style={{ background: `${color}18`, border: `1px solid ${color}35` }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <svg viewBox="0 0 24 24" width={11} height={11} fill={color}>
+        <path d={path} />
+      </svg>
+    </a>
+  );
+}
+
 export function ProfileCard3DDemo() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [role, setRole] = useState<RoleKey>("athlete");
   const s = ROLES[role];
+  const frontPhotoRatio = "62%";
 
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -91,74 +120,94 @@ export function ProfileCard3DDemo() {
               transition: "opacity 0s 0.5s",
             } as React.CSSProperties}
           >
-            <div className="absolute inset-0 z-0" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, color-mix(in srgb, ${s.bg1} 50%, #000) 55%, #060606 100%)` }} />
+            <div className="absolute inset-0 z-0" style={{ background: `linear-gradient(145deg, ${s.bg1} 0%, color-mix(in srgb, ${s.bg1} 40%, #000) 60%, #060606 100%)` }} />
+            <div className="pointer-events-none absolute right-[25%] top-[-15%] z-[1] h-[200px] w-[200px]" style={{ background: `radial-gradient(circle, ${s.rl}22, transparent 70%)` }} />
+            <div className="pointer-events-none absolute -right-[10%] -top-[12%] z-[1] h-[220px] w-[220px] opacity-90 blur-[12px]" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%)" }} />
             <div className="pointer-events-none absolute inset-0 z-[1] rounded-[14px] border border-white/12" style={{ background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)" }} />
             <div className="pointer-events-none absolute inset-px z-[1] rounded-[13px] border border-white/4" />
-            <div className="pointer-events-none absolute -right-[10%] -top-[10%] z-[1] h-[180px] w-[180px] blur-[25px]" style={{ background: `radial-gradient(circle at center, ${s.rg}, transparent 70%)` }} />
             <div className="v12-shim absolute inset-0 z-[10] rounded-[14px] opacity-0" />
+            <div className="pointer-events-none absolute inset-0 z-[6] rounded-[14px]" style={{ boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04)` }} />
             <div className="pointer-events-none absolute bottom-[8px] right-[12px] z-[5] font-mono text-[5px] uppercase tracking-[0.2em] text-white/6 whitespace-nowrap">VIZION CONNECTION · PROOF OF EXISTENCE</div>
 
-            {s.photo ? (
-              <Image
-                src={s.photo}
-                alt={s.name}
-                fill
-                sizes="(min-width: 768px) 440px, 100vw"
-                priority
-                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] h-[105%] w-[65%] object-cover"
-                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
-              />
-            ) : (
-              <div
-                className="pointer-events-none absolute bottom-0 right-[-8px] z-[3] flex h-[116%] w-[65%] items-center justify-center font-mono text-[74px] font-bold tracking-tight text-white/6 select-none"
-                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)" }}
-              >
-                {initials}
-              </div>
-            )}
-
-            <div className="absolute inset-0 z-[6] flex flex-col justify-between" style={{ padding: "16px 60% 14px 16px" }}>
-              <div className="flex items-flex-start gap-[6px] pl-[10px]">
-                <div className="flex flex-col items-start gap-[5px]">
-                  <FoundingMemberBadge />
-                  <span className="font-mono text-[9px] tracking-[0.08em] text-white/55">{s.region}</span>
+            <div
+              className="pointer-events-none absolute top-0 bottom-0 right-0 z-[3] h-full overflow-hidden"
+              style={{
+                width: frontPhotoRatio,
+                WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
+                maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 20%, black 45%)",
+              }}
+            >
+              {s.photo ? (
+                <Image
+                  src={s.photo}
+                  alt={s.name}
+                  fill
+                  sizes="(min-width: 768px) 440px, 100vw"
+                  priority
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center font-mono text-[80px] font-[900] tracking-tight text-white/5 select-none">
+                  {initials}
                 </div>
+              )}
+            </div>
+
+            <div className="absolute inset-0 z-[7] flex flex-col justify-between" style={{ padding: "16px 14px 14px 16px" }}>
+              <div className="flex flex-col items-start gap-[5px]">
+                <div className="inline-flex"><FoundingMemberBadge /></div>
+                <span className="font-mono text-[8.5px] tracking-[0.06em] text-white/50">{s.region}</span>
               </div>
 
               <div className="flex flex-1 flex-col justify-center gap-[3px]">
                 <div className="font-mono text-[7px] font-[500] uppercase tracking-[0.22em] text-white/38">{s.label}</div>
                 <div
-                  className="whitespace-nowrap text-ellipsis text-[20px] font-[900] text-white"
-                  style={{ lineHeight: 1.05, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}
+                  className="max-w-full overflow-hidden whitespace-nowrap text-ellipsis font-[900] text-white"
+                  style={{ fontSize: "clamp(14px, 4.2vw, 18px)", lineHeight: 1.04, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}
                 >
                   {s.name}
                 </div>
-                <div className="whitespace-nowrap font-mono text-[10.5px] tracking-[0.03em] text-white/52">{s.spec}</div>
-                <div className="mt-1.25 flex items-center gap-[4px]">
-                  <span className="text-[8px] text-[#FFD600]">★</span>
+                <div className="overflow-hidden whitespace-nowrap text-ellipsis font-mono tracking-[0.03em] text-white/52" style={{ fontSize: "clamp(9px, 2.8vw, 10.5px)" }}>{s.spec}</div>
+                <div className="mt-[5px] flex items-center gap-[4px]">
+                  <span className="text-[9px] text-[#FFD600]">★</span>
                   <span className="font-mono text-[7px] tracking-[0.12em] text-white/28">Cheer</span>
-                  <span className="font-mono text-[13px] font-[700] leading-none tracking-tight text-[#FFD600]">{s.cheer}</span>
+                  <span className="font-mono text-[16px] font-[800] leading-none tracking-tight text-[#FFD600]">{s.cheer}</span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-0">
-                <div
-                  className="font-light text-[14px] font-bold uppercase tracking-[0.13em] text-white/45 whitespace-nowrap"
-                  style={{ textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.45)" }}
+              <div className="flex flex-col gap-0" />
+            </div>
+
+            <div className="pointer-events-none absolute left-[16px] right-[16px] bottom-[14px] z-[8]">
+              <div className="flex max-w-[60%] flex-col gap-[4px]">
+                <span
+                  style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.16em", color: "rgba(255,255,255,0.26)", textTransform: "uppercase" }}
+                >
+                  Account ID
+                </span>
+                <span
+                  className="block whitespace-nowrap"
+                  style={{ display: "block", fontFamily: "monospace", fontSize: "clamp(12px, 3.0vw, 17px)", fontWeight: 950, letterSpacing: "clamp(0.06em, 0.5vw, 0.16em)", color: "rgba(255,255,255,0.72)", textShadow: "0 1px 0 rgba(255,255,255,0.42), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.62)", filter: "drop-shadow(0 0 10px rgba(0,0,0,0.28))" }}
                 >
                   {s.memberId}
+                </span>
+                <div
+                  className="mt-[2px]"
+                  style={{ fontFamily: "monospace", fontSize: 6, letterSpacing: "0.14em", color: "rgba(255,255,255,0.18)", textTransform: "uppercase" }}
+                >
+                  - Tap to see profile
                 </div>
-                <div className="flip-hint mt-[4px] flex items-center font-mono text-[6px] uppercase tracking-[0.14em] text-white/18">Tap to see profile</div>
               </div>
             </div>
 
-            <div className="absolute bottom-[10px] right-[12px] z-[7]">
+            <div className="absolute bottom-[10px] right-[10px] z-[7]">
               <Image
                 src="/images/Vizion_Connection_logo-wt.png"
                 alt="Logo"
-                width={240}
-                height={48}
-                className="h-12 w-auto opacity-60 mix-blend-lighten"
+                width={140}
+                height={38}
+                className="opacity-[0.55] mix-blend-lighten"
+                style={{ width: "auto", height: 38 }}
               />
             </div>
           </div>
@@ -188,15 +237,17 @@ export function ProfileCard3DDemo() {
               <Image
                 src={s.backPhoto}
                 alt={s.name}
-                fill
-                sizes="(min-width: 768px) 440px, 100vw"
-                className="pointer-events-none absolute right-0 top-0 z-[2] h-full w-[60%] object-cover"
-                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
+                width={1}
+                height={1}
+                unoptimized
+                sizes="(max-width: 768px) 60vw, 60%"
+                className="pointer-events-none absolute right-0 top-0 z-[2]"
+                style={{ width: "60%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: 0.7, WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               />
             ) : (
               <div
-                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center font-mono text-[60px] font-[700] tracking-tight text-white/4 select-none"
-                style={{ WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
+                className="pointer-events-none absolute right-0 top-0 z-[2] flex h-full w-[60%] items-center justify-center select-none"
+                style={{ fontFamily: "monospace", fontSize: 60, fontWeight: 700, color: "rgba(255,255,255,0.04)", WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)", maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 20%,black 45%)" }}
               >
                 {initials}
               </div>
@@ -207,57 +258,54 @@ export function ProfileCard3DDemo() {
                 <Image
                   src="/images/Vizion_Connection_logo-wt.png"
                   alt="Logo"
-                  width={200}
-                  height={40}
-                  className="h-10 w-auto opacity-60 mix-blend-lighten"
+                  width={120}
+                  height={30}
+                  className="opacity-60 mix-blend-lighten"
+                  style={{ width: "auto", height: 30 }}
                 />
-                <div className="flex items-center gap-[6px]">
-                  <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full" style={{ background: s.rl, boxShadow: `0 0 6px ${s.rl}` }} />
-                  <span className="font-mono text-[7.5px] font-[600] uppercase tracking-[0.18em] text-white/45">{s.label}</span>
+                <div className="flex items-center gap-[5px]">
+                  <span className="inline-block h-[5px] w-[5px] flex-shrink-0 rounded-full" style={{ background: s.rl, boxShadow: `0 0 5px ${s.rl}` }} />
+                  <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{s.label}</span>
                 </div>
-                <span className="font-mono text-[6px] uppercase tracking-[0.16em] text-white/18">Official Card</span>
+                <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Official Card</span>
               </div>
 
-              <div className="pointer-events-none flex flex-1 flex-col justify-center items-start gap-[2px] py-[4px]">
-                <div
-                  className="overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-[900] text-white/88"
-                  style={{ lineHeight: 1.1, letterSpacing: "-0.01em", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}
-                >
+              <div className="pointer-events-none flex flex-1 flex-col justify-center gap-[2px]">
+                <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.88)", lineHeight: 1.08, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textShadow: "0 1px 0 rgba(255,255,255,0.4), 0 -1px 0 rgba(0,0,0,0.7), 0 2px 4px rgba(0,0,0,0.5)" }}>
                   {s.name}
                 </div>
-                <div className="font-mono text-[7.5px] tracking-[0.04em] text-white/38">{s.spec} · {s.region}</div>
+                <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  @{s.url.replace(/^.*\/u\//, "")}{s.region ? ` · ${s.region}` : ""}
+                </div>
+                <div style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "0.02em", color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {s.spec}
+                </div>
               </div>
 
-              <div className="pointer-events-none my-[6px] h-px opacity-40" style={{ background: `linear-gradient(90deg, ${s.rl} 0%, transparent 100%)` }} />
+              <div className="pointer-events-none my-[5px] h-px opacity-40" style={{ background: `linear-gradient(90deg, ${s.rl} 0%, transparent 100%)` }} />
 
-              <div className="pointer-events-none min-h-[1em] pb-[2px] font-sans text-[10px] leading-[1.6] tracking-[0.01em] text-white/50 text-left">
+              <div className="pointer-events-none min-h-[1em] pb-[2px] text-[9.5px] leading-[1.6] text-white/40">
                 {s.comment}
               </div>
 
-              <div className="flex items-end justify-between gap-2.5">
+              <div className="flex items-end justify-between gap-[8px]">
                 <div
-                  className="relative z-[50] flex flex-col items-start gap-[5px] pointer-events-auto"
+                  className="relative z-[50] flex flex-col gap-[5px]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <span className="pointer-events-none font-mono text-[7px] uppercase tracking-[0.14em] text-white/35">Connect</span>
-                  <div className="flex gap-[6px]">
-                    <SnsIcon label="X" color={s.rl} path={X_PATH} />
-                    <SnsIcon label="Instagram" color={s.rl} path={IG_PATH} />
-                    <SnsIcon label="YouTube" color={s.rl} path={YT_PATH} />
+                  <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", pointerEvents: "none" }}>Connect</span>
+                  <div className="flex gap-[5px]">
+                    <BackSnsIcon label="X" color={s.rl} path={X_PATH} />
+                    <BackSnsIcon label="Instagram" color={s.rl} path={IG_PATH} />
+                    <BackSnsIcon label="YouTube" color={s.rl} path={YT_PATH} />
                   </div>
                 </div>
-                <div className="pointer-events-none flex items-end gap-[8px]">
+                <div className="pointer-events-none flex items-end gap-[7px]">
                   <div className="flex flex-col items-end gap-[2px]">
-                    <span className="font-mono text-[6px] uppercase tracking-[0.14em] text-white/22">Profile URL</span>
-                    <span className="max-w-[110px] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[8.5px] tracking-[0.03em] text-white/58">{s.url}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 5.5, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>Profile URL</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 7.5, color: "rgba(255,255,255,0.5)", maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.url}</span>
                   </div>
-                  <div className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[4px] bg-white/94 p-[3px]">
-                    <div className="grid h-full w-full grid-cols-4 grid-rows-4 gap-[1px]">
-                      {Array.from({ length: 16 }).map((_, i) => (
-                        <div key={i} className="rounded-[1px]" style={{ background: [0, 1, 4, 5, 2, 7, 8, 11, 12, 13, 10, 15, 3, 6, 9, 14].indexOf(i) % 3 === 0 ? "#111" : "#fff" }} />
-                      ))}
-                    </div>
-                  </div>
+                  <div className="h-[44px] w-[44px] flex-shrink-0 rounded-[3px] bg-white/10" />
                 </div>
               </div>
             </div>
