@@ -9,6 +9,7 @@ const schema = z.object({
   category: z.enum(["広告・スポンサー", "取材・メディア", "不具合・バグ報告", "機能要望", "その他"]),
   name: z.string().min(1, "お名前を入力してください").max(50),
   email: z.string().email("有効なメールアドレスを入力してください"),
+  phone: z.string().max(30).optional().or(z.literal("")),
   message: z.string().min(10, "10文字以上入力してください").max(2000),
 });
 
@@ -39,8 +40,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message }, { status: 400 });
     }
 
-    const { category, name, email, message } = parsed.data;
-    await submitContact({ category, name, email, message });
+    const { category, name, email, phone, message } = parsed.data;
+    await submitContact({ category, name, email, phone: phone || undefined, message });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

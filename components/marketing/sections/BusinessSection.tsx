@@ -243,13 +243,13 @@ export function SponsorComparisonTable() {
           transition={{ delay: 0.55, duration: 0.8 }}
           className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center"
         >
-          <Link
+          {/* <Link
             href="/business"
             className="inline-block bg-[#3282FF] px-8 py-4 font-display text-[13px] font-black uppercase tracking-[0.2em] text-white transition-all hover:bg-[#1a6aee] hover:shadow-[0_0_24px_rgba(50,130,255,0.4)]"
             style={{ borderRadius: "2px" }}
           >
             Business登録はこちら
-          </Link>
+          </Link> */}
           <p className="font-mono text-[10px] tracking-wider text-white/25">※ 枠数限定 / 受付中 / 現在の実プランに準拠</p>
         </motion.div>
       </div>

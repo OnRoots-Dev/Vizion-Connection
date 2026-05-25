@@ -6,9 +6,9 @@ export interface RegisterInput {
     email: string;
     password: string;
     role: UserRole;
-    displayName: string;
+    displayName?: string;
     slug: string;
-    region: string;
+    region?: string;
     referrerSlug?: string;
     redirectTo?: string; // ← 修正
 }
@@ -22,7 +22,7 @@ export interface LoginInput {
 export interface UserRecord {
     id: number;
     slug: string;
-    displayName: string;
+    displayName?: string;
     passwordHash: string;
     email: string;
     role: UserRole;

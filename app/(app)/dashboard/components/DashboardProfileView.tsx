@@ -459,6 +459,7 @@ export function DashboardProfileView({
                   ) : null}
                 </div>
 
+                {/* Share button disabled
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
                   <ShareButtonClient
                     profileUrl={publicProfileUrl}
@@ -468,6 +469,7 @@ export function DashboardProfileView({
                     slug={profile.slug}
                   />
                 </div>
+                */}
 
                 {visibilityMessage ? (
                   <p style={{ margin: 0, fontSize: 10, color: visibilityMessage.includes("失敗") || visibilityMessage.includes("できません") ? "#ff9b9b" : "rgba(255,255,255,0.62)", textAlign: isSingleColumn ? "left" : "right" }}>

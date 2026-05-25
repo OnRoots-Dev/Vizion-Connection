@@ -56,7 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         const res = NextResponse.json(
-            { success: true, slug: result.slug, role: result.role },
+            { success: true, slug: result.slug, role: result.role, isOnboardingComplete: result.isOnboardingComplete },
             { status: 200 }
         );
         res.cookies.set(SESSION_COOKIE_NAME, result.token, COOKIE_OPTIONS);

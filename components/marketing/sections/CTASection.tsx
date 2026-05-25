@@ -44,7 +44,7 @@ export function CTASection() {
         </Link>
       </motion.div>
 
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ delay: 0.28, duration: 0.7 }}
@@ -68,16 +68,16 @@ export function CTASection() {
           </svg>
           <span className="pointer-events-none absolute bottom-0 left-0 h-[1px] w-0 bg-[#3282FF] transition-all duration-300 group-hover:w-full" />
         </Link>
-      </motion.div>
+      </motion.div> */}
 
-      <motion.p
+      {/* <motion.p
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
         transition={{ delay: 0.38, duration: 0.7 }}
         className="mt-1 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30"
       >
         ↑ 企業・チーム・スポンサーの方はこちら ↑
-      </motion.p>
+      </motion.p> */}
 
       <div className="max-w-[680px] border border-[#FFD600]/20 bg-white/[0.02] px-8 py-6">
         <p className="font-body text-[16px] font-bold uppercase tracking-[0.2em] text-[#FFD600]">

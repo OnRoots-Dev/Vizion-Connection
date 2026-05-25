@@ -19,7 +19,7 @@ export const AD_CONFIG = {
 
   // 枠数上限
   SLOT_LIMITS: {
-    legacy: 10,
+    legacy: 5,
     presence: 20,
     signal: 30,
     roots_plus: 60,

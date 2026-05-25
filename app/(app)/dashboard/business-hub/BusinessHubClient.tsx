@@ -65,10 +65,7 @@ function SampleLinkCard({
   text: string;
 }) {
   return (
-    <Link
-      href="/business"
-      className="block rounded-2xl border border-dashed border-[#7BB0FF]/30 bg-[#7BB0FF]/[0.06] p-4 transition hover:border-[#7BB0FF]/50 hover:bg-[#7BB0FF]/[0.09]"
-    >
+    <div className="block rounded-2xl border border-dashed border-[#7BB0FF]/30 bg-[#7BB0FF]/[0.06] p-4">
       <div className="mb-2 flex items-center gap-2">
         <span className="rounded-full border border-white/15 bg-white/10 px-2 py-1 text-[10px] font-bold text-white/80">
           サンプル
@@ -76,7 +73,7 @@ function SampleLinkCard({
         <p className="text-sm font-bold text-white">{title}</p>
       </div>
       <p className="text-sm leading-7 text-white/60">{text}</p>
-    </Link>
+    </div>
   );
 }
 
@@ -227,12 +224,12 @@ export default function BusinessHubClient({
               <p className="mt-1 text-sm leading-7 text-amber-100/75">
                 まだスポンサー契約がありません。プランを選ぶと広告掲載と分析機能を利用できます。
               </p>
-              <Link
+              {/* <Link
                 href="/business"
                 className="mt-3 inline-flex rounded-xl border border-amber-300/30 bg-amber-300/15 px-4 py-2 text-sm font-bold text-amber-100"
               >
                 プラン案内を見る
-              </Link>
+              </Link> */}
             </div>
           )}
         </section>

@@ -742,7 +742,8 @@ export function ProfileCardSection({
                 </div>
             ) : null}
 
-            <ShareMenu profile={profile} rl={rl} compact={isPublicMode} />
+            {/* ShareMenu commented out temporarily */}
+            {/* <ShareMenu profile={profile} rl={rl} compact={isPublicMode} /> */}
 
             {cheerModalOpen && (
                 <CheerCommentsModal

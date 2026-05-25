@@ -60,12 +60,12 @@ export default function BusinessCheckoutCompleteClient() {
           >
             ダッシュボードへ
           </Link>
-          <Link
+          {/* <Link
             href="/business/checkout"
             className="rounded-lg border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80"
           >
             プラン一覧へ戻る
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>

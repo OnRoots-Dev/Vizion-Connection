@@ -88,7 +88,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         id: "legacy",
         name: "🔥 Legacy",
         tagline: "歴史に、刻む。",
-        priceLabel: "お問い合わせ",
+        priceLabel: "個別見積",
         amount: 0, // 問い合わせ必須のため決済フローに乗せない
         seats: 5,
         highlight: false,

@@ -47,6 +47,7 @@ type UserRow = {
     deleted_at: string | null;
     created_at: string;
     last_login_at: string | null;
+    is_onboarding_complete: boolean;
 };
 
 function toProfile(row: UserRow) {
@@ -96,6 +97,7 @@ function toProfile(row: UserRow) {
         deletedAt: row.deleted_at,
         createdAt: row.created_at,
         lastLoginAt: row.last_login_at,
+        isOnboardingComplete: row.is_onboarding_complete ?? false,
     };
 }
 
@@ -154,7 +156,7 @@ export async function createUser(params: {
     passwordHash: string;
     email: string;
     role: string;
-    region: string;
+    region?: string | null;
     fromSlug?: string;
     referrerSlug?: string;
     isFoundingMember?: boolean;
@@ -172,7 +174,7 @@ export async function createUser(params: {
             password_hash: params.passwordHash,
             email: params.email,
             role: params.role,
-            region: params.region,
+            region: params.region ?? null,
             rand_a: randA,
             rand_b: randB,
             from_slug: params.fromSlug ?? null,
@@ -283,6 +285,12 @@ export async function updatePassword(slug: string, passwordHash: string): Promis
         .update({ password_hash: passwordHash, reset_token: null, reset_token_expires: null })
         .eq("slug", slug);
     if (error) { console.error("[updatePassword]", error); return false; }
+    return true;
+}
+
+export async function updateOnboardingComplete(slug: string): Promise<boolean> {
+    const { error } = await supabase.from("users").update({ is_onboarding_complete: true }).eq("slug", slug);
+    if (error) { console.error("[updateOnboardingComplete]", error); return false; }
     return true;
 }
 

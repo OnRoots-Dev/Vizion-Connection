@@ -67,6 +67,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     hasShared: user.hasShared ?? false,
                     isDeleted: user.isDeleted ?? false,
                     latestCheers,
+                    isOnboardingComplete: user.isOnboardingComplete ?? false,
                 },
                 referralUrl,
                 referralCount,

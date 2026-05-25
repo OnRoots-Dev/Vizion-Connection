@@ -6,6 +6,7 @@ type ContactPayload = {
   category: string;
   name: string;
   email: string;
+  phone?: string;
   message: string;
 };
 
@@ -25,6 +26,7 @@ function buildContactNotificationHtml({
   category,
   name,
   email,
+  phone,
   message,
 }: ContactPayload) {
   return `
@@ -35,6 +37,7 @@ function buildContactNotificationHtml({
     <p style="margin:0 0 8px;"><strong>カテゴリ：</strong>${escapeHtml(category)}</p>
     <p style="margin:0 0 8px;"><strong>お名前：</strong>${escapeHtml(name)}</p>
     <p style="margin:0 0 16px;"><strong>メール：</strong>${escapeHtml(email)}</p>
+    <p style="margin:0 0 16px;"><strong>電話番号：</strong>${escapeHtml(phone || "-")}</p>
     <pre style="white-space:pre-wrap;word-break:break-word;background:#f6f6f8;border:1px solid #e5e5ea;padding:12px;border-radius:10px;line-height:1.6;">${escapeHtml(message)}</pre>
   </body>
 </html>
@@ -44,8 +47,9 @@ function buildContactNotificationHtml({
 function buildAutoReplyHtml({
   category,
   name,
+  phone,
   message,
-}: Pick<ContactPayload, "category" | "name" | "message">) {
+}: Pick<ContactPayload, "category" | "name" | "phone" | "message">) {
   return `
 <!DOCTYPE html>
 <html lang="ja">
@@ -58,6 +62,7 @@ function buildAutoReplyHtml({
     <div style="background:#f6f6f8;border:1px solid #e5e5ea;padding:14px;border-radius:10px;margin:0 0 16px;">
       <p style="margin:0 0 8px;"><strong>カテゴリ：</strong>${escapeHtml(category)}</p>
       <p style="margin:0 0 8px;"><strong>お名前：</strong>${escapeHtml(name)}</p>
+      <p style="margin:0 0 8px;"><strong>電話番号：</strong>${escapeHtml(phone || "-")}</p>
       <p style="margin:0;"><strong>内容：</strong></p>
       <pre style="margin:8px 0 0;white-space:pre-wrap;word-break:break-word;line-height:1.6;">${escapeHtml(message)}</pre>
     </div>
@@ -70,8 +75,9 @@ function buildAutoReplyHtml({
 function buildAutoReplyText({
   category,
   name,
+  phone,
   message,
-}: Pick<ContactPayload, "category" | "name" | "message">) {
+}: Pick<ContactPayload, "category" | "name" | "phone" | "message">) {
   return [
     `${name} 様`,
     "",
@@ -82,6 +88,7 @@ function buildAutoReplyText({
     "【お問い合わせ内容】",
     `カテゴリ：${category}`,
     `お名前：${name}`,
+    `電話番号：${phone || "-"}`,
     "",
     message,
     "",
@@ -90,16 +97,16 @@ function buildAutoReplyText({
 }
 
 export async function submitContact(payload: ContactPayload): Promise<void> {
-  const { category, name, email, message } = payload;
+  const { category, name, email, phone, message } = payload;
 
-  await createContact({ category, name, email, message });
+  await createContact({ category, name, email, phone, message });
 
   const { error: notificationError } = await resend.emails.send({
     from: env.FROM_EMAIL,
     to: CONTACT_TO,
     replyTo: email,
     subject: `【Vizion Connection】お問い合わせ：${category}`,
-    html: buildContactNotificationHtml({ category, name, email, message }),
+    html: buildContactNotificationHtml({ category, name, email, phone, message }),
   });
 
   if (notificationError) {
@@ -110,8 +117,8 @@ export async function submitContact(payload: ContactPayload): Promise<void> {
     from: env.FROM_EMAIL,
     to: email,
     subject: "【Vizion Connection】お問い合わせありがとうございます",
-    html: buildAutoReplyHtml({ category, name, message }),
-    text: buildAutoReplyText({ category, name, message }),
+    html: buildAutoReplyHtml({ category, name, phone, message }),
+    text: buildAutoReplyText({ category, name, phone, message }),
   });
 
   if (autoReplyError) {

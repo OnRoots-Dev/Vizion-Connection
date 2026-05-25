@@ -8,12 +8,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "weekly",
             priority: 1,
         },
-        {
-            url: "https://vizion-connection.jp/business",
-            lastModified: new Date(),
-            changeFrequency: "weekly",
-            priority: 0.8,
-        },
+        // {
+        //     url: "https://vizion-connection.jp/business",
+        //     lastModified: new Date(),
+        //     changeFrequency: "weekly",
+        //     priority: 0.8,
+        // },
         {
             url: "https://vizion-connection.jp/discover",
             lastModified: new Date(),

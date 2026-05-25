@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { BUSINESS_PLANS } from "@/features/business/constants";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -101,7 +100,7 @@ export default function BusinessPage() {
                 Vizion Connection は、アスリート・トレーナー・クルーの信頼ネットワークインフラです。
                 Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
-              <Link
+              {/* <Link
                 href="/business/checkout"
                 className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)] [animation-delay:.3s]"
               >
@@ -109,7 +108,7 @@ export default function BusinessPage() {
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
+              </Link> */}
             </section>
 
             {/* separator */}
@@ -263,7 +262,7 @@ export default function BusinessPage() {
                 Businessプランを申し込む
               </h2>
               <p className="mb-8 text-[.82rem] font-light text-[#5a6070]">現在受付中です。プランを選択してそのままお申し込みいただけます。</p>
-              <Link
+              {/* <Link
                 href="/business/checkout"
                 className="inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)]"
               >
@@ -271,7 +270,7 @@ export default function BusinessPage() {
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
+              </Link> */}
             </section>
 
             {/* ── FAQ ── */}

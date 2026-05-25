@@ -8,23 +8,9 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { DynamicBackground } from "@/components/marketing/DynamicBackground";
 
-const ViralLoopSection = dynamic(() => import("@/components/marketing/sections/ViralLoopSection").then(m => ({ default: m.ViralLoopSection })));
-const ProblemSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.ProblemSection })));
-const WhatIsVizionSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.WhatIsVizionSection })));
-const WhoIsThisForSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.WhoIsThisForSection })));
-const HowItWorksSection = dynamic(() => import("@/components/marketing/sections/InfoSection").then(m => ({ default: m.HowItWorksSection })));
-const SixtySecondSection = dynamic(() => import("@/components/marketing/sections/FeatureSection").then(m => ({ default: m.SixtySecondSection })));
-const ProfileCardExplainSection = dynamic(() => import("@/components/marketing/sections/FeatureSection").then(m => ({ default: m.ProfileCardExplainSection })));
-const CheerDiscoverySection = dynamic(() => import("@/components/marketing/sections/FeatureSection").then(m => ({ default: m.CheerDiscoverySection })));
-const NowNextSection = dynamic(() => import("@/components/marketing/sections/CommunitySection").then(m => ({ default: m.NowNextSection })));
+const FeatureSection = dynamic(() => import("@/components/marketing/sections/FeatureSection").then(m => ({ default: m.FeatureSection })));
+const RoleBenefitSection = dynamic(() => import("@/components/marketing/sections/RoleBenefitSection").then(m => ({ default: m.RoleBenefitSection })));
 const EarlyMembersSection = dynamic(() => import("@/components/marketing/sections/CommunitySection").then(m => ({ default: m.EarlyMembersSection })));
-const WhyNowSection = dynamic(() => import("@/components/marketing/sections/CommunitySection").then(m => ({ default: m.WhyNowSection })));
-const WhatSection = dynamic(() => import("@/components/marketing/sections/CommunitySection").then(m => ({ default: m.WhatSection })));
-const FoundingSection = dynamic(() => import("@/components/marketing/sections/CommunitySection").then(m => ({ default: m.FoundingSection })));
-const NextPhaseSection = dynamic(() => import("@/components/marketing/sections/BusinessSection").then(m => ({ default: m.NextPhaseSection })));
-const FoundingBusinessPartnersSection = dynamic(() => import("@/components/marketing/sections/BusinessSection").then(m => ({ default: m.FoundingBusinessPartnersSection })));
-const SponsorComparisonTable = dynamic(() => import("@/components/marketing/sections/BusinessSection").then(m => ({ default: m.SponsorComparisonTable })));
-const CTASection = dynamic(() => import("@/components/marketing/sections/CTASection").then(m => ({ default: m.CTASection })));
 import FloatingCTAWrapper from "@/components/marketing/sections/FloatingCTAWrapper";
 const FAQSection = dynamic(() => import("@/components/marketing/sections/FAQSection").then(m => ({ default: m.FAQSection })));
 
@@ -46,32 +32,18 @@ export default function Page() {
       <DynamicBackground />
       <main className="relative w-full overflow-x-hidden pt-17.5">
         {/* ビジネス動線バナー */}
-        <Link
+        {/* <Link
           href="/business"
           className="flex w-full items-center justify-center gap-2 bg-[#3C8CFF] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse flex-shrink-0" />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white animate-pulse" />
           <span>🏢 Businessプラン 受付中</span>
           <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
-        </Link>
+        </Link> */}
         <HeroSection />
-        <ProblemSection />
-        <WhatIsVizionSection />
-        <CTASection />
-        <WhoIsThisForSection />
-        <HowItWorksSection />
-        <SixtySecondSection />
-        <NowNextSection />
+        <FeatureSection />
+        <RoleBenefitSection />
         <EarlyMembersSection />
-        <WhyNowSection />
-        <ProfileCardExplainSection />
-        <WhatSection />
-        <CheerDiscoverySection />
-        <NextPhaseSection />
-        <FoundingSection />
-        <FoundingBusinessPartnersSection />
-        <SponsorComparisonTable />
-        <CTASection />
         <FAQSection />
         <Footer />
         <FloatingCTAWrapper />

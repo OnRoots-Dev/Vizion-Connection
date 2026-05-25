@@ -5,6 +5,7 @@ export async function createContact(params: {
     name: string;
     category?: string;
     email: string;
+    phone?: string;
     message: string;
 }): Promise<boolean> {
     const { error } = await supabase
@@ -13,6 +14,7 @@ export async function createContact(params: {
             name: params.name,
             category: params.category ?? null,
             email: params.email,
+            phone: params.phone ?? null,
             message: params.message,
         });
     if (error) { console.error("[createContact]", error); return false; }

@@ -8,7 +8,7 @@ import type { LoginInput } from "@/features/auth/types";
 import { updateLastLogin } from "@/lib/supabase/data/users.server";
 
 export type LoginResult =
-    | { success: true; slug: string; role: string; token: string }
+    | { success: true; slug: string; role: string; token: string; isOnboardingComplete: boolean }
     | { success: false; error: string };
 
 export async function loginUser(input: LoginInput): Promise<LoginResult> {
@@ -57,5 +57,5 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
         role: user.role,
     });
 
-    return { success: true, slug: user.slug, role: user.role, token };
+    return { success: true, slug: user.slug, role: user.role, token, isOnboardingComplete: user.isOnboardingComplete ?? false };
 }

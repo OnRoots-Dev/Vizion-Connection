@@ -17,6 +17,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         return { success: false, error: message };
     }
     const { email, password, role, displayName, slug, region, referrerSlug } = parsed.data;
+    const resolvedDisplayName = displayName?.trim() || slug;
 
     // 2. メール重複チェック
     const existingByEmail = await findUserByEmail(email);
@@ -60,7 +61,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         email,
         passwordHash,
         role,
-        displayName,
+        displayName: resolvedDisplayName,
         slug,
         region,
         referrerSlug: resolvedReferrerSlug,

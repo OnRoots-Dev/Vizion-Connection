@@ -47,6 +47,7 @@ export interface ProfileData {
     isDeleted?: boolean;
     hasShared?: boolean;
     latestCheers?: LatestCheerItem[];
+    isOnboardingComplete?: boolean;
 }
 
 export interface DashboardData {

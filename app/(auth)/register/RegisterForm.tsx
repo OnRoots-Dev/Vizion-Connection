@@ -12,13 +12,12 @@ const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
 type Role = "Athlete" | "Trainer" | "Crew" | "Business";
 
-const ROLES: { value: Role; label: string; color: string; border: string; desc: string }[] = [
-    { value: "Athlete", label: "Athlete", color: "#FF5050", border: "rgba(255,80,80,0.4)", desc: "アスリート" },
-    { value: "Trainer", label: "Trainer", color: "#32D278", border: "rgba(50,210,120,0.4)", desc: "トレーナー" },
-    { value: "Crew", label: "Crew", color: "#FFC81E", border: "rgba(255,200,30,0.4)", desc: "クルー" },
-    { value: "Business", label: "Business", color: "#3C8CFF", border: "rgba(60,140,255,0.4)", desc: "ビジネス" },
+const ROLES: { value: Role; label: string; color: string; border: string; desc: string; detail: string }[] = [
+    { value: "Athlete", label: "Athlete", color: "#FF5050", border: "rgba(255,80,80,0.4)", desc: "アスリート", detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。" },
+    { value: "Trainer", label: "Trainer", color: "#32D278", border: "rgba(50,210,120,0.4)", desc: "トレーナー", detail: "スポーツの指導・サポートをしている方向け。" },
+    { value: "Crew", label: "Crew", color: "#FFC81E", border: "rgba(255,200,30,0.4)", desc: "クルー", detail: "ファン、サポーター、家族、友人、関係者の方向け。" },
+    { value: "Business", label: "Business", color: "#3C8CFF", border: "rgba(60,140,255,0.4)", desc: "ビジネス", detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。" },
 ];
-const REGIONS = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"] as const;
 
 //目アイコン
 function EyeIcon({ open }: { open: boolean }) {
@@ -42,11 +41,9 @@ export default function RegisterForm() {
 
     const [role, setRole] = useState<Role>("Athlete");
     const [form, setForm] = useState({
-        displayName: "",
         slug: "",
         email: "",
         password: "",
-        region: "",
         referrerSlug: refSlug,
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -109,7 +106,7 @@ export default function RegisterForm() {
                     )}
                 </div>
 
-                <div className="grid grid-cols-4 gap-2 mb-8">
+                <div className="grid grid-cols-4 gap-2 mb-4">
                     {ROLES.map((r) => {
                         const isSelected = role === r.value;
                         return (
@@ -130,54 +127,22 @@ export default function RegisterForm() {
                     })}
                 </div>
 
+                <div className="mb-8 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4">
+                    <div className="space-y-1">
+                        <p className="text-xs font-bold tracking-wide" style={{ color: selectedRole.color }}>
+                            {selectedRole.label}
+                        </p>
+                        <p className="text-[11px] leading-relaxed text-white/45">
+                            {selectedRole.detail}
+                        </p>
+                    </div>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div
                         className="rounded-xl border border-[rgba(255,214,0,0.45)] bg-[rgba(255,214,0,0.08)] px-4 py-3 text-[11px] font-medium leading-relaxed text-[#FFD600]"
                     >
                         ※ 登録フォームの入力項目はすべて必須です。
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-xs text-white/40 font-medium">表示名</label>
-                            <input type="text" required placeholder="Sho Tanaka" value={form.displayName}
-                                onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                                className="vc-auth-input"
-                                style={{ ["--vc-focus-color" as string]: selectedRole.color }} />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs text-white/40 font-medium">ユーザーID</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono select-none">@</span>
-                                <input type="text" required placeholder="tanaka10" value={form.slug}
-                                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                                    className="vc-auth-input pr-4 pl-7"
-                                    style={{
-                                        ["--vc-focus-color" as string]: selectedRole.color,
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <label htmlFor="register-region" className="text-xs text-white/40 font-medium">活動エリア（region）</label>
-                        <select
-                            id="register-region"
-                            name="region"
-                            title="活動エリア（region）"
-                            aria-label="活動エリア（region）"
-                            required
-                            value={form.region}
-                            onChange={(e) => setForm({ ...form, region: e.target.value })}
-                            className="vc-auth-input"
-                            style={{ ["--vc-focus-color" as string]: selectedRole.color }}
-                        >
-                            <option value="" disabled>選択してください</option>
-                            {REGIONS.map((region) => (
-                                <option key={region} value={region}>{region}</option>
-                            ))}
-                        </select>
                     </div>
 
                     <div className="space-y-1.5">
@@ -204,6 +169,7 @@ export default function RegisterForm() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(v => !v)}
+                                aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
                             >
                                 <EyeIcon open={showPassword} />
@@ -212,6 +178,26 @@ export default function RegisterForm() {
                         {/*パスワード制限の注意書き */}
                         <p className="text-[10px] text-white/25 leading-relaxed pl-1">
                             8文字以上 ／ 半角英字・数字を含めてください
+                        </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-xs text-white/40 font-medium">ユーザーID</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-sm font-mono select-none">@</span>
+                            <input type="text" required placeholder="your_id00" value={form.slug}
+                                onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                                className="vc-auth-input pr-4 pl-7"
+                                style={{
+                                    ["--vc-focus-color" as string]: selectedRole.color,
+                                }}
+                            />
+                        </div>
+                        <p className="text-[10px] text-white/30 leading-relaxed pl-1">
+                            あなたのプロフィールページのアドレスになります。登録後の変更はできません。
+                        </p>
+                        <p className={`text-xs font-mono ${form.slug ? "text-white/60" : "text-white/25"}`}>
+                            {form.slug ? "vizion-connection.jp/u/" : "例：vizion-connection.jp/u/"}{form.slug || "your_id00"}
                         </p>
                     </div>
 

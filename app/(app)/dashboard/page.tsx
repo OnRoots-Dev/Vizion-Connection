@@ -61,6 +61,7 @@ export default async function DashboardPage({
             ads={ads}
             initialView={initialView}
             canManageVoiceLab={canManageVoiceLab}
+            isOnboardingComplete={profile.isOnboardingComplete ?? false}
         />
     );
 }

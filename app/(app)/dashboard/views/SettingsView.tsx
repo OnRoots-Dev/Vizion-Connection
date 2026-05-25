@@ -211,6 +211,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
                     不具合報告・機能要望・取材などはこちらから送信できます。
                 </p>
+                {/* Action History disabled
                 <button
                     type="button"
                     onClick={() => setView("action_history")}
@@ -232,6 +233,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
                     このアカウントに紐づく通知や進行履歴を、SPA画面でまとめて確認できます。
                 </p>
+                */}
             </SectionCard>
 
             <SectionCard t={t} accentColor={roleColor}>

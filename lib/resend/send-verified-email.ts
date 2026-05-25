@@ -86,7 +86,7 @@ export async function sendVerifiedEmail({
                     ${displayName} さん、Vizion Connection への先行登録ありがとうございます。
                   </p>
                   <p style="margin:0 0 36px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.5);">
-                    ダッシュボードにログインして、あなたのプロフィールを確認しましょう。
+                    ログイン画面からログインして、あなたのプロフィールを確認しましょう。
                   </p>
 
                   <!-- CTA Button -->
@@ -95,7 +95,7 @@ export async function sendVerifiedEmail({
                       <td style="border-radius:10px;background:${roleInfo.color};box-shadow:0 0 24px ${roleInfo.color}50;">
                         <a href="${loginUrl}"
                           style="display:inline-block;padding:15px 36px;font-size:14px;font-weight:700;color:#000000;text-decoration:none;letter-spacing:0.04em;border-radius:10px;">
-                          ダッシュボードへ
+                          ログイン画面へ
                         </a>
                       </td>
                     </tr>

@@ -39,7 +39,7 @@ export default function ContactSection() {
 
     const [form, setForm] = useState({
         category: (planParam ? "広告・スポンサー" : "") as Category | "",
-        name: "", email: "",
+        name: "", email: "", phone: "",
         message: defaultMessage,
     });
     const [loading, setLoading] = useState(false);
@@ -202,6 +202,19 @@ export default function ContactSection() {
                                         placeholder="you@example.com"
                                         value={form.email}
                                         onChange={set("email")}
+                                        style={inputBase}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: "6px" }}>
+                                        電話番号
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        placeholder="09012345678（任意）"
+                                        value={form.phone}
+                                        onChange={set("phone")}
                                         style={inputBase}
                                     />
                                 </div>

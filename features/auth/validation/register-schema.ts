@@ -21,13 +21,8 @@ export const registerSchema = z.object({
     role: z.enum(VALID_ROLES, {
         message: "ロールを選択してください",
     }),
-    region: z.enum(VALID_REGIONS, {
-        message: "活動エリア（region）を選択してください",
-    }),
-    displayName: z
-        .string()
-        .min(1, "表示名を入力してください")
-        .max(50, "表示名は50文字以内で入力してください"),
+    region: z.enum(VALID_REGIONS).optional(),
+    displayName: z.string().max(50, "表示名は50文字以内で入力してください").optional(),
     slug: z
         .string()
         .min(3, "ユーザー名は3文字以上で入力してください")

@@ -13,6 +13,8 @@ export const CHAMPION_SLOTS: Array<{ filled: boolean; name?: string; logo?: stri
   { filled: false },
   { filled: false },
   { filled: false },
+  { filled: false },
+  { filled: false },
 ];
 
 // ─── Who is this for tabs ─────────────────────────────────────────────────────
@@ -63,26 +65,14 @@ export const WHO_FOR_TABS = [
 export const FAQ_ITEMS = [
   {
     q: "登録は無料ですか？",
-    a: "はい、完全無料です。現在はプロフィールカード作成・公開・Discovery・Cheer・ミッションなどの主要機能を無料でご利用いただけます。",
+    a: "はい。Athlete・Trainer・Crew・Businessすべてのロールで無料で登録・利用できます。",
   },
   {
-    q: "IndividualとBusinessの違いは何ですか？",
-    a: "Individualは個人（アスリート・トレーナー・クルー）向けのプロフィールです。Businessは企業・チーム・スポンサーとして参加する法人向けのプロフィールで、協賛・採用・共創の文脈で利用できます。",
+    q: "Businessプランとは何ですか？",
+    a: "アスリートへの広告掲載・Discovery優先表示・効果測定が利用できる企業向けプランです。詳細は /business をご覧ください。",
   },
   {
-    q: "Founding Memberに登録すると何が得られますか？",
-    a: "Founding Member専用の通し番号バッジ、将来の有料プランへのFounder価格固定、Discoveryでの優先表示、新機能への最優先アクセス、創設者名簿掲載、限定カードデザインなどの特典があります。",
-  },
-  {
-    q: "退会・アカウント削除はできますか？",
-    a: "いつでも可能です。設定画面からアカウントを削除でき、削除後はデータが完全に消去されます。",
-  },
-  {
-    q: "スマートフォンでも使えますか？",
-    a: "はい。Webブラウザに対応しており、PC・スマートフォン・タブレットのいずれからでもご利用いただけます。",
-  },
-  {
-    q: "Businessプランはどこから申し込めますか？",
-    a: "Businessロールで登録後、Businessページから Roots / Roots+ / Signal / Presence / Legacy の各プランを申し込めます。Roots系は地域密着型、Signal以上は全国展開向けです。",
+    q: "Founding Memberの枠はいつ埋まりますか？",
+    a: "先着100名限定です。枠がなくなり次第、Founding Member登録は終了します。",
   },
 ];
