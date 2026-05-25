@@ -58,6 +58,28 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     <h1 style={{ margin: "0 0 16px", fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>
                         今日からよろしくお願いします！
                     </h1>
+                    <p style={{ margin: "0 0 12px", fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.9 }}>
+                        Vizion Connectionは、まだ始まったばかりです。<br />
+                        これからの進化に期待してください！
+                    </p>
+                    <a
+                        href="/roadmap"
+                        style={{
+                            display: "inline-block",
+                            marginBottom: 28,
+                            padding: "8px 20px",
+                            borderRadius: 20,
+                            border: "1px solid rgba(167,139,250,0.35)",
+                            background: "rgba(167,139,250,0.1)",
+                            color: "#c4b5fd",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                            transition: "all 0.2s ease",
+                        }}
+                    >
+                        RoadMapを見る →
+                    </a>
                     <p style={{ margin: "0 0 32px", fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.9 }}>
                         Vizion Connectionを一緒に広げましょう。<br />
                         あなたの招待リンクをシェアしてください。
