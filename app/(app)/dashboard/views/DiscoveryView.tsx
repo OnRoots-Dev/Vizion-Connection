@@ -24,12 +24,12 @@ type DiscoveryUser = {
   sport?: string | null;
 };
 
-type DiscoveryRole = "Athlete" | "Trainer" | "Members" | "Business";
+type DiscoveryRole = "Athlete" | "Trainer" | "Crew" | "Business";
 
 const ROLE_COLORS: Record<string, string> = {
   Athlete: "#FF5050",
   Trainer: "#32D278",
-  Members: "#FFC81E",
+  Crew: "#FFC81E",
   Business: "#3C8CFF",
 };
 
@@ -522,7 +522,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
             <option value="">全ロール</option>
             <option value="Athlete">Athlete</option>
             <option value="Trainer">Trainer</option>
-            <option value="Members">Members</option>
+            <option value="Crew">Crew</option>
             <option value="Business">Business</option>
           </select>
           <select value={region} onChange={(e) => { setLoading(true); setRegion(e.target.value); setPrefecture(""); }} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }}>

@@ -713,7 +713,7 @@ export function BusinessView({
         return <BusinessHubView profile={profile} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
     }
 
-    if (profile.role === "Members") {
+    if (profile.role === "Crew") {
         return <MembersHubView profile={profile} referralUrl={referralUrl ?? ""} t={t} roleColor={roleColor} setView={setView} ads={ads} />;
     }
 

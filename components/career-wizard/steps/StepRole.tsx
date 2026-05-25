@@ -5,7 +5,7 @@ import { ROLE_CONFIG } from "@/types/career";
 import type { UserRole } from "@/types/career";
 import { StepWrapper, StepHeader } from "../WizardUI";
 
-const ROLES: UserRole[] = ["Athlete", "Trainer", "Business", "Members"];
+const ROLES: UserRole[] = ["Athlete", "Trainer", "Business", "Crew"];
 
 export default function StepRole() {
   const { data, setRole, nextStep } = useCareerWizard();

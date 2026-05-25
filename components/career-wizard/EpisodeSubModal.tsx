@@ -13,13 +13,13 @@ export default function EpisodeSubModal() {
 
   const roleColorTextClass =
     data.role === "Trainer" ? "text-[#1a7a4a]" :
-    data.role === "Members" ? "text-[#b8860b]" :
+    data.role === "Crew" ? "text-[#b8860b]" :
     data.role === "Business" ? "text-[#1b3a8c]" :
     "text-[#c1272d]";
 
   const roleBgClass =
     data.role === "Trainer" ? "bg-[#1a7a4a]" :
-    data.role === "Members" ? "bg-[#b8860b]" :
+    data.role === "Crew" ? "bg-[#b8860b]" :
     data.role === "Business" ? "bg-[#1b3a8c]" :
     "bg-[#c1272d]";
 
