@@ -56,7 +56,7 @@ function toProfile(row: UserRow) {
         displayName: row.display_name,
         passwordHash: row.password_hash,
         email: row.email,
-        role: row.role as "Athlete" | "Trainer" | "Members" | "Business" | "Admin",
+        role: row.role as "Athlete" | "Trainer" | "Crew" | "Business" | "Admin",
         plan: (row.sponsor_plan ? "paid" : "free") as "free" | "paid",
         isPublic: row.is_public,
         isFoundingMember: row.is_founding_member,

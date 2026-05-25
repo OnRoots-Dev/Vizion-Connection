@@ -64,7 +64,7 @@ export function getJourneyHype(todayLog: DailyLog | null) {
   return JOURNEY_HYPE_MESSAGES[hashSeed(seed) % JOURNEY_HYPE_MESSAGES.length];
 }
 
-type JourneyTemplateRole = "Athlete" | "Trainer" | "Members" | "Business";
+type JourneyTemplateRole = "Athlete" | "Trainer" | "Crew" | "Business";
 
 const JOURNEY_TEMPLATES: Record<JourneyTemplateRole, readonly string[]> = {
   Athlete: [
@@ -91,7 +91,7 @@ const JOURNEY_TEMPLATES: Record<JourneyTemplateRole, readonly string[]> = {
     "学び：成功体験の設計が大事。",
     "明日のアクション：メニューを再設計する。",
   ],
-  Members: [
+  Crew: [
     "今日やったこと：まずは5分だけ動いた。",
     "良かったこと：やる前より気分が軽い。",
     "続けたい習慣：同じ時間に始める。",
@@ -128,8 +128,8 @@ function pickRandomUnique<T>(items: readonly T[], count: number): T[] {
 }
 
 export function getJourneyTemplatesForRole(role: string | null | undefined): readonly string[] {
-  const key = (role ?? "Members") as JourneyTemplateRole;
-  return JOURNEY_TEMPLATES[key] ?? JOURNEY_TEMPLATES.Members;
+  const key = (role ?? "Crew") as JourneyTemplateRole;
+  return JOURNEY_TEMPLATES[key] ?? JOURNEY_TEMPLATES.Crew;
 }
 
 export function getRandomJourneyTemplateSuggestions(role: string | null | undefined, count = 3): string[] {

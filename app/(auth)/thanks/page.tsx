@@ -1,7 +1,6 @@
 // app/(auth)/thanks/page.tsx
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
@@ -58,41 +57,24 @@ export default async function ThanksPage({ searchParams }: Props) {
                 />
             </a>
 
-            <motion.div
-                className="w-full max-w-sm text-center space-y-6"
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-            >
-                <motion.div
+            <div className="w-full max-w-sm text-center space-y-6">
+                <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto"
                     style={{ background: "#111118", border: "1.5px solid #1e1e2a" }}
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
                 >
                     {content.icon}
-                </motion.div>
+                </div>
 
-                <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.35, ease: "easeOut", delay: 0.12 }}
-                >
+                <div className="space-y-2">
                     <h1 className="text-xl font-bold text-white">{content.title}</h1>
                     <p className="text-sm text-white/50 leading-relaxed">{content.desc}</p>
                     {content.sub && (
                         <p className="text-xs text-white/30">{content.sub}</p>
                     )}
-                </motion.div>
+                </div>
 
                 {content.cta && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.35, ease: "easeOut", delay: 0.18 }}
-                    >
+                    <div>
                         <Link
                             href={content.cta.href}
                             className="inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-bold transition-all"
@@ -104,7 +86,7 @@ export default async function ThanksPage({ searchParams }: Props) {
                         >
                             {content.cta.label}
                         </Link>
-                    </motion.div>
+                    </div>
                 )}
 
                 <p className="text-xs text-white/20 pt-2">
@@ -112,7 +94,7 @@ export default async function ThanksPage({ searchParams }: Props) {
                         トップに戻る
                     </a>
                 </p>
-            </motion.div>
+            </div>
         </div>
     );
 }

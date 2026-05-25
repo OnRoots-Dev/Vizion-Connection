@@ -9,7 +9,7 @@ export function SixtySecondSection() {
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
   const steps = [
-    { num: "①", label: "Register", desc: "役割を選び、プロフィールを作成", sub: "Athlete / Trainer / Members / Business から選択" },
+    { num: "①", label: "Register", desc: "役割を選び、プロフィールを作成", sub: "Athlete / Trainer / Crew / Business から選択" },
     { num: "②", label: "Get Profile URL", desc: "公開プロフィールURLが発行される", sub: "例: vizion.co/u/username" },
     { num: "③", label: "Share Your Card", desc: "プロフィールカードをSNSで共有", sub: "URLを貼るだけでプロフィールカードを共有" },
     { num: "④", label: "Receive Cheer", desc: "応援がCheerとして記録される", sub: "「誰が応援したか」が信頼の履歴に" },
@@ -193,7 +193,7 @@ export function CheerDiscoverySection() {
             Discoveryでは以下の軸で<strong className="text-white/80">ユーザーを検索・一覧表示</strong>できます。
           </p>
           <ul className="space-y-3">
-            {["役割（Athlete / Trainer / Members / Business）", "競技 / 専門分野", "地域", "Cheer数（信頼の可視化）", "Founding Member 認証"].map((item, i) => (
+            {["役割（Athlete / Trainer / Crew / Business）", "競技 / 専門分野", "地域", "Cheer数（信頼の可視化）", "Founding Member 認証"].map((item, i) => (
               <li key={i} className="flex items-start gap-3 font-body text-[clamp(12px,1.1vw,14px)] text-white/45">
                 <span className="mt-[3px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#3282FF]" />
                 {item}

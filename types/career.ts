@@ -138,7 +138,7 @@ export interface RoleConfig {
 }
 
 // ─── ROLE_CONFIG ──────────────────────────────────────────
-// UserRole = "Athlete" | "Trainer" | "Members" | "Business"
+// UserRole = "Athlete" | "Trainer" | "Crew" | "Business"
 
 export const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
 
@@ -325,9 +325,9 @@ export const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
     ],
   },
 
-  Members: {
+  Crew: {
     color: "#B8860B", gradient: "#221500",
-    icon: "🌐", labelJa: "メンバー", labelEn: "MEMBERS",
+    icon: "🌐", labelJa: "クルー", labelEn: "CREW",
     descJa: "サポーター・ファン・応援者",
 
     sportLabel: "応援している競技・チーム",

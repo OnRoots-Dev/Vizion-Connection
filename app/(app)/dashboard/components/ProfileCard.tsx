@@ -11,13 +11,13 @@ import { CardHeader } from "./ui";
 import SponsorBadge from "@/components/SponsorBadge";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
+    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
 };
 const ROLE_GRADIENT: Record<string, string> = {
-    Athlete: "#2D0000", Trainer: "#001A0A", Members: "#1A0F00", Business: "#000A24",
+    Athlete: "#2D0000", Trainer: "#001A0A", Crew: "#1A0F00", Business: "#000A24",
 };
 const ROLE_LABEL: Record<string, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS", Admin: "ADMIN",
+    Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
 };
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
@@ -811,7 +811,7 @@ function ShareMenu({ profile, rl, compact = false }: { profile: ProfileData; rl:
     }
 
     function handleX() {
-        const roleLabel: Record<string, string> = { Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス" };
+        const roleLabel: Record<string, string> = { Athlete: "アスリート", Trainer: "トレーナー", Crew: "クルー", Business: "ビジネス" };
         const role = roleLabel[profile.role] ?? profile.role;
         const sport = profile.sport ? ` · ${profile.sport}` : "";
         const cheer = (profile.cheerCount ?? 0).toLocaleString();

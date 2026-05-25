@@ -119,12 +119,12 @@ export const HUB_CONFIGS: Record<UserRole, HubConfig> = {
             },
         ],
     },
-    Members: {
-        hubName: "Members Hub",
+    Crew: {
+        hubName: "Crew Hub",
         purpose: "参加・応援・拡散の促進",
         summary: "応援行動と参加履歴を蓄積し、コミュニティ内での関わりを広げるための中核画面です。",
         accentColor: "#FFC81E",
-        accentLabel: "MEMBERS",
+        accentLabel: "CREW",
         features: [
             {
                 id: "history",

@@ -145,7 +145,7 @@ export async function getMemberHubSummary(profile: ProfileRecord): Promise<Membe
     for (const user of users ?? []) {
       userMap.set(String(user.slug), {
         displayName: String(user.display_name ?? user.slug),
-        role: String(user.role ?? "Members"),
+        role: String(user.role ?? "Crew"),
         avatarUrl: user.avatar_url ? String(user.avatar_url) : null,
       });
     }

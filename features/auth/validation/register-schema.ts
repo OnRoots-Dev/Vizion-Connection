@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-export const VALID_ROLES = ["Athlete", "Trainer", "Members", "Business"] as const;
+export const VALID_ROLES = ["Athlete", "Trainer", "Crew", "Business"] as const;
 export const VALID_REGIONS = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"] as const;
 
 export const registerSchema = z.object({

@@ -20,7 +20,7 @@ interface CareerSectionProps {
     careerProfile?: CareerProfileRow | null;
 }
 
-type Role = "ATHLETE" | "TRAINER" | "MEMBERS" | "BUSINESS";
+type Role = "ATHLETE" | "TRAINER" | "CREW" | "BUSINESS";
 
 function normalizeSocialUrl(value?: string | null, base?: string) {
     if (!value) return null;
@@ -49,7 +49,7 @@ export default function CareerSection({
     const tabLabel: Record<Role, string> = {
         ATHLETE: "競技歴・実績",
         TRAINER: "資格・経歴",
-        MEMBERS: "応援ページ",
+        CREW: "応援ページ",
         BUSINESS: "企業情報",
     };
 
@@ -328,10 +328,10 @@ function CareerTab({ role, rl, slug, careerProfile }: {
         ATHLETE: ["競技歴（年月・実績・大会結果）", "所属チーム・クラブ", "現在の目標・ビジョン", "受賞歴・メディア掲載", "サポートしてほしいこと"],
         TRAINER: ["保有資格（NSCA-CPT / NESTA など）", "専門分野・対応競技", "指導経歴・実績", "対応エリア / オンライン可否", "料金目安・コンタクト"],
         BUSINESS: ["会社・ブランド概要", "スポーツへの関わり・想い", "求めるアスリート像・案件種別", "過去の支援実績", "コンタクト方法"],
-        MEMBERS: [],
+        CREW: [],
     };
 
-    if (role === "MEMBERS") return (
+    if (role === "CREW") return (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}20` }}>
                 <p style={{ fontSize: 12, fontWeight: 800, color: rl, margin: "0 0 6px" }}>応援ページ</p>

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const ROLE_COLOR: Record<string, string> = {
   Athlete: "#C1272D",
   Trainer: "#1A7A4A",
-  Members: "#B8860B",
+  Crew: "#B8860B",
   Business: "#1B3A8C",
 };
 
@@ -56,7 +56,7 @@ export default async function RankingPage({
     { label: "全体", value: undefined },
     { label: "Athlete", value: "Athlete" },
     { label: "Trainer", value: "Trainer" },
-    { label: "Members", value: "Members" },
+    { label: "Crew", value: "Crew" },
     { label: "Business", value: "Business" },
   ];
 

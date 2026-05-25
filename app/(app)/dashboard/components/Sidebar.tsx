@@ -8,10 +8,10 @@ import { getPlanFeatures } from "@/features/business/plan-features";
 import Image from "next/image";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
+    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",
 };
 const ROLE_LABEL: Record<string, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS", Admin: "ADMIN",
+    Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
 };
 
 function getHubMenuLabel(role: string) {
@@ -324,7 +324,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     </span>
                 </motion.div>
 
-                {(profile.role === "Business" || profile.role === "Members" || profile.role === "Trainer" || profile.role === "Athlete" || profile.role === "Admin") && (
+                {(profile.role === "Business" || profile.role === "Crew" || profile.role === "Trainer" || profile.role === "Athlete" || profile.role === "Admin") && (
                     <motion.button
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}

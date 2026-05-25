@@ -10,14 +10,14 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
     title: "Cheerランキング | Vizion Connection",
-    description: "Vizion Connectionのアスリート・トレーナー・メンバーCheerランキング",
+    description: "Vizion Connectionのアスリート・トレーナー・クルーCheerランキング",
 };
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
+    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
 };
 const ROLE_LABEL: Record<string, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
+    Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS",
 };
 
 async function getRanking(role?: string) {
@@ -52,7 +52,7 @@ export default async function RankingPage({
         { label: "全体", value: undefined, color: "#FFD600" },
         { label: "Athlete", value: "Athlete", color: "#C1272D" },
         { label: "Trainer", value: "Trainer", color: "#1A7A4A" },
-        { label: "Members", value: "Members", color: "#B8860B" },
+        { label: "Crew", value: "Crew", color: "#B8860B" },
         { label: "Business", value: "Business", color: "#1B3A8C" },
     ];
 

@@ -3,7 +3,7 @@ export const ROLES = {
   athlete: { rc: "rgba(255,70,70,0.9)", rg: "rgba(220,40,40,0.55)", rl: "#FF4646", bg0: "#130303", bg1: "#280808", label: "Athlete", name: "Inoue Yuji", spec: "Track & Field · 100m / 200m", region: "東京 / JP", memberId: "VZ00000-0000-00000", cheer: 300, comment: "「限界は、自分が決めるものじゃない。」", url: "vizion.co/u/inoue", photo: "/images/inoue.png", backPhoto: "" },
   trainer: { rc: "rgba(40,210,110,0.9)", rg: "rgba(20,175,80,0.52)", rl: "#28D26E", bg0: "#021008", bg1: "#042018", label: "Trainer", name: "Matsuda Tetsuya", spec: "Strength & Conditioning", region: "大阪 / JP", memberId: "VZ00000-0000-00000", cheer: 250, comment: "「体を鍛えることは、心を鍛えること。」", url: "vizion.co/u/matsuda", photo: "/images/matsuda.png", backPhoto: "" },
   business: { rc: "rgba(50,130,255,0.9)", rg: "rgba(30,100,230,0.52)", rl: "#3282FF", bg0: "#020b18", bg1: "#051c38", label: "Business", name: "株式会社 KSB", spec: "Sports Marketing · CEO", region: "福岡 / 福岡市 / JP", memberId: "VZ00000-0000-00000", cheer: 512, comment: "「スポーツの力を、もっと社会へ。」", url: "vizion.co/u/KSB", photo: "/images/ksb.png", backPhoto: "" },
-  member: { rc: "rgba(255,195,20,0.9)", rg: "rgba(220,165,0,0.52)", rl: "#FFC314", bg0: "#0e0900", bg1: "#221500", label: "Members", name: "Hana Suzuki", spec: "Sports Fan · Supporter", region: "神奈川 / 横浜市 / JP", memberId: "VZ00000-0000-00000", cheer: 88, comment: "「応援することが、私の競技だ。」", url: "vizion.co/u/hana", photo: "/images/hana.png", backPhoto: "" },
+  member: { rc: "rgba(255,195,20,0.9)", rg: "rgba(220,165,0,0.52)", rl: "#FFC314", bg0: "#0e0900", bg1: "#221500", label: "Crew", name: "Hana Suzuki", spec: "Sports Fan · Supporter", region: "神奈川 / 横浜市 / JP", memberId: "VZ00000-0000-00000", cheer: 88, comment: "「応援することが、私の競技だ。」", url: "vizion.co/u/hana", photo: "/images/hana.png", backPhoto: "" },
 } as const;
 
 export type RoleKey = keyof typeof ROLES;
@@ -39,7 +39,7 @@ export const WHO_FOR_TABS = [
   },
   {
     key: "members",
-    label: "Members",
+    label: "Crew",
     color: "#FFC314",
     icon: "🌟",
     subtitle: "支援者 / コネクター",
@@ -67,7 +67,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "IndividualとBusinessの違いは何ですか？",
-    a: "Individualは個人（アスリート・トレーナー・メンバー）向けのプロフィールです。Businessは企業・チーム・スポンサーとして参加する法人向けのプロフィールで、協賛・採用・共創の文脈で利用できます。",
+    a: "Individualは個人（アスリート・トレーナー・クルー）向けのプロフィールです。Businessは企業・チーム・スポンサーとして参加する法人向けのプロフィールで、協賛・採用・共創の文脈で利用できます。",
   },
   {
     q: "Founding Memberに登録すると何が得られますか？",

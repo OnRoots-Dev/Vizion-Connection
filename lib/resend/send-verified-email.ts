@@ -16,7 +16,7 @@ const ROLE_LABEL: Record<string, { label: string; color: string }> = {
     Athlete: { label: "Athlete", color: "#FF5050" },
     Trainer: { label: "Trainer", color: "#32D278" },
     Business: { label: "Business", color: "#3C8CFF" },
-    Members: { label: "Members", color: "#FFC81E" },
+    Crew: { label: "Crew", color: "#FFC81E" },
 };
 
 export async function sendVerifiedEmail({

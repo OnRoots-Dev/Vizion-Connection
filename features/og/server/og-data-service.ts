@@ -24,21 +24,21 @@ export type OgProfileData = {
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D",
     Trainer: "#1A7A4A",
-    Members: "#B8860B",
+    Crew: "#B8860B",
     Business: "#1B3A8C",
 };
 
 const ROLE_GRADIENT: Record<string, string> = {
     Athlete: "#2D0000",
     Trainer: "#001A0A",
-    Members: "#1A0F00",
+    Crew: "#1A0F00",
     Business: "#000A24",
 };
 
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE",
     Trainer: "TRAINER",
-    Members: "MEMBERS",
+    Crew: "CREW",
     Business: "BUSINESS",
 };
 
@@ -87,7 +87,7 @@ export async function getOgProfileData(
     const p = result.data;
 
     const displayName = p.displayName ?? "Vizion Member";
-    const role = p.role ?? "Members";
+    const role = p.role ?? "Crew";
     const bio = p.bio ?? "";
     const sport = p.sport ?? "";
     const region = p.region ?? "";

@@ -35,19 +35,19 @@ const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600",
 const barlowCondensed = Barlow_Condensed({ subsets: ["latin"], weight: ["300", "400", "600", "700", "900"] });
 
 const ROLE_COLOR: Record<UserRole, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Members: "#B8860B", Business: "#1B3A8C",
+    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#B8860B", Business: "#1B3A8C",
     Admin: "#7C3AED",
 };
 const ROLE_GRADIENT: Record<UserRole, string> = {
-    Athlete: "#3D0000", Trainer: "#002211", Members: "#221500", Business: "#000D30",
+    Athlete: "#3D0000", Trainer: "#002211", Crew: "#221500", Business: "#000D30",
     Admin: "#1F0F2E",
 };
 const ROLE_LABEL: Record<UserRole, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Members: "MEMBERS", Business: "BUSINESS",
+    Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS",
     Admin: "ADMIN",
 };
 const ROLE_LABEL_JA: Record<UserRole, string> = {
-    Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス",
+    Athlete: "アスリート", Trainer: "トレーナー", Crew: "クルー", Business: "ビジネス",
     Admin: "管理",
 };
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";

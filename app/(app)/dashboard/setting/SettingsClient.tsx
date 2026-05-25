@@ -8,7 +8,7 @@ import type { UserRecord } from "@/features/auth/types";
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Members: "#FFC81E", Business: "#3C8CFF",
+    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",
 };
 
 const t = {

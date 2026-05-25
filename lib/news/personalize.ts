@@ -42,7 +42,7 @@ export function buildKeywords(user: {
         },
       ];
 
-    case "Members":
+    case "Crew":
       return [
         { label: "スポーツ・競技", keyword: "スポーツ 競技 アスリート" },
         { label: "トレーニング・健康", keyword: "トレーニング 健康" },

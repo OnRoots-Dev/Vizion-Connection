@@ -314,7 +314,7 @@ export default function DashboardClient({
                         return <AthleteHubView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
                     case "Trainer":
                         return <TrainerHubView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
-                    case "Members":
+                    case "Crew":
                         return <MemberHubView profile={profile} referralUrl={referralUrl} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
                     case "Business":
                     case "Admin":

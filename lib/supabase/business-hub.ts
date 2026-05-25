@@ -380,7 +380,7 @@ export async function listBusinessHubOffers(profile: ProfileRecord): Promise<Bus
       .eq("is_deleted", false);
 
     for (const user of users ?? []) {
-      targetMap.set(String(user.slug), { display_name: String(user.display_name ?? "Unknown"), role: String(user.role ?? "Members") });
+      targetMap.set(String(user.slug), { display_name: String(user.display_name ?? "Unknown"), role: String(user.role ?? "Crew") });
     }
   }
 
@@ -395,7 +395,7 @@ export async function listBusinessHubOffers(profile: ProfileRecord): Promise<Bus
       target: {
         slug: String(row.target_slug),
         displayName: target?.display_name ?? String(row.target_slug),
-        role: target?.role ?? "Members",
+        role: target?.role ?? "Crew",
       },
       createdAt: String(row.created_at),
       updatedAt: String(row.updated_at),
@@ -483,7 +483,7 @@ export async function updateBusinessHubOfferStatus(profile: ProfileRecord, offer
     target: {
       slug: String(data.target_slug),
       displayName: String(targetUser?.display_name ?? data.target_slug),
-      role: String(targetUser?.role ?? "Members"),
+      role: String(targetUser?.role ?? "Crew"),
     },
     createdAt: String(data.created_at),
     updatedAt: String(data.updated_at),

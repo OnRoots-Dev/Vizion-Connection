@@ -10,12 +10,12 @@ import { registerSchema } from "@/features/auth/validation/register-schema";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
-type Role = "Athlete" | "Trainer" | "Members" | "Business";
+type Role = "Athlete" | "Trainer" | "Crew" | "Business";
 
 const ROLES: { value: Role; label: string; color: string; border: string; desc: string }[] = [
     { value: "Athlete", label: "Athlete", color: "#FF5050", border: "rgba(255,80,80,0.4)", desc: "アスリート" },
     { value: "Trainer", label: "Trainer", color: "#32D278", border: "rgba(50,210,120,0.4)", desc: "トレーナー" },
-    { value: "Members", label: "Members", color: "#FFC81E", border: "rgba(255,200,30,0.4)", desc: "メンバー" },
+    { value: "Crew", label: "Crew", color: "#FFC81E", border: "rgba(255,200,30,0.4)", desc: "クルー" },
     { value: "Business", label: "Business", color: "#3C8CFF", border: "rgba(60,140,255,0.4)", desc: "ビジネス" },
 ];
 const REGIONS = ["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"] as const;

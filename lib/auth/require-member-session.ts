@@ -18,7 +18,7 @@ export async function requireMemberProfile() {
     throw new Error("NOT_FOUND");
   }
 
-  if (profile.role !== "Members") {
+  if (profile.role !== "Crew") {
     throw new Error("FORBIDDEN");
   }
 

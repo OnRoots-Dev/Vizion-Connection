@@ -1,6 +1,6 @@
 // features/auth/types.ts
 
-export type UserRole = "Athlete" | "Trainer" | "Members" | "Business" | "Admin";
+export type UserRole = "Athlete" | "Trainer" | "Crew" | "Business" | "Admin";
 
 export interface RegisterInput {
     email: string;

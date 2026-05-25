@@ -12,7 +12,7 @@ import { verifySession } from "@/lib/auth/session";
 import Image from "next/image";
 
 const ROLE_LABEL_JA: Record<UserRole, string> = {
-    Athlete: "アスリート", Trainer: "トレーナー", Members: "メンバー", Business: "ビジネス", Admin: "管理",
+    Athlete: "アスリート", Trainer: "トレーナー", Crew: "クルー", Business: "ビジネス", Admin: "管理",
 };
 
 interface Props {

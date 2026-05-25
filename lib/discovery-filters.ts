@@ -56,7 +56,7 @@ export const ROLE_DISCOVERY_OPTIONS: Record<string, { label: string; options: st
       "チーム帯同",
     ],
   },
-  Members: {
+  Crew: {
     label: "関心領域",
     options: [
       "スポーツ観戦",

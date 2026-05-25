@@ -15,7 +15,7 @@ function roleToKey(role: string) {
   if (role === "Trainer") return "trainer";
   if (role === "Athlete") return "athlete";
   if (role === "Business") return "business";
-  if (role === "Members") return "member";
+  if (role === "Crew") return "member";
   return "member";
 }
 

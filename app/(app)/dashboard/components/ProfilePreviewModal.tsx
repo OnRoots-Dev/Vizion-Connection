@@ -16,7 +16,7 @@ type PreviewPayload = {
 const ROLE_COLOR: Record<string, string> = {
   Athlete: "#FF5050",
   Trainer: "#32D278",
-  Members: "#FFC81E",
+  Crew: "#FFC81E",
   Business: "#3C8CFF",
   Admin: "#7C3AED",
 };

@@ -34,7 +34,7 @@ export function ProblemSection() {
           {[
             { label: "Athlete", title: "アスリートの努力", color: "#FF4646" },
             { label: "Trainer", title: "トレーナーの知識", color: "#28D26E" },
-            { label: "Members", title: "支援する人の想い", color: "#FFD600" },
+            { label: "Crew", title: "支援する人の想い", color: "#FFD600" },
             { label: "Business", title: "未来を拓く挑戦", color: "#4A9EFF" }
           ].map((item, i) => (
             <motion.div
@@ -232,7 +232,7 @@ export function HowItWorksSection() {
     {
       step: "Step 1",
       title: "プロフィールを作成",
-      desc: "役割（Athlete / Trainer / Members / Business）を選択し、あなたのプロフィールを60秒で作成します。",
+      desc: "役割（Athlete / Trainer / Crew / Business）を選択し、あなたのプロフィールを60秒で作成します。",
       icon: (
         <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
       ),

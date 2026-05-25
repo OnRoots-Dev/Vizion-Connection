@@ -9,7 +9,7 @@ import type { ProfileData } from "@/features/profile/types";
 import Image from "next/image";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Members: "#B8860B", Business: "#1B3A8C",
+    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
 };
 
 const theme = {
@@ -34,7 +34,7 @@ export default function CardPageClient({
             ? "bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(193,39,45,0.12)_0%,transparent_70%)]"
             : profile.role === "Trainer"
                 ? "bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(26,122,74,0.12)_0%,transparent_70%)]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(184,134,11,0.12)_0%,transparent_70%)]"
                     : profile.role === "Business"
                         ? "bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(27,58,140,0.12)_0%,transparent_70%)]"
@@ -45,7 +45,7 @@ export default function CardPageClient({
             ? "bg-[#c1272d]"
             : profile.role === "Trainer"
                 ? "bg-[#1a7a4a]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "bg-[#b8860b]"
                     : profile.role === "Business"
                         ? "bg-[#1b3a8c]"
@@ -56,7 +56,7 @@ export default function CardPageClient({
             ? "text-[#c1272d]"
             : profile.role === "Trainer"
                 ? "text-[#1a7a4a]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "text-[#b8860b]"
                     : profile.role === "Business"
                         ? "text-[#1b3a8c]"
@@ -67,7 +67,7 @@ export default function CardPageClient({
             ? "border-[rgba(193,39,45,0.4)]"
             : profile.role === "Trainer"
                 ? "border-[rgba(26,122,74,0.4)]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "border-[rgba(184,134,11,0.4)]"
                     : profile.role === "Business"
                         ? "border-[rgba(27,58,140,0.4)]"
@@ -78,7 +78,7 @@ export default function CardPageClient({
             ? "border-[rgba(193,39,45,0.3)]"
             : profile.role === "Trainer"
                 ? "border-[rgba(26,122,74,0.3)]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "border-[rgba(184,134,11,0.3)]"
                     : profile.role === "Business"
                         ? "border-[rgba(27,58,140,0.3)]"
@@ -89,7 +89,7 @@ export default function CardPageClient({
             ? "shadow-[0_0_48px_rgba(193,39,45,0.15),0_24px_60px_rgba(0,0,0,0.8)]"
             : profile.role === "Trainer"
                 ? "shadow-[0_0_48px_rgba(26,122,74,0.15),0_24px_60px_rgba(0,0,0,0.8)]"
-                : profile.role === "Members"
+                : profile.role === "Crew"
                     ? "shadow-[0_0_48px_rgba(184,134,11,0.15),0_24px_60px_rgba(0,0,0,0.8)]"
                     : profile.role === "Business"
                         ? "shadow-[0_0_48px_rgba(27,58,140,0.15),0_24px_60px_rgba(0,0,0,0.8)]"
@@ -238,7 +238,7 @@ export default function CardPageClient({
                             ? "rounded-2xl border border-[rgba(193,39,45,0.2)] bg-[rgba(193,39,45,0.08)] px-5 py-[22px] text-center"
                             : profile.role === "Trainer"
                                 ? "rounded-2xl border border-[rgba(26,122,74,0.2)] bg-[rgba(26,122,74,0.08)] px-5 py-[22px] text-center"
-                                : profile.role === "Members"
+                                : profile.role === "Crew"
                                     ? "rounded-2xl border border-[rgba(184,134,11,0.2)] bg-[rgba(184,134,11,0.08)] px-5 py-[22px] text-center"
                                     : profile.role === "Business"
                                         ? "rounded-2xl border border-[rgba(27,58,140,0.2)] bg-[rgba(27,58,140,0.08)] px-5 py-[22px] text-center"

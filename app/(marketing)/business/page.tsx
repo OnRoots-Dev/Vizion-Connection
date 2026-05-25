@@ -98,7 +98,7 @@ export default function BusinessPage() {
                 </span>へ。
               </h1>
               <p className="anim-fade-up max-w-xl text-[.9rem] font-light leading-[1.9] text-[#5a6070] [animation-delay:.2s]">
-                Vizion Connection は、アスリート・トレーナー・メンバーの信頼ネットワークインフラです。
+                Vizion Connection は、アスリート・トレーナー・クルーの信頼ネットワークインフラです。
                 Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
               <Link

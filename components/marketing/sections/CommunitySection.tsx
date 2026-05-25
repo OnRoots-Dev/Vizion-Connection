@@ -50,7 +50,7 @@ export function NowNextSection() {
                 { title: "Founding Member認定バッジ", desc: "プロフィールと公開カードに通し番号つきで永続表示。" },
                 { title: "Founder価格保証", desc: "将来の有料プランも登録時点の価格で永久固定。" },
                 { title: "Discovery永続優先表示", desc: "検索・一覧で長期的な優位性を確保。" },
-                { title: "新機能への最優先アクセス", desc: "Trainer Hub / Members Hubなどの新機能を最初に利用可能。" },
+                { title: "新機能への最優先アクセス", desc: "Trainer Hub / Crew Hubなどの新機能を最初に利用可能。" },
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-[#FFD600]">✔</span>
@@ -264,7 +264,7 @@ export function FoundingSection() {
               { t: "1. Founding Member 認定バッジ", d: "プロフィールと公開カードに「Founding Member #001」形式の通し番号バッジが永続表示。番号が小さいほど希少。" },
               { t: "2. 有料プラン 永久Founder価格保証", d: "将来導入される全ユーザー向け有料プランが、登録時点の価格で永久固定。" },
               { t: "3. Discovery 永続優先表示", d: "登録者が増えるほど価値が上がる、検索・一覧での永続的な優位性。" },
-              { t: "4. 新機能への最優先アクセス", d: "Trainer Hub / Members Hubなど新機能リリース時に最初に解放。" },
+              { t: "4. 新機能への最優先アクセス", d: "Trainer Hub / Crew Hubなど新機能リリース時に最初に解放。" },
               { t: "5. 創設者名簿への永続掲載", d: "アプリ内およびLP上の「Founding Members」セクションに永続掲載。" },
               { t: "6. 限定カードデザイン", d: "通常会員とは異なるFounding専用カードデザイン。100名のみ。" },
             ].map((b, i) => (
