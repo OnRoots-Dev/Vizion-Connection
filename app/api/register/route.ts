@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerUser } from "@/features/auth/server/register";
 import type { RegisterInput } from "@/features/auth/types";
-import { registerLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { z } from "zod";
@@ -24,14 +23,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const csrfError = validateCSRF(req);
         if (csrfError) return csrfError as unknown as NextResponse;
 
-        const ip = getIp(req);
-        const { success } = await registerLimiter.limit(ip);
-        if (!success) {
-            return NextResponse.json(
-                { success: false, error: "しばらく時間をおいてから再度お試しください" },
-                { status: 429 }
-            );
-        }
         let body: unknown;
         try {
             body = await readLimitedJson(req);
