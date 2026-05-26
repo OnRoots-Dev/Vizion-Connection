@@ -398,14 +398,6 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        {!isOnboardingComplete && (
-                            <div style={{ padding: isMobile ? "8px 12px" : "8px 20px", borderBottom: `1px solid ${t.border}` }}>
-                                <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 14px", borderRadius: 12, background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.2)" }}>
-                                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)" }}>プロフィールの設定が完了していません。</p>
-                                    <a href="/onboarding" style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#a78bfa", textDecoration: "none", padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(167,139,250,0.3)", background: "rgba(167,139,250,0.1)", whiteSpace: "nowrap" }}>続きから始める →</a>
-                                </div>
-                            </div>
-                        )}
                         <div ref={contentRef} style={{ flex: 1, maxWidth: 1180, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "20px 20px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>

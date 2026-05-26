@@ -82,8 +82,8 @@ export default function CareerWizardModal({
   if (contained) {
     return (
       <div
-        className="relative w-full min-h-0 overflow-hidden rounded-[24px] border border-white/10 bg-[#0c0c16]"
-        style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.28)" }}
+        className="relative w-full flex flex-col"
+        style={{ minHeight: "100dvh", background: "#0c0c16" }}
       >
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
           style={{ background: color }} />
@@ -114,7 +114,7 @@ export default function CareerWizardModal({
           </div>
         )}
 
-        <div className="relative z-10 max-h-[58dvh] overflow-y-auto px-5 pb-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-5 pb-6" style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
           <AnimatePresence mode="wait">
             <motion.div key={currentStepIndex}
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
@@ -125,8 +125,16 @@ export default function CareerWizardModal({
         </div>
 
         {!isCompleteStep && (
-          <div className="relative z-10 px-5 pt-3 pb-5 flex-shrink-0 flex items-center gap-3"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div
+            className="relative z-10 flex-shrink-0 flex items-center gap-2 px-5 pt-3"
+            style={{
+              borderTop: "1px solid rgba(255,255,255,0.06)",
+              background: "#0c0c16",
+              paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))",
+              position: "sticky",
+              bottom: 0,
+            }}
+          >
             <button onClick={prevStep} disabled={isFirstStep}
               className="flex items-center gap-1.5 px-4 py-3 rounded-xl border font-semibold text-[12px] transition-all disabled:opacity-20 disabled:pointer-events-none"
               style={{ borderColor: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.38)" }}
@@ -137,18 +145,20 @@ export default function CareerWizardModal({
               </svg>
               戻る
             </button>
-            {canSkip && (
-              <button onClick={skipStep} className="font-mono text-[9px] tracking-[0.16em] uppercase transition-colors whitespace-nowrap"
-                style={{ color: "rgba(255,255,255,0.2)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.45)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.2)")}>
-                スキップ
-              </button>
-            )}
+            <div className="flex-1" />
+            <button
+              onClick={skipStep}
+              className="px-3 py-3 rounded-xl border font-mono text-[10px] tracking-[0.12em] uppercase transition-all whitespace-nowrap"
+              style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.28)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.55)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.28)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            >
+              スキップ
+            </button>
             <motion.button onClick={handleNext}
               disabled={isSaving}
               whileTap={{ scale: 0.97 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[13px] tracking-[0.04em] text-white transition-all hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none"
+              className="min-w-[110px] flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-[13px] tracking-[0.04em] text-white transition-all hover:brightness-110 disabled:opacity-30 disabled:pointer-events-none"
               style={{ background: color }}>
               {isSaving ? (
                 <>

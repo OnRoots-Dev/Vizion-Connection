@@ -49,51 +49,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </motion.h1>
             </div>
 
-            {profile.isOnboardingComplete === false && (
-                <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                        padding: "14px 16px",
-                        borderRadius: 14,
-                        border: `1px solid ${roleColor}40`,
-                        background: `${roleColor}12`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        flexWrap: "wrap",
-                    }}
-                >
-                    <div>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: t.text }}>
-                            プロフィールの設定が完了していません。
-                        </p>
-                        <p style={{ margin: "4px 0 0", fontSize: 11, color: t.sub, lineHeight: 1.6 }}>
-                            続きからオンボーディングを完了しましょう。
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => window.location.href = "/onboarding"}
-                        style={{
-                            flexShrink: 0,
-                            padding: "10px 16px",
-                            borderRadius: 12,
-                            border: "none",
-                            background: roleColor,
-                            color: "#050508",
-                            fontSize: 12,
-                            fontWeight: 900,
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                        }}
-                    >
-                        続きから始める →
-                    </button>
-                </motion.div>
-            )}
-
             <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={setView} referralUrl={referralUrl} referralCount={referralCount} />
 
             <DailyLogCard t={t} roleColor={roleColor} role={profile.role} onOpenJourney={setView} />

@@ -196,6 +196,9 @@ export default function RegisterForm() {
                         <p className="text-[10px] text-white/30 leading-relaxed pl-1">
                             あなたのプロフィールページのアドレスになります。登録後の変更はできません。
                         </p>
+                        <p className="text-[10px] text-white/25 leading-relaxed pl-1">
+                            使用できる文字：英小文字、数字、アンダースコア（_）、ドット（.）
+                        </p>
                         <p className={`text-xs font-mono ${form.slug ? "text-white/60" : "text-white/25"}`}>
                             {form.slug ? "vizion-connection.jp/u/" : "例：vizion-connection.jp/u/"}{form.slug || "your_id00"}
                         </p>
