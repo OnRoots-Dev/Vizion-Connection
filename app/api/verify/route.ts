@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyEmailToken } from "@/features/auth/server/verify";
-import { setSessionCookie } from "@/lib/auth/cookies";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     const token = req.nextUrl.searchParams.get("token");
@@ -26,10 +25,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         );
     }
 
-    // 4. 成功時：セッションクッキーをセット
-    await setSessionCookie(result.sessionToken);
-
-    // 5. 成功レスポンスを返す
+    // 4. 成功レスポンスを返す（セッションは発行しない→ログインページへ誘導）
     // VerifyContent 側が期待する role や slug を含めて返却します
     return NextResponse.json({
         success: true,
