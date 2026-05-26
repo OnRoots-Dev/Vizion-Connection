@@ -48,10 +48,10 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                         DAY 0
                     </p>
                     <h1 style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>
-                        あなたの記録が、今日から始まります。
+                        プロフィールカードを発行しました！
                     </h1>
                     <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.7 }}>
-                        これがあなたのVizionカードです。<br />あなたの存在が、ここに刻まれました。
+                        これがあなたのVizionプロフィールカードです。<br />あなたの存在が、ここに刻まれました。
                     </p>
                 </motion.div>
 

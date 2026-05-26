@@ -2,37 +2,12 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
-const RELEASE_TIME = new Date("2026-05-25T18:00:00+09:00").getTime();
-
-function useCountdown() {
-    const [diff, setDiff] = useState(RELEASE_TIME);
-
-    useEffect(() => {
-        const updateCountdown = () => {
-            const remaining = RELEASE_TIME - Date.now();
-            setDiff(remaining);
-            if (remaining <= 0) clearInterval(timer);
-        };
-        const timer = setInterval(updateCountdown, 1000);
-        updateCountdown();
-        return () => clearInterval(timer);
-    }, []);
-
-    const isReleased = diff <= 0;
-    const safeDiff = Math.max(diff, 0);
-    const hours = Math.floor(safeDiff / 1000 / 60 / 60);
-    const minutes = Math.floor((safeDiff / 1000 / 60) % 60);
-    const seconds = Math.floor((safeDiff / 1000) % 60);
-    const pad = (n: number) => String(n).padStart(2, "0");
-
-    return { isReleased, display: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` };
-}
 
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
@@ -50,8 +25,6 @@ function EyeIcon({ open }: { open: boolean }) {
 export default function LoginForm() {
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get("redirect") ?? "/dashboard";
-    const { isReleased, display } = useCountdown();
-
     const [form, setForm] = useState({ email: "", password: "" });
     const [showPassword, setShowPassword] = useState(false); // ← 修正
     const [loading, setLoading] = useState(false);
@@ -59,7 +32,6 @@ export default function LoginForm() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!isReleased) return;
         setLoading(true);
         setError("");
 
@@ -113,16 +85,6 @@ export default function LoginForm() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isReleased && (
-                        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-5 text-center">
-                            <p className="text-sm font-semibold text-white/70">18:00 解放まで残り</p>
-                            <p className="mt-2 text-4xl font-bold tracking-[0.12em] text-white">{display}</p>
-                            <p className="mt-3 text-xs leading-relaxed text-white/45">
-                                登録いただいた方は18:00からログインできます。もうしばらくお待ちください。
-                            </p>
-                        </div>
-                    )}
-
                     <div className="space-y-1.5">
                         <label className="text-xs text-white/40 font-medium">メールアドレス</label>
                         <input
@@ -166,12 +128,12 @@ export default function LoginForm() {
 
                     <button
                         type="submit"
-                        disabled={loading || !isReleased}
+                        disabled={loading}
                         className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                         style={{
-                            background: loading || !isReleased ? "#333" : "#a78bfa",
+                            background: loading ? "#333" : "#a78bfa",
                             color: "#000",
-                            boxShadow: loading || !isReleased ? "none" : "0 0 24px rgba(167,139,250,0.4)",
+                            boxShadow: loading ? "none" : "0 0 24px rgba(167,139,250,0.4)",
                         }}
                     >
                         {loading ? "ログイン中..." : "ログイン"}

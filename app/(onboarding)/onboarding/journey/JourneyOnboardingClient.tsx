@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
-import { CONDITION_OPTIONS, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
+import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
+import { JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 import { OnboardingStepBar } from "../OnboardingStepBar";
 
 const T = {
@@ -101,30 +102,13 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
 
                         <div>
                             <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, color: T.sub }}>今日のコンディション</p>
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
-                                {CONDITION_OPTIONS.map((opt) => {
-                                    const selected = conditionScore === opt.score;
-                                    return (
-                                        <button
-                                            key={opt.score}
-                                            type="button"
-                                            onClick={() => setConditionScore(opt.score)}
-                                            style={{
-                                                borderRadius: 14, padding: "10px 6px",
-                                                border: `1px solid ${selected ? `${roleColor}44` : T.border}`,
-                                                background: selected ? `${roleColor}18` : "rgba(255,255,255,0.03)",
-                                                color: selected ? T.text : T.sub,
-                                                cursor: "pointer", display: "flex", flexDirection: "column",
-                                                alignItems: "center", gap: 6,
-                                            }}
-                                            aria-label={opt.label}
-                                        >
-                                            <span style={{ fontSize: 20, lineHeight: 1 }}>{opt.emoji}</span>
-                                            <span style={{ fontSize: 9 }}>{opt.score}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <ConditionScorePicker
+                                value={conditionScore}
+                                onChange={setConditionScore}
+                                t={{ bg: T.bg, surface: T.surface, border: T.border, text: T.text, sub: T.sub }}
+                                roleColor={roleColor}
+                                compact
+                            />
                         </div>
 
                         <button

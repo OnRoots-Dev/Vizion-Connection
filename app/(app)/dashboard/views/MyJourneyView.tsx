@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import type { ProfileData } from "@/features/profile/types";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
-import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
+import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
+import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
+
+function getJourneyPlaceholder(role: string): string {
+  const r = role.toLowerCase();
+  if (r === "athlete") return "今日の練習・コンディション・気づきを残そう";
+  if (r === "trainer") return "今日の指導内容・観察・気づきを残そう";
+  if (r === "business") return "今日の活動・学び・前進したことを残そう";
+  return "今日やったこと・感じたこと・気づきを残そう";
+}
 
 function getDateKey(offset: number) {
   const date = new Date();
@@ -72,11 +81,15 @@ export function MyJourneyView({
   roleColor: string;
   setView: (view: DashboardView) => void;
 }) {
-  const { logs, todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
+  const { logs, todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog, openJourneyForEdit, clearJourneyEditRequest } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!hasLoaded) {
@@ -85,7 +98,20 @@ export function MyJourneyView({
   }, [fetchLogs, hasLoaded]);
 
   const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
-  const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !todayLog;
+  const showForm = !todayLog || isEditing;
+  const hasChanges = useMemo(() => {
+    if (!isEditing || !todayLog) return true;
+    return (
+      content.trim() !== todayLog.content.trim() ||
+      conditionScore !== todayLog.condition_score
+    );
+  }, [content, conditionScore, isEditing, todayLog]);
+  const canSubmit =
+    content.trim().length > 0 &&
+    conditionScore !== null &&
+    !isSubmitting &&
+    showForm &&
+    hasChanges;
   const todayCondition = getConditionMeta(todayLog?.condition_score);
   const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
 
@@ -104,6 +130,50 @@ export function MyJourneyView({
   useEffect(() => {
     setTemplateSuggestions(getRandomJourneyTemplateSuggestions(profile.role));
   }, [profile.role]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = window.setTimeout(() => setToastMessage(null), 2500);
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
+
+  function applyTemplate(text: string) {
+    setContent(text.slice(0, JOURNEY_MAX_CHARS));
+    setActiveTemplate(text);
+    setToastMessage("テンプレートを入力しました");
+    requestAnimationFrame(() => {
+      const el = document.getElementById("myjourney-entry");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (el as HTMLTextAreaElement | null)?.focus?.();
+    });
+  }
+
+  const startEditing = useCallback(() => {
+    if (!todayLog) return;
+    setContent(todayLog.content);
+    setConditionScore(todayLog.condition_score);
+    setActiveTemplate(null);
+    setIsEditing(true);
+    setSuccessModalOpen(false);
+    requestAnimationFrame(() => {
+      const el = document.getElementById("myjourney-entry");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (el as HTMLTextAreaElement | null)?.focus?.();
+    });
+  }, [todayLog]);
+
+  function cancelEditing() {
+    setIsEditing(false);
+    setContent("");
+    setConditionScore(null);
+    setActiveTemplate(null);
+  }
+
+  useEffect(() => {
+    if (!hasLoaded || !todayLog || !openJourneyForEdit) return;
+    startEditing();
+    clearJourneyEditRequest();
+  }, [hasLoaded, todayLog, openJourneyForEdit, clearJourneyEditRequest, startEditing]);
 
   const logMap = useMemo(() => new Map(logs.map((log) => [log.log_date, log])), [logs]);
 
@@ -214,8 +284,17 @@ export function MyJourneyView({
     });
 
     if (ok) {
-      setContent("");
-      setConditionScore(null);
+      setActiveTemplate(null);
+      if (isEditing) {
+        setIsEditing(false);
+        setContent("");
+        setConditionScore(null);
+        setToastMessage("記録を更新しました");
+      } else {
+        setContent("");
+        setConditionScore(null);
+        setSuccessModalOpen(true);
+      }
     }
   }
 
@@ -305,116 +384,132 @@ export function MyJourneyView({
 
             {!hasLoaded && isLoading ? <div style={{ padding: "12px 0", fontSize: 12, color: t.sub }}>読み込み中...</div> : null}
 
-            {todayLog ? (
-              <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ padding: "14px 16px", borderRadius: 0, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
-                    <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                      {getTodayString()}
-                    </p>
-                    <span style={{ fontSize: 12, color: t.text }}>
-                      {todayCondition?.emoji ?? "🙂"} {todayCondition?.label ?? "記録済み"} / {todayLog.condition_score ?? "-"}点
-                    </span>
+            {showForm ? (
+              <div style={{ display: "grid", gap: 14 }}>
+                {isEditing ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: roleColor }}>記録を修正中</p>
+                    <button
+                      type="button"
+                      onClick={cancelEditing}
+                      style={{ border: "none", background: "transparent", color: t.sub, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}
+                    >
+                      キャンセル
+                    </button>
                   </div>
-                  <p style={{ margin: 0, fontSize: 14, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{todayLog.content}</p>
-                </div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <ActionPill onClick={() => setView("home")} color={roleColor} t={t}>ダッシュボードへ</ActionPill>
-                  <div style={{ display: "inline-flex", alignItems: "center", padding: "6px 12px", borderRadius: 0, border: `1px solid ${roleColor}24`, background: `${roleColor}10`, color: t.text, fontSize: 11 }}>
-                    {morningBonusEligible ? "+10pt 対象で記録済み" : "本日の記録を保存済み"}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gap: 12 }}>
+                ) : null}
                 <div>
                   <textarea
                     id="myjourney-entry"
                     value={content}
-                    onChange={(event) => setContent(event.target.value.slice(0, JOURNEY_MAX_CHARS))}
+                    onChange={(event) => {
+                      setContent(event.target.value.slice(0, JOURNEY_MAX_CHARS));
+                      setActiveTemplate(null);
+                    }}
                     maxLength={JOURNEY_MAX_CHARS}
-                    placeholder="今日の一言・取り組みを記録しよう"
+                    placeholder={getJourneyPlaceholder(profile.role)}
                     rows={5}
-                    style={{ width: "100%", resize: "vertical", borderRadius: 0, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "13px 14px", fontSize: 13, lineHeight: 1.7, outline: "none", minHeight: 140 }}
+                    style={{ width: "100%", boxSizing: "border-box", resize: "vertical", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, padding: "13px 14px", fontSize: 13, lineHeight: 1.7, outline: "none", minHeight: 140 }}
                   />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, gap: 10, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 10, color: t.sub }}>4:00-10:00 の記録で +10pt</span>
-                    <span style={{ fontSize: 10, color: remaining >= 0 ? t.sub : "rgba(255,80,80,0.9)" }}>残り{remaining}文字</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: remaining <= 10 ? "rgba(255,100,100,0.95)" : t.sub }}>
+                      {content.length} / {JOURNEY_MAX_CHARS}
+                    </span>
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gap: 8 }}>
-                  <p style={{ margin: 0, fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
-                    Templates
-                  </p>
+                  <div>
+                    <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 800, color: t.text }}>サンプルから選ぶ</p>
+                    <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.5 }}>💡 タップして入力欄に反映できます</p>
+                  </div>
                   <div style={{ display: "grid", gap: 8 }}>
-                    {templateSuggestions.map((text) => (
-                      <button
-                        key={text}
-                        type="button"
-                        onClick={() => setContent(text.slice(0, JOURNEY_MAX_CHARS))}
-                        style={{
-                          textAlign: "left",
-                          width: "100%",
-                          padding: "12px 12px",
-                          borderRadius: 0,
-                          border: `1px solid ${t.border}`,
-                          background: "rgba(255,255,255,0.02)",
-                          color: t.text,
-                          cursor: "pointer",
-                          fontSize: 13,
-                          lineHeight: 1.7,
-                        }}
-                      >
-                        {text}
-                      </button>
-                    ))}
+                    {templateSuggestions.map((text) => {
+                      const isActive = activeTemplate === text;
+                      return (
+                        <button
+                          key={text}
+                          type="button"
+                          onClick={() => applyTemplate(text)}
+                          style={{
+                            textAlign: "left",
+                            width: "100%",
+                            padding: "12px 14px",
+                            borderRadius: 12,
+                            border: `1px solid ${isActive ? `${roleColor}66` : t.border}`,
+                            background: isActive ? `${roleColor}14` : "rgba(255,255,255,0.03)",
+                            color: t.text,
+                            cursor: "pointer",
+                            fontSize: 13,
+                            lineHeight: 1.7,
+                            transition: "background 0.15s ease, border-color 0.15s ease",
+                          }}
+                        >
+                          {text}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8 }}>
-                  {CONDITION_OPTIONS.map((option) => {
-                    const selected = conditionScore === option.score;
-                    return (
-                      <motion.button
-                        key={option.score}
-                        type="button"
-                        whileTap={{ scale: 0.96 }}
-                        animate={{ scale: selected ? 1.03 : 1 }}
-                        onClick={() => setConditionScore(option.score)}
-                        style={{
-                          borderRadius: 0,
-                          border: `1px solid ${selected ? `${roleColor}44` : t.border}`,
-                          background: selected ? `${roleColor}18` : "rgba(255,255,255,0.03)",
-                          color: selected ? t.text : t.sub,
-                          padding: "12px 6px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexDirection: "column",
-                          gap: 6,
-                        }}
-                        aria-label={option.label}
-                      >
-                        <span style={{ fontSize: 22, lineHeight: 1 }}>{option.emoji}</span>
-                        <span style={{ fontSize: 10 }}>{option.label}</span>
-                      </motion.button>
-                    );
-                  })}
+                <div>
+                  <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: t.sub }}>今日のコンディション</p>
+                  <ConditionScorePicker
+                    value={conditionScore}
+                    onChange={setConditionScore}
+                    t={t}
+                    roleColor={roleColor}
+                    showSubLabels={!isMobile}
+                  />
                 </div>
 
                 <button
                   type="button"
                   className="vz-btn"
-                  onClick={handleSubmit}
+                  onClick={() => void handleSubmit()}
                   disabled={!canSubmit}
-                  style={{ width: "100%", border: "none", borderRadius: 0, padding: "13px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
+                  style={{ width: "100%", border: "none", borderRadius: 12, padding: "14px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
                 >
-                  {isSubmitting ? "記録中..." : "Journeyを記録"}
+                  {isSubmitting ? (isEditing ? "更新中..." : "記録中...") : isEditing ? "記録を更新" : "Journeyを記録"}
                 </button>
               </div>
-            )}
+            ) : todayLog ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 8px", textAlign: "center" }}>
+                <div style={{ fontSize: 40, lineHeight: 1 }}>✅</div>
+                <div>
+                  <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: t.text }}>本日の記録は完了しています</p>
+                  <p style={{ margin: "8px 0 0", fontSize: 12, color: t.sub, lineHeight: 1.8 }}>
+                    内容を直したいときは「記録を修正する」から変更できます。
+                  </p>
+                </div>
+                <div style={{ width: "100%", maxWidth: 360, padding: "14px 16px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", textAlign: "left" }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 10, color: t.sub, fontWeight: 700 }}>今日の記録</p>
+                  <p style={{ margin: 0, fontSize: 14, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{todayLog.content}</p>
+                  <p style={{ margin: "10px 0 0", fontSize: 11, color: t.sub }}>
+                    コンディション：{todayCondition?.emoji ?? "🙂"} {formatConditionLabel(todayLog.condition_score)}
+                    {morningBonusEligible ? " · +10pt 対象" : ""}
+                  </p>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 360 }}>
+                  <button
+                    type="button"
+                    onClick={startEditing}
+                    style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    記録を修正する
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView("discovery")}
+                    style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${roleColor}55`, background: `${roleColor}18`, color: roleColor, fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    誰かにCheerを送る →
+                  </button>
+                  <ActionPill onClick={() => setView("home")} color={roleColor} t={t}>ダッシュボードへ</ActionPill>
+                </div>
+              </div>
+            ) : null}
             <div style={{ marginTop: 14 }}>
               <div style={{ position: "relative", padding: "6px 0 14px" }}>
                 <div style={{ position: "absolute", inset: "-12px -10px", borderRadius: 0, background: `radial-gradient(circle at 40% 40%, ${roleColor}40, transparent 62%)`, filter: "blur(18px)", opacity: 0.9, pointerEvents: "none" }} />
@@ -546,7 +641,7 @@ export function MyJourneyView({
                           </span>
                           <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, letterSpacing: "0.12em", textTransform: "uppercase" }}>{selectedLog.log_date}</span>
                         </div>
-                        <span style={{ fontSize: 12, color: t.text, fontWeight: 900 }}>{meta?.emoji ?? "🙂"} {meta?.label ?? ""} / {selectedLog.condition_score ?? "-"}点</span>
+                        <span style={{ fontSize: 12, color: t.text, fontWeight: 900 }}>{meta?.emoji ?? "🙂"} {formatConditionLabel(selectedLog.condition_score)}</span>
                       </div>
                       <p style={{ margin: 0, fontSize: 13, color: t.text, lineHeight: 1.9, whiteSpace: "pre-wrap" }}>{selectedLog.content}</p>
                     </div>
@@ -651,6 +746,71 @@ export function MyJourneyView({
         <SLabel text="AD SLOT" color="#FFD600" />
         <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
       </SectionCard>
+
+      {toastMessage ? (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: 24,
+            transform: "translateX(-50%)",
+            zIndex: 120,
+            maxWidth: "min(360px, calc(100vw - 32px))",
+            padding: "10px 16px",
+            borderRadius: 999,
+            border: `1px solid ${roleColor}44`,
+            background: "rgba(12,12,16,0.96)",
+            color: t.text,
+            fontSize: 12,
+            fontWeight: 700,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+            pointerEvents: "none",
+          }}
+        >
+          {toastMessage}
+        </div>
+      ) : null}
+
+      {successModalOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="完了メッセージを閉じる"
+            onClick={() => setSuccessModalOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 95, border: "none", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", cursor: "pointer" }}
+          />
+          <div style={{ position: "fixed", inset: 0, zIndex: 96, display: "grid", placeItems: "center", padding: 16, pointerEvents: "none" }}>
+            <div style={{ width: "100%", maxWidth: 400, borderRadius: 16, border: `1px solid ${roleColor}44`, background: t.bg, padding: 20, textAlign: "center", boxShadow: "0 18px 60px rgba(0,0,0,0.55)", pointerEvents: "auto" }}>
+              <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: t.text }}>記録しました 🔥</p>
+              <p style={{ margin: "8px 0 0", fontSize: 13, color: t.sub, lineHeight: 1.7 }}>今日のJourneyが積み上がりました。</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccessModalOpen(false);
+                    setView("discovery");
+                  }}
+                  style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "none", background: roleColor, color: "#0B0B0F", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                >
+                  誰かにCheerを送る
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccessModalOpen(false);
+                    setView("home");
+                  }}
+                  style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                >
+                  ダッシュボードへ
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

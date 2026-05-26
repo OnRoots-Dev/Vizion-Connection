@@ -3,11 +3,11 @@ import type { DailyLog } from "@/features/daily-log/types";
 export const JOURNEY_MAX_CHARS = 100;
 
 export const CONDITION_OPTIONS = [
-  { score: 1, emoji: "🌧️", label: "低調（立て直し中）" },
-  { score: 2, emoji: "🌥️", label: "やや重い（調整フェーズ）" },
-  { score: 3, emoji: "🌤️", label: "安定（通常状態）" },
-  { score: 4, emoji: "🔥", label: "好調（パフォーマンス高）" },
-  { score: 5, emoji: "⚡️", label: "覚醒（ピーク状態）" },
+  { score: 1, emoji: "😔", label: "低調", sub: "立て直し中" },
+  { score: 2, emoji: "😐", label: "やや重い", sub: "調整フェーズ" },
+  { score: 3, emoji: "🙂", label: "安定", sub: "通常状態" },
+  { score: 4, emoji: "😊", label: "好調", sub: "パフォーマンス高" },
+  { score: 5, emoji: "🔥", label: "覚醒", sub: "ピーク状態" },
 ] as const;
 
 const JOURNEY_HYPE_MESSAGES = [
@@ -45,6 +45,12 @@ export function getTodayString(): string {
 
 export function getConditionMeta(score: number | null | undefined) {
   return CONDITION_OPTIONS.find((option) => option.score === score) ?? null;
+}
+
+export function formatConditionLabel(score: number | null | undefined): string {
+  const meta = getConditionMeta(score);
+  if (!meta) return "—";
+  return `${meta.label}（${meta.sub}）`;
 }
 
 function hashSeed(value: string) {

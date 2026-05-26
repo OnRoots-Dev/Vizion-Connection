@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
         bio: body.bio,
         region: body.region,
         prefecture: body.prefecture,
+        location: body.location,
         sportsCategory: body.sportsCategory,
         sport: body.sport,
         stance: body.stance,

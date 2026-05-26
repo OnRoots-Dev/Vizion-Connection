@@ -7,7 +7,8 @@ import { ActionPill, CardHeader, SectionCard } from "@/app/(app)/dashboard/compo
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import type { DashboardView } from "@/app/(app)/dashboard/types";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
-import { CONDITION_OPTIONS, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, JOURNEY_MAX_CHARS } from "./journey";
+import { ConditionScorePicker } from "./ConditionScorePicker";
+import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, JOURNEY_MAX_CHARS } from "./journey";
 
 export function DailyLogCard({
   t,
@@ -20,7 +21,7 @@ export function DailyLogCard({
   role?: string | null;
   onOpenJourney?: (view: DashboardView) => void;
 }) {
-  const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
+  const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog, requestJourneyEdit } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
@@ -129,13 +130,33 @@ export function DailyLogCard({
                     <div>
                       <p style={{ margin: "0 0 3px", fontSize: 11, color: t.sub, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>Today&apos;s Entry</p>
                       <p style={{ margin: 0, fontSize: 12, color: t.text }}>
-                        {todayCondition?.emoji ?? "🙂"} {todayCondition?.label ?? "記録済み"}
+                        {todayCondition?.emoji ?? "🙂"} {todayLog.condition_score ? formatConditionLabel(todayLog.condition_score) : "記録済み"}
                       </p>
                     </div>
                   </div>
                 </div>
                 <p style={{ margin: 0, fontSize: 14, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{todayLog.content}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  requestJourneyEdit();
+                  onOpenJourney?.("journey");
+                }}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  border: `1px solid ${t.border}`,
+                  background: "rgba(255,255,255,0.03)",
+                  color: t.text,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                記録を修正する
+              </button>
             </div>
           ) : (
             <div style={{ display: "grid", gap: 12 }}>
@@ -183,36 +204,15 @@ export function DailyLogCard({
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 8 }}>
-                {CONDITION_OPTIONS.map((option) => {
-                  const selected = conditionScore === option.score;
-                  return (
-                    <motion.button
-                      key={option.score}
-                      type="button"
-                      whileTap={{ scale: 0.96 }}
-                      animate={{ scale: selected ? 1.03 : 1 }}
-                      onClick={() => setConditionScore(option.score)}
-                      style={{
-                        borderRadius: 14,
-                        border: `1px solid ${selected ? `${roleColor}44` : t.border}`,
-                        background: selected ? `${roleColor}18` : "rgba(255,255,255,0.03)",
-                        color: selected ? t.text : t.sub,
-                        padding: "10px 6px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                        gap: 6,
-                      }}
-                      aria-label={option.label}
-                    >
-                      <span style={{ fontSize: 20, lineHeight: 1 }}>{option.emoji}</span>
-                      <span style={{ fontSize: 9, lineHeight: 1.2 }}>{option.score}</span>
-                    </motion.button>
-                  );
-                })}
+              <div>
+                <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 700, color: t.sub }}>今日のコンディション</p>
+                <ConditionScorePicker
+                  value={conditionScore}
+                  onChange={setConditionScore}
+                  t={t}
+                  roleColor={roleColor}
+                  compact
+                />
               </div>
 
               <button

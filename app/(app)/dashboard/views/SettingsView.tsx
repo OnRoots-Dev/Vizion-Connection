@@ -15,7 +15,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
     setView: (view: DashboardView) => void;
     onProfilePatch: (patch: Partial<ProfileData>) => void;
 }) {
-    const ROLE_LABEL: Record<string, string> = { Athlete: "Athlete", Trainer: "Trainer", Members: "Members", Business: "Business", Admin: "Admin" };
+    const ROLE_LABEL: Record<string, string> = { Athlete: "Athlete", Trainer: "Trainer", Crew: "Crew", Business: "Business", Admin: "Admin" };
     const [isPublic, setIsPublic] = useState(profile.isPublic !== false);
     const [savingVisibility, setSavingVisibility] = useState(false);
     const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);

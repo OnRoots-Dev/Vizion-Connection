@@ -10,8 +10,11 @@ interface DailyLogStore {
   isSubmitting: boolean;
   hasLoaded: boolean;
   error: string | null;
+  openJourneyForEdit: boolean;
   fetchLogs: () => Promise<void>;
   submitLog: (input: { content: string; conditionScore: number }) => Promise<boolean>;
+  requestJourneyEdit: () => void;
+  clearJourneyEditRequest: () => void;
 }
 
 function getTodayString(): string {
@@ -33,6 +36,9 @@ export const useDailyLogStore = create<DailyLogStore>((set) => ({
   isSubmitting: false,
   hasLoaded: false,
   error: null,
+  openJourneyForEdit: false,
+  requestJourneyEdit: () => set({ openJourneyForEdit: true }),
+  clearJourneyEditRequest: () => set({ openJourneyForEdit: false }),
   fetchLogs: async () => {
     set({ isLoading: true, error: null });
 

@@ -21,7 +21,7 @@ type InlineAd = {
 const ROLE_COLOR_MAP: Record<string, string> = {
   Athlete: "#FF5050",
   Trainer: "#32D278",
-  Members: "#FFC81E",
+  Crew: "#FFC81E",
   Business: "#3C8CFF",
 };
 

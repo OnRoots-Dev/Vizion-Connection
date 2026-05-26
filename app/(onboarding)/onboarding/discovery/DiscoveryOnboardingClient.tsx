@@ -93,13 +93,18 @@ export default function DiscoveryOnboardingClient() {
                     <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13, marginTop: 40 }}>読み込み中...</p>
                 ) : users.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                        <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13 }}>表示できるユーザーがいません</p>
+                        <p style={{ margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.8 }}>
+                            まだ公開しているユーザーがいないようです…。
+                        </p>
+                        <p style={{ margin: "10px 0 0", color: "rgba(255,255,255,0.35)", fontSize: 12, lineHeight: 1.8 }}>
+                            先に次のステップへ進んで、あとからCheerをはじめられます。
+                        </p>
                         <button
                             type="button"
                             onClick={() => router.push("/onboarding/invite")}
                             style={{ marginTop: 16, padding: "12px 24px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer" }}
                         >
-                            次へ進む
+                            招待ステップへ進む
                         </button>
                     </div>
                 ) : (

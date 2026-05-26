@@ -82,8 +82,8 @@ export default function CareerWizardModal({
   if (contained) {
     return (
       <div
-        className="relative w-full flex flex-col"
-        style={{ minHeight: "100dvh", background: "#0c0c16" }}
+        className="relative flex-1 flex flex-col min-h-0"
+        style={{ background: "#0c0c16" }}
       >
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
           style={{ background: color }} />
@@ -131,8 +131,6 @@ export default function CareerWizardModal({
               borderTop: "1px solid rgba(255,255,255,0.06)",
               background: "#0c0c16",
               paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))",
-              position: "sticky",
-              bottom: 0,
             }}
           >
             <button onClick={prevStep} disabled={isFirstStep}

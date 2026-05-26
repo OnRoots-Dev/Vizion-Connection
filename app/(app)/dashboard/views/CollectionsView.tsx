@@ -20,7 +20,7 @@ const ROLE_FILTERS = [
   { label: "すべて", value: "all" },
   { label: "Athlete", value: "Athlete" },
   { label: "Trainer", value: "Trainer" },
-  { label: "Members", value: "Members" },
+  { label: "Crew", value: "Crew" },
   { label: "Business", value: "Business" },
 ] as const;
 
@@ -257,17 +257,17 @@ export function CollectionsView({
                 const cardRoleColor =
                   card.role === "Athlete" ? "#C1272D" :
                   card.role === "Trainer" ? "#1A7A4A" :
-                  card.role === "Members" ? "#B8860B" :
+                  card.role === "Crew" ? "#B8860B" :
                   "#1B3A8C";
                 const bg =
                   card.role === "Athlete" ? "#2D0000" :
                   card.role === "Trainer" ? "#001A0A" :
-                  card.role === "Members" ? "#1A0F00" :
+                  card.role === "Crew" ? "#1A0F00" :
                   "#000A24";
 
                 const place = String((card as any).prefecture ?? card.region ?? "").trim();
                 const sport = String(card.sport ?? "").trim();
-                const roleLabel = card.role === "Athlete" ? "ATHLETE" : card.role === "Trainer" ? "TRAINER" : card.role === "Members" ? "MEMBERS" : "BUSINESS";
+                const roleLabel = card.role === "Athlete" ? "ATHLETE" : card.role === "Trainer" ? "TRAINER" : card.role === "Crew" ? "CREW" : "BUSINESS";
 
                 return (
                   <button
