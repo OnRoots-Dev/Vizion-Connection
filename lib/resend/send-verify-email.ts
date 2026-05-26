@@ -29,17 +29,17 @@ export async function sendVerifyEmail({
   <title>メールアドレスの確認</title>
 </head>
 <body style="margin:0;padding:0;background:#07070e;font-family:'Helvetica Neue',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#07070e;padding:48px 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#07070e;padding:32px 20px;">
     <tr>
       <td align="center">
         <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
 
           <!-- Logo -->
           <tr>
-            <td style="padding:0 0 32px 0;" align="center">
+            <td style="padding:0 0 20px 0;" align="center">
               <img src="https://vizion-connection.jp/images/Vizion_Connection_logo-wt.png"
                 alt="Vizion Connection"
-                width="140"
+                width="124"
                 style="height:auto;display:block;opacity:0.85;" />
             </td>
           </tr>
@@ -55,27 +55,27 @@ export async function sendVerifyEmail({
 
               <!-- Body -->
               <tr>
-                <td style="padding:40px 44px 36px;">
-                  <p style="margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.3);">
-                    Email Verification
+                <td style="padding:36px 44px 34px;">
+                  <p style="margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.34);">
+                    Account Activation
                   </p>
                   <h2 style="margin:0 0 24px;font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;line-height:1.3;">
                     メールアドレスを<br />確認してください
                   </h2>
-                  <p style="margin:0 0 8px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.5);">
+                  <p style="margin:0 0 8px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.62);">
                     ${displayName} さん、Vizion Connection へのご登録ありがとうございます。
                   </p>
-                  <p style="margin:0 0 36px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.5);">
+                  <p style="margin:0 0 32px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.62);">
                     下のボタンをクリックして、メールアドレスの確認を完了してください。
                   </p>
 
                   <!-- CTA Button -->
-                  <table cellpadding="0" cellspacing="0" style="margin:0 0 36px;">
+                  <table cellpadding="0" cellspacing="0" style="margin:0 0 34px;">
                     <tr>
                       <td style="border-radius:10px;background:#7c3aed;box-shadow:0 0 24px rgba(124,58,237,0.4);">
                         <a href="${verifyUrl}"
-                          style="display:inline-block;padding:15px 36px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.04em;border-radius:10px;">
-                          メールアドレスを確認する
+                          style="display:inline-block;padding:15px 42px;font-size:13px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:0.04em;border-radius:10px;white-space:nowrap;">
+                          メールを確認する
                         </a>
                       </td>
                     </tr>
@@ -88,12 +88,12 @@ export async function sendVerifyEmail({
                     </tr>
                   </table>
 
-                  <p style="margin:0 0 12px;font-size:12px;line-height:1.7;color:rgba(255,255,255,0.25);">
-                    このリンクは <strong style="color:rgba(255,255,255,0.4);">24時間</strong> 有効です。心当たりがない場合は無視してください。
+                  <p style="margin:0 0 12px;font-size:12px;line-height:1.7;color:rgba(255,255,255,0.4);">
+                    このリンクは <strong style="color:rgba(255,255,255,0.58);">24時間</strong> 有効です。心当たりがない場合は無視してください。
                   </p>
-                  <p style="margin:0;font-size:11px;line-height:1.7;color:rgba(255,255,255,0.18);word-break:break-all;">
+                  <p style="margin:0;font-size:11px;line-height:1.7;color:rgba(255,255,255,0.28);word-break:break-all;">
                     ボタンが機能しない場合はこちらのURLをブラウザに貼り付けてください：<br />
-                    <span style="color:rgba(255,255,255,0.3);">${verifyUrl}</span>
+                    <span style="color:rgba(255,255,255,0.45);">${verifyUrl}</span>
                   </p>
                 </td>
               </tr>
