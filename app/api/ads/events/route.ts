@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { recordAdEvent } from "@/lib/supabase/business-hub";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
@@ -30,8 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: parsed.error.issues[0]?.message ?? "入力内容を確認してください" }, { status: 400 });
     }
 
-    const token = await getSessionCookie();
-    const session = token ? verifySession(token) : null;
+    const session = await getSupabaseProfile();
     const { data: ad } = await supabaseServer
       .from("ads")
       .select("id, business_id")

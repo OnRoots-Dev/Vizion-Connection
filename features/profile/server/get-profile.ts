@@ -1,8 +1,6 @@
 // features/profile/server/get-profile.ts
 
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { countReferralsBySlug } from "@/lib/supabase/referrals";
 import { getLatestCheers } from "@/lib/supabase/cheers";
 import { env } from "@/lib/env";
@@ -14,13 +12,7 @@ export type GetProfileResult =
 
 export async function getProfileFromSession(): Promise<GetProfileResult> {
     try {
-        const token = await getSessionCookie();
-        if (!token) return { success: false, reason: "unauthenticated" };
-
-        const session = verifySession(token);
-        if (!session) return { success: false, reason: "unauthenticated" };
-
-        const user = await findUserBySlug(session.slug);
+        const user = await getSupabaseProfile();
         if (!user) return { success: false, reason: "not_found" };
 
         const [referralCount, latestCheers] = await Promise.all([

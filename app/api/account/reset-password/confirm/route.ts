@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { findUserByResetToken, updatePassword } from "@/lib/supabase/data/users.server";
-import bcrypt from "bcryptjs";
+import { supabaseServer } from "@/lib/supabase/server";
 import { z } from "zod";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
@@ -30,8 +30,18 @@ export async function POST(req: Request) {
         const user = await findUserByResetToken(token);
         if (!user) return NextResponse.json({ ok: false, error: "無効なリンク、または有効期限切れです" }, { status: 400 });
 
-        const newHash = await bcrypt.hash(newPassword, 12);
-        await updatePassword(user.slug, newHash);
+        if (!user.authId) {
+            return NextResponse.json({ ok: false, error: "Auth連携されていないユーザーです" }, { status: 400 });
+        }
+
+        const { error } = await supabaseServer.auth.admin.updateUserById(user.authId, {
+            password: newPassword,
+        });
+        if (error) {
+            return NextResponse.json({ ok: false, error: "パスワード更新に失敗しました" }, { status: 500 });
+        }
+
+        await updatePassword(user.slug, "supabase-auth");
 
         return NextResponse.json({ ok: true });
     } catch (err) {

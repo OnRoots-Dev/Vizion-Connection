@@ -10,9 +10,7 @@ import { getCareerProfile } from "@/lib/supabase/career-profiles";
 import CollectButtonClient from "./CollectButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
-import { cookies } from "next/headers";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
 import CareerSection from "./CareerSection";
 import { getCollectorCount } from "@/lib/supabase/collections";
@@ -29,10 +27,6 @@ import PublicProfileCountValue from "./PublicProfileCountValue";
 import Image from "next/image";
 import Link from "next/link";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
-import { Barlow, Barlow_Condensed } from "next/font/google";
-
-const barlow = Barlow({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "900"] });
-const barlowCondensed = Barlow_Condensed({ subsets: ["latin"], weight: ["300", "400", "600", "700", "900"] });
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#B8860B", Business: "#1B3A8C",
@@ -50,6 +44,8 @@ const ROLE_LABEL_JA: Record<UserRole, string> = {
     Athlete: "アスリート", Trainer: "トレーナー", Crew: "クルー", Business: "ビジネス",
     Admin: "管理",
 };
+const PUBLIC_PROFILE_FONT = "var(--font-noto), 'Hiragino Sans', 'Yu Gothic', sans-serif";
+const PUBLIC_PROFILE_CONDENSED_FONT = "'Arial Narrow', 'Helvetica Neue', var(--font-noto), sans-serif";
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
@@ -81,9 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function UserProfilePage({ params }: Props) {
     const { slug } = await params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-    const session = token ? verifySession(token) : null;
+    const session = await getSupabaseProfile();
     const result = await getPublicProfileBySlug(slug, session?.slug ?? null);
     if (!result.success) {
         if (result.reason === "forbidden") {
@@ -165,7 +159,7 @@ export default async function UserProfilePage({ params }: Props) {
         const nextEventLabel = nextScheduleDate ? `次戦 ${nextScheduleDate}` : "次戦 未設定";
 
         return (
-            <div className={barlow.className} style={{ minHeight: "100vh", background: "#080c14", color: "#fff" }}>
+            <div style={{ minHeight: "100vh", background: "#080c14", color: "#fff", fontFamily: PUBLIC_PROFILE_FONT }}>
                 <PublicProfileRealtime slug={slug} />
                 <style>{`
                     :root{
@@ -241,7 +235,7 @@ export default async function UserProfilePage({ params }: Props) {
                       color:var(--accent-soft);
                     }
                     .a-name-first{
-                      font-family: ${barlowCondensed.style.fontFamily};
+                      font-family: ${PUBLIC_PROFILE_CONDENSED_FONT};
                       font-size:48px;
                       color:var(--g1);
                       letter-spacing:.01em;

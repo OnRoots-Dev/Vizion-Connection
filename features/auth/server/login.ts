@@ -1,61 +1,41 @@
 // features/auth/server/login.ts
-
-import { findUserByEmail } from "@/lib/supabase/data/users.server";
-import { verifyPassword } from "@/lib/auth/hash";
-import { signSession } from "@/lib/auth/session";
-import { loginSchema } from "@/features/auth/validation/login-schema";
+import { createClient } from "@/lib/supabase/server";
 import type { LoginInput } from "@/features/auth/types";
-import { updateLastLogin } from "@/lib/supabase/data/users.server";
+import { findUserBySlug, updateLastLogin } from "@/lib/supabase/data/users.server";
 
 export type LoginResult =
-    | { success: true; slug: string; role: string; token: string; isOnboardingComplete: boolean }
+    | { success: true; slug: string; role: string; isOnboardingComplete: boolean }
     | { success: false; error: string };
 
 export async function loginUser(input: LoginInput): Promise<LoginResult> {
-    // 1. バリデーション
-    const parsed = loginSchema.safeParse(input);
-    if (!parsed.success) {
-        const message = parsed.error.issues[0]?.message ?? "入力内容が正しくありません";
-        return { success: false, error: message };
-    }
+    const supabase = await createClient();
 
-    const { email, password } = parsed.data;
-
-    // 2. ユーザー検索
-    const user = await findUserByEmail(email);
-    if (!user) {
-        // ユーザーが存在しないことを明かさないよう汎用メッセージ
-        return {
-            success: false,
-            error: "メールアドレスまたはパスワードが正しくありません",
-        };
-    }
-
-    // 3. メール未認証チェック
-    if (!user.verified) {
-        return {
-            success: false,
-            error:
-                "メールアドレスが未確認です。受信したメールのリンクから確認を完了してください。",
-        };
-    }
-
-    // 4. パスワード照合
-    const isValid = await verifyPassword(input.password, user.passwordHash);
-    if (!isValid) {
-        return {
-            success: false,
-            error: "メールアドレスまたはパスワードが正しくありません",
-        };
-    }
-
-    await updateLastLogin(user.slug);
-
-    const token = signSession({
-        userId: String(user.id),
-        slug: user.slug,
-        role: user.role,
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: input.email,
+        password: input.password,
     });
 
-    return { success: true, slug: user.slug, role: user.role, token, isOnboardingComplete: user.isOnboardingComplete ?? false };
+    if (error || !data.user) {
+        return { success: false, error: "メールアドレスまたはパスワードが正しくありません" };
+    }
+
+    const slug = data.user.user_metadata.slug as string | undefined;
+    const role = data.user.user_metadata.role as string | undefined;
+    if (!slug || !role) {
+        return { success: false, error: "ログインユーザー情報の取得に失敗しました" };
+    }
+
+    const profile = await findUserBySlug(slug);
+    if (!profile) {
+        return { success: false, error: "プロフィールが見つかりません" };
+    }
+
+    await updateLastLogin(profile.slug);
+
+    return {
+        success: true,
+        slug: profile.slug,
+        role: role,
+        isOnboardingComplete: profile.isOnboardingComplete ?? false,
+    };
 }

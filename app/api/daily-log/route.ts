@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { addPointsToUser } from "@/lib/supabase/data/users.server";
@@ -19,17 +18,12 @@ const MORNING_BONUS_END_HOUR = 10;
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const token = await getSessionCookie();
-    if (!token) {
-      return NextResponse.json({ logs: [] }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ logs: [] }, { status: 401 });
     }
 
-    const logs = await getDailyLogs(session.userId, 30);
+    const logs = await getDailyLogs(String(session.id), 30);
     return NextResponse.json({ logs });
   } catch (err) {
     console.error("[GET /api/daily-log]", err);
@@ -42,12 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (csrfError) return csrfError as unknown as NextResponse;
 
   try {
-    const token = await getSessionCookie();
-    if (!token) {
-      return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
     }
@@ -67,9 +56,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: "入力内容を確認してください" }, { status: 400 });
     }
 
-    const existingLog = await getTodayDailyLog(session.userId);
+    const userId = String(session.id);
+    const existingLog = await getTodayDailyLog(userId);
     const log = await upsertDailyLog({
-      userId: session.userId,
+      userId,
       content: parsed.data.content,
       conditionScore: parsed.data.condition_score,
     });
@@ -87,7 +77,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     await recordMissionAction({
-      userId: session.userId,
+      userId,
       slug: session.slug,
       requiredAction: "daily_log",
     }).catch((error) => {

@@ -17,9 +17,6 @@ export const env = {
   SUPABASE_URL: requireEnv("SUPABASE_URL"),
   SUPABASE_SERVICE_ROLE_KEY: requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
 
-  // Auth
-  SESSION_SECRET: requireEnv("SESSION_SECRET"),
-
   // Email
   RESEND_API_KEY: requireEnv("RESEND_API_KEY"),
   FROM_EMAIL: process.env.FROM_EMAIL ?? "noreply@vizion-connection.jp",

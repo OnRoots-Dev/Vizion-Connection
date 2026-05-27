@@ -1,9 +1,7 @@
 // app/api/cheer/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { getCheerLimitUsage } from "@/lib/supabase/cheers";
 import { cheerProfile } from "@/features/profile/server/cheer-profile";
 import { cheerLimiter, getIp } from "@/lib/ratelimit";
@@ -36,12 +34,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             );
         }
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-        if (!token) {
-            return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-        }
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }
@@ -108,7 +101,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         await recordMissionAction({
-            userId: session.userId,
+            userId: String(session.id),
             slug: session.slug,
             requiredAction: "cheer",
         }).catch((error) => {

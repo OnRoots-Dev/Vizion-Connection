@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { createVoiceLabPost, getVoiceLabPosts, updateVoiceLabPostStatus } from "@/lib/voicelab";
 
 const createSchema = z.object({
@@ -23,11 +21,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-        if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const parsed = createSchema.safeParse(await req.json());
@@ -36,7 +30,7 @@ export async function POST(req: NextRequest) {
         }
 
         const ok = await createVoiceLabPost(
-            Number(session.userId),
+            Number(session.id),
             parsed.data.category,
             parsed.data.title,
             parsed.data.body,
@@ -52,11 +46,7 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-        if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         if (session.role !== "Admin") {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });

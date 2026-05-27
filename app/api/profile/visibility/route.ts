@@ -1,9 +1,7 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
+import { getSupabaseProfile } from "@/lib/auth/session";
+import { updateUserProfile } from "@/lib/supabase/data/users.server";
 import { profileLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 
@@ -15,14 +13,7 @@ export async function PATCH(req: NextRequest) {
   const csrfError = validateCSRF(req);
   if (csrfError) return csrfError as unknown as NextResponse;
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const session = verifySession(token);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const user = await findUserBySlug(session.slug);
+  const user = await getSupabaseProfile();
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   const { success } = await profileLimiter.limit(getIp(req));

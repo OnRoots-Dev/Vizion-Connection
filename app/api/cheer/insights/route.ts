@@ -1,9 +1,7 @@
 // app/api/cheer/insights/route.ts
 
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type UserMeta = {
@@ -21,13 +19,7 @@ function bump(map: Record<string, number>, key: string | null | undefined) {
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-    if (!token) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

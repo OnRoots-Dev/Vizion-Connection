@@ -1,12 +1,10 @@
 // app/api/business-checkout/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/auth/session";
-import { getSessionCookie } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
 import { setUserPlan } from "@/lib/supabase/data/users.server";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -18,19 +16,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const csrfError = validateCSRF(req);
         if (csrfError) return csrfError as unknown as NextResponse;
 
-        const token = await getSessionCookie();
-        if (!token) {
-            return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-        }
-
-        const session = verifySession(token);
-        if (!session) {
-            return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
-        }
-
-        const profile = await findUserBySlug(session.slug);
+        const profile = await getSupabaseProfile();
         if (!profile) {
-            return NextResponse.json({ success: false, error: "ユーザーが見つかりません" }, { status: 404 });
+            return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }
 
         const { success } = await businessLimiter.limit(getIp(req));
@@ -67,14 +55,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         if (plan.amount === 0) {
             await createBusinessOrder({
                 email: profile.email,
-                slug: session.slug,
+                slug: profile.slug,
                 planId: plan.id,
                 planName: plan.name,
                 amount: 0,
                 status: "completed",
                 squareLink: "",
             });
-            await setUserPlan(session.slug, "paid");
+            await setUserPlan(profile.slug, "paid");
             return NextResponse.json({ success: true, squareUrl: "" });
         }
 
@@ -84,7 +72,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         await createBusinessOrder({
             email: profile.email,
-            slug: session.slug,
+            slug: profile.slug,
             planId: plan.id,
             planName: plan.name,
             amount: plan.amount,
@@ -92,7 +80,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             squareLink: plan.squareUrl,
         });
         await notifyBusinessCheckoutSubmitted({
-            slug: session.slug,
+            slug: profile.slug,
             planName: plan.name,
             amount: plan.amount,
         }).catch((err) => {

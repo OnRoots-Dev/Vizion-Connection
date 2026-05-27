@@ -4,7 +4,6 @@ import { findUserByEmail, findUserBySlug, addPointsToUser, markUserVerified } fr
 import { findVerifyToken, markTokenUsed } from "@/lib/supabase/data/tokens.server";
 import { findReferralByReferredSlug, createReferral, countReferralsBySlug } from "@/lib/supabase/referrals";
 import { sendVerifiedEmail } from "@/lib/resend/send-verified-email";
-import { signSession } from "@/lib/auth/session";
 import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import { rewardOnetimeMission } from "@/lib/onetime-missions";
@@ -12,7 +11,6 @@ import { rewardOnetimeMission } from "@/lib/onetime-missions";
 type VerifyResult =
     | {
         success: true;
-        sessionToken: string;
         role: UserRole;
         slug: string;
     }
@@ -56,15 +54,8 @@ export async function verifyEmailToken(token: string): Promise<VerifyResult> {
 
     // すでに認証済み
     if (user.verified) {
-        const sessionToken = signSession({
-            userId: String(user.id),
-            slug: user.slug,
-            role: user.role,
-        });
-
         return {
             success: true,
-            sessionToken,
             role: user.role as UserRole,
             slug: user.slug,
         };
@@ -93,16 +84,8 @@ export async function verifyEmailToken(token: string): Promise<VerifyResult> {
         points: user.points ?? 0,
     });
 
-    // 7. セッション発行
-    const sessionToken = signSession({
-        userId: String(user.id),
-        slug: user.slug,
-        role: user.role,
-    });
-
     return {
         success: true,
-        sessionToken,
         role: user.role as UserRole,
         slug: user.slug,
     };

@@ -21,6 +21,7 @@ export interface LoginInput {
 // toProfile() の戻り値と完全に一致させる
 export interface UserRecord {
     id: number;
+    authId?: string | null;
     slug: string;
     displayName?: string;
     passwordHash: string;

@@ -1,4 +1,7 @@
-// Browser-safe Supabase client (anon key). Do not import in server code.
-import { supabaseBrowser } from "./browser";
+import { createBrowserClient } from "@supabase/ssr";
 
-export const supabase = supabaseBrowser;
+export const createClient = () =>
+    createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );

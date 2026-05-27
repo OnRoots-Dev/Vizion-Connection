@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { recordDiscoveryEvent } from "@/lib/supabase/discovery-events";
 import { discoveryTrackLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -32,8 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "bad_request" }, { status: 400 });
     }
 
-    const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const session = token ? verifySession(token) : null;
+    const session = await getSupabaseProfile();
 
     await recordDiscoveryEvent({
       viewerSlug: session?.slug ?? null,

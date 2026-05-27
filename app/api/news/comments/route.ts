@@ -3,9 +3,7 @@ import { z } from "zod";
 import { createNewsPostComment, getNewsPostComments, getNewsPostById } from "@/lib/news";
 import { validateCSRF } from "@/lib/security/csrf";
 import { PayloadTooLargeError, readLimitedJson } from "@/lib/security/body";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
+import { getSupabaseProfile } from "@/lib/auth/session";
 
 const schema = z.object({
     postId: z.string().trim().min(1).max(120),
@@ -27,17 +25,7 @@ export async function POST(req: NextRequest) {
     if (csrfError) return csrfError as unknown as NextResponse;
 
     try {
-        const token = await getSessionCookie();
-        if (!token) {
-            return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-        }
-
-        const session = verifySession(token);
-        if (!session) {
-            return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-        }
-
-        const user = await findUserBySlug(session.slug);
+        const user = await getSupabaseProfile();
         if (!user) {
             return NextResponse.json({ success: false, error: "ユーザーが見つかりません" }, { status: 404 });
         }

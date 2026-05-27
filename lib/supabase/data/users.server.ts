@@ -4,6 +4,7 @@ import { supabaseServer as supabase } from "@/lib/supabase/server";
 
 type UserRow = {
     id: number;
+    auth_id?: string | null;
     slug: string;
     display_name: string;
     password_hash: string;
@@ -53,6 +54,7 @@ type UserRow = {
 function toProfile(row: UserRow) {
     return {
         id: row.id,
+        authId: row.auth_id ?? null,
         slug: row.slug,
         displayName: row.display_name,
         passwordHash: row.password_hash,
@@ -151,6 +153,7 @@ export async function updateUserSerialId(slug: string, seq: number, randA: strin
 // ── 作成 ─────────────────────────────────────────────────────────────────────
 
 export async function createUser(params: {
+    authId?: string | null;
     slug: string;
     displayName: string;
     passwordHash: string;
@@ -169,6 +172,7 @@ export async function createUser(params: {
     const { data, error } = await supabase
         .from("users")
         .insert({
+            auth_id: params.authId ?? null,
             slug: params.slug,
             display_name: params.displayName,
             password_hash: params.passwordHash,
@@ -201,6 +205,7 @@ const CAMEL_TO_SNAKE: Record<string, string> = {
     displayName: "display_name", bio: "bio", region: "region",
     prefecture: "prefecture", location: "location", sport: "sport",
     sports: "sports",
+    authId: "auth_id",
     sportsCategory: "sports_category", stance: "stance", claim: "claim",
     instagram: "instagram", xUrl: "x_url", tiktok: "tiktok",
     avatarUrl: "avatar_url", profileImageUrl: "profile_image_url",

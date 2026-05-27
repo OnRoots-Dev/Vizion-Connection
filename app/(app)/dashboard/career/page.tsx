@@ -1,12 +1,7 @@
 // app/(app)/dashboard/career/page.tsx
-// 認証パターン: get-profile.ts と完全に同じ
-// getSessionCookie + verifySession + findUserBySlug
-
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { getCareerProfile } from "@/lib/supabase/career-profiles";
 import CareerDashboardClient from "./CareerDashboardClient";
 
@@ -16,14 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CareerDashboardPage() {
-  // ── Auth（get-profile.ts と同一パターン）──────────────────
-  const token = await getSessionCookie();
-  if (!token) redirect("/login");
-
-  const session = verifySession(token);
-  if (!session) redirect("/login");
-
-  const user = await findUserBySlug(session.slug);
+  const user = await getSupabaseProfile();
   if (!user || user.isDeleted) redirect("/login");
 
   // ── career_profiles 取得（未作成なら null）────────────────

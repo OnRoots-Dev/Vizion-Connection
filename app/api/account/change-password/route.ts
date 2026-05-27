@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { findUserBySlug, updatePassword } from "@/lib/supabase/data/users.server";
-import bcrypt from "bcryptjs";
+import { createClient } from "@/lib/supabase/server";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { z } from "zod";
 import { accountLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -19,11 +16,8 @@ export async function POST(req: Request) {
         const csrfError = validateCSRF(req);
         if (csrfError) return csrfError as unknown as NextResponse;
 
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-        if (!token) return NextResponse.json({ ok: false, error: "ログインが必要です" }, { status: 401 });
-        const session = verifySession(token);
-        if (!session) return NextResponse.json({ ok: false, error: "セッションが無効です" }, { status: 401 });
+        const user = await getSupabaseProfile();
+        if (!user) return NextResponse.json({ ok: false, error: "セッションが無効です" }, { status: 401 });
 
         const { success } = await accountLimiter.limit(getIp(req));
         if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
@@ -40,14 +34,15 @@ export async function POST(req: Request) {
 
         const { currentPassword, newPassword } = parsed.data;
 
-        const user = await findUserBySlug(session.slug);
-        if (!user) return NextResponse.json({ ok: false, error: "ユーザーが見つかりません" }, { status: 404 });
+        const supabase = await createClient();
+        const signInResult = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: currentPassword,
+        });
+        if (signInResult.error) return NextResponse.json({ ok: false, error: "現在のパスワードが正しくありません" }, { status: 400 });
 
-        const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-        if (!valid) return NextResponse.json({ ok: false, error: "現在のパスワードが正しくありません" }, { status: 400 });
-
-        const newHash = await bcrypt.hash(newPassword, 12);
-        await updatePassword(session.slug, newHash);
+        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+        if (updateError) return NextResponse.json({ ok: false, error: "パスワード更新に失敗しました" }, { status: 500 });
 
         return NextResponse.json({ ok: true });
     } catch (err) {

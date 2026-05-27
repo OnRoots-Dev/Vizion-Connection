@@ -1,8 +1,7 @@
 // app/api/missions/complete/route.ts
 
 import { NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { addPointsToUser, findUserBySlug, setMissionBonusGiven } from "@/lib/supabase/data/users.server";
 import { countReferralsBySlug } from "@/lib/supabase/referrals";
 import { missionLimiter, getIp } from "@/lib/ratelimit";
@@ -14,18 +13,14 @@ const MISSION_BONUS_POINTS = 1000;
 
 export async function GET(): Promise<NextResponse> {
     try {
-        const token = await getSessionCookie();
-        if (!token) return NextResponse.json({ success: false, error: "unauthenticated" }, { status: 401 });
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) return NextResponse.json({ success: false, error: "unauthenticated" }, { status: 401 });
-
         const user = await findUserBySlug(session.slug);
         if (!user) return NextResponse.json({ success: false, error: "not_found" }, { status: 404 });
 
         const [referralCount, daily] = await Promise.all([
             countReferralsBySlug(user.slug),
-            getDailyMissionsWithProgress(session.userId),
+            getDailyMissionsWithProgress(String(user.id)),
         ]);
 
         const onetime = buildOnetimeMissions({
@@ -47,10 +42,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         const csrfError = validateCSRF(req);
         if (csrfError) return csrfError as unknown as NextResponse;
 
-        const token = await getSessionCookie();
-        if (!token) return NextResponse.json({ ok: false, error: "unauthenticated" }, { status: 401 });
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) return NextResponse.json({ ok: false, error: "unauthenticated" }, { status: 401 });
 
         const { success } = await missionLimiter.limit(getIp(req));

@@ -6,14 +6,19 @@ import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
 
 // ── Sports master data ──────────────────────────────────────────────────────
 
+const CUSTOM_SPORT_OPTION = "その他（自由入力）";
+
 const SPORTS_BY_CATEGORY: Record<string, string[]> = {
-    球技: ["サッカー", "フットサル", "野球", "ソフトボール", "バスケットボール", "バレーボール", "テニス", "卓球", "バドミントン", "ラグビー", "アメリカンフットボール", "ゴルフ", "ハンドボール", "ラクロス", "ホッケー", "その他"],
-    格闘技: ["柔道", "剣道", "空手", "ボクシング", "レスリング", "テコンドー", "MMA", "ムエタイ", "合気道", "相撲", "フェンシング", "その他"],
-    陸上: ["短距離走", "中距離走", "長距離走", "マラソン", "ハードル", "走り幅跳び", "走り高跳び", "棒高跳び", "砲丸投げ", "やり投げ", "ハンマー投げ", "競歩", "トレイルラン", "その他"],
-    水泳: ["競泳", "水球", "飛び込み", "アーティスティックスイミング", "オープンウォーター", "その他"],
-    体操: ["体操競技", "新体操", "トランポリン", "アクロバット", "その他"],
-    ウィンタースポーツ: ["アルペンスキー", "クロスカントリースキー", "スキージャンプ", "スノーボード", "スピードスケート", "フィギュアスケート", "アイスホッケー", "カーリング", "その他"],
-    その他: ["自転車競技", "ヨット", "カヌー", "馬術", "アーチェリー", "射撃", "トライアスロン", "サーフィン", "スケートボード", "クライミング", "ダンス", "チアリーディング", "その他"],
+  球技: ["サッカー", "フットサル", "野球", "ソフトボール", "バスケットボール", "バレーボール", "テニス", "卓球", "バドミントン", "ラグビー", "アメリカンフットボール", "ゴルフ", "ハンドボール", "ラクロス", "ホッケー", "クリケット", "ゲートボール", "その他（自由入力）"],
+  格闘技: ["柔道", "剣道", "空手", "ボクシング", "レスリング", "テコンドー", "MMA", "ムエタイ", "合気道", "相撲", "フェンシング", "その他（自由入力）"],
+  陸上: ["短距離走", "中距離走", "長距離走", "マラソン", "ハードル", "走り幅跳び", "走り高跳び", "棒高跳び", "砲丸投げ", "やり投げ", "ハンマー投げ", "競歩", "トレイルラン", "その他（自由入力）"],
+  水泳: ["競泳", "水球", "飛び込み", "アーティスティックスイミング", "オープンウォーター", "その他（自由入力）"],
+  体操: ["体操競技", "新体操", "トランポリン", "アクロバット", "その他（自由入力）"],
+  ウィンタースポーツ: ["アルペンスキー", "クロスカントリースキー", "スキージャンプ", "スノーボード", "スピードスケート", "フィギュアスケート", "アイスホッケー", "カーリング", "その他（自由入力）"],
+  フィットネス: ["筋力トレーニング", "ボディメイク", "フィジーク", "ボディビル", "クロスフィット", "ヨガ", "ピラティス", "その他（自由入力）"],
+  eスポーツ: ["FPS", "MOBA", "格闘ゲーム", "スポーツゲーム", "TCG", "その他（自由入力）"],
+  アーバンスポーツ: ["BMX", "パルクール", "ブレイキン", "インラインスケート", "スクーター", "その他（自由入力）"],
+  その他: ["自転車競技", "ヨット", "カヌー", "馬術", "アーチェリー", "射撃", "トライアスロン", "サーフィン", "スケートボード", "クライミング", "ダンス", "チアリーディング", "ボウリング", "ダーツ", "ビリヤード", "その他（自由入力）"],
 };
 
 const PREFECTURES_BY_REGION: Record<string, string[]> = {
@@ -101,6 +106,7 @@ export default function OnboardingProfileForm() {
     const [displayName, setDisplayName] = useState("");
     const [sportsCategory, setSportsCategory] = useState("");
     const [sport, setSport] = useState("");
+    const [customSport, setCustomSport] = useState("");
     const [region, setRegion] = useState("");
     const [prefecture, setPrefecture] = useState("");
     const [location, setLocation] = useState("");
@@ -117,13 +123,16 @@ export default function OnboardingProfileForm() {
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
 
-    const isValid = Boolean(displayName.trim() && sportsCategory && sport && region && prefecture);
     const sports = sportsCategory ? (SPORTS_BY_CATEGORY[sportsCategory] ?? []) : [];
     const prefectures = region ? (PREFECTURES_BY_REGION[region] ?? []) : [];
+    const isCustomSportSelected = sport === CUSTOM_SPORT_OPTION;
+    const resolvedSport = isCustomSportSelected ? customSport.trim() : sport;
+    const isValid = Boolean(displayName.trim() && sportsCategory && resolvedSport && region && prefecture);
 
     function handleSportsCategoryChange(v: string) {
         setSportsCategory(v);
         setSport("");
+        setCustomSport("");
     }
 
     function handleRegionChange(v: string) {
@@ -167,7 +176,7 @@ export default function OnboardingProfileForm() {
                 body: JSON.stringify({
                     displayName: displayName.trim(),
                     sportsCategory,
-                    sport,
+                    sport: resolvedSport,
                     region,
                     prefecture,
                     ...(location.trim() ? { location: location.trim() } : {}),
@@ -235,13 +244,32 @@ export default function OnboardingProfileForm() {
                         <Label text="競技・種目" required />
                         <select
                             value={sport}
-                            onChange={(e) => setSport(e.target.value)}
+                            onChange={(e) => {
+                                const nextSport = e.target.value;
+                                setSport(nextSport);
+                                if (nextSport !== CUSTOM_SPORT_OPTION) {
+                                    setCustomSport("");
+                                }
+                            }}
                             disabled={!sportsCategory}
                             style={{ ...SELECT_BASE, opacity: sportsCategory ? 1 : 0.45 }}
                         >
                             <option value="">{sportsCategory ? "選択してください" : "カテゴリーを先に選択"}</option>
                             {sports.map((s) => (<option key={s} value={s}>{s}</option>))}
                         </select>
+                        {isCustomSportSelected ? (
+                            <div style={{ marginTop: 12 }}>
+                                <Label text="競技名を入力" required />
+                                <input
+                                    type="text"
+                                    value={customSport}
+                                    onChange={(e) => setCustomSport(e.target.value)}
+                                    placeholder="例：カバディ"
+                                    maxLength={40}
+                                    style={INPUT_BASE}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 

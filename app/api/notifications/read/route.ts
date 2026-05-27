@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import {
@@ -28,12 +27,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (csrfError) return csrfError as unknown as NextResponse;
 
   try {
-    const token = await getSessionCookie();
-    if (!token) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

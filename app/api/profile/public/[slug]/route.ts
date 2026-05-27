@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { getCareerProfile } from "@/lib/supabase/career-profiles";
 import { getCollectorCount } from "@/lib/supabase/collections";
@@ -10,8 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const token = _req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = token ? verifySession(token) : null;
+  const session = await getSupabaseProfile();
   const result = await getPublicProfileBySlug(slug, session?.slug ?? null);
 
   if (!result.success) {

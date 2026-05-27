@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { recordMissionAction } from "@/lib/missions";
@@ -15,12 +14,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (csrfError) return csrfError as unknown as NextResponse;
 
   try {
-    const token = await getSessionCookie();
-    if (!token) {
-      return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
     }
@@ -41,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const daily = await recordMissionAction({
-      userId: session.userId,
+      userId: String(session.id),
       slug: session.slug,
       requiredAction: parsed.data.required_action,
     });

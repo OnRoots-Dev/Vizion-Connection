@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySession } from "@/lib/auth/session";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type CheerReceivedItem = {
@@ -20,11 +18,7 @@ type CheerReceivedItem = {
 
 export async function GET(req: Request): Promise<NextResponse> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-        if (!token) return NextResponse.json({ items: [] });
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) return NextResponse.json({ items: [] });
 
         const url = new URL(req.url);

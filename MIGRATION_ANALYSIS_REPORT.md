@@ -141,7 +141,7 @@ So **`missionBonusGiven` is never set**, and the “二重付与防止” check 
 
 ## 6. API Inefficiencies and Consistency
 
-- **Session access:** Some routes use `getSessionCookie()` (e.g. share/complete, missions), others `cookies().get(SESSION_COOKIE_NAME)?.value` (e.g. profile/save, account/*, cheer). Both work; standardizing on one helper would simplify maintenance.
+- **Session access:** Supabase Auth session helpers are now the canonical path for authenticated user resolution.
 
 - **Profile save:** No Zod (or other) validation on `POST /api/profile/save`; body is spread into `updateUserProfile`. Unknown keys are only filtered by `CAMEL_TO_SNAKE`; unmapped keys are sent to Supabase and can cause errors or unexpected updates. Add a schema and allow-list of fields.
 
@@ -151,7 +151,7 @@ So **`missionBonusGiven` is never set**, and the “二重付与防止” check 
 
 ## 7. Security
 
-- **Secrets:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET` are server-only (e.g. via `lib/env.ts`), not in `NEXT_PUBLIC_*`. Good.
+- **Secrets:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are server-only (e.g. via `lib/env.ts`), not in `NEXT_PUBLIC_*`. Good.
 
 - **Reset-password request:** Returns `{ ok: true }` even when the user is not found, limiting email enumeration. Good.
 

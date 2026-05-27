@@ -8,8 +8,7 @@ export default async function SchedulePage() {
   const result = await getProfileFromSession();
 
   if (!result.success) {
-    const reason = result.reason === "unauthenticated" ? "unauthenticated" : "other";
-    redirect(`/api/auth/clear?reason=${reason}`);
+    redirect("/login?redirect=/schedule");
   }
 
   const { profile } = result.data;

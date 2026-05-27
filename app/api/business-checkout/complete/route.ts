@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { completeLatestPendingOrderBySlug } from "@/lib/supabase/business-orders";
 import { setUserPlan } from "@/lib/supabase/data/users.server";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -10,12 +9,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const csrfError = validateCSRF(req);
         if (csrfError) return csrfError as unknown as NextResponse;
 
-        const token = await getSessionCookie();
-        if (!token) {
-            return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-        }
-
-        const session = verifySession(token);
+        const session = await getSupabaseProfile();
         if (!session) {
             return NextResponse.json({ success: false, error: "セッションが無効です" }, { status: 401 });
         }

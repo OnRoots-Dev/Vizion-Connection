@@ -1,9 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
 import { createElement as h } from "react";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { findUserBySlug } from "@/lib/supabase/data/users.server";
 
 export const runtime = "nodejs";
@@ -25,9 +23,7 @@ export async function GET(req: Request) {
             const user = await findUserBySlug(ref);
             foundingNumber = user?.foundingNumber ?? null;
         } else {
-            const cookieStore = await cookies();
-            const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-            const session = token ? verifySession(token) : null;
+            const session = await getSupabaseProfile();
             if (session?.slug) {
                 const user = await findUserBySlug(session.slug);
                 foundingNumber = user?.foundingNumber ?? null;

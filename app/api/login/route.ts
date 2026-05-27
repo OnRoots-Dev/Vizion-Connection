@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { loginUser } from "@/features/auth/server/login";
 import type { LoginInput } from "@/features/auth/types";
 import { loginLimiter, getIp } from "@/lib/ratelimit";
-import { COOKIE_OPTIONS, SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { z } from "zod";
@@ -55,12 +54,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json(result, { status: 401 });
         }
 
-        const res = NextResponse.json(
+        return NextResponse.json(
             { success: true, slug: result.slug, role: result.role, isOnboardingComplete: result.isOnboardingComplete },
             { status: 200 }
         );
-        res.cookies.set(SESSION_COOKIE_NAME, result.token, COOKIE_OPTIONS);
-        return res;
     } catch (err) {
         console.error("[POST /api/login]", err);
         return NextResponse.json(

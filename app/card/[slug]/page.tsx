@@ -6,9 +6,7 @@ import Link from "next/link";
 import CardPageClient from "./CardPageClient";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import type { UserRole } from "@/features/auth/types";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import Image from "next/image";
 
 const ROLE_LABEL_JA: Record<UserRole, string> = {
@@ -43,9 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CardPage({ params }: Props) {
     const { slug } = await params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-    const session = token ? verifySession(token) : null;
+    const session = await getSupabaseProfile();
     const result = await getPublicProfileBySlug(slug, session?.slug ?? null);
     if (!result.success) {
         if (result.reason === "forbidden") {

@@ -43,8 +43,7 @@ export default async function DashboardPage({
     const result = await getProfileFromSession();
 
     if (!result.success) {
-        const reason = result.reason === "unauthenticated" ? "unauthenticated" : "other";
-        redirect(`/api/auth/clear?reason=${reason}`);
+        redirect("/login?redirect=/dashboard");
     }
 
     const { profile, referralUrl, referralCount } = result.data;

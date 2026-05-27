@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
 import { supabaseServer } from "@/lib/supabase/server";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 
 export const dynamic = "force-dynamic";
@@ -67,9 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicProfilePage({ params }: Props) {
   const { username } = await params;
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  const session = token ? verifySession(token) : null;
+  await getSupabaseProfile();
 
   const user = await findPublicProfileUser(username);
   if (!user) notFound();

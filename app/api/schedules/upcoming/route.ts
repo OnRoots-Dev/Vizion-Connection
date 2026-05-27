@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET(req: Request): Promise<NextResponse> {
   try {
-    const token = await getSessionCookie();
-    if (!token) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

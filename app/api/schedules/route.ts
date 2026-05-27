@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { scheduleLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 import {
@@ -15,10 +14,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     const csrfError = validateCSRF(req);
     if (csrfError) return csrfError as unknown as NextResponse;
 
-    const token = await getSessionCookie();
-    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     const { success } = await scheduleLimiter.limit(getIp(req));
@@ -61,10 +57,7 @@ export async function PUT(req: Request): Promise<NextResponse> {
     const csrfError = validateCSRF(req);
     if (csrfError) return csrfError as unknown as NextResponse;
 
-    const token = await getSessionCookie();
-    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     const { success } = await scheduleLimiter.limit(getIp(req));
@@ -129,10 +122,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     const csrfError = validateCSRF(req);
     if (csrfError) return csrfError as unknown as NextResponse;
 
-    const token = await getSessionCookie();
-    if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-    const session = verifySession(token);
+    const session = await getSupabaseProfile();
     if (!session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     const { success } = await scheduleLimiter.limit(getIp(req));

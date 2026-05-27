@@ -1,12 +1,11 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifySessionEdge } from "@/lib/auth/session-edge";
+import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
 
 // 認証が必要なパス
 const PROTECTED_PATHS = ["/dashboard", "/news-rooms"];
 
-// 認証済みユーザーがアクセスできないパス（ログイン済みなら/dashboardへ）
+// 認証済みユーザーがアクセスできないパス（ログイン済みならアプリのトップへ）
 const AUTH_PATHS = ["/login", "/register", "/reset-password", "/verify", "/thanks"];
 
 const MARKETING_PATHS = ["/"]; // LPの実際のパスに合わせて調整済みのものを維持
@@ -94,15 +93,17 @@ export async function proxy(req: NextRequest) {
         return applyCors(req, new NextResponse(null, { status: 204 }));
     }
 
+    const { supabase, getResponse } = createMiddlewareClient(req);
+
     // Avoid cross-origin redirects for App Router internals such as RSC and prefetch.
     if (isInternalRequest) {
-        return applyCors(req, NextResponse.next());
+        return applyCors(req, getResponse());
     }
 
     // Local development should stay on the same host.
     // Otherwise it becomes impossible to test login flows locally.
     if (process.env.NODE_ENV !== "production" || isLocalDevHost) {
-        return applyCors(req, NextResponse.next());
+        return applyCors(req, getResponse());
     }
 
     if (isApp) {
@@ -122,8 +123,12 @@ export async function proxy(req: NextRequest) {
         }
     }
 
-    const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-    const session = token ? await verifySessionEdge(token) : null;
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    const session = user
+        ? { slug: user.user_metadata.slug as string | undefined, role: user.user_metadata.role as string | undefined }
+        : null;
 
     // 保護ルートへの未認証アクセス → /loginへリダイレクト
     const isProtected = PROTECTED_PATHS.some(p => pathname.startsWith(p));
@@ -134,7 +139,7 @@ export async function proxy(req: NextRequest) {
         return applyCors(req, NextResponse.redirect(url));
     }
 
-    // ログイン済みで/login・/registerへのアクセス → /dashboardへ
+    // ログイン済みで/login・/registerへのアクセス → アプリのトップへ
     const isAuthPath = AUTH_PATHS.some(p => pathname.startsWith(p));
     if (isAuthPath && session) {
         const url = req.nextUrl.clone();
@@ -142,7 +147,7 @@ export async function proxy(req: NextRequest) {
         return applyCors(req, NextResponse.redirect(url));
     }
 
-    return applyCors(req, NextResponse.next());
+    return applyCors(req, getResponse());
 }
 
 export const config = {

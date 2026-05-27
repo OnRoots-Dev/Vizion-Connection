@@ -3,8 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
+import { getSupabaseProfile } from "@/lib/auth/session";
 import { getMyCareerProfile, saveMyCareerProfile } from "@/features/career-profile/server/career-service";
 
 // ────────────────────────────────────────────────────────────
@@ -98,12 +97,7 @@ class RequestEntityTooLargeError extends Error {}
 // ── GET: 自分のキャリアプロフィール取得 ──────────────────────
 
 export async function GET(): Promise<NextResponse> {
-  const token = await getSessionCookie();
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const session = verifySession(token);
+  const session = await getSupabaseProfile();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -119,12 +113,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const token = await getSessionCookie();
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const session = verifySession(token);
+  const session = await getSupabaseProfile();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

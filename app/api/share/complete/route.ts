@@ -1,9 +1,8 @@
 // app/api/share/complete/route.ts
 
 import { NextResponse } from "next/server";
-import { getSessionCookie } from "@/lib/auth/cookies";
-import { verifySession } from "@/lib/auth/session";
-import { findUserBySlug, updateUserProfile } from "@/lib/supabase/data/users.server";
+import { getSupabaseProfile } from "@/lib/auth/session";
+import { updateUserProfile } from "@/lib/supabase/data/users.server";
 import { shareLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 import { rewardOnetimeMission } from "@/lib/onetime-missions";
@@ -16,13 +15,7 @@ export async function POST(req: Request) {
         const { success } = await shareLimiter.limit(getIp(req));
         if (!success) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
-        const token = await getSessionCookie();
-        if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-        const session = verifySession(token);
-        if (!session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-
-        const user = await findUserBySlug(session.slug);
+        const user = await getSupabaseProfile();
         if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
         if (!user.hasShared) {
