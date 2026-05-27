@@ -6,19 +6,13 @@ import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
 const PROTECTED_PATHS = ["/dashboard", "/news-rooms"];
 
 // 認証済みユーザーがアクセスできないパス（ログイン済みならアプリのトップへ）
-const AUTH_PATHS = ["/login", "/register", "/reset-password", "/verify", "/thanks", "/auth/confirm"];
+const AUTH_PATHS = ["/login", "/register"];
 
 const MARKETING_PATHS = ["/"]; // LPの実際のパスに合わせて調整済みのものを維持
 
 const APP_PATHS = [
   "/dashboard",
   "/news-rooms",
-  "/login",
-  "/register",
-  "/reset-password",
-  "/verify",
-  "/thanks",
-  "/auth/confirm",
 ];
 
 const CORS_ALLOWED_ORIGINS = new Set([
