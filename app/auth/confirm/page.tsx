@@ -19,20 +19,29 @@ export default function ConfirmPage() {
 
         async function confirmEmail() {
             const searchParams = new URLSearchParams(window.location.search);
+            const code = searchParams.get("code");
             const tokenHash = searchParams.get("token_hash");
             const type = searchParams.get("type") as EmailOtpType | null;
 
-            if (!tokenHash || !type) {
-                setStatus("error");
-                return;
-            }
-
             const supabase = createClient();
-            const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+            let accessToken: string | null = null;
+            let verifyError: Error | null = null;
+
+            if (code) {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                verifyError = error;
+                accessToken = data.session?.access_token ?? null;
+            } else if (tokenHash && type) {
+                const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+                verifyError = error;
+                accessToken = data.session?.access_token ?? null;
+            } else {
+                verifyError = new Error("missing_confirmation_params");
+            }
 
             if (cancelled) return;
 
-            if (error) {
+            if (verifyError) {
                 setStatus("error");
                 return;
             }
@@ -40,6 +49,11 @@ export default function ConfirmPage() {
             const res = await fetch("/api/auth/confirm/complete", {
                 method: "POST",
                 credentials: "include",
+                headers: accessToken
+                    ? {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                    : undefined,
             });
 
             if (cancelled) return;

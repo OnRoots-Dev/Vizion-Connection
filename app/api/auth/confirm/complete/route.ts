@@ -8,12 +8,18 @@ import { sendVerifiedEmail } from "@/lib/resend/send-verified-email";
 const POINTS_PER_REFERRAL = 500;
 const MAX_REFERRALS = 30;
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: Request): Promise<NextResponse> {
     const supabase = await createClient();
+    const authHeader = request.headers.get("authorization");
+    const accessToken = authHeader?.startsWith("Bearer ")
+        ? authHeader.slice("Bearer ".length)
+        : null;
     const {
         data: { user },
         error,
-    } = await supabase.auth.getUser();
+    } = accessToken
+        ? await supabase.auth.getUser(accessToken)
+        : await supabase.auth.getUser();
 
     if (error || !user) {
         return NextResponse.json({ success: false, error: "UNAUTHORIZED" }, { status: 401 });
