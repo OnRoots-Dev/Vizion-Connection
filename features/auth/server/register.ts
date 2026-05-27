@@ -6,6 +6,33 @@ import { rewardOnetimeMission } from "@/lib/onetime-missions";
 
 const FOUNDING_MEMBER_LIMIT = 100;
 
+function buildEmailRedirectTo(redirectTo?: string): string {
+    const emailRedirectToBase = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/confirm`;
+    return redirectTo
+        ? `${emailRedirectToBase}?next=${encodeURIComponent(redirectTo)}`
+        : emailRedirectToBase;
+}
+
+export async function resendSignupVerificationEmail(params: {
+    email: string;
+    redirectTo?: string;
+}): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: params.email,
+        options: {
+            emailRedirectTo: buildEmailRedirectTo(params.redirectTo),
+        },
+    });
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    return { success: true };
+}
+
 export async function registerUser(input: RegisterInput): Promise<RegisterResponse> {
     const supabase = await createClient();
     const { email, password, role, displayName, slug, region, referrerSlug, redirectTo } = input;
@@ -14,7 +41,23 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
 
     const existingByEmail = await findUserByEmail(email);
     if (existingByEmail) {
-        return { success: false, error: "このメールアドレスはすでに登録されています" };
+        if (!existingByEmail.verified) {
+            const resendResult = await resendSignupVerificationEmail({ email, redirectTo });
+            return {
+                success: false,
+                code: "PENDING_VERIFICATION",
+                email,
+                resent: resendResult.success,
+                error: "このメールアドレスは既に仮登録されています",
+            };
+        }
+
+        return {
+            success: false,
+            code: "ALREADY_REGISTERED",
+            email,
+            error: "このメールアドレスは既に登録済みです",
+        };
     }
 
     const existingBySlug = await findUserBySlug(slug);
@@ -41,10 +84,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     const roleCount = await countUsersByRole(role);
     const isFoundingMember = roleCount < FOUNDING_MEMBER_LIMIT;
 
-    const emailRedirectToBase = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/confirm`;
-    const emailRedirectTo = redirectTo
-        ? `${emailRedirectToBase}?next=${encodeURIComponent(redirectTo)}`
-        : emailRedirectToBase;
+    const emailRedirectTo = buildEmailRedirectTo(redirectTo);
 
     const { data, error } = await supabase.auth.signUp({
         email,
@@ -60,7 +100,24 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
 
     if (error) {
         if (error.message.toLowerCase().includes("already registered")) {
-            return { success: false, error: "このメールアドレスはすでに登録されています" };
+            const existingUser = await findUserByEmail(email);
+            if (existingUser && !existingUser.verified) {
+                const resendResult = await resendSignupVerificationEmail({ email, redirectTo });
+                return {
+                    success: false,
+                    code: "PENDING_VERIFICATION",
+                    email,
+                    resent: resendResult.success,
+                    error: "このメールアドレスは既に仮登録されています",
+                };
+            }
+
+            return {
+                success: false,
+                code: "ALREADY_REGISTERED",
+                email,
+                error: "このメールアドレスは既に登録済みです",
+            };
         }
         return { success: false, error: error.message };
     }

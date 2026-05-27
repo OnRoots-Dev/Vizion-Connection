@@ -32,6 +32,9 @@ export const registerSchema = z.object({
             "ユーザー名は英小文字・数字・アンダースコア・ドットのみ使用できます（ハイフン不可）"
         ),
     referrerSlug: z.string().optional().transform(v => v === "" ? undefined : v),
+    termsAccepted: z.boolean().refine((value) => value === true, {
+        message: "利用規約とプライバシーポリシーへの同意が必要です",
+    }),
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

@@ -9,6 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { registerSchema } from "@/features/auth/validation/register-schema";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
+const TERMS_URL = "https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link";
+const PRIVACY_URL = "https://tarry-plywood-9b9.notion.site/287089f25fae80e8a771d66b1ee4fa82?source=copy_link";
 
 type Role = "Athlete" | "Trainer" | "Crew" | "Business";
 
@@ -45,10 +47,24 @@ export default function RegisterForm() {
         email: "",
         password: "",
         referrerSlug: refSlug,
+        termsAccepted: false,
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [resendLoading, setResendLoading] = useState(false);
+    const [registerState, setRegisterState] = useState<
+        | null
+        | {
+            kind: "pending_verification";
+            email: string;
+            resent: boolean;
+        }
+        | {
+            kind: "already_registered";
+            email: string;
+        }
+    >(null);
 
     const selectedRole = ROLES.find((r) => r.value === role)!;
 
@@ -65,6 +81,7 @@ export default function RegisterForm() {
         }
         setLoading(true);
         setError("");
+        setRegisterState(null);
 
         try {
             const res = await fetch("/api/register", {
@@ -74,6 +91,21 @@ export default function RegisterForm() {
             });
             const data = await res.json();
             if (!data.success) {
+                if (data.code === "PENDING_VERIFICATION") {
+                    setRegisterState({
+                        kind: "pending_verification",
+                        email: data.email ?? form.email,
+                        resent: Boolean(data.resent),
+                    });
+                    return;
+                }
+                if (data.code === "ALREADY_REGISTERED") {
+                    setRegisterState({
+                        kind: "already_registered",
+                        email: data.email ?? form.email,
+                    });
+                    return;
+                }
                 setError(data.error ?? "エラーが発生しました");
                 return;
             }
@@ -86,6 +118,42 @@ export default function RegisterForm() {
         } finally {
             setLoading(false);
         }
+    }
+
+    async function handleResend() {
+        setResendLoading(true);
+        setError("");
+
+        try {
+            const res = await fetch("/api/register/resend", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: form.email,
+                    redirectTo,
+                }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                setError(data.error ?? "認証メールの再送に失敗しました");
+                return;
+            }
+
+            setRegisterState({
+                kind: "pending_verification",
+                email: form.email,
+                resent: true,
+            });
+        } catch {
+            setError("通信エラーが発生しました");
+        } finally {
+            setResendLoading(false);
+        }
+    }
+
+    function resetRegisterState() {
+        setRegisterState(null);
+        setError("");
     }
 
     return (
@@ -138,6 +206,109 @@ export default function RegisterForm() {
                     </div>
                 </div>
 
+                {registerState ? (
+                    <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] px-5 py-6">
+                        {registerState.kind === "pending_verification" ? (
+                            <>
+                                <div className="space-y-2 text-center">
+                                    <p className="text-xs font-bold tracking-[0.2em] text-[#FFD600]">PENDING</p>
+                                    <h2 className="text-2xl font-bold text-white">仮登録済みです</h2>
+                                    <p className="text-sm font-medium text-white/60">メール認証が未完了です</p>
+                                    <p className="text-sm leading-relaxed text-white/45">
+                                        このメールアドレスは既に仮登録されています
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-center">
+                                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/25">Email</p>
+                                    <p className="mt-1 text-sm font-medium text-white/80">{registerState.email}</p>
+                                </div>
+
+                                {registerState.resent && (
+                                    <div className="rounded-xl border border-[rgba(50,210,120,0.28)] bg-[rgba(50,210,120,0.1)] px-4 py-3 text-sm text-[#32D278]">
+                                        認証メールを再送しました
+                                    </div>
+                                )}
+
+                                {error && (
+                                    <div className="rounded-xl border border-[rgba(255,80,80,0.2)] bg-[rgba(255,80,80,0.08)] px-4 py-3 text-sm text-red-400">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => void handleResend()}
+                                    disabled={resendLoading}
+                                    className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                                    style={{
+                                        background: resendLoading ? "#333" : selectedRole.color,
+                                        color: "#000",
+                                        boxShadow: resendLoading ? "none" : `0 0 24px ${selectedRole.color}50`,
+                                    }}
+                                >
+                                    {resendLoading ? "再送中..." : "認証メールを再送する"}
+                                </button>
+
+                                <div className="space-y-1 text-center text-xs text-white/35">
+                                    <p>メールが届かない場合</p>
+                                    <p>迷惑メールをご確認ください</p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={resetRegisterState}
+                                    className="w-full text-sm text-white/65 underline underline-offset-4 hover:text-white"
+                                >
+                                    別のメールアドレスを使用する
+                                </button>
+
+                                <Link href="/login" className="block text-center text-sm text-white/45 underline underline-offset-4 hover:text-white/75">
+                                    既に認証済みの場合はこちら
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <div className="space-y-2 text-center">
+                                    <p className="text-xs font-bold tracking-[0.2em] text-[#FF8A5B]">REGISTERED</p>
+                                    <h2 className="text-2xl font-bold text-white">既に登録されています</h2>
+                                    <p className="text-sm leading-relaxed text-white/45">
+                                        このメールアドレスは既に登録済みです
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-center">
+                                    <p className="text-[11px] uppercase tracking-[0.18em] text-white/25">Email</p>
+                                    <p className="mt-1 text-sm font-medium text-white/80">{registerState.email}</p>
+                                </div>
+
+                                <Link
+                                    href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
+                                    className="block w-full rounded-xl py-3.5 text-center text-sm font-bold transition-all"
+                                    style={{
+                                        background: selectedRole.color,
+                                        color: "#000",
+                                        boxShadow: `0 0 24px ${selectedRole.color}50`,
+                                    }}
+                                >
+                                    ログインへ進む
+                                </Link>
+
+                                <Link href="/reset-password" className="block text-center text-sm text-white/55 underline underline-offset-4 hover:text-white/75">
+                                    パスワードを忘れた場合
+                                </Link>
+
+                                <button
+                                    type="button"
+                                    onClick={resetRegisterState}
+                                    className="w-full text-sm text-white/65 underline underline-offset-4 hover:text-white"
+                                >
+                                    別のメールアドレスで登録
+                                </button>
+                            </>
+                        )}
+                    </div>
+                ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div
                         className="rounded-xl border border-[rgba(255,214,0,0.45)] bg-[rgba(255,214,0,0.08)] px-4 py-3 text-[11px] font-medium leading-relaxed text-[#FFD600]"
@@ -204,6 +375,25 @@ export default function RegisterForm() {
                         </p>
                     </div>
 
+                    <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                        <input
+                            type="checkbox"
+                            checked={form.termsAccepted}
+                            onChange={(e) => setForm({ ...form, termsAccepted: e.target.checked })}
+                            className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/20 text-[#FFD600] accent-[#FFD600]"
+                        />
+                        <span className="text-xs leading-relaxed text-white/55">
+                            <a href={TERMS_URL} target="_blank" rel="noopener noreferrer" className="text-white/80 underline underline-offset-4 hover:text-white">
+                                利用規約
+                            </a>
+                            {" "}および{" "}
+                            <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="text-white/80 underline underline-offset-4 hover:text-white">
+                                プライバシーポリシー
+                            </a>
+                            {" "}に同意します
+                        </span>
+                    </label>
+
                     {error && (
                         <div className="rounded-xl border border-[rgba(255,80,80,0.2)] bg-[rgba(255,80,80,0.08)] px-4 py-3 text-sm text-red-400">
                             {error}
@@ -220,6 +410,7 @@ export default function RegisterForm() {
                         {loading ? "登録中..." : "登録する"}
                     </button>
                 </form>
+                )}
 
                 <p className="mt-6 text-center text-xs text-white/30">
                     すでにアカウントをお持ちの方は

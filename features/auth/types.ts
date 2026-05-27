@@ -10,7 +10,8 @@ export interface RegisterInput {
     slug: string;
     region?: string;
     referrerSlug?: string;
-    redirectTo?: string; // ← 修正
+    redirectTo?: string;
+    termsAccepted: true;
 }
 
 export interface LoginInput {
@@ -85,4 +86,23 @@ export interface RegisterError {
     error: string;
 }
 
-export type RegisterResponse = RegisterResult | RegisterError;
+export interface RegisterPendingVerification {
+    success: false;
+    error: string;
+    code: "PENDING_VERIFICATION";
+    email: string;
+    resent: boolean;
+}
+
+export interface RegisterAlreadyRegistered {
+    success: false;
+    error: string;
+    code: "ALREADY_REGISTERED";
+    email: string;
+}
+
+export type RegisterResponse =
+    | RegisterResult
+    | RegisterError
+    | RegisterPendingVerification
+    | RegisterAlreadyRegistered;
