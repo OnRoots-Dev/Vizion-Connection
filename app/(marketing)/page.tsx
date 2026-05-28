@@ -32,14 +32,14 @@ export default function Page() {
       <DynamicBackground />
       <main className="relative w-full overflow-x-hidden pt-17.5">
         {/* ビジネス動線バナー */}
-        {/* <Link
+        <Link
           href="/business"
           className="flex w-full items-center justify-center gap-2 bg-[#3C8CFF] px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90"
         >
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white animate-pulse" />
           <span>🏢 Businessプラン 受付中</span>
           <span className="ml-1 underline underline-offset-2">詳細を見る →</span>
-        </Link> */}
+        </Link>
         <HeroSection />
         <FeatureSection />
         <RoleBenefitSection />

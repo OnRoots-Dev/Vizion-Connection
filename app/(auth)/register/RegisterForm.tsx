@@ -3,7 +3,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerSchema } from "@/features/auth/validation/register-schema";
@@ -40,8 +40,21 @@ export default function RegisterForm() {
     const searchParams = useSearchParams();
     const refSlug = searchParams.get("ref") ?? "";
     const redirectTo = searchParams.get("redirect") ?? "";
+    const roleFromQuery = searchParams.get("role");
 
-    const [role, setRole] = useState<Role>("Athlete");
+    const [role, setRole] = useState<Role>(() => {
+        if (roleFromQuery && ROLES.some((r) => r.value === roleFromQuery)) {
+            return roleFromQuery as Role;
+        }
+        return "Athlete";
+    });
+
+    useEffect(() => {
+        const q = searchParams.get("role");
+        if (q && ROLES.some((r) => r.value === q)) {
+            setRole(q as Role);
+        }
+    }, [searchParams]);
     const [form, setForm] = useState({
         slug: "",
         email: "",

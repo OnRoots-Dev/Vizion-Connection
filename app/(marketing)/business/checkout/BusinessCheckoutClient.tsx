@@ -1,7 +1,8 @@
 // app/(marketing)/business/checkout/BusinessCheckoutClient.tsx
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
@@ -20,17 +21,36 @@ export default function BusinessCheckoutClient({
   );
   const [state, setState] = useState<CheckoutState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [authRequired, setAuthRequired] = useState(false);
+
+  const checkoutRedirect = useMemo(
+    () =>
+      selectedPlanId
+        ? `/business/checkout?plan=${selectedPlanId}`
+        : "/business/checkout",
+    [selectedPlanId],
+  );
+
+  const registerHref = `/register?role=Business&redirect=${encodeURIComponent(checkoutRedirect)}`;
+  const loginHref = `/login?redirect=${encodeURIComponent(checkoutRedirect)}`;
 
   async function handleCheckout() {
     if (!selectedPlanId) return;
     setState("loading");
     setErrorMessage("");
+    setAuthRequired(false);
     try {
       const res = await fetch("/api/business-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId: selectedPlanId }),
       });
+
+      if (res.status === 401) {
+        setState("idle");
+        setAuthRequired(true);
+        return;
+      }
 
       const data = (await res.json()) as { success?: boolean; squareUrl?: string; error?: string };
       if (!res.ok || !data.success) {
@@ -304,6 +324,48 @@ export default function BusinessCheckoutClient({
 
           <Footer />
         </div>
+
+        {authRequired && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <button
+              type="button"
+              className="absolute inset-0 border-none bg-black/75 backdrop-blur-sm"
+              aria-label="閉じる"
+              onClick={() => setAuthRequired(false)}
+            />
+            <div
+              role="dialog"
+              aria-labelledby="auth-required-title"
+              className="relative w-full max-w-md rounded-2xl border border-[#00d2ff]/20 bg-[#0e1018] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
+            >
+              <h2
+                id="auth-required-title"
+                className="text-[1.15rem] font-extrabold tracking-[-0.01em] text-white"
+              >
+                申し込みにはアカウントが必要です
+              </h2>
+              <p className="mt-3 text-[.84rem] font-light leading-[1.85] text-[#5a6070]">
+                Businessアカウントを無料で作成して、
+                <br />
+                そのままプランを購入できます。
+              </p>
+              <div className="mt-7 flex flex-col gap-3">
+                <Link
+                  href={registerHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white"
+                >
+                  無料登録して申し込む →
+                </Link>
+                <Link
+                  href={loginHref}
+                  className="inline-flex items-center justify-center rounded-lg border border-white/12 px-6 py-3 text-[.82rem] font-semibold text-[#c8cdd8] transition-colors hover:border-[#00d2ff]/30 hover:text-white"
+                >
+                  すでにアカウントをお持ちの方
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
