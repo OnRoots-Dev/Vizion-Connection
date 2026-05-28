@@ -29,7 +29,8 @@ export type DashboardView =
     | "edit"
     | "settings"
     | "action_history"
-    | "missions";
+    | "missions"
+    | "checkout";
 
 export interface ThemeColors {
     bg: string;

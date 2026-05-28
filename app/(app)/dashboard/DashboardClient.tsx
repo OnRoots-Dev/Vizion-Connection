@@ -36,6 +36,7 @@ import { ActionHistoryView } from "./views/ActionHistoryView";
 import { AthleteHubView } from "./views/AthleteHubView";
 import { MemberHubView } from "./views/MemberHubView";
 import { TrainerHubView } from "./views/TrainerHubView";
+import { CheckoutView } from "./views/CheckoutView";
 
 type DashboardNewsPost = {
     id: string;
@@ -335,6 +336,8 @@ export default function DashboardClient({
                 return <MissionsView profile={profile} referralCount={referralCount} t={t} roleColor={roleColor} setView={handleSetView} onProfilePatch={(patch) => setProfile((prev) => ({ ...prev, ...patch }))} />;
             case "roadmap":
                 return <RoadmapView t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "checkout":
+                return <CheckoutView t={t} roleColor={roleColor} setView={handleSetView} />;
             default:
                 return null;
         }

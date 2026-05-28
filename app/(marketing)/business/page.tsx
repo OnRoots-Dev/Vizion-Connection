@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { BUSINESS_PLANS } from "@/features/business/constants";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -56,6 +57,9 @@ const REGION_LEGEND = [
 ] as const;
 
 export default function BusinessPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
   return (
     <>
       <style>{`
@@ -101,15 +105,16 @@ export default function BusinessPage() {
                 Vizion Connection は、アスリート・トレーナー・クルーの信頼ネットワークインフラです。
                 Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
-              <Link
-                href="https://app.vizion-connection.jp/dashboard/business/checkout"
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
                 className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)] [animation-delay:.3s]"
               >
-                Businessプランを見る
+                プランを選ぶ
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
+              </button>
             </section>
 
             {/* separator */}
@@ -184,15 +189,19 @@ export default function BusinessPage() {
                       ))}
                     </div>
                     <div className="px-8 pb-6">
-                      <Link
-                        href={`https://app.vizion-connection.jp/dashboard/business/checkout?plan=${plan.id}`}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPlan(plan.id);
+                          setModalOpen(true);
+                        }}
                         className="inline-flex items-center gap-2 rounded-md bg-[#00d2ff] px-6 py-2.5 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white"
                       >
                         {plan.amount === 0 ? "個別相談する" : "このプランで申し込む"}
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
-                      </Link>
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -277,15 +286,16 @@ export default function BusinessPage() {
                 Businessプランを申し込む
               </h2>
               <p className="mb-8 text-[.82rem] font-light text-[#5a6070]">現在受付中です。プランを選択してそのままお申し込みいただけます。</p>
-              <Link
-                href="https://app.vizion-connection.jp/dashboard/business/checkout"
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
                 className="inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)]"
               >
-                今すぐ申し込む
+                プランを選ぶ
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </Link>
+              </button>
             </section>
 
             {/* ── FAQ ── */}
@@ -306,6 +316,136 @@ export default function BusinessPage() {
               © 2026 VIZION CONNECTION. ALL RIGHTS RESERVED.
             </p>
           </main>
+
+          {modalOpen && (
+            <div
+              onClick={() => setModalOpen(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.7)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1000,
+                padding: "24px",
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "#0e1018",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: 20,
+                  padding: "40px 36px",
+                  maxWidth: 440,
+                  width: "100%",
+                  textAlign: "center",
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: 10,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    color: "#00d2ff",
+                    marginBottom: 12,
+                  }}
+                >
+                  Business Account
+                </p>
+
+                <h2
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 800,
+                    color: "#fff",
+                    marginBottom: 12,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  申し込みにはアカウントが必要です
+                </h2>
+
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,255,255,0.5)",
+                    lineHeight: 1.8,
+                    marginBottom: 32,
+                  }}
+                >
+                  Businessアカウントを無料で作成して、
+                  そのままプランを購入できます。
+                  {selectedPlan && (
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: 8,
+                        color: "#00d2ff",
+                        fontWeight: 700,
+                      }}
+                    >
+                      選択中：{selectedPlan}
+                    </span>
+                  )}
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <a
+                    href={`/register?role=Business${selectedPlan ? `&plan=${selectedPlan}` : ""}`}
+                    style={{
+                      display: "block",
+                      padding: "14px 24px",
+                      background: "#00d2ff",
+                      color: "#07080f",
+                      borderRadius: 10,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      textDecoration: "none",
+                    }}
+                  >
+                    無料登録して申し込む →
+                  </a>
+
+                  <a
+                    href={`/login?redirect=${encodeURIComponent(
+                      `/dashboard/business/checkout${selectedPlan ? `?plan=${selectedPlan}` : ""}`
+                    )}`}
+                    style={{
+                      display: "block",
+                      padding: "14px 24px",
+                      background: "transparent",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      color: "rgba(255,255,255,0.6)",
+                      borderRadius: 10,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      textDecoration: "none",
+                    }}
+                  >
+                    すでにアカウントをお持ちの方
+                  </a>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  style={{
+                    marginTop: 20,
+                    fontSize: 12,
+                    color: "rgba(255,255,255,0.3)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          )}
 
           <Footer />
         </div>

@@ -551,6 +551,15 @@ export function BusinessHubView({
                         プラン: <span style={{ color: t.text, fontWeight: 700 }}>{profile.sponsorPlan ?? "未契約"}</span><br />
                         公開中の広告と送信済みオファーは、このメニューからすぐ更新できます。
                     </div>
+                    <div style={{ marginTop: 10 }}>
+                        <button
+                            type="button"
+                            onClick={() => setView("checkout")}
+                            style={{ width: "100%", padding: "11px 14px", borderRadius: 14, border: `1px solid ${accent}45`, background: `${accent}14`, color: accent, fontSize: 12, fontWeight: 800, cursor: "pointer", letterSpacing: "0.04em" }}
+                        >
+                            Businessプランを申し込む →
+                        </button>
+                    </div>
                 </SectionCard>
 
                 <SectionCard t={t} accentColor={accent}>

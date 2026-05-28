@@ -2,14 +2,41 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
-import { getBusinessPlansWithUrls } from "@/features/business/constants";
-import { createBusinessOrder, countOrdersByPlanId } from "@/lib/supabase/business-orders";
+import { BUSINESS_PLANS, getBusinessPlansWithUrls } from "@/features/business/constants";
+import { createBusinessOrder, countOrdersByPlanId, getAllPlanOrderCounts } from "@/lib/supabase/business-orders";
 import { setUserPlan } from "@/lib/supabase/data/users.server";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { notifyBusinessCheckoutSubmitted } from "@/lib/notifications/create-notification";
+
+export async function GET(): Promise<NextResponse> {
+    try {
+        const orderCounts = await getAllPlanOrderCounts();
+        const plans = BUSINESS_PLANS.map((plan) => {
+            const soldCount = orderCounts[plan.id] ?? 0;
+            return {
+                id: plan.id,
+                name: plan.name,
+                tagline: plan.tagline,
+                priceLabel: plan.priceLabel,
+                amount: plan.amount,
+                seats: plan.seats,
+                highlight: plan.highlight,
+                benefits: plan.benefits,
+                squareUrl: "",
+                soldCount,
+                remaining: plan.seats - soldCount,
+                soldOut: soldCount >= plan.seats,
+            };
+        });
+        return NextResponse.json({ plans });
+    } catch (err) {
+        console.error("[GET /api/business-checkout]", err);
+        return NextResponse.json({ error: "サーバーエラーが発生しました" }, { status: 500 });
+    }
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {

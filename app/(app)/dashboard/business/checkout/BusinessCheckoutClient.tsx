@@ -1,7 +1,6 @@
 // app/(app)/dashboard/business/checkout/BusinessCheckoutClient.tsx
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
 
@@ -29,8 +28,9 @@ export default function BusinessCheckoutClient({
     [selectedPlanId],
   );
 
-  const registerHref = `/register?role=Business&redirect=${encodeURIComponent(checkoutRedirect)}`;
-  const loginHref = `/login?redirect=${encodeURIComponent(checkoutRedirect)}`;
+  const appCheckoutUrl = `https://app.vizion-connection.jp${checkoutRedirect}`;
+  const registerHref = `https://vizion-connection.jp/register?role=Business&redirect=${encodeURIComponent(appCheckoutUrl)}`;
+  const loginHref = `https://vizion-connection.jp/login?redirect=${encodeURIComponent(appCheckoutUrl)}`;
 
   async function handleCheckout() {
     if (!selectedPlanId) return;
@@ -324,18 +324,18 @@ export default function BusinessCheckoutClient({
               そのままプランを購入できます。
             </p>
             <div className="mt-7 flex flex-col gap-3">
-              <Link
+              <a
                 href={registerHref}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white"
               >
                 無料登録して申し込む →
-              </Link>
-              <Link
+              </a>
+              <a
                 href={loginHref}
                 className="inline-flex items-center justify-center rounded-lg border border-white/12 px-6 py-3 text-[.82rem] font-semibold text-[#c8cdd8] transition-colors hover:border-[#00d2ff]/30 hover:text-white"
               >
                 すでにアカウントをお持ちの方
-              </Link>
+              </a>
             </div>
           </div>
         </div>
