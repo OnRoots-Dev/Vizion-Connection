@@ -71,6 +71,13 @@ export default async function ThanksPage({ searchParams }: Props) {
             sub: null,
             cta: { href: "/login", label: "ログインする" },
         },
+        email_changed: {
+            iconType: "verified" as const,
+            title: "メールアドレスを変更しました",
+            desc: "新しいメールアドレスでのログインが有効になりました。",
+            sub: null,
+            cta: { href: "/login", label: "ログインする" },
+        },
         business: {
             iconType: "business" as const,
             title: "申し込みありがとうございます",

@@ -36,7 +36,7 @@ export async function notifyBusinessCheckoutSubmitted(params: {
     type: "business_checkout_submitted",
     title: "ビジネスプラン申込を受け付けました",
     body: `${params.planName}（${params.amount.toLocaleString("ja-JP")}円）`,
-    linkUrl: "/business/checkout",
+    linkUrl: "/dashboard/business/checkout",
     payload: {
       planName: params.planName,
       amount: params.amount,

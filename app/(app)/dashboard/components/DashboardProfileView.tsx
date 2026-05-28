@@ -153,25 +153,49 @@ export function DashboardProfileView({
 
   useEffect(() => {
     if (!registrationOpen) return;
-    initFromUser({
-      role: profile.role as any,
-      name: profile.displayName,
-      slug: profile.slug,
-      sport: profile.sport,
-      region: profile.region,
-      prefecture: profile.prefecture,
-      sportsCategory: profile.sportsCategory,
-      stance: profile.stance,
-      bio: profile.bio,
-      displayName: profile.displayName,
-      profileImageUrl: profile.profileImageUrl,
-      avatarUrl: profile.avatarUrl,
-      isPublic: canPublish ? profile.isPublic !== false : false,
-      instagram: profile.instagram,
-      xUrl: profile.xUrl,
-      tiktok: profile.tiktok,
-    });
+    let cancelled = false;
+
+    const applyUserToWizard = (src: ProfileData) => {
+      initFromUser({
+        role: src.role as any,
+        name: src.displayName,
+        slug: src.slug,
+        sport: src.sport,
+        region: src.region,
+        prefecture: src.prefecture,
+        sportsCategory: src.sportsCategory,
+        stance: src.stance,
+        bio: src.bio,
+        displayName: src.displayName,
+        profileImageUrl: src.profileImageUrl,
+        avatarUrl: src.avatarUrl,
+        isPublic: canPublish ? src.isPublic !== false : false,
+        instagram: src.instagram,
+        xUrl: src.xUrl,
+        tiktok: src.tiktok,
+      });
+    };
+
+    applyUserToWizard(profile);
     if (careerProfile) initFromCareerProfile(careerProfile);
+
+    const hydrateLatestProfile = async () => {
+      try {
+        const res = await fetch("/api/profile/save/me", { cache: "no-store" });
+        const json: unknown = await res.json().catch(() => ({}));
+        if (!res.ok || cancelled) return;
+        const latest = (json as { profile?: ProfileData })?.profile;
+        if (!latest) return;
+        applyUserToWizard(latest);
+      } catch {
+        // フェッチ失敗時は既存profileをそのまま使う
+      }
+    };
+    void hydrateLatestProfile();
+
+    return () => {
+      cancelled = true;
+    };
   }, [canPublish, careerProfile, initFromCareerProfile, initFromUser, profile, registrationOpen]);
 
   async function handleVisibilityToggle() {

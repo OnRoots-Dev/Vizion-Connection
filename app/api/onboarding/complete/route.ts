@@ -9,5 +9,8 @@ export async function POST(_req: NextRequest): Promise<NextResponse> {
     if (!session) return NextResponse.json({ success: false }, { status: 401 });
 
     const ok = await updateOnboardingComplete(session.slug);
-    return NextResponse.json({ success: ok });
+    if (!ok) {
+        return NextResponse.json({ success: false }, { status: 500 });
+    }
+    return NextResponse.json({ success: true });
 }

@@ -30,7 +30,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                 <OnboardingStepBar current={2} />
                 <button
                     type="button"
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => window.location.assign("/dashboard")}
                     style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer", padding: "4px 8px", whiteSpace: "nowrap", flexShrink: 0 }}
                 >
                     後にする
@@ -95,7 +95,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                         </button>
                         <button
                             type="button"
-                            onClick={() => router.push("/dashboard")}
+                            onClick={() => window.location.assign("/dashboard")}
                             style={{
                                 width: "100%", padding: "12px 20px",
                                 borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)",

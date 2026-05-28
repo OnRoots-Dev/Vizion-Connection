@@ -1,4 +1,4 @@
-// app/(marketing)/business/checkout/page.tsx
+// app/(app)/dashboard/business/checkout/page.tsx
 import { getAllPlanOrderCounts } from "@/lib/supabase/business-orders";
 import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import type { BusinessPlanWithAvailability } from "@/features/business/types";

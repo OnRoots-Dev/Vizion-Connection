@@ -33,7 +33,7 @@ export default function VerifyContent() {
                     return;
                 }
                 setState("success");
-                const redirectPath = data.role === "Business" ? "/business/checkout" : "/login";
+                const redirectPath = data.role === "Business" ? "/dashboard/business/checkout" : "/login";
                 setTimeout(() => router.push(redirectPath), 2000);
             } catch {
                 setState("error");

@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { OnboardingStepBar } from "../OnboardingStepBar";
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 
 export default function InviteClient({ slug, referralUrl }: { slug: string; referralUrl: string }) {
-    const router = useRouter();
     const [copied, setCopied] = useState(false);
     const [completed, setCompleted] = useState(false);
+    const [completing, setCompleting] = useState(false);
 
     useEffect(() => {
-        fetch("/api/onboarding/complete", { method: "POST" })
-            .then((r) => { if (r.ok) setCompleted(true); })
+        fetch("/api/onboarding/complete", { method: "POST", credentials: "include" })
+            .then(async (r) => {
+                const json = (await r.json().catch(() => ({}))) as { success?: boolean };
+                if (r.ok && json.success) setCompleted(true);
+            })
             .catch(() => { });
     }, []);
 
@@ -25,6 +27,33 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
             setTimeout(() => setCopied(false), 2500);
         } catch {
             // ignore
+        }
+    }
+
+    async function ensureOnboardingComplete() {
+        const res = await fetch("/api/onboarding/complete", {
+            method: "POST",
+            credentials: "include",
+            keepalive: true,
+        });
+        const json = (await res.json().catch(() => ({}))) as { success?: boolean };
+        if (res.ok && json.success) {
+            setCompleted(true);
+            return true;
+        }
+        return false;
+    }
+
+    async function handleGoDashboard() {
+        if (completing) return;
+        setCompleting(true);
+        try {
+            if (!completed) {
+                await ensureOnboardingComplete();
+            }
+            window.location.assign("/dashboard");
+        } finally {
+            setCompleting(false);
         }
     }
 
@@ -148,16 +177,18 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
 
                     <button
                         type="button"
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => void handleGoDashboard()}
+                        disabled={completing}
                         style={{
                             width: "100%", padding: "14px 20px", borderRadius: 14, border: "none",
                             background: "#a78bfa", color: "#050508",
-                            fontSize: 14, fontWeight: 900, cursor: "pointer",
+                            fontSize: 14, fontWeight: 900, cursor: completing ? "wait" : "pointer",
+                            opacity: completing ? 0.75 : 1,
                             boxShadow: "0 0 24px rgba(167,139,250,0.35)",
                             marginTop: 4, transition: "all 0.2s ease",
                         }}
                     >
-                        ダッシュボードへ →
+                        {completing ? "処理中..." : "ダッシュボードへ →"}
                     </button>
                 </motion.div>
 

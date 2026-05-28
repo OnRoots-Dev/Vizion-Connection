@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
-import { findUserByEmail, updateUserProfile } from "@/lib/supabase/data/users.server";
-import { sendVerifyEmail } from "@/lib/resend/send-verify-email";
-import { env } from "@/lib/env";
+import { findUserByEmail } from "@/lib/supabase/data/users.server";
+import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { accountLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -38,12 +37,19 @@ export async function POST(req: Request) {
         const existing = await findUserByEmail(newEmail);
         if (existing) return NextResponse.json({ ok: false, error: "このメールアドレスはすでに使用されています" }, { status: 409 });
 
-        await updateUserProfile(user.slug, { email: newEmail });
+        const supabase = await createClient();
+        const { error } = await supabase.auth.updateUser(
+            { email: newEmail },
+            { emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/confirm` },
+        );
+        if (error) {
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 400 },
+            );
+        }
 
-        const verifyUrl = `${env.NEXT_PUBLIC_BASE_URL}/verify?email=${encodeURIComponent(newEmail)}`;
-        await sendVerifyEmail({ to: newEmail, displayName: user.displayName, verifyUrl });
-
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ success: true });
     } catch (err) {
         console.error("[change-email]", err);
         return NextResponse.json({ ok: false, error: "サーバーエラーが発生しました" }, { status: 500 });

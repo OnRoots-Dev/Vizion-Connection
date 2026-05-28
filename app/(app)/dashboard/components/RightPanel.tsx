@@ -113,7 +113,7 @@ export function RightPanel({ profile, referralCount, t, roleColor, setView }: {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    onClick={() => setView("hub")}
+                    onClick={() => window.location.assign("/dashboard/business/checkout")}
                     className="relative w-full overflow-hidden rounded-[14px] border border-[rgba(60,140,255,0.3)] bg-[linear-gradient(135deg,rgba(60,140,255,0.12),rgba(60,140,255,0.04))] p-[14px] text-left"
                     style={{ cursor: "pointer" }}
                 >

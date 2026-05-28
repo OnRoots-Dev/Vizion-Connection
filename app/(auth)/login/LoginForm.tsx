@@ -51,7 +51,11 @@ export default function LoginForm() {
             if (!data.isOnboardingComplete) {
                 window.location.assign("/onboarding");
             } else {
-                window.location.assign(redirectTo);
+                const appBase = "https://app.vizion-connection.jp";
+                const target = redirectTo.startsWith("/")
+                    ? appBase + redirectTo
+                    : redirectTo;
+                window.location.assign(target);
             }
         } catch {
             setError("通信エラーが発生しました");

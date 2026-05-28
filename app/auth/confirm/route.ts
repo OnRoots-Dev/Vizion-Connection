@@ -4,7 +4,17 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
+  const type = searchParams.get('type')
   const next = searchParams.get('next') ?? '/dashboard'
+
+  if (code && type === 'email_change') {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data.user) {
+      await supabase.from('users').update({ email: data.user.email }).eq('auth_id', data.user.id)
+      return NextResponse.redirect(new URL('/thanks?type=email_changed', request.url))
+    }
+  }
 
   if (code) {
     const supabase = await createClient()
@@ -18,11 +28,11 @@ export async function GET(request: NextRequest) {
 
   // token_hash フロー（フォールバック）
   const token_hash = searchParams.get('token_hash')
-  const type = searchParams.get('type') as 'email' | null
+  const otpType = searchParams.get('type') as 'email' | null
 
-  if (token_hash && type) {
+  if (token_hash && otpType) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type: otpType })
     if (!error) {
       return NextResponse.redirect(
         new URL(next !== '/dashboard' ? next : '/thanks?type=verified', request.url)

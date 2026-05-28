@@ -409,7 +409,7 @@ export default function OnboardingProfileForm() {
                 <div style={{ textAlign: "center", marginTop: 14 }}>
                     <button
                         type="button"
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => window.location.assign("/dashboard")}
                         style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", padding: "4px 8px" }}
                     >
                         後にする

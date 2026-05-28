@@ -294,8 +294,18 @@ export async function updatePassword(slug: string, passwordHash: string): Promis
 }
 
 export async function updateOnboardingComplete(slug: string): Promise<boolean> {
-    const { error } = await supabase.from("users").update({ is_onboarding_complete: true }).eq("slug", slug);
-    if (error) { console.error("[updateOnboardingComplete]", error); return false; }
+    const { data, error } = await supabase
+        .from("users")
+        .update({ is_onboarding_complete: true })
+        .eq("slug", slug)
+        .select("slug")
+        .maybeSingle();
+
+    if (error) {
+        console.error("[updateOnboardingComplete]", error);
+        return false;
+    }
+    if (!data?.slug) return false;
     return true;
 }
 

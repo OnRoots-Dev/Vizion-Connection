@@ -548,7 +548,7 @@ export function BusinessHubView({
                         })}
                     </div>
                     <div style={{ marginTop: 14, padding: 14, borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)", color: t.sub, fontSize: 11, lineHeight: 1.8 }}>
-                        プラン: <span style={{ color: t.text, fontWeight: 700 }}>{profile.sponsorPlan ?? "roots"}</span><br />
+                        プラン: <span style={{ color: t.text, fontWeight: 700 }}>{profile.sponsorPlan ?? "未契約"}</span><br />
                         公開中の広告と送信済みオファーは、このメニューからすぐ更新できます。
                     </div>
                 </SectionCard>

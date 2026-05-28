@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
 
 // 認証が必要なパス
-const PROTECTED_PATHS = ["/dashboard", "/news-rooms"];
+const PROTECTED_PATHS = ["/dashboard", "/dashboard/business/checkout", "/news-rooms"];
 
 // 認証済みユーザーがアクセスできないパス（ログイン済みならアプリのトップへ）
 const AUTH_PATHS = ["/login", "/register"];
@@ -137,9 +137,12 @@ export async function proxy(req: NextRequest) {
     // ログイン済みで/login・/registerへのアクセス → アプリのトップへ
     const isAuthPath = AUTH_PATHS.some(p => pathname.startsWith(p));
     if (isAuthPath && session) {
-        const url = req.nextUrl.clone();
-        url.pathname = "/dashboard";
-        return applyCors(req, NextResponse.redirect(url));
+        return applyCors(
+            req,
+            NextResponse.redirect(
+                new URL("https://app.vizion-connection.jp/dashboard")
+            )
+        );
     }
 
     return applyCors(req, getResponse());

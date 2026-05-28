@@ -77,7 +77,7 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
                     </button>
                     <button
                         type="button"
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => window.location.assign("/dashboard")}
                         style={{
                             width: "100%", padding: "12px 20px",
                             borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)",

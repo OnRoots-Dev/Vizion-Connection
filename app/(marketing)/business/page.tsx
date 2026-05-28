@@ -102,7 +102,7 @@ export default function BusinessPage() {
                 Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
               <Link
-                href="/business/checkout"
+                href="https://app.vizion-connection.jp/dashboard/business/checkout"
                 className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)] [animation-delay:.3s]"
               >
                 Businessプランを見る
@@ -185,7 +185,7 @@ export default function BusinessPage() {
                     </div>
                     <div className="px-8 pb-6">
                       <Link
-                        href={`/business/checkout?plan=${plan.id}`}
+                        href={`https://app.vizion-connection.jp/dashboard/business/checkout?plan=${plan.id}`}
                         className="inline-flex items-center gap-2 rounded-md bg-[#00d2ff] px-6 py-2.5 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white"
                       >
                         {plan.amount === 0 ? "個別相談する" : "このプランで申し込む"}
@@ -278,7 +278,7 @@ export default function BusinessPage() {
               </h2>
               <p className="mb-8 text-[.82rem] font-light text-[#5a6070]">現在受付中です。プランを選択してそのままお申し込みいただけます。</p>
               <Link
-                href="/business/checkout"
+                href="https://app.vizion-connection.jp/dashboard/business/checkout"
                 className="inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)]"
               >
                 今すぐ申し込む
