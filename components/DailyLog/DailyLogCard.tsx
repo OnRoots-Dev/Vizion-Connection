@@ -102,12 +102,11 @@ export function DailyLogCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
-      <SectionCard t={t} accentColor={roleColor}>
+      <SectionCard t={t} accentColor="#a78bfa">
         <CardHeader
           title="My Journey"
-          color={roleColor}
-          action={<ActionPill onClick={() => onOpenJourney?.("journey")} color={roleColor} t={t}>記録画面 →</ActionPill>}
-          meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と今の気分だけ、今日のJourneyを残します。</p>}
+          action={<ActionPill onClick={() => onOpenJourney?.("journey")} color="#a78bfa" t={t}>記録画面 →</ActionPill>}
+          meta={<p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>一言と今の気分だけ、今日のJourneyを残します。</p>}
         />
 
         {error ? (
@@ -124,7 +123,7 @@ export function DailyLogCard({
               <div style={{ padding: "14px 16px", borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: `${roleColor}14`, border: `1px solid ${roleColor}24`, color: roleColor }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(167,139,250,0.08)", border: "1px solid rgba(167,139,250,0.15)", color: "#a78bfa" }}>
                       <MessageSquareText size={16} />
                     </div>
                     <div>
@@ -220,7 +219,7 @@ export function DailyLogCard({
                 className="vz-btn"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                style={{ width: "100%", border: "none", borderRadius: 14, padding: "12px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
+                style={{ width: "100%", border: "none", borderRadius: 8, padding: "11px 14px", background: canSubmit ? "#a78bfa" : "rgba(255,255,255,0.08)", color: canSubmit ? "#000" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", boxShadow: canSubmit ? "0 0 20px rgba(167,139,250,0.3)" : "none" }}
               >
                 {isSubmitting ? "記録中..." : "Journeyを記録"}
               </button>
@@ -238,8 +237,8 @@ export function DailyLogCard({
                 style={{
                   padding: "12px 14px",
                   borderRadius: 16,
-                  border: `1px solid ${roleColor}30`,
-                  background: `${roleColor}10`,
+                  border: "1px solid rgba(167,139,250,0.2)",
+                  background: "rgba(167,139,250,0.08)",
                 }}
               >
                 <p style={{ margin: 0, fontSize: 12, color: t.text, lineHeight: 1.7, fontWeight: 800 }}>
@@ -257,9 +256,9 @@ export function DailyLogCard({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 6 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                style={{ padding: "12px 14px", borderRadius: 16, border: `1px solid ${roleColor}22`, background: `${roleColor}10` }}
+                style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(167,139,250,0.15)", background: "rgba(167,139,250,0.06)" }}
               >
-                <p style={{ margin: "0 0 6px", fontSize: 11, color: roleColor, fontWeight: 900, letterSpacing: "0.04em" }}>📣 Your HYPE</p>
+                <p style={{ margin: "0 0 6px", fontSize: 11, color: "#a78bfa", fontWeight: 700, letterSpacing: "0.04em" }}>📣 Your HYPE</p>
                 <p style={{ margin: 0, fontSize: 12, color: t.text, lineHeight: 1.7 }}>{hypeMessage.replace(/^Your Hype:\s*/, "")}</p>
               </motion.div>
             ) : (
@@ -269,7 +268,7 @@ export function DailyLogCard({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                style={{ padding: "12px 14px", borderRadius: 16, border: `1px solid ${roleColor}18`, background: "rgba(255,255,255,0.02)" }}
+                style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}
               >
                 <p style={{ margin: 0, fontSize: 11, color: t.sub, letterSpacing: "0.04em", fontWeight: 800 }}>
                   Your HYPE を準備中…

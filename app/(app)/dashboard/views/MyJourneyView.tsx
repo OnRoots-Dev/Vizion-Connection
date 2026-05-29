@@ -339,7 +339,7 @@ export function MyJourneyView({
                       (el as HTMLTextAreaElement | null)?.focus?.();
                     });
                   }}
-                  style={{ borderRadius: 12, border: `1px solid ${roleColor}35`, background: `${roleColor}18`, color: roleColor, fontWeight: 900, fontSize: 12, padding: "10px 12px", cursor: "pointer" }}
+                  style={{ borderRadius: 8, border: "none", background: "#a78bfa", color: "#000", fontWeight: 700, fontSize: 13, padding: "11px 20px", cursor: "pointer", boxShadow: "0 0 20px rgba(167,139,250,0.3)" }}
                 >
                   いま記録する
                 </button>
@@ -352,18 +352,16 @@ export function MyJourneyView({
       <ViewHeader title="Journey" sub="記録画面" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
       <SectionCard t={t}>
-        <SLabel text="AD SLOT" color="#FFD600" />
-        <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
+        <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
       </SectionCard>
 
-      <SectionCard t={t} accentColor={roleColor}>
+      <SectionCard t={t} accentColor="#a78bfa">
         <CardHeader
           title="Today's Hype"
-          color={roleColor}
           meta={(
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>
-              <span style={{ fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: `1px solid ${roleColor}30`, background: `${roleColor}12`, color: roleColor, whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.12)", color: "#FF5050", whiteSpace: "nowrap" }}>
                 連続{streak}日🔥
               </span>
             </div>
@@ -469,7 +467,7 @@ export function MyJourneyView({
                   className="vz-btn"
                   onClick={() => void handleSubmit()}
                   disabled={!canSubmit}
-                  style={{ width: "100%", border: "none", borderRadius: 12, padding: "14px 14px", background: canSubmit ? roleColor : "rgba(255,255,255,0.08)", color: canSubmit ? "#0B0B0F" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 800, cursor: canSubmit ? "pointer" : "not-allowed" }}
+                  style={{ width: "100%", border: "none", borderRadius: 8, padding: "14px 14px", background: canSubmit ? "#a78bfa" : "rgba(255,255,255,0.08)", color: canSubmit ? "#000" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", boxShadow: canSubmit ? "0 0 20px rgba(167,139,250,0.3)" : "none" }}
                 >
                   {isSubmitting ? (isEditing ? "更新中..." : "記録中...") : isEditing ? "記録を更新" : "Journeyを記録"}
                 </button>

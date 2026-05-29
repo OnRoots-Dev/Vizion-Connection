@@ -104,8 +104,8 @@ export default function AdminAdsView({
         <div style={{ display: "grid", gap: 12 }}>
             <ViewHeader title="広告審査" sub="申請された広告の審査 / 承認 / 却下" onBack={() => setView("hub")} t={t} roleColor={roleColor} />
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Filters" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="Filters" />
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     {([
                         ["pending", "審査中"],
@@ -156,7 +156,7 @@ export default function AdminAdsView({
             </SectionCard>
 
             <SectionCard t={t}>
-                <SLabel text="Ads" color={roleColor} />
+                <SLabel text="Ads" />
 
                 {loading ? (
                     <p style={{ margin: 0, fontSize: 12, color: t.sub }}>読み込み中...</p>

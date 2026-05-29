@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// dashboard/components/ui.tsx  — SectionCard / SLabel / ViewHeader
+// dashboard/components/ui.tsx  — SectionCard / SLabel / ViewHeader / Buttons
 // すべてのビューコンポーネントがここからインポートする
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -19,19 +19,19 @@ export function SectionCard({
 }) {
     return (
         <div
-            className="vz-card-hover relative overflow-hidden rounded-2xl px-5 py-[18px]"
+            className="relative overflow-hidden"
             style={{
-                background: accentColor
-                    ? `radial-gradient(circle at top right, ${accentColor}10, ${t.surface})`
-                    : t.surface,
-                border: `0.5px solid ${accentColor ? `${accentColor}14` : t.border}`,
+                background: "#111118",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 12,
+                padding: "20px 24px",
             }}
         >
             {accentColor && (
                 <div
                     className="pointer-events-none absolute -top-[30px] -right-[30px] h-[120px] w-[120px] rounded-full"
                     style={{
-                        background: `radial-gradient(circle,${accentColor}15,transparent 70%)`,
+                        background: `radial-gradient(circle,${accentColor}12,transparent 70%)`,
                     }}
                 />
             )}
@@ -41,13 +41,17 @@ export function SectionCard({
 }
 
 // ── セクションラベル ──────────────────────────────────────────────────────────
-export function SLabel({ text, color, size = 8 }: { text: string; color?: string; size?: number }) {
+export function SLabel({ text, color, size }: { text: string; color?: string; size?: number }) {
     return (
         <p
-            className="mb-[14px] font-mono text-[var(--slabel-size)] font-black uppercase tracking-[0.25em]"
             style={{
-                ["--slabel-size" as string]: `${size}px`,
-                color: color ?? "rgba(255,255,255,0.2)",
+                fontFamily: "'Space Mono', 'SF Mono', 'Fira Code', monospace",
+                fontSize: size ?? 10,
+                fontWeight: 600,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: color ?? "rgba(255,255,255,0.28)",
+                marginBottom: 12,
             }}
         >
             {text}
@@ -66,9 +70,9 @@ export function ActionPill({
     onClick?: () => void;
     href?: string;
     color: string;
-    t: ThemeColors;
+    t?: ThemeColors;
 }) {
-    const style = {
+    const style: React.CSSProperties = {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -78,7 +82,7 @@ export function ActionPill({
         borderRadius: 999,
         fontSize: 10,
         fontWeight: 800,
-        fontFamily: "monospace",
+        fontFamily: "'Space Mono', 'SF Mono', 'Fira Code', monospace",
         letterSpacing: "0.08em",
         background: `${color}14`,
         outline: `1px solid ${color}26`,
@@ -86,14 +90,14 @@ export function ActionPill({
         textDecoration: "none",
         border: "none",
         cursor: "pointer",
-        whiteSpace: "nowrap" as const,
+        whiteSpace: "nowrap",
     };
 
     if (href) {
         return <a href={href} style={style}>{children}</a>;
     }
 
-    return <button type="button" onClick={onClick} style={{ ...style, color: color || t.text }}>{children}</button>;
+    return <button type="button" onClick={onClick} style={style}>{children}</button>;
 }
 
 export function CardHeader({
@@ -111,20 +115,19 @@ export function CardHeader({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
             <div style={{ minWidth: 0 }}>
                 <div
-                    className="font-display"
                     style={{
-                        fontSize: 32,
-                        fontWeight: 900,
-                        color: "#B2B8BE",
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: "#f0f0f5",
                         margin: 0,
                         lineHeight: 1.02,
-                        letterSpacing: "-0.012em",
-                        textTransform: "uppercase",
+                        letterSpacing: "-0.01em",
+                        textTransform: "uppercase" as const,
                     }}
                 >
                     {title}
                 </div>
-                {meta ? <div style={{ marginTop: -8 }}>{meta}</div> : null}
+                {meta ? <div style={{ marginTop: 4 }}>{meta}</div> : null}
             </div>
             {action ? <div style={{ marginLeft: "auto" }}>{action}</div> : null}
         </div>
@@ -152,20 +155,25 @@ export function ViewHeader({
                 type="button"
                 aria-label="戻る"
                 title="戻る"
-                className="vz-btn flex h-10 w-10 items-center justify-center rounded-[12px] border"
                 style={{
-                    borderColor: t.border,
-                    background: "rgba(255,255,255,0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,255,255,0.16)",
+                    background: "transparent",
                     cursor: "pointer",
                 }}
             >
-                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={2}>
+                <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.55)" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
             </button>
             <div>
-                <h2 className="font-display m-0 text-[28px] font-black" style={{ color: t.text }}>{title}</h2>
-                <p className="m-0 text-[10px]" style={{ color: t.sub }}>{sub}</p>
+                <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#f0f0f5", letterSpacing: "-0.01em" }}>{title}</h2>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{sub}</p>
             </div>
         </div>
     );
@@ -175,12 +183,100 @@ export function ViewHeader({
 export function ViewLoader({ t }: { t: ThemeColors }) {
     return (
         <div
-            className="flex h-[200px] items-center justify-center text-[12px]"
+            className="flex h-[200px] items-center justify-center"
             style={{
-                color: t.sub,
+                color: "rgba(255,255,255,0.4)",
+                fontSize: 12,
             }}
         >
             読み込み中...
         </div>
+    );
+}
+
+// ── ボタン群 ──────────────────────────────────────────────────────────────────
+export function PrimaryButton({ children, onClick, disabled, style }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    style?: React.CSSProperties;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                background: "#a78bfa",
+                color: "#000000",
+                borderRadius: 8,
+                padding: "11px 20px",
+                fontSize: 13,
+                fontWeight: 700,
+                border: "none",
+                boxShadow: "0 0 20px rgba(167,139,250,0.3)",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.45 : 1,
+                ...style,
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+export function SecondaryButton({ children, onClick, disabled, style }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    style?: React.CSSProperties;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.16)",
+                color: "rgba(255,255,255,0.6)",
+                borderRadius: 8,
+                padding: "10px 20px",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: disabled ? "not-allowed" : "pointer",
+                ...style,
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+export function DangerButton({ children, onClick, disabled, style }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    style?: React.CSSProperties;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                background: "rgba(255,59,48,0.12)",
+                border: "1px solid rgba(255,59,48,0.3)",
+                color: "#ff3b30",
+                borderRadius: 8,
+                padding: "10px 20px",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: disabled ? "not-allowed" : "pointer",
+                ...style,
+            }}
+        >
+            {children}
+        </button>
     );
 }

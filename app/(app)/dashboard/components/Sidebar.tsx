@@ -162,13 +162,15 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
     const isSubmenuOpen = (submenuId: string) => openSubmenu === submenuId;
 
     const itemStyle = (active: boolean): CSSProperties => ({
-        background: active ? `${roleColor}15` : "transparent",
-        color: active ? roleColor : t.sub,
+        background: active ? "rgba(167,139,250,0.1)" : "transparent",
+        color: active ? "#a78bfa" : "rgba(255,255,255,0.55)",
         fontWeight: active ? 700 : 500,
-        border: active ? `1px solid ${roleColor}30` : "1px solid transparent",
+        border: active ? "none" : "none",
+        borderLeft: active ? "2px solid #a78bfa" : "2px solid transparent",
         cursor: "pointer",
         opacity: active ? 1 : 0.76,
         transition: "all 0.15s ease",
+        borderRadius: active ? 0 : 10,
     });
 
     function renderLeaf(item: NavLeaf | NavActionLeaf, nested = false) {
@@ -194,7 +196,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 }}
             >
                 {active && (
-                    <div className="absolute bottom-[25%] left-0 top-[25%] w-0.5 rounded-[99px]" style={{ background: roleColor, boxShadow: `0 0 6px ${roleColor}` }} />
+                    <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: "#a78bfa" }} />
                 )}
                 <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -247,7 +249,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     style={itemStyle(childActive || open)}
                 >
                     {(childActive || open) && (
-                        <div className="absolute bottom-[25%] left-0 top-[25%] w-0.5 rounded-[99px]" style={{ background: roleColor, boxShadow: `0 0 6px ${roleColor}` }} />
+                        <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: "#a78bfa" }} />
                     )}
                     <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={childActive || open ? 2.2 : 1.75}>
                         <path strokeLinecap="round" strokeLinejoin="round" d={entry.icon} />
@@ -369,7 +371,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         animate={{ opacity: 1 }}
                         className="mb-4"
                     >
-                        <p className="mb-1 px-[10px] font-mono text-[8px] font-black uppercase tracking-[0.22em] opacity-35" style={{ color: t.sub }}>
+                        <p style={{ marginBottom: 8, padding: "0 10px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>
                             {group}
                         </p>
                         {items.map((entry) => renderEntry(entry))}
@@ -377,8 +379,8 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 ))}
             </nav>
 
-            <div className="sticky bottom-0 p-[10px]" style={{ background: t.bg, borderTop: `1px solid ${t.border}`, paddingBottom: "calc(10px + env(safe-area-inset-bottom) + 72px)" }}>
-                <p className="mb-[6px] px-2 font-mono text-[8px] font-black uppercase tracking-[0.2em] opacity-30" style={{ color: t.sub }}>Theme</p>
+            <div className="sticky bottom-0 p-[10px]" style={{ background: "#09090f", borderTop: "1px solid rgba(255,255,255,0.08)", paddingBottom: "calc(10px + env(safe-area-inset-bottom) + 72px)" }}>
+                <p style={{ marginBottom: 6, padding: "0 8px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>Theme</p>
                 <div className="mb-[10px] flex gap-1">
                     {([ ["dark", "🌑", "Dark"], ["dim", "🌒", "Dim"], ["light", "☀️", "Light"] ] as const).map(([val, emoji, lbl]) => (
                         <button

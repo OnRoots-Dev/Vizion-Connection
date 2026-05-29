@@ -2,6 +2,21 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* ── Vizion Connection Dashboard Design Tokens ── */
+:root {
+  --vc-bg-base:       #09090f;
+  --vc-bg-surface:    #111118;
+  --vc-bg-elevated:   #1a1a24;
+  --vc-border:        rgba(255,255,255,0.08);
+  --vc-border-active: rgba(255,255,255,0.16);
+  --vc-text-primary:   #f0f0f5;
+  --vc-text-secondary: rgba(255,255,255,0.55);
+  --vc-text-tertiary:  rgba(255,255,255,0.28);
+  --vc-accent:        #a78bfa;
+  --vc-accent-dim:    rgba(167,139,250,0.12);
+  --vc-radius:        12px;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

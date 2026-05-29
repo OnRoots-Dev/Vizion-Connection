@@ -101,8 +101,8 @@ export function OffersView({
     <div className="flex flex-col gap-4">
       <ViewHeader title="Offers" sub="届いた案件を確認・管理" onBack={() => setView("hub")} t={t} roleColor={roleColor} />
 
-      <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="Incoming Offers" color={roleColor} />
+      <SectionCard t={t} accentColor="#a78bfa">
+        <SLabel text="Incoming Offers" />
         {loading ? (
           <p className="m-0 text-sm" style={{ color: t.sub }}>読み込み中...</p>
         ) : error ? (

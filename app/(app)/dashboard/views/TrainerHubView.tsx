@@ -184,8 +184,8 @@ export function TrainerHubView({
         <SectionCard t={t}><p style={{ margin: 0, fontSize: 12, color: "#ff9b9b" }}>{error}</p></SectionCard>
       ) : (
         <>
-          <SectionCard t={t} accentColor={roleColor}>
-            <SLabel text="Performance" color={roleColor} />
+          <SectionCard t={t} accentColor="#a78bfa">
+            <SLabel text="Performance" />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
               {[
                 { label: "指導人数", value: numberFormatter.format(summary.performance.coachedClients), detail: "担当クライアント" },
@@ -193,10 +193,10 @@ export function TrainerHubView({
                 { label: "セッション数", value: numberFormatter.format(summary.performance.sessionsCount), detail: "累計実施数" },
                 { label: "評価", value: summary.performance.averageRating > 0 ? summary.performance.averageRating.toFixed(1) : "-", detail: "平均レビュー" },
               ].map((item) => (
-                <div key={item.label} style={{ padding: 16, borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
-                  <div style={{ fontSize: 10, color: t.sub }}>{item.label}</div>
-                  <div style={{ marginTop: 8, fontSize: 24, fontWeight: 900, color: t.text }}>{item.value}</div>
-                  <div style={{ marginTop: 4, fontSize: 10, color: roleColor }}>{item.detail}</div>
+                <div key={item.label} style={{ padding: 16, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "#111118" }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{item.label}</div>
+                  <div style={{ marginTop: 8, fontSize: 32, fontWeight: 800, color: "#f0f0f5" }}>{item.value}</div>
+                  <div style={{ marginTop: 4, fontSize: 10, color: "#a78bfa" }}>{item.detail}</div>
                 </div>
               ))}
             </div>
@@ -218,7 +218,7 @@ export function TrainerHubView({
           </SectionCard>
 
           <SectionCard t={t}>
-            <SLabel text="Clients" color={roleColor} />
+            <SLabel text="Clients" />
             <div style={{ display: "grid", gap: 10 }}>
               {summary.clients.length === 0 ? (
                 <div style={{ padding: 16, borderRadius: 14, border: `1px dashed ${t.border}`, color: t.sub, fontSize: 12 }}>
@@ -262,8 +262,8 @@ export function TrainerHubView({
             ) : null}
           </SectionCard>
 
-          <SectionCard t={t} accentColor={roleColor}>
-            <SLabel text="Sessions" color={roleColor} />
+          <SectionCard t={t} accentColor="#a78bfa">
+            <SLabel text="Sessions" />
             <div style={{ display: "grid", gap: 10 }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
                 <label style={{ display: "grid", gap: 6, fontSize: 11, color: t.sub }}>
@@ -315,7 +315,7 @@ export function TrainerHubView({
                 <textarea value={form.summary} onChange={(e) => setForm((current) => ({ ...current, summary: e.target.value }))} style={{ minHeight: 92, resize: "vertical", padding: "11px 12px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text }} />
               </label>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button type="button" onClick={() => void submitSession()} disabled={saving || !form.clientName.trim() || !form.summary.trim() || !form.date} style={{ padding: "10px 16px", borderRadius: 12, border: "none", background: roleColor, color: "#04110a", fontWeight: 800, cursor: saving ? "progress" : "pointer", opacity: saving ? 0.7 : 1 }}>
+                <button type="button" onClick={() => void submitSession()} disabled={saving || !form.clientName.trim() || !form.summary.trim() || !form.date} style={{ padding: "11px 20px", borderRadius: 8, border: "none", background: "#a78bfa", color: "#000", fontWeight: 700, cursor: saving ? "progress" : "pointer", opacity: saving ? 0.7 : 1, boxShadow: "0 0 20px rgba(167,139,250,0.3)" }}>
                   {editingSessionId ? "セッションを更新" : "新規追加"}
                 </button>
                 <button type="button" onClick={() => startNewSession()} style={{ padding: "10px 16px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontWeight: 700, cursor: "pointer" }}>

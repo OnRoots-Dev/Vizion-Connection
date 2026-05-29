@@ -138,8 +138,8 @@ export function VoiceLabView({
                 </SectionCard>
             )}
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="New Voice" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="New Voice" />
                 <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 8 }}>
                         <select
@@ -185,8 +185,8 @@ export function VoiceLabView({
                 </SectionCard>
             )}
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Voices" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="Voices" />
                 <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
                     <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 800, color: t.text }}>いただいた声を大切に確認しています</p>
                     <p style={{ margin: 0, fontSize: 11, lineHeight: 1.8, color: t.sub }}>

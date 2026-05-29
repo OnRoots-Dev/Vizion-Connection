@@ -70,8 +70,8 @@ export function ContactView({
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Contact" sub="お問い合わせ" onBack={onBack} t={t} roleColor={roleColor} />
 
-      <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="お問い合わせ" color={roleColor} />
+      <SectionCard t={t} accentColor="#a78bfa">
+        <SLabel text="お問い合わせ" />
         <p style={{ margin: "0 0 10px", fontSize: 12, lineHeight: 1.7, color: t.sub }}>
           広告・取材・不具合など、お気軽にご連絡ください。
         </p>
@@ -103,13 +103,13 @@ export function ContactView({
                 type="button"
                 onClick={() => setDone(false)}
                 style={{
-                  borderRadius: 12,
-                  border: `1px solid ${roleColor}35`,
-                  background: `${roleColor}18`,
-                  color: roleColor,
-                  fontWeight: 900,
-                  fontSize: 12,
-                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(167,139,250,0.3)",
+                  background: "transparent",
+                  color: "#a78bfa",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  padding: "10px 20px",
                   cursor: "pointer",
                 }}
               >
@@ -130,11 +130,11 @@ export function ContactView({
                   marginTop: 6,
                   width: "100%",
                   height: 42,
-                  borderRadius: 12,
-                  border: `1px solid ${t.border}`,
-                  background: "rgba(255,255,255,0.03)",
-                  color: t.text,
-                  padding: "0 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#111118",
+                  color: "#f0f0f5",
+                  padding: "0 16px",
                   outline: "none",
                 }}
               >
@@ -161,11 +161,11 @@ export function ContactView({
                   marginTop: 6,
                   width: "100%",
                   height: 42,
-                  borderRadius: 12,
-                  border: `1px solid ${t.border}`,
-                  background: "rgba(255,255,255,0.03)",
-                  color: t.text,
-                  padding: "0 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#111118",
+                  color: "#f0f0f5",
+                  padding: "0 16px",
                   outline: "none",
                 }}
               />
@@ -184,11 +184,11 @@ export function ContactView({
                   marginTop: 6,
                   width: "100%",
                   height: 42,
-                  borderRadius: 12,
-                  border: `1px solid ${t.border}`,
-                  background: "rgba(255,255,255,0.03)",
-                  color: t.text,
-                  padding: "0 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#111118",
+                  color: "#f0f0f5",
+                  padding: "0 16px",
                   outline: "none",
                 }}
               />
@@ -206,11 +206,11 @@ export function ContactView({
                 style={{
                   marginTop: 6,
                   width: "100%",
-                  borderRadius: 12,
-                  border: `1px solid ${t.border}`,
-                  background: "rgba(255,255,255,0.03)",
-                  color: t.text,
-                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "#111118",
+                  color: "#f0f0f5",
+                  padding: "12px 16px",
                   outline: "none",
                   resize: "vertical",
                   lineHeight: 1.7,
@@ -234,13 +234,13 @@ export function ContactView({
               style={{
                 marginTop: 4,
                 width: "100%",
-                padding: "12px 0",
-                borderRadius: 12,
-                background: loading || !canSubmit ? "rgba(167,139,250,0.25)" : roleColor,
+                padding: "11px 0",
+                borderRadius: 8,
+                background: loading || !canSubmit ? "rgba(167,139,250,0.25)" : "#a78bfa",
                 border: "none",
-                color: "#0B0B0F",
+                color: "#000",
                 fontSize: 13,
-                fontWeight: 900,
+                fontWeight: 700,
                 cursor: loading ? "wait" : canSubmit ? "pointer" : "not-allowed",
                 opacity: loading || !canSubmit ? 0.7 : 1,
               }}

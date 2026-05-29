@@ -160,8 +160,8 @@ export function MembersHubView({
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Members Hub" sub="活動・応援・紹介を可視化する" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
-      <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="My Hub" color={roleColor} />
+      <SectionCard t={t} accentColor="#a78bfa">
+        <SLabel text="My Hub" />
         {myHubCards.length === 0 ? (
           <div style={{ display: "grid", gap: 10 }}>
             <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.8 }}>
@@ -171,7 +171,7 @@ export function MembersHubView({
               <button
                 type="button"
                 onClick={() => setView("discovery")}
-                style={{ padding: "9px 14px", borderRadius: 12, border: "none", background: roleColor, color: "#061018", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                style={{ padding: "11px 20px", borderRadius: 8, border: "none", background: "#a78bfa", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 0 20px rgba(167,139,250,0.3)" }}
               >
                 Discoveryで探す
               </button>
@@ -261,11 +261,11 @@ export function MembersHubView({
         )}
       </SectionCard>
 
-      <SectionCard t={t} accentColor={roleColor}>
+      <SectionCard t={t} accentColor="#a78bfa">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div>
-            <SLabel text="Members Focus" color={roleColor} />
-            <h3 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 900, color: t.text }}>参加・応援・拡散を次の行動につなげる</h3>
+            <SLabel text="Members Focus" />
+            <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#f0f0f5" }}>参加・応援・拡散を次の行動につなげる</h3>
             <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.8 }}>
               閲覧、Cheer、紹介の履歴をまとめて見える化し、次にどの行動を伸ばすか判断しやすくします。
             </p>
@@ -289,8 +289,8 @@ export function MembersHubView({
         </SectionCard>
       ) : (
         <>
-          <SectionCard t={t} accentColor={roleColor}>
-            <SLabel text="Activity" color={roleColor} />
+          <SectionCard t={t} accentColor="#a78bfa">
+            <SLabel text="Activity" />
             <div style={{ display: "grid", gap: 10 }}>
               {summary.activity.items.length === 0 ? (
                 <div style={{ padding: 18, borderRadius: 14, border: `1px dashed ${t.border}`, color: t.sub, fontSize: 12 }}>
@@ -348,7 +348,7 @@ export function MembersHubView({
           </SectionCard>
 
           <SectionCard t={t}>
-            <SLabel text="Rewards" color={roleColor} />
+            <SLabel text="Rewards" />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
               {[...summary.rewards.earned, ...summary.rewards.pending].map((reward) => {
                 const percent = Math.min((reward.progress / Math.max(reward.requiredCount, 1)) * 100, 100);

@@ -363,7 +363,7 @@ export default function DashboardClient({
                 .vz-card-hover:hover { border-color: rgba(255,255,255,0.12) !important; box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
             `}</style>
 
-            <div style={{ minHeight: "100vh", background: t.bg, color: t.text, fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s", ["--vz-text" as string]: t.text, ["--vz-sub" as string]: t.sub, ["--vz-surface" as string]: t.surface, ["--vz-border" as string]: t.border }}>
+            <div style={{ minHeight: "100vh", background: "#09090f", color: "#f0f0f5", fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s", ["--vz-text" as string]: "#f0f0f5", ["--vz-sub" as string]: "rgba(255,255,255,0.55)", ["--vz-surface" as string]: "#111118", ["--vz-border" as string]: "rgba(255,255,255,0.08)" }}>
                 <ProfilePreviewModal slug={selectedProfileSlug} onClose={() => setSelectedProfileSlug(null)} />
                 <AnimatePresence>
                     {sidebarOpen && isMobile && (

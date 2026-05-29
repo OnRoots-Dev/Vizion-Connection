@@ -85,8 +85,9 @@ function ArcadeDiscoveryRow({
         overflow: "hidden",
         width: "100%",
         borderRadius: 14,
-        border: `1px solid ${roleColor}30`,
-        background: "linear-gradient(90deg, rgba(7,10,18,0.94) 0%, rgba(7,10,18,0.90) 55%, rgba(7,10,18,0.96) 100%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderLeft: `3px solid ${roleColor}`,
+        background: "#111118",
         color: "#fff",
         textAlign: "left",
         cursor: "pointer",
@@ -376,10 +377,10 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
           exit={{ opacity: 0, y: -10, scale: 0.985 }}
           transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
-        <SectionCard t={t} accentColor={roleColor}>
+        <SectionCard t={t} accentColor="#a78bfa">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
             <div>
-              <SLabel text={listTitle} color={roleColor} size={10} />
+              <SLabel text={listTitle} />
               <p style={{ margin: "6px 0 0", fontSize: 11, color: t.sub }}>
                 一覧表示（タップでプロフィールプレビュー） · {start + 1}-{Math.min(end, listTotal)}/{listTotal}
               </p>
@@ -452,7 +453,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                 user={u}
                 rank={start + i + 1}
                 score={listMode === "referral" ? String(u.referral_count) : String(u.weekly_cheer_count)}
-                accentColor={roleColor}
+                accentColor="#a78bfa"
                 scoreTone={listMode === "referral" ? "default" : "gold"}
                 onOpen={() => onOpenProfile?.(u.slug)}
               />
@@ -482,14 +483,14 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
       )}
 
       <div style={{ margin: "8px 0" }}>
-        <SLabel text="Vizion Radar" color={roleColor} size={10} />
+        <SLabel text="Vizion Radar" size={10} />
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${isPc ? 4 : 2}, minmax(0, 1fr))`, gap: 8, marginBottom: 8 }}>
           <div style={{ position: "relative" }}>
             <input
               value={q}
               onChange={(e) => { setLoading(true); setQ(e.target.value); }}
               placeholder="ユーザーID / アカウント名で検索"
-              style={{ width: "100%", padding: "10px 36px 10px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", color: t.text, fontSize: 11 }}
+              style={{ width: "100%", padding: "12px 36px 12px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "#111118", color: "#f0f0f5", fontSize: 11 }}
             />
             {q.trim() ? (
               <button
@@ -600,7 +601,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
           ) : radarTab === "referral" ? (
             <SectionCard t={t}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8 }}>
-                <SLabel text="Referral Ranking" color={roleColor} size={10} />
+                <SLabel text="Referral Ranking" />
                 <button type="button" onClick={() => setListMode("referral")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
                   もっと見る→
                 </button>
@@ -612,16 +613,16 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                     user={u}
                     rank={i + 1}
                     score={String(u.referral_count)}
-                    accentColor={roleColor}
+                    accentColor="#a78bfa"
                     onOpen={() => onOpenProfile?.(u.slug)}
                   />
                 ))}
               </div>
             </SectionCard>
           ) : radarTab === "newcomer" ? (
-            <SectionCard t={t} accentColor={roleColor}>
+            <SectionCard t={t} accentColor="#a78bfa">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                <SLabel text="New Results" color="#fff" size={10} />
+                <SLabel text="New Results" />
                 <button type="button" onClick={() => setListMode("results")} style={{ border: "none", background: "transparent", color: t.sub, fontWeight: 900, fontSize: 11, cursor: "pointer" }}>
                   もっと見る→
                 </button>
@@ -638,7 +639,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                       user={u}
                       rank={i + 1}
                       score={String(u.weekly_cheer_count)}
-                      accentColor={roleColor}
+                      accentColor="#a78bfa"
                       scoreTone="gold"
                       onOpen={() => onOpenProfile?.(u.slug)}
                     />
@@ -647,9 +648,9 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
               )}
             </SectionCard>
           ) : (
-            <SectionCard t={t} accentColor={roleColor}>
+            <SectionCard t={t} accentColor="#a78bfa">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                <SLabel text="Discovery Results" color="#fff" size={10} />
+                <SLabel text="Discovery Results" />
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, opacity: 0.8, whiteSpace: "nowrap" }}>
                     Journey継続で露出が上がります（現在: 連続{journeyStreak}日）
@@ -671,7 +672,7 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                       user={u}
                       rank={i + 1}
                       score={String(u.weekly_cheer_count)}
-                      accentColor={roleColor}
+                      accentColor="#a78bfa"
                       scoreTone="gold"
                       onOpen={() => onOpenProfile?.(u.slug)}
                     />

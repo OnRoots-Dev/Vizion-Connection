@@ -236,23 +236,23 @@ export function NotificationsView({
       <ViewHeader title="Notifications" sub="通知一覧" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
       <SectionCard t={t}>
-        <SLabel text="Overview" color={roleColor} />
+        <SLabel text="Overview" />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <p style={{ margin: 0, fontSize: 12, color: t.sub }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
             未読 {unreadInList} 件
           </p>
           <button
             onClick={markAllRead}
             disabled={submitting || unreadInList === 0}
             style={{
-              border: `1px solid ${roleColor}44`,
+              border: "1px solid rgba(167,139,250,0.3)",
               background: "transparent",
-              color: unreadInList === 0 ? t.sub : roleColor,
+              color: unreadInList === 0 ? "rgba(255,255,255,0.28)" : "#a78bfa",
               opacity: unreadInList === 0 ? 0.5 : 1,
               borderRadius: 8,
-              padding: "6px 10px",
-              fontSize: 11,
-              fontWeight: 700,
+              padding: "10px 20px",
+              fontSize: 13,
+              fontWeight: 500,
               cursor: unreadInList === 0 ? "not-allowed" : "pointer",
             }}
           >
@@ -270,8 +270,7 @@ export function NotificationsView({
         <AdCard ad={ads[0]!} />
       ) : (
         <SectionCard t={t}>
-          <SLabel text="AD SLOT" color="#FFD600" />
-          <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（空き枠）</p>
+          <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
         </SectionCard>
       )}
 
@@ -282,24 +281,25 @@ export function NotificationsView({
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {items.map((item) => (
-            <SectionCard key={item.id} t={t} accentColor={item.isRead ? undefined : roleColor}>
-              <div style={{ display: "grid", gap: 8 }}>
+            <SectionCard key={item.id} t={t} accentColor={item.isRead ? undefined : "#a78bfa"}>
+              <div style={{ display: "grid", gap: 8, padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <span style={{
-                      fontSize: 9,
-                      fontFamily: "monospace",
-                      letterSpacing: "0.08em",
-                      color: item.isRead ? t.sub : roleColor,
+                      fontSize: 10,
+                      fontFamily: "'Space Mono', monospace",
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: item.isRead ? "rgba(255,255,255,0.28)" : roleColor,
                     }}>
                       {TYPE_LABEL[item.type]}
                     </span>
                     {!item.isRead && (
                       <span style={{
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: 900,
-                        color: roleColor,
-                        border: `1px solid ${roleColor}55`,
+                        color: "#a78bfa",
+                        border: "1px solid rgba(167,139,250,0.3)",
                         borderRadius: 999,
                         padding: "1px 6px",
                       }}>
@@ -323,7 +323,7 @@ export function NotificationsView({
                   {item.linkUrl && (
                     <a
                       href={item.linkUrl}
-                      style={{ fontSize: 11, color: roleColor, textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ fontSize: 11, color: "#a78bfa", textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       開く
                     </a>

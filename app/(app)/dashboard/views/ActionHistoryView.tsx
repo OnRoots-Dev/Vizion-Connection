@@ -114,8 +114,8 @@ export function ActionHistoryView({
         <div style={{ display: "grid", gap: 12 }}>
             <ViewHeader title="Action History" sub="アクション履歴" onBack={onBack} t={t} roleColor={roleColor} />
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Timeline" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="Timeline" />
                 <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>
                     このアカウントに紐づく通知や進行状況を、時系列でまとめて確認できます。
                 </p>

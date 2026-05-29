@@ -95,8 +95,8 @@ export default function PostsView({
         <div style={{ display: "grid", gap: 12 }}>
             <ViewHeader title="記事管理" sub="運営記事の一覧 / 編集 / 削除" onBack={() => setView("hub")} t={t} roleColor={roleColor} />
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Actions" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="Actions" />
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <button
                         type="button"
@@ -135,7 +135,7 @@ export default function PostsView({
             </SectionCard>
 
             <SectionCard t={t}>
-                <SLabel text="Posts" color={roleColor} />
+                <SLabel text="Posts" />
 
                 {loading ? (
                     <p style={{ margin: 0, fontSize: 12, color: t.sub }}>読み込み中...</p>

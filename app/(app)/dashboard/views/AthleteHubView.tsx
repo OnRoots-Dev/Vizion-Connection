@@ -23,7 +23,7 @@ export function AthleteHubView({
   ads: AdItem[];
 }) {
   const hub = getHubConfig(profile.role);
-  const accent = hub.accentColor || roleColor;
+  const accent = "#a78bfa";
   const [selectedFeatureId, setSelectedFeatureId] = useState(hub.features[0]?.id ?? "");
 
   const selectedFeature = useMemo(
@@ -35,18 +35,18 @@ export function AthleteHubView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <ViewHeader title="Athlete Hub" sub={hub.purpose} onBack={() => setView("home")} t={t} roleColor={accent} />
+      <ViewHeader title="Athlete Hub" sub={hub.purpose} onBack={() => setView("home")} t={t} roleColor={roleColor} />
       <HubAdPanel ads={ads} t={t} />
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         <SectionCard t={t} accentColor={accent}>
-          <div style={{ position: "relative", overflow: "hidden", borderRadius: 18, border: `1px solid ${accent}25`, background: `linear-gradient(135deg, ${accent}16, rgba(255,255,255,0.03))`, padding: 18 }}>
+          <div style={{ position: "relative", overflow: "hidden", borderRadius: 12, border: `1px solid ${accent}25`, background: `linear-gradient(135deg, ${accent}16, rgba(255,255,255,0.03))`, padding: 18 }}>
             <div style={{ position: "absolute", right: -24, top: -24, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${accent}28, transparent 70%)`, pointerEvents: "none" }} />
             <div style={{ position: "relative" }}>
-              <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: accent, fontFamily: "monospace" }}>{hub.accentLabel}</p>
-              <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 900, color: t.text }}>{hub.hubName}</h2>
-              <p style={{ margin: "0 0 10px", fontSize: 13, color: t.text, fontWeight: 700 }}>{hub.purpose}</p>
-              <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.8 }}>{hub.summary}</p>
+              <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: accent, fontFamily: "'Space Mono', monospace" }}>{hub.accentLabel}</p>
+              <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#f0f0f5" }}>{hub.hubName}</h2>
+              <p style={{ margin: "0 0 10px", fontSize: 13, color: "#f0f0f5", fontWeight: 700 }}>{hub.purpose}</p>
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.8 }}>{hub.summary}</p>
             </div>
           </div>
         </SectionCard>
@@ -55,7 +55,7 @@ export function AthleteHubView({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14, alignItems: "start" }}>
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
           <SectionCard t={t} accentColor={accent}>
-            <SLabel text="Hub Menu" color={accent} />
+            <SLabel text="Hub Menu" />
             <div style={{ display: "grid", gap: 10 }}>
               {hub.features.map((feature, index) => {
                 const active = selectedFeature.id === feature.id;
@@ -74,9 +74,9 @@ export function AthleteHubView({
                       width: "100%",
                       textAlign: "left",
                       padding: "14px 15px",
-                      borderRadius: 16,
-                      border: `1px solid ${active ? `${accent}45` : t.border}`,
-                      background: active ? `${accent}16` : "rgba(255,255,255,0.03)",
+                      borderRadius: 12,
+                      border: `1px solid ${active ? `${accent}45` : "rgba(255,255,255,0.08)"}`,
+                      background: active ? `${accent}16` : "#111118",
                       color: t.text,
                       cursor: "pointer",
                     }}
@@ -99,9 +99,9 @@ export function AthleteHubView({
 
         <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
           <SectionCard t={t} accentColor={accent}>
-            <SLabel text="Feature Detail" color={accent} />
+            <SLabel text="Feature Detail" />
             <div style={{ display: "grid", gap: 14 }}>
-              <div style={{ padding: 18, borderRadius: 18, border: `1px solid ${accent}28`, background: `linear-gradient(145deg, ${accent}14, rgba(255,255,255,0.02))` }}>
+              <div style={{ padding: 18, borderRadius: 12, border: `1px solid ${accent}28`, background: `linear-gradient(145deg, ${accent}14, rgba(255,255,255,0.02))` }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                   <div>
                     <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 900, color: t.text }}>{selectedFeature.title}</p>
@@ -114,9 +114,9 @@ export function AthleteHubView({
                 <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.9 }}>{selectedFeature.detail}</p>
               </div>
 
-              <div style={{ padding: "14px 16px", borderRadius: 16, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
-                <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 900, letterSpacing: "0.18em", textTransform: "uppercase", color: t.sub, opacity: 0.6, fontFamily: "monospace" }}>How This Drives Value</p>
-                <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.8 }}>
+              <div style={{ padding: "14px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "#111118" }}>
+                <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", fontFamily: "'Space Mono', monospace" }}>How This Drives Value</p>
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.8 }}>
                   アスリート活動の広がりを見える化し、応援の増加や案件機会を次の収益行動へつなげやすくします。
                 </p>
               </div>

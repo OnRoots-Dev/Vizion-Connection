@@ -173,7 +173,7 @@ function GenericHubView({
     canManageAdmin: boolean;
 }) {
     const hub = getHubConfig(profile.role);
-    const accent = hub.accentColor || roleColor;
+    const accent = "#a78bfa";
     const [selectedFeatureId, setSelectedFeatureId] = useState(hub.features[0]?.id ?? "");
 
     const features = useMemo(() => {
@@ -366,7 +366,7 @@ export function BusinessHubView({
     setView: (v: DashboardView) => void;
     ads: AdItem[];
 }) {
-    const accent = roleColor || "#3C8CFF";
+    const accent = "#a78bfa";
     const [selectedFeature, setSelectedFeature] = useState<BusinessFeature>("analytics");
     const [analytics, setAnalytics] = useState<BusinessAnalytics>(emptyAnalytics);
     const [ads, setAds] = useState<BusinessAd[]>([]);

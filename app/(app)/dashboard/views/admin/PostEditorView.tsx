@@ -208,8 +208,8 @@ export default function PostEditorView({
         <div style={{ display: "grid", gap: 12 }}>
             <ViewHeader title={postId ? "記事編集" : "新規投稿"} sub="タイトル / カテゴリー / 本文 / 公開設定" onBack={() => setView("hub")} t={t} roleColor={roleColor} />
 
-            <SectionCard t={t} accentColor={roleColor}>
-                <SLabel text="Editor" color={roleColor} />
+            <SectionCard t={t} accentColor="#a78bfa">
+                <SLabel text="Editor" />
                 {error ? <p style={{ margin: 0, fontSize: 12, color: "#ff6b6b" }}>{error}</p> : null}
                 {fileError ? <p style={{ margin: "8px 0 0", fontSize: 12, color: "#ffb86b" }}>{fileError}</p> : null}
             </SectionCard>

@@ -159,16 +159,16 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <ViewHeader title="Missions" sub="特典を獲得しよう" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
-            <SectionCard t={t} accentColor={roleColor}>
+            <SectionCard t={t} accentColor="#a78bfa">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <SLabel text="ポイント残高" color={roleColor} />
-                    <span style={{ fontSize: 10, color: t.sub, opacity: 0.6, fontFamily: "monospace" }}>現在の合計ポイント</span>
+                    <SLabel text="ポイント残高" />
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontFamily: "'Space Mono', monospace" }}>現在の合計ポイント</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                    <span className="font-display" style={{ fontSize: 36, color: roleColor, lineHeight: 1 }}>
+                    <span style={{ fontSize: 32, fontWeight: 800, color: "#f0f0f5", lineHeight: 1 }}>
                         {profile.points.toLocaleString()}
                     </span>
-                    <span style={{ fontSize: 12, color: t.sub, opacity: 0.7 }}>pt</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>pt</span>
                 </div>
                 <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
                     <button
@@ -253,9 +253,9 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                                     {completedCount} <span style={{ fontSize: 14, opacity: 0.5 }}>/ {MISSIONS.length}</span>
                                 </span>
                             </div>
-                            <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                            <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
                                 <motion.div initial={{ width: 0 }} animate={{ width: `${(completedCount / MISSIONS.length) * 100}%` }} transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                                    style={{ height: "100%", borderRadius: 99, background: allDone ? "linear-gradient(90deg,#FFD600,#FFD60066)" : `linear-gradient(90deg,${roleColor},${roleColor}66)`, boxShadow: allDone ? "0 0 10px rgba(255,214,0,0.4)" : `0 0 10px ${roleColor}40` }} />
+                                    style={{ height: "100%", borderRadius: 2, background: allDone ? "linear-gradient(90deg,#FFD600,#FFD60066)" : "#a78bfa" }} />
                             </div>
                             <p style={{ margin: "10px 0 0", fontSize: 11, color: allDone ? "#FFD600" : t.sub }}>
                                 初期ミッションのポイントは、達成したタイミングで自動反映されます。
@@ -265,11 +265,11 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             {MISSIONS.map(({ label, done, reward, desc }, i) => (
                                 <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-                                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 14, background: done ? "rgba(255,255,255,0.025)" : t.surface, border: `1px solid ${done ? roleColor + "25" : t.border}` }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: done ? `${roleColor}20` : "rgba(255,255,255,0.04)", border: `2px solid ${done ? roleColor : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: done ? `0 0 8px ${roleColor}40` : "none", transition: "all 0.3s" }}>
+                                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px", borderRadius: 12, background: done ? "rgba(255,255,255,0.025)" : "#111118", border: `1px solid ${done ? "rgba(50,210,120,0.2)" : "rgba(255,255,255,0.08)"}` }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: done ? "rgba(50,210,120,0.15)" : "transparent", border: done ? "1px solid rgba(50,210,120,0.3)" : "1.5px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s" }}>
                                         {done
-                                            ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke={roleColor} strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                            : <div style={{ width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
+                                            ? <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="#32D278" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                            : <div style={{ width: 8, height: 8, borderRadius: "50%", background: "transparent" }} />
                                         }
                                     </div>
                                     <div style={{ flex: 1 }}>
@@ -291,10 +291,10 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                         style={{ display: "flex", flexDirection: "column", gap: 12 }}
                     >
                         {shouldShowMorningJourneyMission ? (
-                            <SectionCard t={t} accentColor={roleColor}>
+                            <SectionCard t={t} accentColor="#a78bfa">
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                                     <div>
-                                        <SLabel text="Daily Mission" color={roleColor} />
+                                        <SLabel text="Daily Mission" />
                                         <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: t.text }}>My Journey を朝のうちに記録しよう</p>
                                         <p style={{ margin: 0, fontSize: 11, color: t.sub, lineHeight: 1.7 }}>
                                             {morningJourneyCompleted

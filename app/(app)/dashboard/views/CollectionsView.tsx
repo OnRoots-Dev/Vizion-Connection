@@ -115,13 +115,12 @@ export function CollectionsView({
       <ViewHeader title="Collection" sub="コレクトしたカードを回して確認" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
       <SectionCard t={t}>
-        <SLabel text="AD SLOT" color="#FFD600" />
-        <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
+        <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
       </SectionCard>
 
-      <SectionCard t={t} accentColor={roleColor}>
+      <SectionCard t={t} accentColor="#a78bfa">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <SLabel text="Card Collection" color={roleColor} />
+          <SLabel text="Card Collection" />
           <span style={{ fontSize: 10, color: t.sub }}>{filteredCards.length} / {COLLECTION_LIMIT} cards</span>
         </div>
 
@@ -145,9 +144,9 @@ export function CollectionsView({
                     cursor: "pointer",
                     fontSize: 11,
                     fontWeight: 800,
-                    background: active ? `${roleColor}18` : "rgba(255,255,255,0.04)",
-                    color: active ? roleColor : t.sub,
-                    outline: active ? `1px solid ${roleColor}33` : "1px solid transparent",
+                    background: active ? "rgba(167,139,250,0.12)" : "#111118",
+                    color: active ? "#a78bfa" : "rgba(255,255,255,0.55)",
+                    outline: active ? "1px solid rgba(167,139,250,0.3)" : "1px solid transparent",
                   }}
                 >
                   {filter.label}

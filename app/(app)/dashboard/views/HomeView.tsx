@@ -41,10 +41,10 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ position: "relative", overflow: "hidden", paddingBottom: 8 }}>
-                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.35em", textTransform: "uppercase", color: t.sub, opacity: 0.5, margin: "0 0 4px", fontFamily: "monospace" }}>
+                <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", margin: "0 0 4px", fontFamily: "'Space Mono', monospace" }}>
                     Vizion Connection Dashboard
                 </motion.p>
-                <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.05 }} className="font-display" style={{ fontSize: "clamp(32px,5vw,56px)", fontWeight: 900, color: t.text, margin: 0, lineHeight: 1, letterSpacing: "-0.01em", textTransform: "uppercase" }}>
+                <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.05 }} className="font-display" style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: "#f0f0f5", margin: 0, lineHeight: 1, letterSpacing: "-0.01em", textTransform: "uppercase" }}>
                     <span style={{ color: roleColor }}>{profile.role}</span> / BASE
                 </motion.h1>
             </div>
@@ -56,10 +56,9 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             {/* Schedule section commented out temporarily */}
             {/*
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <SectionCard t={t} accentColor={roleColor}>
+                <SectionCard t={t} accentColor="#a78bfa">
                     <CardHeader
                         title="Schedule"
-                        color={roleColor}
                         action={<ActionPill onClick={() => setView("schedule")} color={roleColor} t={t}>View →</ActionPill>}
                     />
                     {upcomingSchedules.length === 0 ? (

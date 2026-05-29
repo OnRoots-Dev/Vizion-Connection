@@ -124,8 +124,8 @@ export function CheerGraphView({
         roleColor={roleColor}
       />
 
-      <SectionCard t={t} accentColor={roleColor}>
-        <SLabel text="Overview" color={roleColor} />
+      <SectionCard t={t} accentColor="#a78bfa">
+        <SLabel text="Overview" />
         {loading ? (
           <p style={{ margin: 0, fontSize: 12, color: t.sub }}>読み込み中...</p>
         ) : error ? (
