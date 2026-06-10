@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import {
   motion,
@@ -60,22 +61,22 @@ export function HeroSection() {
             </motion.p>
           </div>
 
-          <h1 className="flex flex-col font-display font-black leading-[0.82] tracking-tighter text-white">
+          <h1 className="flex flex-col font-display font-black leading-[0.88] tracking-tighter text-white">
             <motion.span
               initial={{ x: -30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-[16vw] md:text-[11vw] text-[#FFD600] uppercase z-[1]"
+              className="text-[14vw] md:text-[9vw] text-[#FFD600] uppercase z-[1]"
             >
-              Beyond the Limit,
+              活動が、信頼になる。
             </motion.span>
             <motion.span
               initial={{ x: 30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-[14vw] md:text-[10vw] uppercase"
+              className="text-[12vw] md:text-[8vw] uppercase"
             >
-              Connect the Trust.
+              信頼が、機会になる。
             </motion.span>
           </h1>
 
@@ -83,10 +84,35 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 1 }}
-            className="mt-2 font-display text-[2.5vw] md:text-[1.3vw] uppercase tracking-[0.3em] text-white/40"
+            className="mt-4 font-display text-[2.5vw] md:text-[1.3vw] uppercase tracking-[0.2em] text-white/40"
           >
-            スポーツの「信頼」を、新しい時代の資産に変える。
+            挑戦するすべての人のPulseを観測・共鳴・支援するネットワーク
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0, duration: 0.7 }}
+            className="mt-8 flex flex-col items-center gap-3 sm:flex-row"
+          >
+            <Link
+              href="/register"
+              className="group relative overflow-hidden px-8 py-4 font-display text-[13px] font-black uppercase tracking-[0.18em] text-[#0a0a0a] transition-all hover:opacity-90"
+              style={{ background: "var(--electric)", boxShadow: "0 0 28px rgba(0,194,255,0.35)", borderRadius: 2 }}
+            >
+              今すぐ登録する（無料）
+            </Link>
+            <Link
+              href="#business"
+              className="group flex items-center gap-2 border border-white/20 px-8 py-4 font-display text-[13px] font-black uppercase tracking-[0.18em] text-white/70 transition-all hover:border-white/40 hover:text-white"
+              style={{ borderRadius: 2 }}
+            >
+              Businessプランを見る
+              <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current transition-transform group-hover:translate-y-0.5">
+                <path d="M7 10l5 5 5-5z" />
+              </svg>
+            </Link>
+          </motion.div>
         </motion.div>
 
         <motion.div

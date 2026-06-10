@@ -107,6 +107,15 @@ export type ProfileRecord = ReturnType<typeof toProfile>;
 
 // ── 検索 ──────────────────────────────────────────────────────────────────────
 
+export async function findSlugByAuthId(authId: string): Promise<string | null> {
+    const { data } = await supabase
+        .from("users")
+        .select("slug")
+        .eq("auth_id", authId)
+        .single();
+    return data?.slug ?? null;
+}
+
 export async function findUserBySlug(slug: string): Promise<ProfileRecord | null> {
     const { data, error } = await supabase
         .from("users").select("*").eq("slug", slug).eq("is_deleted", false).single();

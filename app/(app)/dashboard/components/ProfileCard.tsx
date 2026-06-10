@@ -377,7 +377,7 @@ export function ProfileCardSection({
     }
     function onLeave() { setIsHovered(false); mx.set(0); my.set(0); }
 
-    const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "#a78bfa");
+    const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "var(--electric)");
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ-2026-000001";
@@ -555,6 +555,26 @@ export function ProfileCardSection({
                                         paddingLeft: 16,
                                     }}
                                 >
+                                    {((profile as any).journeyCount ?? (profile as any).streak) ? (
+                                        <span
+                                            style={{
+                                                position: "absolute",
+                                                top: 10,
+                                                right: 10,
+                                                fontFamily: "monospace",
+                                                color: "var(--electric)",
+                                                fontSize: 10,
+                                                border: "1px solid rgba(0,194,255,0.3)",
+                                                background: "rgba(0,194,255,0.08)",
+                                                borderRadius: 6,
+                                                padding: "2px 8px",
+                                                pointerEvents: "none",
+                                                lineHeight: 1.6,
+                                            }}
+                                        >
+                                            DAY {(profile as any).journeyCount ?? (profile as any).streak}
+                                        </span>
+                                    ) : null}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
                                         <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
@@ -600,7 +620,8 @@ export function ProfileCardSection({
                                                 fontSize: "clamp(12px, 3.0vw, 17px)",
                                                 fontWeight: 950,
                                                 letterSpacing: "clamp(0.06em, 0.5vw, 0.16em)",
-                                                color: "rgba(255,255,255,0.72)",
+                                                color: "var(--electric)",
+                                                opacity: 0.7,
                                                 whiteSpace: "nowrap",
                                                 textShadow: "0 1px 0 rgba(255,255,255,0.42), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.62)",
                                                 filter: "drop-shadow(0 0 10px rgba(0,0,0,0.28))",

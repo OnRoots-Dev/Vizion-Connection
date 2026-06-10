@@ -20,8 +20,8 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 const T = {
-    surface: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)",
-    text: "#F0F0F5", sub: "rgba(255,255,255,0.45)",
+    surface: "var(--surface-2)", border: "var(--border)",
+    text: "var(--foreground)", sub: "var(--muted-foreground)",
 };
 
 export default function DiscoveryOnboardingClient() {
@@ -64,14 +64,14 @@ export default function DiscoveryOnboardingClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            style={{ minHeight: "100vh", background: "#0B0B0F", paddingBottom: 40 }}
+            style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px 0" }}>
                 <OnboardingStepBar current={4} />
                 <button
                     type="button"
                     onClick={() => router.push("/onboarding/invite")}
-                    style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer", padding: "4px 8px", whiteSpace: "nowrap", flexShrink: 0 }}
+                    style={{ background: "none", border: "none", color: "var(--muted-foreground)", fontSize: 12, cursor: "pointer", padding: "4px 8px", whiteSpace: "nowrap", flexShrink: 0 }}
                 >
                     後にする
                 </button>
@@ -82,35 +82,38 @@ export default function DiscoveryOnboardingClient() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1, duration: 0.4 }}
-                    style={{ padding: "12px 16px", borderRadius: 14, background: "rgba(255,214,0,0.08)", border: "1px solid rgba(255,214,0,0.2)", marginBottom: 24, textAlign: "center" }}
+                    style={{ padding: "20px 16px", borderRadius: 24, background: "var(--surface-2)", border: "1px solid var(--border)", marginBottom: 24, textAlign: "center", boxShadow: "0 24px 80px rgba(0,0,0,0.7)" }}
                 >
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#FFD600" }}>
-                        ⚡ 気になるユーザーにCheerを送ってみましょう。
+                    <h1 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 900, color: "var(--foreground)", lineHeight: 1.3 }}>
+                        Pulseを発見しよう
+                    </h1>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--muted-foreground)", lineHeight: 1.8 }}>
+                        挑戦しているアスリートやトレーナーを見つけてCheerしよう
                     </p>
                 </motion.div>
 
                 {loading ? (
-                    <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13, marginTop: 40 }}>読み込み中...</p>
+                    <p style={{ textAlign: "center", color: "var(--muted-foreground)", fontSize: 13, marginTop: 40 }}>読み込み中...</p>
                 ) : users.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                        <p style={{ margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.8 }}>
+                        <p style={{ margin: 0, color: "var(--foreground)", fontSize: 14, lineHeight: 1.8 }}>
                             まだ公開しているユーザーがいないようです…。
                         </p>
-                        <p style={{ margin: "10px 0 0", color: "rgba(255,255,255,0.35)", fontSize: 12, lineHeight: 1.8 }}>
+                        <p style={{ margin: "10px 0 0", color: "var(--muted-foreground)", fontSize: 12, lineHeight: 1.8 }}>
                             先に次のステップへ進んで、あとからCheerをはじめられます。
                         </p>
                         <button
                             type="button"
                             onClick={() => router.push("/onboarding/invite")}
-                            style={{ marginTop: 16, padding: "12px 24px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer" }}
+                            style={{ marginTop: 16, padding: "12px 24px", borderRadius: 14, border: "1px solid var(--border)", background: "var(--electric)", color: "#0a0a0a", fontSize: 13, cursor: "pointer", boxShadow: "0 0 24px rgba(0,194,255,0.35)" }}
                         >
-                            招待ステップへ進む
+                            TIMELINEへ進む
                         </button>
                     </div>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                         {users.map((user, i) => {
-                            const roleColor = ROLE_COLORS[user.role] ?? "#a78bfa";
+                            const roleColor = ROLE_COLORS[user.role] ?? "var(--electric)";
                             const isCheered = cheeredSlugs.has(user.slug);
                             const isSending = cheering === user.slug;
                             const initials = user.display_name.slice(0, 2).toUpperCase();
@@ -122,8 +125,9 @@ export default function DiscoveryOnboardingClient() {
                                     transition={{ delay: i * 0.05, duration: 0.3 }}
                                     style={{
                                         display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                                        borderRadius: 16, border: `1px solid ${isCheered ? `${roleColor}35` : T.border}`,
+                                        borderRadius: 24, border: `1px solid ${isCheered ? `${roleColor}35` : T.border}`,
                                         background: isCheered ? `${roleColor}08` : T.surface,
+                                        boxShadow: "0 24px 80px rgba(0,0,0,0.7)",
                                         transition: "all 0.3s ease",
                                     }}
                                 >
@@ -153,15 +157,15 @@ export default function DiscoveryOnboardingClient() {
                                         disabled={isCheered || isSending || cheering !== null}
                                         style={{
                                             flexShrink: 0, padding: "8px 14px", borderRadius: 20,
-                                            border: `1px solid ${isCheered ? `${roleColor}40` : "rgba(255,214,0,0.3)"}`,
-                                            background: isCheered ? `${roleColor}18` : "rgba(255,214,0,0.1)",
-                                            color: isCheered ? roleColor : "#FFD600",
+                                            border: `1px solid ${isCheered ? `${roleColor}40` : "var(--border)"}`,
+                                            background: isCheered ? `${roleColor}18` : "var(--electric)",
+                                            color: isCheered ? roleColor : "#0a0a0a",
                                             fontSize: 11, fontWeight: 900, cursor: isCheered ? "default" : "pointer",
                                             opacity: (isSending || (cheering !== null && !isCheered)) ? 0.5 : 1,
                                             transition: "all 0.2s ease",
                                         }}
                                     >
-                                        {isCheered ? "✓ Cheered" : isSending ? "..." : "⚡ Cheer"}
+                                        {isCheered ? "✓ Cheered" : isSending ? "..." : "観客席に入る"}
                                     </button>
                                 </motion.div>
                             );

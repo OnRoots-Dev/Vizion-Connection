@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import type { ProfileData } from "@/features/profile/types";
-import { useDailyLogStore } from "@/hooks/useDailyLogStore";
+import type { DailyLog } from "@/features/daily-log/types";
 import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
 import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 
@@ -59,17 +59,6 @@ function formatRangeJst(start: Date, endExclusive: Date) {
   return `${s} - ${e}`;
 }
 
-function getHourJst(iso?: string | null): number | null {
-  if (!iso) return null;
-  const formatted = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Tokyo",
-    hour: "2-digit",
-    hourCycle: "h23",
-  }).format(new Date(iso));
-  const hour = Number(formatted);
-  return Number.isFinite(hour) ? hour : null;
-}
-
 export function MyJourneyView({
   profile,
   t,
@@ -81,9 +70,14 @@ export function MyJourneyView({
   roleColor: string;
   setView: (view: DashboardView) => void;
 }) {
-  const { logs, todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog, openJourneyForEdit, clearJourneyEditRequest } = useDailyLogStore();
+  // Log history placeholder — will migrate to journeys table
+  const logs = useMemo((): DailyLog[] => [], []);
+
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -91,41 +85,18 @@ export function MyJourneyView({
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    if (!hasLoaded) {
-      void fetchLogs();
-    }
-  }, [fetchLogs, hasLoaded]);
-
   const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
-  const showForm = !todayLog || isEditing;
-  const hasChanges = useMemo(() => {
-    if (!isEditing || !todayLog) return true;
-    return (
-      content.trim() !== todayLog.content.trim() ||
-      conditionScore !== todayLog.condition_score
-    );
-  }, [content, conditionScore, isEditing, todayLog]);
-  const canSubmit =
-    content.trim().length > 0 &&
-    conditionScore !== null &&
-    !isSubmitting &&
-    showForm &&
-    hasChanges;
-  const todayCondition = getConditionMeta(todayLog?.condition_score);
-  const hypeMessage = useMemo(() => getJourneyHype(todayLog), [todayLog]);
+  const showForm = !submitted || isEditing;
+  const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !submitted;
+  const hypeMessage = useMemo(() => getJourneyHype(null), []);
 
   useEffect(() => {
-    if (!hasLoaded) return;
+    if (submitted) return;
     const key = `myjourney-welcome:${getTodayString()}`;
     const already = localStorage.getItem(key);
     if (already) return;
-    if (todayLog) {
-      localStorage.setItem(key, "1");
-      return;
-    }
     setWelcomeModalOpen(true);
-  }, [hasLoaded, todayLog]);
+  }, [submitted]);
 
   useEffect(() => {
     setTemplateSuggestions(getRandomJourneyTemplateSuggestions(profile.role));
@@ -149,9 +120,8 @@ export function MyJourneyView({
   }
 
   const startEditing = useCallback(() => {
-    if (!todayLog) return;
-    setContent(todayLog.content);
-    setConditionScore(todayLog.condition_score);
+    setContent("");
+    setConditionScore(null);
     setActiveTemplate(null);
     setIsEditing(true);
     setSuccessModalOpen(false);
@@ -160,7 +130,7 @@ export function MyJourneyView({
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
       (el as HTMLTextAreaElement | null)?.focus?.();
     });
-  }, [todayLog]);
+  }, []);
 
   function cancelEditing() {
     setIsEditing(false);
@@ -168,12 +138,6 @@ export function MyJourneyView({
     setConditionScore(null);
     setActiveTemplate(null);
   }
-
-  useEffect(() => {
-    if (!hasLoaded || !todayLog || !openJourneyForEdit) return;
-    startEditing();
-    clearJourneyEditRequest();
-  }, [hasLoaded, todayLog, openJourneyForEdit, clearJourneyEditRequest, startEditing]);
 
   const logMap = useMemo(() => new Map(logs.map((log) => [log.log_date, log])), [logs]);
 
@@ -205,11 +169,6 @@ export function MyJourneyView({
       }),
     [logMap, monthDays],
   );
-
-  const morningBonusEligible = useMemo(() => {
-    const hour = getHourJst(todayLog?.created_at);
-    return hour !== null && hour >= 4 && hour < 10;
-  }, [todayLog?.created_at]);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [weekExpanded, setWeekExpanded] = useState(false);
@@ -276,25 +235,39 @@ export function MyJourneyView({
   );
 
   async function handleSubmit() {
-    if (!canSubmit || conditionScore === null) return;
+    if (!content.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
 
-    const ok = await submitLog({
-      content: content.trim(),
-      conditionScore,
-    });
+    try {
+      const res = await fetch("/api/journey", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: content.trim(),
+          condition_score: conditionScore ?? undefined,
+        }),
+      });
 
-    if (ok) {
-      setActiveTemplate(null);
-      if (isEditing) {
-        setIsEditing(false);
-        setContent("");
-        setConditionScore(null);
-        setToastMessage("記録を更新しました");
-      } else {
-        setContent("");
-        setConditionScore(null);
-        setSuccessModalOpen(true);
+      if (res.status === 409) {
+        setError("今日のJourneyは既に記録済みです");
+        return;
       }
+
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        setError(data.error ?? "投稿に失敗しました");
+        return;
+      }
+
+      setSubmitted(true);
+      setContent("");
+      setConditionScore(null);
+      setSuccessModalOpen(true);
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -374,14 +347,6 @@ export function MyJourneyView({
               Today + Your HYPE
             </p>
 
-            {error ? (
-              <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 0, border: "1px solid rgba(255,80,80,0.2)", background: "rgba(255,80,80,0.08)", color: "rgba(255,160,160,0.95)", fontSize: 12 }}>
-                {error}
-              </div>
-            ) : null}
-
-            {!hasLoaded && isLoading ? <div style={{ padding: "12px 0", fontSize: 12, color: t.sub }}>読み込み中...</div> : null}
-
             {showForm ? (
               <div style={{ display: "grid", gap: 14 }}>
                 {isEditing ? (
@@ -415,6 +380,9 @@ export function MyJourneyView({
                       {content.length} / {JOURNEY_MAX_CHARS}
                     </span>
                   </div>
+                  {error ? (
+                    <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--destructive)" }}>{error}</p>
+                  ) : null}
                 </div>
 
                 <div style={{ display: "grid", gap: 8 }}>
@@ -467,36 +435,29 @@ export function MyJourneyView({
                   className="vz-btn"
                   onClick={() => void handleSubmit()}
                   disabled={!canSubmit}
-                  style={{ width: "100%", border: "none", borderRadius: 8, padding: "14px 14px", background: canSubmit ? "#a78bfa" : "rgba(255,255,255,0.08)", color: canSubmit ? "#000" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed", boxShadow: canSubmit ? "0 0 20px rgba(167,139,250,0.3)" : "none" }}
+                  style={{
+                    width: "100%",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "14px 14px",
+                    background: canSubmit ? "#a78bfa" : "rgba(255,255,255,0.08)",
+                    color: canSubmit ? "#000" : "rgba(255,255,255,0.35)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: canSubmit ? "pointer" : "not-allowed",
+                    boxShadow: canSubmit ? "0 0 20px rgba(167,139,250,0.3)" : "none",
+                    opacity: isSubmitting ? 0.7 : 1,
+                  }}
                 >
-                  {isSubmitting ? (isEditing ? "更新中..." : "記録中...") : isEditing ? "記録を更新" : "Journeyを記録"}
+                  {isSubmitting ? "Pulseを刻んでいます..." : submitted ? "今日は記録済みです" : "Journeyを刻む"}
                 </button>
               </div>
-            ) : todayLog ? (
+            ) : (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 8px", textAlign: "center" }}>
-                <div style={{ fontSize: 40, lineHeight: 1 }}>✅</div>
-                <div>
-                  <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: t.text }}>本日の記録は完了しています</p>
-                  <p style={{ margin: "8px 0 0", fontSize: 12, color: t.sub, lineHeight: 1.8 }}>
-                    内容を直したいときは「記録を修正する」から変更できます。
-                  </p>
-                </div>
-                <div style={{ width: "100%", maxWidth: 360, padding: "14px 16px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", textAlign: "left" }}>
-                  <p style={{ margin: "0 0 8px", fontSize: 10, color: t.sub, fontWeight: 700 }}>今日の記録</p>
-                  <p style={{ margin: 0, fontSize: 14, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{todayLog.content}</p>
-                  <p style={{ margin: "10px 0 0", fontSize: 11, color: t.sub }}>
-                    コンディション：{todayCondition?.emoji ?? "🙂"} {formatConditionLabel(todayLog.condition_score)}
-                    {morningBonusEligible ? " · +10pt 対象" : ""}
-                  </p>
-                </div>
+                <p style={{ margin: 0, fontFamily: "var(--font-bebas)", fontSize: 26, letterSpacing: "0.06em", color: "var(--electric)" }}>
+                  今日のPulseを刻みました
+                </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 360 }}>
-                  <button
-                    type="button"
-                    onClick={startEditing}
-                    style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.text, fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-                  >
-                    記録を修正する
-                  </button>
                   <button
                     type="button"
                     onClick={() => setView("discovery")}
@@ -507,7 +468,7 @@ export function MyJourneyView({
                   <ActionPill onClick={() => setView("home")} color={roleColor} t={t}>ダッシュボードへ</ActionPill>
                 </div>
               </div>
-            ) : null}
+            )}
             <div style={{ marginTop: 14 }}>
               <div style={{ position: "relative", padding: "6px 0 14px" }}>
                 <div style={{ position: "absolute", inset: "-12px -10px", borderRadius: 0, background: `radial-gradient(circle at 40% 40%, ${roleColor}40, transparent 62%)`, filter: "blur(18px)", opacity: 0.9, pointerEvents: "none" }} />
@@ -519,7 +480,7 @@ export function MyJourneyView({
                   return (
                     <>
                       <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
-                        “{quote}”
+                        "{quote}"
                       </p>
                       {author ? (
                         <p style={{ position: "relative", margin: "6px 0 0", fontSize: 12, color: t.sub, fontFamily: "monospace", letterSpacing: "0.04em", lineHeight: 1.4, width: "fit-content", marginLeft: "auto", paddingRight: "18%" }}>
@@ -542,7 +503,7 @@ export function MyJourneyView({
                 </div>
                 <div style={{ padding: 0, borderRadius: 0, border: "none", background: "transparent" }}>
                   <p style={{ margin: "0 0 6px", fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em", textTransform: "uppercase" }}>Morning Bonus</p>
-                  <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: morningBonusEligible ? roleColor : t.text }}>{morningBonusEligible ? "+10pt" : "4:00-10:00"}</p>
+                  <p style={{ margin: 0, fontSize: 24, fontWeight: 900, color: t.text }}>4:00-10:00</p>
                 </div>
               </div>
             </div>

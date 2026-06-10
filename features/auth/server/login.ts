@@ -30,7 +30,7 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
         return { success: false, error: "プロフィールが見つかりません" };
     }
 
-    await updateLastLogin(profile.slug);
+    void updateLastLogin(profile.slug);
 
     return {
         success: true,

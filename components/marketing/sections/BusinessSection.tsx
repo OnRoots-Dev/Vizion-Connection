@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { BUSINESS_PLANS } from "@/features/business/constants";
 
 export function NextPhaseSection() {
   const ref = useRef(null);
@@ -121,48 +121,7 @@ export function SponsorComparisonTable() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
-  const plans = [
-    {
-      name: "Roots",
-      price: "¥30,000",
-      color: "#FFD600",
-      scope: "地域密着型",
-      features: "地方ブロック内表示（small） / ロゴ＋キャッチコピー / PRバッジ",
-      seats: "各ブロック20枠（全国120枠）",
-    },
-    {
-      name: "Roots+",
-      price: "¥50,000",
-      color: "#E2FF7A",
-      scope: "地域密着型",
-      features: "地方ブロック優先表示（medium） / 画像＋テキスト / Discovery優先表示 / PRバッジ",
-      seats: "各ブロック10枠（全国60枠）",
-    },
-    {
-      name: "Signal",
-      price: "¥100,000",
-      color: "#7EB6FF",
-      scope: "全国展開向け",
-      features: "全国露出 / ロゴ掲載 / Discovery表示 / Founding Memberへの優先露出",
-      seats: "全国30枠",
-    },
-    {
-      name: "Presence",
-      price: "¥500,000",
-      color: "#42D7A6",
-      scope: "全国展開向け",
-      features: "Discovery優先表示 / 地域ターゲット広告（1ブロック） / 月次レポート / Business Hub / A/Bテスト",
-      seats: "全国10枠",
-    },
-    {
-      name: "Legacy",
-      price: "¥1,000,000",
-      color: "#FF7A52",
-      scope: "全国最上位",
-      features: "全国最優先 / 全ブロック地域ターゲット / 月次レポート＋戦略MTG / Legacy認定 / コラボ優先権",
-      seats: "全国5枠",
-    },
-  ];
+  const planColors = ["#FFD600", "#E2FF7A", "#7EB6FF", "#42D7A6", "#FF7A52"];
 
   return (
     <section ref={ref} className="bg-[#020b18] px-5 pb-28 md:px-10 lg:px-16 xl:px-20">
@@ -198,18 +157,19 @@ export function SponsorComparisonTable() {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5"
         >
-          {plans.map((plan) => (
+          {BUSINESS_PLANS.map((plan, index) => (
             <div key={plan.name} className="border border-white/10 bg-white/[0.02] p-6">
               <div className="mb-4">
-                <div className="mb-3 h-[2px] w-10" style={{ background: plan.color }} />
-                <p className="font-display text-[11px] uppercase tracking-[0.25em] text-white/45">{plan.scope}</p>
+                <div className="mb-3 h-[2px] w-10" style={{ background: planColors[index] }} />
+                <p className="font-display text-[11px] uppercase tracking-[0.25em] text-white/45">{plan.id === "roots" || plan.id === "roots-plus" ? "地域密着型" : "全国展開向け"}</p>
                 <h3 className="mt-1 font-display text-[28px] font-black uppercase tracking-tight text-white">{plan.name}</h3>
-                <p className="mt-1 font-display text-[22px] font-black" style={{ color: plan.color }}>{plan.price}</p>
+                <p className="mt-1 font-display text-[22px] font-black" style={{ color: planColors[index] }}>{plan.priceLabel}</p>
               </div>
               <ul className="space-y-3 font-body text-[13px] leading-relaxed text-white/65">
-                <li>✔ {plan.features}</li>
-                <li>✔ 対象枠: {plan.seats}</li>
-                <li>✔ 正式版3ヶ月間 月額料金で利用可能</li>
+                {plan.benefits.slice(0, 3).map((benefit) => (
+                  <li key={benefit}>✔ {benefit}</li>
+                ))}
+                <li>✔ 対象枠: 全国{plan.seats}枠</li>
               </ul>
             </div>
           ))}

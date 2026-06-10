@@ -84,8 +84,11 @@ export default function LoginForm() {
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">
-                    <h1 className="text-3xl font-bold text-white">LOGIN</h1>
-                    <p className="text-sm text-white/40">アカウントにサインイン</p>
+                    <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
+                        VIZION CONNECTION
+                    </p>
+                    <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Pulseに戻る</h1>
+                    <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>あなたの挑戦が待っています。</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,21 +136,22 @@ export default function LoginForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                        className="w-full rounded-xl py-3.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                         style={{
-                            background: loading ? "#333" : "#a78bfa",
-                            color: "#000",
-                            boxShadow: loading ? "none" : "0 0 24px rgba(167,139,250,0.4)",
+                            background: loading ? "#333" : "var(--electric)",
+                            color: "#ffffff",
+                            fontWeight: 900,
+                            boxShadow: loading ? "none" : "0 0 24px rgba(0,194,255,0.35)",
                         }}
                     >
-                        {loading ? "ログイン中..." : "ログイン"}
+                        {loading ? "ログイン中..." : "ログインしてPulseへ"}
                     </button>
                 </form>
 
                 <p className="mt-6 text-center text-xs text-white/30">
-                    アカウントをお持ちでない方は
+                    アカウントをお持ちでない方
                     <Link href="/register" className="ml-1 text-white/60 hover:text-white underline">
-                        先行登録
+                        登録はこちら
                     </Link>
                 </p>
                 <p className="mt-3 text-center text-xs text-white/30">

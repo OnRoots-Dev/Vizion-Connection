@@ -174,7 +174,7 @@ export default function BusinessPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-[1.5rem] font-extrabold text-white">{plan.priceLabel}</p>
-                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#3a3f50]">{plan.seats} seats</p>
+                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#00d2ff]/70">全国{plan.seats}枠限定</p>
                       </div>
                     </div>
                     <div className="mx-8 h-px bg-white/6" />

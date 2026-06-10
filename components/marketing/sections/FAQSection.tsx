@@ -55,7 +55,7 @@ function FAQItem({ q, a, delay }: { q: string; a: string; delay: number }) {
 export function FAQSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
-  const items = FAQ_ITEMS.slice(0, 3);
+  const items = FAQ_ITEMS;
 
   return (
     <section ref={ref} className="px-5 py-20 md:px-10 lg:px-16 xl:px-20">
@@ -81,9 +81,6 @@ export function FAQSection() {
             <FAQItem key={i} {...item} delay={i * 0.06} />
           ))}
         </div>
-        <p className="mt-6 font-body text-[clamp(12px,1.1vw,14px)] leading-relaxed text-white/40">
-          ※現在、Businessプランは一時的に新規受付を停止しています。再開は、2026年5月26日を予定しています。
-        </p>
         <p className="mt-8 font-body text-[clamp(12px,1.1vw,14px)] text-white/30">
           その他のご質問は{" "}
           <Link href="/contact" className="text-[#FFD600] underline-offset-2 hover:underline">

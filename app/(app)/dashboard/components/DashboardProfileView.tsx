@@ -292,7 +292,7 @@ export function DashboardProfileView({
 
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
           <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "15px 16px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: 9, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Profile Summary</p>
+            <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Profile Summary</p>
             <div style={{ display: "grid", gap: 8 }}>
               <PortfolioLine label="Name" value={profile.displayName} t={t} />
               <PortfolioLine label="Role" value={ROLE_LABEL[profile.role] ?? profile.role} t={t} />
@@ -302,7 +302,7 @@ export function DashboardProfileView({
           </div>
 
           <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "15px 16px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: 9, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Highlights</p>
+            <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Highlights</p>
             <div style={{ display: "grid", gap: 8 }}>
               {(careerStats.length > 0 ? careerStats.slice(0, 3).map((stat, index) => (
                 <PortfolioLine key={`${stat.label}-${index}`} label={stat.label} value={stat.value || "-"} t={t} />
@@ -317,7 +317,7 @@ export function DashboardProfileView({
 
         {careerEpisodes.length > 0 ? (
           <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
-            <p style={{ margin: "0 0 12px", fontSize: 9, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Selected Experience</p>
+            <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Selected Experience</p>
             <div style={{ display: "grid", gap: 10 }}>
               {careerEpisodes.slice(0, 2).map((episode, index) => (
                 <div key={episode.id ?? index} style={{ paddingBottom: index === careerEpisodes.slice(0, 2).length - 1 ? 0 : 10, borderBottom: index === careerEpisodes.slice(0, 2).length - 1 ? "none" : `1px solid ${t.border}` }}>
@@ -332,7 +332,7 @@ export function DashboardProfileView({
 
         {careerSkills.length > 0 ? (
           <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
-            <p style={{ margin: "0 0 12px", fontSize: 9, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Core Skills</p>
+            <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Core Skills</p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {careerSkills.map((skill) => (
                 <span key={skill.name} style={{ padding: "7px 10px", borderRadius: 999, border: `1px solid ${skill.isHighlight ? `${roleColor}35` : t.border}`, background: skill.isHighlight ? `${roleColor}12` : t.surface, color: skill.isHighlight ? roleColor : t.text, fontSize: 11, fontWeight: 800 }}>
@@ -586,7 +586,7 @@ function SectionFrame({ title, eyebrow, t, roleColor, action, onAction, secondar
     <section style={{ display: "flex", flexDirection: "column", gap: 14, padding: 18, borderRadius: 24, border: `1px solid ${t.border}`, background: t.surface }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.22em", textTransform: "uppercase", color: t.sub }}>{eyebrow}</p>
+          <p style={{ margin: 0, fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>{eyebrow}</p>
           <h3 style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 900, color: t.text }}>{title}</h3>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -645,7 +645,7 @@ function EpisodeCard({ episode, roleColor, t }: { episode: NonNullable<CareerPro
 function SkillPanel({ skills, roleColor, t }: { skills: NonNullable<CareerProfileRow["skills"]>; roleColor: string; t: ThemeColors }) {
   return (
     <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
-      <p style={{ margin: "0 0 12px", fontSize: 8, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: t.sub }}>Skills</p>
+      <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Skills</p>
       <div style={{ display: "grid", gap: 10 }}>
         {skills.map((skill) => (
           <div key={skill.name}>

@@ -68,7 +68,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            style={{ minHeight: "100vh", background: "#0B0B0F", paddingBottom: 40 }}
+            style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ padding: "16px 24px 0" }}>
                 <OnboardingStepBar current={5} />
@@ -81,15 +81,15 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 >
                     <p style={{ margin: "0 0 8px", fontSize: 32 }}>🎉</p>
-                    <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.3em", textTransform: "uppercase", color: "#a78bfa", opacity: 0.8 }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)", opacity: 0.8 }}>
                         ONBOARDING COMPLETE
                     </p>
-                    <h1 style={{ margin: "0 0 16px", fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>
-                        今日からよろしくお願いします！
+                    <h1 style={{ margin: "0 0 16px", fontSize: 22, fontWeight: 900, color: "var(--foreground)", lineHeight: 1.3 }}>
+                        仲間のPulseを呼ぼう
                     </h1>
-                    <p style={{ margin: "0 0 12px", fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.9 }}>
-                        Vizion Connectionは、まだ始まったばかりです。<br />
-                        これからの進化に期待してください！
+                    <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.9 }}>
+                        あなたの紹介で参加した人には<br />
+                        先行ユーザー特典が付与されます
                     </p>
                     <a
                         href="/roadmap"
@@ -98,9 +98,9 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                             marginBottom: 28,
                             padding: "8px 20px",
                             borderRadius: 20,
-                            border: "1px solid rgba(167,139,250,0.35)",
-                            background: "rgba(167,139,250,0.1)",
-                            color: "#c4b5fd",
+                            border: "1px solid var(--border)",
+                            background: "transparent",
+                            color: "var(--muted-foreground)",
                             fontSize: 12,
                             fontWeight: 700,
                             textDecoration: "none",
@@ -109,7 +109,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     >
                         RoadMapを見る →
                     </a>
-                    <p style={{ margin: "0 0 32px", fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.9 }}>
+                    <p style={{ margin: "0 0 32px", fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.9 }}>
                         Vizion Connectionを一緒に広げましょう。<br />
                         あなたの招待リンクをシェアしてください。
                     </p>
@@ -121,12 +121,12 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     transition={{ delay: 0.25, duration: 0.4 }}
                     style={{ display: "flex", flexDirection: "column", gap: 16 }}
                 >
-                    <div style={{ borderRadius: 16, border: "1px solid rgba(167,139,250,0.25)", background: "rgba(167,139,250,0.06)", padding: "14px 16px" }}>
-                        <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(167,139,250,0.7)" }}>
-                            招待URL
+                    <div style={{ borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface-3)", padding: "12px 16px" }}>
+                        <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
+                            あなたの招待リンク
                         </p>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <p style={{ margin: 0, flex: 1, fontSize: 11, color: "rgba(255,255,255,0.7)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <p style={{ margin: 0, flex: 1, fontSize: 12, color: "var(--foreground)", fontFamily: "'JetBrains Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {referralUrl}
                             </p>
                             <button
@@ -134,12 +134,12 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                                 onClick={() => void handleCopy()}
                                 style={{
                                     flexShrink: 0, padding: "7px 12px", borderRadius: 10,
-                                    border: "1px solid rgba(167,139,250,0.3)", background: copied ? "rgba(167,139,250,0.25)" : "rgba(167,139,250,0.1)",
-                                    color: copied ? "#c4b5fd" : "rgba(167,139,250,0.8)",
+                                    border: "1px solid var(--border)", background: copied ? "var(--electric)" : "transparent",
+                                    color: copied ? "#0a0a0a" : "var(--electric)",
                                     fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s ease",
                                 }}
                             >
-                                {copied ? "コピー済み ✓" : "コピー"}
+                                {copied ? "コピーしました ✓" : "リンクをコピー"}
                             </button>
                         </div>
                     </div>
@@ -152,8 +152,8 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                             style={{
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                                 padding: "12px 16px", borderRadius: 14,
-                                border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)",
-                                color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 700,
+                                border: "1px solid var(--border)", background: "transparent",
+                                color: "var(--foreground)", textDecoration: "none", fontSize: 12, fontWeight: 700,
                                 transition: "all 0.2s ease",
                             }}
                         >
@@ -166,12 +166,12 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                             style={{
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                                 padding: "12px 16px", borderRadius: 14,
-                                border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)",
-                                color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                                border: "1px solid var(--border)", background: "transparent",
+                                color: "var(--foreground)", fontSize: 12, fontWeight: 700, cursor: "pointer",
                                 transition: "all 0.2s ease",
                             }}
                         >
-                            {copied ? "コピー済み ✓" : "URLをコピー"}
+                            {copied ? "コピーしました ✓" : "リンクをコピー"}
                         </button>
                     </div>
 
@@ -181,14 +181,14 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                         disabled={completing}
                         style={{
                             width: "100%", padding: "14px 20px", borderRadius: 14, border: "none",
-                            background: "#a78bfa", color: "#050508",
+                            background: "var(--electric)", color: "#0a0a0a",
                             fontSize: 14, fontWeight: 900, cursor: completing ? "wait" : "pointer",
                             opacity: completing ? 0.75 : 1,
-                            boxShadow: "0 0 24px rgba(167,139,250,0.35)",
+                            boxShadow: "0 0 24px rgba(0,194,255,0.35)",
                             marginTop: 4, transition: "all 0.2s ease",
                         }}
                     >
-                        {completing ? "処理中..." : "ダッシュボードへ →"}
+                        {completing ? "処理中..." : "後にする"}
                     </button>
                 </motion.div>
 

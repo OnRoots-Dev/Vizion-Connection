@@ -10,7 +10,7 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
     return (
         <div style={{
             position: "fixed", inset: 0, zIndex: 9999,
-            background: "rgba(0,0,0,0.92)", backdropFilter: "blur(16px)",
+            background: "var(--surface-1)", backdropFilter: "blur(16px)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "20px",
         }}>
@@ -21,10 +21,10 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
                 style={{
                     width: "100%", maxWidth: 480,
                     borderRadius: 24,
-                    border: "1px solid rgba(167,139,250,0.2)",
-                    background: "linear-gradient(145deg, rgba(167,139,250,0.08), rgba(11,11,15,0.98))",
+                    border: "1px solid rgba(0,194,255,0.15)",
+                    background: "linear-gradient(145deg, rgba(0,194,255,0.06), var(--surface-2))",
                     padding: "36px 32px 32px",
-                    boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(167,139,250,0.1)",
+                    boxShadow: "0 24px 80px rgba(0,0,0,0.7)",
                     textAlign: "center",
                 }}
             >
@@ -43,15 +43,15 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15, duration: 0.4 }}
                 >
-                    <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(167,139,250,0.7)" }}>
-                        WELCOME
+                    <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
+                        VIZION CONNECTION
                     </p>
-                    <h1 style={{ margin: "0 0 12px", fontSize: 26, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
-                        ようこそ、<br />Vizion Connectionへ。
+                    <h1 style={{ margin: "0 0 12px", fontSize: 26, fontWeight: 900, color: "var(--foreground)", lineHeight: 1.2 }}>
+                        あなたのPulseを、<br />刻もう。
                     </h1>
-                    <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.8 }}>
-                        {displayName} さん、<br />
-                        まず、あなたのプロフィールを登録しましょう。
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.8 }}>
+                        {displayName} さん<br />
+                        挑戦の記録が、信頼になる。
                     </p>
                 </motion.div>
 
@@ -67,21 +67,21 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
                         style={{
                             width: "100%", padding: "14px 20px",
                             borderRadius: 14, border: "none",
-                            background: "#a78bfa", color: "#050508",
+                            background: "var(--electric)", color: "#0a0a0a",
                             fontSize: 14, fontWeight: 900, cursor: "pointer",
-                            boxShadow: "0 0 24px rgba(167,139,250,0.4)",
+                            boxShadow: "0 0 24px rgba(0,194,255,0.35)",
                             transition: "all 0.2s ease",
                         }}
                     >
-                        プロフィールを登録する
+                        Pulseをはじめる
                     </button>
                     <button
                         type="button"
                         onClick={() => window.location.assign("/dashboard")}
                         style={{
                             width: "100%", padding: "12px 20px",
-                            borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)",
-                            background: "transparent", color: "rgba(255,255,255,0.4)",
+                            borderRadius: 14, border: "1px solid var(--border)",
+                            background: "transparent", color: "var(--muted-foreground)",
                             fontSize: 13, fontWeight: 600, cursor: "pointer",
                             transition: "color 0.2s ease",
                         }}

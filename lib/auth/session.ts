@@ -1,7 +1,7 @@
 // lib/auth/session.ts
 
 import { createClient } from "@/lib/supabase/server";
-import { findUserBySlug } from "@/lib/supabase/data/users.server";
+import { findUserBySlug, findSlugByAuthId } from "@/lib/supabase/data/users.server";
 
 export async function getSupabaseUser() {
     const supabase = await createClient();
@@ -18,12 +18,9 @@ export async function getSupabaseProfile() {
     } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: profile } = await supabase
-        .from("users")
-        .select("slug")
-        .eq("auth_id", user.id)
-        .single();
+    const metaSlug = user.user_metadata?.slug as string | undefined;
+    const slug = metaSlug ?? (await findSlugByAuthId(user.id));
+    if (!slug) return null;
 
-    if (!profile?.slug) return null;
-    return findUserBySlug(profile.slug);
+    return findUserBySlug(slug);
 }

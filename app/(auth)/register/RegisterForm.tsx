@@ -178,10 +178,13 @@ export default function RegisterForm() {
 
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center space-y-1">
-                    <h1 className="text-2xl font-bold text-white">新規登録</h1>
-                    <p className="text-sm text-white/40">あなたのロールを選んで登録してください</p>
+                    <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
+                        VIZION CONNECTION
+                    </p>
+                    <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Pulseをはじめる</h1>
+                    <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>挑戦の記録が、信頼になる。</p>
                     {refSlug && (
-                        <p className="mt-2 text-xs font-mono text-[#a78bfa]">
+                        <p className="mt-2 text-xs font-mono" style={{ color: "var(--electric)" }}>
                             紹介コード: {refSlug}
                         </p>
                     )}
@@ -253,11 +256,12 @@ export default function RegisterForm() {
                                     type="button"
                                     onClick={() => void handleResend()}
                                     disabled={resendLoading}
-                                    className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="w-full rounded-xl py-3.5 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
                                     style={{
-                                        background: resendLoading ? "#333" : selectedRole.color,
-                                        color: "#000",
-                                        boxShadow: resendLoading ? "none" : `0 0 24px ${selectedRole.color}50`,
+                                        background: resendLoading ? "#333" : "var(--electric)",
+                                        color: "#ffffff",
+                                        fontWeight: 900,
+                                        boxShadow: resendLoading ? "none" : "0 0 24px rgba(0,194,255,0.35)",
                                     }}
                                 >
                                     {resendLoading ? "再送中..." : "認証メールを再送する"}
@@ -297,11 +301,12 @@ export default function RegisterForm() {
 
                                 <Link
                                     href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
-                                    className="block w-full rounded-xl py-3.5 text-center text-sm font-bold transition-all"
+                                    className="block w-full rounded-xl py-3.5 text-center text-sm transition-all"
                                     style={{
-                                        background: selectedRole.color,
-                                        color: "#000",
-                                        boxShadow: `0 0 24px ${selectedRole.color}50`,
+                                        background: "var(--electric)",
+                                        color: "#ffffff",
+                                        fontWeight: 900,
+                                        boxShadow: "0 0 24px rgba(0,194,255,0.35)",
                                     }}
                                 >
                                     ログインへ進む
@@ -414,20 +419,21 @@ export default function RegisterForm() {
                     )}
 
                     <button type="submit" disabled={loading}
-                        className="w-full rounded-xl py-3.5 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full rounded-xl py-3.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
-                            background: loading ? "#333" : selectedRole.color,
-                            color: "#000",
-                            boxShadow: loading ? "none" : `0 0 24px ${selectedRole.color}50`,
+                            background: loading ? "#333" : "var(--electric)",
+                            color: "#0a0a0a",
+                            fontWeight: 900,
+                            boxShadow: loading ? "none" : "0 0 24px rgba(0,194,255,0.35)",
                         }}>
-                        {loading ? "登録中..." : "登録する"}
+                        {loading ? "登録中..." : "登録してPulseをはじめる"}
                     </button>
                 </form>
                 )}
 
                 <p className="mt-6 text-center text-xs text-white/30">
-                    すでにアカウントをお持ちの方は
-                    <Link href="/login" className="ml-1 text-white/60 hover:text-white underline">ログイン</Link>
+                    すでにアカウントをお持ちの方
+                    <Link href="/login" className="ml-1 text-white/60 hover:text-white underline">ログインはこちら</Link>
                 </p>
             </div>
         </div>

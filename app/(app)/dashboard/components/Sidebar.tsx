@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useMemo, useState, type CSSProperties } from "react";
+import { usePathname } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
 import { getPlanFeatures } from "@/features/business/plan-features";
@@ -39,15 +40,23 @@ type NavActionLeaf = {
     tone?: "default" | "danger";
 };
 
+type NavExternalLeaf = {
+    type: "external";
+    id: string;
+    label: string;
+    icon: string;
+    href: string;
+};
+
 type NavSubmenu = {
     type: "submenu";
     id: string;
     label: string;
     icon: string;
-    items: Array<NavLeaf | NavActionLeaf>;
+    items: Array<NavLeaf | NavActionLeaf | NavExternalLeaf>;
 };
 
-type NavEntry = NavLeaf | NavSubmenu;
+type NavEntry = NavLeaf | NavExternalLeaf | NavSubmenu | NavActionLeaf;
 
 type NavSection = {
     group: string;
@@ -67,6 +76,7 @@ interface Props {
 }
 
 export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, setTheme, t, onLogout, onClose }: Props) {
+    const pathname = usePathname();
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
     const hubMenuLabel = getHubMenuLabel(profile.role);
@@ -79,102 +89,90 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
     const navSections = useMemo<NavSection[]>(() => {
         const sections: NavSection[] = [
             {
-                group: "CORE",
+                group: "PULSE",
                 items: [
-                    { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" },
-                    { type: "item", id: "notifications", label: "Notifications", badge: "notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" },
+                    { type: "item", id: "journey", label: "Journey", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h10.5" },
+                    { type: "external", id: "pulse", label: "Pulse", href: "/pulse", icon: "M3.75 12h2.25m13.5 0h2.25m-15.75 0a6.75 6.75 0 1113.5 0" },
+                    { type: "external", id: "timeline", label: "Timeline", href: "/timeline", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" },
                 ],
             },
             {
-                group: "PROFILE",
+                group: "CONNECT",
                 items: [
-                    { type: "item", id: "profile", label: "Profile", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
-                    { type: "item", id: "journey", label: "Journey", icon: "M3.75 6.75h16.5m-16.5 5.25h10.5m-10.5 5.25h16.5" },
-                    // { type: "item", id: "schedule", label: "Schedule" }, // DISABLED
-                    // { type: "item", id: "collections", label: "Collection" }, // DISABLED
+                    { type: "item", id: "discovery", label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
                     { type: "item", id: "cheer", label: "Cheer", badge: "cheer_total", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
-                ],
-            },
-            {
-                group: "COMMUNITY",
-                items: [
-                    {
-                        type: "submenu",
-                        id: "community",
-                        label: "Community",
-                        icon: "M18 18.72a9.094 9.094 0 003.742-.479 3 3 0 00-4.682-3.11m.94 3.59a5.996 5.996 0 00-1.94-.596m0 0a5.995 5.995 0 00-1.94.596m3.88 0a5.995 5.995 0 01-3.88 0m0 0a3 3 0 00-4.682 3.11A9.094 9.094 0 006 18.72m12 0a9 9 0 10-12 0",
-                        items: [
-                            { type: "item", id: "discovery", label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
-                            // { type: "item", id: "news", label: "News Rooms" }, // DISABLED
-                            { type: "item", id: "voicelab", label: "Voice Lab", icon: "M7.5 3.75h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9a3 3 0 013-3zm3 4.5h3m-4.5 4.5h6m-6 4.5h4.5" },
-                            // { type: "item", id: "roadmap", label: "Roadmap" }, // DISABLED
-                        ],
-                    },
-                ],
-            },
-            {
-                group: "CHALLENGE",
-                items: [
-                    {
-                        type: "submenu",
-                        id: "challenge",
-                        label: "Challenge",
-                        icon: "M12 6v6l4 2.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                        items: [
-                            { type: "item", id: "missions", label: "Missions", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
-                            { type: "item", id: "referral", label: "Referral", icon: "M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" },
-                        ],
-                    },
+                    { type: "item", id: "notifications", label: "Notifications", badge: "notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" },
                 ],
             },
             {
                 group: "ACCOUNT",
                 items: [
+                    { type: "item", id: "settings", label: "Settings", icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
                     {
-                        type: "submenu",
-                        id: "account",
-                        label: "Account",
-                        icon: "M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.964 0a9 9 0 10-11.964 0m11.964 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z",
-                        items: [
-                            {
-                                type: "item",
-                                id: "settings",
-                                label: "Setting",
-                                icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
-                            },
-                            {
-                                type: "action",
-                                id: "logout",
-                                label: "LOG OUT",
-                                icon: "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9",
-                                onClick: onLogout,
-                                tone: "danger",
-                            },
-                        ],
+                        type: "action",
+                        id: "logout",
+                        label: "LOG OUT",
+                        icon: "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9",
+                        onClick: onLogout,
+                        tone: "danger",
                     },
                 ],
             },
         ];
 
         return sections;
-    }, [onLogout, profile.role]);
-
+    }, [onLogout]);
     const isSubmenuOpen = (submenuId: string) => openSubmenu === submenuId;
 
     const itemStyle = (active: boolean): CSSProperties => ({
         background: active ? "rgba(167,139,250,0.1)" : "transparent",
-        color: active ? "#a78bfa" : "rgba(255,255,255,0.55)",
+        color: active ? roleColor : t.sub,
         fontWeight: active ? 700 : 500,
-        border: active ? "none" : "none",
-        borderLeft: active ? "2px solid #a78bfa" : "2px solid transparent",
+        borderTopWidth: 1,
+        borderRightWidth: 1,
+        borderBottomWidth: 1,
+        borderLeftWidth: active ? 2 : 1,
+        borderStyle: "solid",
+        borderColor: "transparent",
         cursor: "pointer",
         opacity: active ? 1 : 0.76,
         transition: "all 0.15s ease",
         borderRadius: active ? 0 : 10,
     });
 
-    function renderLeaf(item: NavLeaf | NavActionLeaf, nested = false) {
-        const active = item.type === "item" && view === item.id;
+    function renderLeaf(item: NavLeaf | NavActionLeaf | NavExternalLeaf, nested = false) {
+        const active = item.type === "external" ? pathname === item.href : item.type === "item" && view === item.id;
+        const leafStyle: CSSProperties = {
+            ...itemStyle(active),
+            background: active ? `${roleColor}18` : nested ? nestedSurface : "transparent",
+            borderTopColor: active ? `${roleColor}30` : nested ? t.border : "transparent",
+            borderRightColor: active ? `${roleColor}30` : nested ? t.border : "transparent",
+            borderBottomColor: active ? `${roleColor}30` : nested ? t.border : "transparent",
+            borderLeftColor: active ? roleColor : nested ? t.border : "transparent",
+            color: item.type === "action" && item.tone === "danger" ? "#FF5050" : active ? roleColor : t.sub,
+            opacity: item.type === "action" ? 1 : active ? 1 : 0.76,
+        };
+
+        if (item.type === "external") {
+            return (
+                <a
+                    key={item.id}
+                    href={item.href}
+                    onClick={onClose}
+                    className={`${NAV_ITEM_BASE} ${nested ? "mb-1 pl-[18px]" : ""}`}
+                    style={leafStyle}
+                >
+                    {active && (
+                        <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: roleColor }} />
+                    )}
+                    <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                    </svg>
+                    <span>{item.label}</span>
+                </a>
+            );
+        }
+
         return (
             <button
                 key={item.id}
@@ -187,16 +185,10 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     onClose();
                 }}
                 className={`${NAV_ITEM_BASE} ${nested ? "mb-1 pl-[18px]" : ""}`}
-                style={{
-                    ...itemStyle(active),
-                    background: active ? `${roleColor}18` : nested ? nestedSurface : "transparent",
-                    border: active ? `1px solid ${roleColor}30` : nested ? `1px solid ${t.border}` : "1px solid transparent",
-                    color: item.type === "action" && item.tone === "danger" ? "#FF5050" : active ? roleColor : t.sub,
-                    opacity: item.type === "action" ? 1 : active ? 1 : 0.76,
-                }}
+                style={leafStyle}
             >
                 {active && (
-                    <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: "#a78bfa" }} />
+                    <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: roleColor }} />
                 )}
                 <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.75}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -228,13 +220,12 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
             </button>
         );
     }
-
     function renderEntry(entry: NavEntry) {
-        if (entry.type === "item") {
+        if (entry.type === "item" || entry.type === "external" || entry.type === "action") {
             return renderLeaf(entry);
         }
 
-        const childActive = entry.items.some((item) => item.type === "item" && item.id === view);
+        const childActive = entry.items.some((item) => item.type === "external" ? pathname === item.href : item.type === "item" && item.id === view);
         const open = childActive || isSubmenuOpen(entry.id);
 
         return (
@@ -249,7 +240,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     style={itemStyle(childActive || open)}
                 >
                     {(childActive || open) && (
-                        <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: "#a78bfa" }} />
+                        <div className="absolute bottom-[25%] left-0 top-[25%] w-[2px] rounded-[99px]" style={{ background: roleColor }} />
                     )}
                     <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={childActive || open ? 2.2 : 1.75}>
                         <path strokeLinecap="round" strokeLinejoin="round" d={entry.icon} />

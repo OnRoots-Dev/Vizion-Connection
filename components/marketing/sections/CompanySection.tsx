@@ -41,7 +41,7 @@ export function CompanySection() {
                 </div>
 
                 {/* お問い合わせ */}
-                <div style={{ background: "rgba(167,139,250,0.05)", border: "1px solid rgba(167,139,250,0.15)", borderRadius: "16px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+                <div style={{ background: "rgba(0,194,255,0.05)", border: "1px solid rgba(0,194,255,0.15)", borderRadius: "16px", padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
                     <div>
                         <p style={{ fontSize: "13px", fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>お問い合わせ</p>
                         <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.6 }}>
@@ -51,7 +51,7 @@ export function CompanySection() {
                     <a href="/contact" style={{
                         display: "inline-flex", alignItems: "center", gap: "6px",
                         padding: "10px 20px", borderRadius: "10px",
-                        background: "#a78bfa", color: "#000",
+                        background: "var(--electric)", color: "#0a0a0a",
                         fontSize: "13px", fontWeight: 700, textDecoration: "none",
                         whiteSpace: "nowrap",
                     }}>

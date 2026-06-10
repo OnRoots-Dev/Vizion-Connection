@@ -58,6 +58,16 @@ export const shareLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:share",
 });
 
+// Journey投稿：1時間に10回（1日1回制限は route 側で管理）
+export const journeyLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:journey",
+});
+
+// IN STAND（フォロー/解除）：1分に30回
+export const instandLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:instand",
+});
+
 // discovery track：1分に60回
 export const discoveryTrackLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(60, "1 m"), prefix: "rl:discovery-track",
