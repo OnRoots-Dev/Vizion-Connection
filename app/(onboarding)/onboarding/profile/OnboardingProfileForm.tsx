@@ -38,12 +38,13 @@ const INPUT_BASE: React.CSSProperties = {
     borderRadius: 12,
     padding: "12px 14px",
     fontSize: 14,
-    color: "#fff",
-    background: "rgba(255,255,255,0.04)",
+    color: "var(--foreground)",
+    background: "var(--surface-3)",
     border: "1px solid rgba(255,255,255,0.1)",
     outline: "none",
     boxSizing: "border-box",
     transition: "border-color 0.15s",
+    caretColor: "var(--electric)",
 };
 
 const SELECT_BASE: React.CSSProperties = {
@@ -54,7 +55,7 @@ const SELECT_BASE: React.CSSProperties = {
     backgroundRepeat: "no-repeat",
     backgroundPosition: "right 14px center",
     paddingRight: 36,
-    background: "#0c0c16",
+    background: "var(--surface-3)",
 };
 
 const CARD: React.CSSProperties = {

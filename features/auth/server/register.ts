@@ -39,7 +39,12 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
     const resolvedDisplayName = displayName?.trim() || "";
     const resolvedRegion = region?.trim() || "未設定";
 
-    const existingByEmail = await findUserByEmail(email);
+    // email + slug の重複チェックを並列実行
+    const [existingByEmail, existingBySlug] = await Promise.all([
+        findUserByEmail(email),
+        findUserBySlug(slug),
+    ]);
+
     if (existingByEmail) {
         if (!existingByEmail.verified) {
             const resendResult = await resendSignupVerificationEmail({ email, redirectTo });
@@ -60,7 +65,6 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         };
     }
 
-    const existingBySlug = await findUserBySlug(slug);
     if (existingBySlug) {
         return { success: false, error: "このユーザー名はすでに使用されています" };
     }
@@ -69,19 +73,18 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         return { success: false, error: "自分自身を紹介者に指定することはできません" };
     }
 
-    let resolvedReferrerSlug: string | undefined = undefined;
-    if (referrerSlug) {
-        let referrer = await findUserBySlug(referrerSlug);
-        if (!referrer) {
-            referrer = await findUserByAmbassadorCode(referrerSlug);
-        }
-        if (!referrer) {
-            return { success: false, error: "紹介コードが無効です" };
-        }
-        resolvedReferrerSlug = referrer.slug;
-    }
+    // 紹介者ルックアップ + ロール数カウントを並列実行
+    const [referrerUser, roleCount] = await Promise.all([
+        referrerSlug
+            ? findUserBySlug(referrerSlug).then((r) => r ?? findUserByAmbassadorCode(referrerSlug))
+            : Promise.resolve(null),
+        countUsersByRole(role),
+    ]);
 
-    const roleCount = await countUsersByRole(role);
+    if (referrerSlug && !referrerUser) {
+        return { success: false, error: "紹介コードが無効です" };
+    }
+    const resolvedReferrerSlug = referrerUser?.slug;
     const isFoundingMember = roleCount < FOUNDING_MEMBER_LIMIT;
 
     const emailRedirectTo = buildEmailRedirectTo(redirectTo);
@@ -141,7 +144,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         return { success: false, error: "ユーザー作成に失敗しました" };
     }
 
-    await rewardOnetimeMission(user.slug, "register_complete");
+    void rewardOnetimeMission(user.slug, "register_complete");
 
     return { success: true, slug: user.slug };
 }

@@ -95,6 +95,7 @@ export default function TimelineClient({ currentUserSlug }: { currentUserSlug?: 
   return (
     <main className="min-h-screen bg-[var(--surface-1)] px-4 py-6 text-[var(--foreground)]">
       <div className="mx-auto max-w-2xl">
+        <a href="/dashboard" style={{ color: "var(--muted-foreground)", fontSize: 12, fontFamily: "monospace", display: "flex", alignItems: "center", gap: 4, marginBottom: 16 }}>← DASHBOARD</a>
         <header className="sticky top-0 z-20 -mx-4 mb-5 border-b border-[color-mix(in_srgb,var(--foreground)_8%,transparent)] bg-[var(--surface-1)]/95 px-4 pb-4 pt-2 backdrop-blur">
           <div className="flex items-center justify-between">
             <h1 className="font-display text-4xl uppercase tracking-wider text-[var(--foreground)]">
@@ -119,7 +120,7 @@ export default function TimelineClient({ currentUserSlug }: { currentUserSlug?: 
                   "shrink-0 rounded-lg border px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] transition",
                   activeRole === role
                     ? "border-[var(--electric)] bg-[var(--pulse-dim)] text-[var(--electric)]"
-                    : "border-[color-mix(in_srgb,var(--foreground)_10%,transparent)] bg-[var(--surface-2)] text-[color-mix(in_srgb,var(--foreground)_58%,transparent)] hover:bg-[var(--surface-3)]",
+                    : "border-[color-mix(in_srgb,var(--foreground)_10%,transparent)] bg-[var(--surface-2)] text-[var(--muted-foreground)] hover:bg-[var(--surface-3)]",
                 ].join(" ")}
               >
                 {role}
@@ -159,7 +160,7 @@ export default function TimelineClient({ currentUserSlug }: { currentUserSlug?: 
             <h2 className="font-display text-3xl uppercase tracking-wide text-[var(--foreground)]">
               まだ活動がありません
             </h2>
-            <p className="mt-3 text-sm text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
+            <p className="mt-3 text-sm text-[var(--muted-foreground)]">
               最初のJourneyを記録しましょう
             </p>
             <Link

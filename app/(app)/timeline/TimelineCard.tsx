@@ -169,7 +169,7 @@ export function TimelineCard({
                 <h2 className="truncate font-display text-xl uppercase tracking-wide text-[var(--foreground)]">
                   {displayName}
                 </h2>
-                <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--foreground)_48%,transparent)]">
+                <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
                   <span>{role}</span>
                   <span className="h-1 w-1 rounded-full bg-[var(--electric)]" />
                   <span>{formatTime(journey.created_at)}</span>
@@ -180,7 +180,7 @@ export function TimelineCard({
               </span>
             </div>
 
-            <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[color-mix(in_srgb,var(--foreground)_82%,transparent)]">
+            <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-[var(--foreground)]">
               {journey.content}
             </p>
           </div>

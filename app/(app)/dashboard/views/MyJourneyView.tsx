@@ -78,7 +78,9 @@ export function MyJourneyView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
+  const [templateSuggestions, setTemplateSuggestions] = useState<string[]>(() =>
+    getRandomJourneyTemplateSuggestions(profile.role),
+  );
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [successModalOpen, setSuccessModalOpen] = useState(false);

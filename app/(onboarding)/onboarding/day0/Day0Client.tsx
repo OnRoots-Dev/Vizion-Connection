@@ -97,6 +97,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                             border: "1px solid var(--border)",
                             background: "var(--surface-2)",
                             color: "var(--foreground)",
+                            caretColor: "var(--electric)",
                             fontSize: 13,
                             lineHeight: 1.7,
                             resize: "none",

@@ -103,7 +103,7 @@ export function HeroSection() {
               今すぐ登録する（無料）
             </Link>
             <Link
-              href="#business"
+              href="/#business"
               className="group flex items-center gap-2 border border-white/20 px-8 py-4 font-display text-[13px] font-black uppercase tracking-[0.18em] text-white/70 transition-all hover:border-white/40 hover:text-white"
               style={{ borderRadius: 2 }}
             >

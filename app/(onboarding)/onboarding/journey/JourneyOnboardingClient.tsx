@@ -121,7 +121,8 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
                             style={{
                                 width: "100%", boxSizing: "border-box", borderRadius: 14,
                                 border: "1px solid var(--border)", background: "var(--surface-3)",
-                                color: T.text, padding: "12px 14px", fontSize: 13, lineHeight: 1.7,
+                                color: T.text, caretColor: "var(--electric)",
+                                padding: "12px 14px", fontSize: 13, lineHeight: 1.7,
                                 resize: "none", outline: "none", fontFamily: "inherit",
                             }}
                         />

@@ -14,6 +14,7 @@ import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
 import Image from "next/image";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
@@ -41,6 +42,23 @@ function hasProfileSignal(profile: ProfileData) {
 
 function hasCareerSignal(careerProfile?: CareerProfileRow | null) {
   return Boolean(careerProfile?.tagline || careerProfile?.bio_career || careerProfile?.stats?.length || careerProfile?.episodes?.length || careerProfile?.skills?.length);
+}
+
+function _dkJst(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+function _addD(d: Date, n: number): Date {
+  const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+function _pulseStreak(rows: Array<{ created_at: string }>): number {
+  const days = new Set(rows.map(r => _dkJst(new Date(r.created_at))));
+  const today = _dkJst(new Date());
+  const yesterday = _dkJst(_addD(new Date(), -1));
+  if (!days.has(today) && !days.has(yesterday)) return 0;
+  let count = 0;
+  let cursor = days.has(today) ? new Date() : _addD(new Date(), -1);
+  while (days.has(_dkJst(cursor))) { count++; cursor = _addD(cursor, -1); }
+  return count;
 }
 
 export function DashboardProfileView({
@@ -87,6 +105,9 @@ export function DashboardProfileView({
   const [isPublic, setIsPublic] = useState(canPublish ? profile.isPublic !== false : false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
+  const [journeyCount, setJourneyCount] = useState<number | null>(null);
+  const [instandCount, setInstandCount] = useState<number | null>(null);
+  const [streakDays, setStreakDays] = useState<number | null>(null);
 
   const monthRange = useMemo(() => {
     const now = new Date();
@@ -118,6 +139,20 @@ export function DashboardProfileView({
   useEffect(() => {
     setIsPublic(canPublish ? profile.isPublic !== false : false);
   }, [profile.isPublic]);
+
+  useEffect(() => {
+    const { slug } = profile;
+    const since365 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    void Promise.all([
+      supabaseBrowser.from("journeys").select("*", { count: "exact", head: true }).eq("user_slug", slug),
+      supabaseBrowser.from("user_follows").select("*", { count: "exact", head: true }).eq("target_slug", slug),
+      supabaseBrowser.from("journeys").select("created_at").eq("user_slug", slug).gte("created_at", since365),
+    ]).then(([jRes, iRes, dRes]) => {
+      setJourneyCount(jRes.count ?? 0);
+      setInstandCount(iRes.count ?? 0);
+      if (dRes.data) setStreakDays(_pulseStreak(dRes.data as Array<{ created_at: string }>));
+    });
+  }, [profile.slug]);
 
   const careerStats = careerProfile?.stats?.filter((stat) => stat?.label || stat?.value).slice(0, 4) ?? [];
   const careerEpisodes = careerProfile?.episodes?.slice(0, 3) ?? [];
@@ -509,6 +544,36 @@ export function DashboardProfileView({
               </div>
             ) : null}
           </div>
+      </section>
+
+      <section style={{ borderRadius: 20, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
+        <p style={{ margin: "0 0 14px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Pulse Stats</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 10 }}>
+          <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
+              {journeyCount === null ? "—" : journeyCount.toLocaleString()}
+            </p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>JOURNEY</p>
+          </div>
+          <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
+              {streakDays === null ? "—" : `${streakDays}日`}
+            </p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>STREAK</p>
+          </div>
+          <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
+              {(profile.cheerCount ?? 0).toLocaleString()}
+            </p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>CHEER</p>
+          </div>
+          <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
+              {instandCount === null ? "—" : instandCount.toLocaleString()}
+            </p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>IN STAND</p>
+          </div>
+        </div>
       </section>
 
       {needsInitialRegistration ? (

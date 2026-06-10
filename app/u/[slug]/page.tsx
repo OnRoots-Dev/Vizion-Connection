@@ -28,6 +28,23 @@ import Image from "next/image";
 import Link from "next/link";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
 
+function _jstKey(d: Date): string {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+function _shiftDate(d: Date, n: number): Date {
+    const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+function computePublicStreak(rows: Array<{ created_at: string }>): number {
+    const days = new Set(rows.map(r => _jstKey(new Date(r.created_at))));
+    const today = _jstKey(new Date());
+    const yesterday = _jstKey(_shiftDate(new Date(), -1));
+    if (!days.has(today) && !days.has(yesterday)) return 0;
+    let count = 0;
+    let cursor = days.has(today) ? new Date() : _shiftDate(new Date(), -1);
+    while (days.has(_jstKey(cursor))) { count++; cursor = _shiftDate(cursor, -1); }
+    return count;
+}
+
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#B8860B", Business: "#1B3A8C",
     Admin: "#7C3AED",
@@ -93,7 +110,8 @@ export default async function UserProfilePage({ params }: Props) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [collectorCount, rawCareerProfile, ads, publicSchedules] = await Promise.all([
+    const since365 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    const [collectorCount, rawCareerProfile, ads, publicSchedules, journeyCount, instandCount, journeyDates] = await Promise.all([
         getCollectorCount(slug),
         getCareerProfile(slug),
         getAdsForUser(profile.prefecture ?? "", profile.sport ?? undefined),
@@ -106,7 +124,24 @@ export default async function UserProfilePage({ params }: Props) {
             .order("start_at", { ascending: true })
             .limit(10)
             .then(({ data }) => data ?? []),
+        supabaseServer
+            .from("journeys")
+            .select("*", { count: "exact", head: true })
+            .eq("user_slug", slug)
+            .then(({ count }) => count ?? 0),
+        supabaseServer
+            .from("user_follows")
+            .select("*", { count: "exact", head: true })
+            .eq("target_slug", slug)
+            .then(({ count }) => count ?? 0),
+        supabaseServer
+            .from("journeys")
+            .select("created_at")
+            .eq("user_slug", slug)
+            .gte("created_at", since365)
+            .then(({ data }) => (data ?? []) as Array<{ created_at: string }>),
     ]);
+    const streakDays = computePublicStreak(journeyDates);
     const careerProfile = rawCareerProfile && (isOwn || rawCareerProfile.visibility === "public") ? rawCareerProfile : null;
     const regionalAd = ads.find((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan)) ?? null;
 
@@ -740,6 +775,12 @@ export default async function UserProfilePage({ params }: Props) {
                     <PublicProfileTabs
                         roleColor={rl}
                         careerLabel={publicCareerLabel}
+                        pulseStats={{
+                            journeyCount,
+                            streakDays,
+                            cheerCount: profile.cheerCount ?? 0,
+                            instandCount,
+                        }}
                         profilePanel={
                             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                                 {profile.bio && (

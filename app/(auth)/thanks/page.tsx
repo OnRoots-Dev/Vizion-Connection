@@ -67,9 +67,9 @@ export default async function ThanksPage({ searchParams }: Props) {
         verified: {
             iconType: "verified" as const,
             title: "認証完了！",
-            desc: "メール認証が完了しました。ログインしてダッシュボードへ進んでください。",
+            desc: "メール認証が完了しました。オンボーディングへ進んでください。",
             sub: null,
-            cta: { href: "/login", label: "ログインする" },
+            cta: { href: "/onboarding", label: "オンボーディングへ進む" },
         },
         email_changed: {
             iconType: "verified" as const,

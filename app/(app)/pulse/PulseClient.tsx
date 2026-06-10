@@ -195,6 +195,9 @@ export default function PulseClient() {
   if (status === "day0") {
     return (
       <main className="min-h-screen bg-[var(--surface-1)] px-5 py-8 text-[var(--foreground)]">
+        <div className="mx-auto max-w-md">
+          <a href="/dashboard" style={{ color: "var(--muted-foreground)", fontSize: 12, fontFamily: "monospace", display: "flex", alignItems: "center", gap: 4, marginBottom: 16 }}>← DASHBOARD</a>
+        </div>
         <section className="mx-auto flex min-h-[86vh] max-w-md flex-col items-center justify-center text-center">
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -228,6 +231,7 @@ export default function PulseClient() {
   return (
     <main className="min-h-screen bg-[var(--surface-1)] px-5 py-8 text-[var(--foreground)]">
       <div className="mx-auto max-w-md">
+        <a href="/dashboard" style={{ color: "var(--muted-foreground)", fontSize: 12, fontFamily: "monospace", display: "flex", alignItems: "center", gap: 4, marginBottom: 16 }}>← DASHBOARD</a>
         <header className="mb-8 flex items-center justify-between">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-[var(--electric)]">
