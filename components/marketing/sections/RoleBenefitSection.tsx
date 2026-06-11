@@ -1,106 +1,111 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Flame, Dumbbell, Heart, Building2 } from "lucide-react";
 
 const roles = [
   {
     label: "Athlete",
+    displayName: "アスリート",
     color: "#FF5050",
-    title: "挑戦を発信し、競技環境を広げる",
-    desc: "競技歴や日々の記録をプロフィールに集約し、応援・発見・次の機会につなげます。",
+    Icon: Flame,
+    desc: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
+    benefit: "日々の継続が記録になり、信頼として積み上がる。挑戦が応援と機会につながる。",
   },
   {
     label: "Trainer",
+    displayName: "トレーナー",
     color: "#32D278",
-    title: "実績を可視化し、信頼を育てる",
-    desc: "専門性やサポート実績を整理し、選手・チーム・関係者との信頼形成を後押しします。",
+    Icon: Dumbbell,
+    desc: "スポーツの指導・サポートをしている専門家。",
+    benefit: "専門性とサポート実績を可視化し、選手・チームとの信頼を育てられる。",
   },
   {
     label: "Crew",
+    displayName: "サポーター",
     color: "#FFC81E",
-    title: "応援し、発見し、関与する",
-    desc: "ファン、家族、友人、関係者の応援を可視化し、活動を支えるつながりを残します。",
+    Icon: Heart,
+    desc: "ファン、家族、友人など、挑戦を支えるすべての人。",
+    benefit: "応援が記録として残り、アスリートの継続を支える力になる。",
   },
   {
     label: "Business",
+    displayName: "ビジネス",
     color: "#3C8CFF",
-    title: "挑戦者と繋がり、機会を生む",
-    desc: "地域・競技・ロールをもとに、広告・協賛・応援の候補となる人や活動を見つけやすくします。",
+    Icon: Building2,
+    desc: "スポーツ界での注目・広告・エリア応援を検討する企業・団体。",
+    benefit: "継続データに基づいて、本物の挑戦者と直接つながれる。",
   },
 ];
 
 export function RoleBenefitSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
-  const activeRole = roles[activeIndex];
 
   return (
-    <section ref={ref} className="border-b border-white/5 bg-[#0D0D12] px-5 py-20 md:px-10 lg:px-16 xl:px-20">
+    <section ref={ref} className="border-y border-white/5 bg-[#0B0B0F] px-5 py-16 md:px-10 md:py-24 lg:px-16">
       <div className="mx-auto max-w-[1200px]">
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="mb-3 font-display text-[11px] uppercase tracking-[0.45em] text-white/30"
+          className="mb-3 font-display text-[11px] uppercase tracking-[0.45em]"
+          style={{ color: "var(--electric)" }}
         >
-          Role Benefits
+          Roles
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 14 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.1, duration: 0.7 }}
-          className="mb-10 font-display text-[clamp(28px,3.5vw,48px)] font-black tracking-tight text-white"
+          className="mb-10 font-display text-[clamp(26px,6vw,44px)] font-black tracking-tight text-white"
         >
-          役割ごとに、つながり方が変わる。
+          4つの役割が、ひとつの場所でつながる。
         </motion.h2>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {roles.map((role, i) => {
-            const active = activeIndex === i;
-            return (
-              <button
-                key={role.label}
-                type="button"
-                onClick={() => setActiveIndex(i)}
-                className="rounded-[3px] border px-4 py-3 font-display text-[11px] font-black uppercase tracking-[0.24em] transition-all"
-                style={{
-                  borderColor: active ? role.color : "rgba(255,255,255,0.08)",
-                  background: active ? `${role.color}16` : "rgba(255,255,255,0.02)",
-                  color: active ? role.color : "rgba(255,255,255,0.35)",
-                }}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {roles.map((role, i) => (
+            <motion.div
+              key={role.label}
+              initial={{ opacity: 0, y: 24 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.15 + i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{
+                y: -6,
+                boxShadow: "0 0 36px var(--electric-glow)",
+                borderColor: "rgba(0,194,255,0.5)",
+              }}
+              className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors"
+            >
+              <div
+                className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                style={{ background: `${role.color}18`, border: `1px solid ${role.color}40` }}
               >
+                <role.Icon size={20} style={{ color: role.color }} />
+              </div>
+              <p className="font-display text-[11px] font-black uppercase tracking-[0.24em]" style={{ color: role.color }}>
                 {role.label}
-              </button>
-            );
-          })}
+              </p>
+              <h3 className="mt-1 font-display text-[20px] font-black text-white">{role.displayName}</h3>
+              <p className="mt-3 font-body text-[13px] leading-relaxed text-white/45">{role.desc}</p>
+              <p className="mt-4 border-t border-white/8 pt-4 font-body text-[13px] font-medium leading-relaxed text-white/70">
+                {role.benefit}
+              </p>
+              <Link
+                href={`/register?role=${role.label}`}
+                className="mt-5 inline-flex items-center gap-1.5 font-display text-[12px] font-bold tracking-[0.14em] transition-opacity hover:opacity-75"
+                style={{ color: "var(--electric)" }}
+              >
+                {role.displayName}として始める
+                <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current">
+                  <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
+                </svg>
+              </Link>
+            </motion.div>
+          ))}
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeRole.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3 }}
-            className="mt-6 rounded-[4px] border p-7 md:p-10"
-            style={{
-              borderColor: `${activeRole.color}35`,
-              background: `linear-gradient(135deg, ${activeRole.color}10 0%, rgba(255,255,255,0.02) 60%)`,
-            }}
-          >
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.35em]" style={{ color: activeRole.color }}>
-              {activeRole.label}
-            </p>
-            <h3 className="font-display text-[clamp(24px,3vw,40px)] font-black leading-tight text-white">
-              {activeRole.title}
-            </h3>
-            <p className="mt-4 max-w-[72ch] font-body text-[clamp(13px,1.3vw,16px)] leading-relaxed text-white/55">
-              {activeRole.desc}
-            </p>
-          </motion.div>
-        </AnimatePresence>
       </div>
     </section>
   );

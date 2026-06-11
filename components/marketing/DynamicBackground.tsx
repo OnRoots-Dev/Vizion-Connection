@@ -6,14 +6,14 @@ export function DynamicBackground() {
       <div style={{
         position: "absolute", left: "-10%", top: "-10%",
         height: "70vh", width: "70vw", borderRadius: "50%",
-        background: "#FFD600", opacity: 0.06, filter: "blur(120px)",
+        background: "#00c2ff", opacity: 0.06, filter: "blur(120px)",
         animation: "bg-drift-1 15s linear infinite",
         willChange: "transform",
       }} />
       <div style={{
         position: "absolute", right: "-10%", top: "10%",
         height: "60vh", width: "60vw", borderRadius: "50%",
-        background: "#FF4646", opacity: 0.04, filter: "blur(100px)",
+        background: "#ff6b00", opacity: 0.05, filter: "blur(100px)",
         animation: "bg-drift-2 18s linear infinite",
         willChange: "transform",
       }} />

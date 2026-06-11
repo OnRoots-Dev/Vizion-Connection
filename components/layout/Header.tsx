@@ -16,8 +16,8 @@ export function Header() {
 
         {/* Desktop */}
         <nav className="hidden items-center gap-8 md:flex">
-          <Link href="/contact" className="font-display text-[13px] uppercase tracking-[0.2em] text-white/50 hover:text-[#FFD600] transition-colors">Contact</Link>
-          <Link href="/login" className="font-display text-[13px] uppercase tracking-[0.2em] text-[#FFD600] hover:text-white transition-colors">Login</Link>
+          <Link href="/contact" className="font-display text-[13px] uppercase tracking-[0.2em] text-white/50 hover:text-[#00c2ff] transition-colors">Contact</Link>
+          <Link href="/login" className="font-display text-[13px] uppercase tracking-[0.2em] text-[#00c2ff] hover:text-white transition-colors">Login</Link>
         </nav>
 
         {/* Mobile hamburger */}
@@ -32,10 +32,11 @@ export function Header() {
       {open && (
         <div className="flex flex-col gap-4 border-t border-white/6 bg-[rgba(11,11,15,0.97)] px-6 pt-4 pb-6">
           <Link href="/contact" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-white/60">Contact</Link>
-          <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-[#FFD600] font-bold">Login</Link>
+          <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-[#00c2ff] font-bold">Login</Link>
           <Link href="/register" onClick={() => setOpen(false)}
-            className="mt-2 bg-[#FFD600] px-5 py-3 text-center text-[13px] font-black uppercase tracking-[0.1em] text-black">
-            今すぐ登録する
+            className="mt-2 rounded-xl px-5 py-3 text-center text-[13px] font-black uppercase tracking-[0.1em] text-white"
+            style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}>
+            無料で始める
           </Link>
         </div>
       )}

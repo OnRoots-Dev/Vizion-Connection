@@ -313,6 +313,9 @@ select:focus {
   --radius: 0.75rem;
   --pulse: #00c2ff;
   --electric: #00c2ff;
+  --electric-glow: rgba(0, 194, 255, 0.3);
+  --flame: #ff6b00;
+  --flame-glow: rgba(255, 107, 0, 0.3);
   --pulse-glow: rgba(0, 194, 255, 0.3);
   --pulse-dim: rgba(0, 194, 255, 0.08);
   --surface-1: #0a0a0a;

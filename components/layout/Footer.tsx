@@ -18,7 +18,8 @@ export function Footer() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center rounded-[2px] bg-[#FFD600] px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-[#0B0B0F] transition-opacity hover:opacity-90"
+              className="inline-flex items-center justify-center rounded-xl px-6 py-3 font-display text-[12px] font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90"
+              style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
             >
               今すぐ登録する
             </Link>
@@ -35,18 +36,18 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <p className="font-display text-[10px] uppercase tracking-[0.35em] text-white/30">Service</p>
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-[13px] text-white/45">
-              <Link href="/register" className="hover:text-[#FFD600] transition-colors">登録</Link>
-              {/* <Link href="/business" className="hover:text-[#FFD600] transition-colors">Business登録</Link> */}
-              <Link href="/roadmap" className="hover:text-[#FFD600] transition-colors">Road Map</Link>
+              <Link href="/register" className="hover:text-[#00c2ff] transition-colors">登録</Link>
+              {/* <Link href="/business" className="hover:text-[#00c2ff] transition-colors">Business登録</Link> */}
+              <Link href="/roadmap" className="hover:text-[#00c2ff] transition-colors">Road Map</Link>
             </div>
           </div>
           <div className="flex flex-col gap-3">
             <p className="font-display text-[10px] uppercase tracking-[0.35em] text-white/30">Company</p>
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-[13px] text-white/45">
-              <Link href="/company" className="hover:text-[#FFD600] transition-colors">運営会社</Link>
-              <a href="https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link" className="hover:text-[#FFD600] transition-colors">利用規約</a>
-              <a href="https://tarry-plywood-9b9.notion.site/287089f25fae80e8a771d66b1ee4fa82?source=copy_link" className="hover:text-[#FFD600] transition-colors">プライバシーポリシー</a>
-              <Link href="/contact" className="hover:text-[#FFD600] transition-colors">お問い合わせ</Link>
+              <Link href="/company" className="hover:text-[#00c2ff] transition-colors">運営会社</Link>
+              <a href="https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link" className="hover:text-[#00c2ff] transition-colors">利用規約</a>
+              <a href="https://tarry-plywood-9b9.notion.site/287089f25fae80e8a771d66b1ee4fa82?source=copy_link" className="hover:text-[#00c2ff] transition-colors">プライバシーポリシー</a>
+              <Link href="/contact" className="hover:text-[#00c2ff] transition-colors">お問い合わせ</Link>
             </div>
           </div>
         </div>

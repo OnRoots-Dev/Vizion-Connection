@@ -9,7 +9,6 @@ const PLANS = [
     name: "Roots",
     price: "¥30,000〜",
     period: "/月",
-    earlyPrice: null,
     target: "地域密着型スポーツビジネス",
     features: ["プロフィール掲載", "Journey閲覧", "Discovery掲載"],
     color: "#32D278",
@@ -18,8 +17,6 @@ const PLANS = [
     name: "Signal",
     price: "¥100,000",
     period: "/月",
-    earlyPrice: "¥85,000",
-    earlyNote: "15%OFF",
     target: "全国展開を目指すブランド",
     features: ["Roots全機能", "Discovery優先表示", "効果測定レポート"],
     color: "var(--electric)",
@@ -28,17 +25,14 @@ const PLANS = [
     name: "Presence",
     price: "¥300,000",
     period: "/月",
-    earlyPrice: "¥255,000",
-    earlyNote: "15%OFF",
     target: "スポーツ業界のリーディングカンパニー",
     features: ["Signal全機能", "専任サポート", "カスタム施策"],
-    color: "#FFD600",
+    color: "var(--flame)",
   },
   {
     name: "Legacy",
     price: "個別見積",
     period: "",
-    earlyPrice: null,
     target: "長期パートナーシップを検討する企業",
     features: ["全機能", "共同開発権", "独占ポジション"],
     color: "#FF5050",
@@ -67,7 +61,7 @@ export function BusinessPlanSection() {
           transition={{ delay: 0.1, duration: 0.8 }}
           className="mb-3 font-display text-[clamp(28px,4vw,56px)] font-black tracking-tight text-white"
         >
-          先行ポジションを確保する
+          ビジネスとして、挑戦を支える。
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 14 }}
@@ -75,7 +69,7 @@ export function BusinessPlanSection() {
           transition={{ delay: 0.18, duration: 0.7 }}
           className="mb-14 font-body text-[clamp(13px,1.3vw,15px)] text-white/45"
         >
-          6/8登録開始・先行価格は期間限定
+          スポーツに関わる企業・団体のためのプラン
         </motion.p>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -93,28 +87,11 @@ export function BusinessPlanSection() {
                 {plan.name}
               </h3>
               <div className="mb-1">
-                {plan.earlyPrice ? (
-                  <>
-                    <span className="font-display text-[22px] font-black" style={{ color: plan.color }}>
-                      {plan.earlyPrice}
-                    </span>
-                    <span className="ml-1 font-body text-[13px] text-white/45">{plan.period}</span>
-                    <span className="ml-2 rounded-sm bg-white/10 px-1.5 py-0.5 font-mono text-[9px] tracking-wider text-white/50">
-                      {plan.earlyNote}
-                    </span>
-                    <p className="mt-0.5 font-mono text-[11px] text-white/25 line-through">
-                      通常{plan.price}{plan.period}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-display text-[22px] font-black" style={{ color: plan.color }}>
-                      {plan.price}
-                    </span>
-                    {plan.period && (
-                      <span className="ml-1 font-body text-[13px] text-white/45">{plan.period}</span>
-                    )}
-                  </>
+                <span className="font-display text-[22px] font-black" style={{ color: plan.color }}>
+                  {plan.price}
+                </span>
+                {plan.period && (
+                  <span className="ml-1 font-body text-[13px] text-white/45">{plan.period}</span>
                 )}
               </div>
               <p className="mb-5 font-body text-[11px] leading-relaxed text-white/40">{plan.target}</p>
@@ -143,7 +120,7 @@ export function BusinessPlanSection() {
           transition={{ delay: 0.5, duration: 0.7 }}
           className="mt-6 font-mono text-[10px] tracking-wider text-white/25"
         >
-          ※ 先行価格は登録開始から48時間限定
+          ※ 料金・プラン内容の詳細はお問い合わせください
         </motion.p>
       </div>
     </section>

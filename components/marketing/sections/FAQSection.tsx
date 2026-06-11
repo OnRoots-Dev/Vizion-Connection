@@ -28,7 +28,7 @@ function FAQItem({ q, a, delay }: { q: string; a: string; delay: number }) {
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ duration: 0.25 }}
-          className="flex-shrink-0 text-[#FFD600] text-xl leading-none"
+          className="flex-shrink-0 text-[#00c2ff] text-xl leading-none"
         >
           +
         </motion.span>
@@ -83,7 +83,7 @@ export function FAQSection() {
         </div>
         <p className="mt-8 font-body text-[clamp(12px,1.1vw,14px)] text-white/30">
           その他のご質問は{" "}
-          <Link href="/contact" className="text-[#FFD600] underline-offset-2 hover:underline">
+          <Link href="/contact" className="text-[#00c2ff] underline-offset-2 hover:underline">
             Contact
           </Link>{" "}
           ページからお問い合わせください。
