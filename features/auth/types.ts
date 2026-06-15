@@ -67,15 +67,6 @@ export interface UserRecord {
     lastLoginAt: string | null;
 }
 
-export interface VerifyTokenRecord {
-    id: string;
-    token: string;
-    email: string;
-    slug: string;
-    used: boolean;
-    created_at: string;
-}
-
 export interface RegisterResult {
     success: true;
     slug: string;

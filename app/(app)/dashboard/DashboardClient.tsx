@@ -26,11 +26,14 @@ import { NotificationsView } from "./views/NotificationsView";
 import { ContactView } from "./views/ContactView";
 import { CollectionsView } from "./views/CollectionsView";
 import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
+import { Day0WelcomeModal } from "./components/Day0WelcomeModal";
+import { BottomNav } from "./components/bottom-nav/BottomNav";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import { AdminPostsView } from "./views/admin/AdminPostsView";
 import AdminAdsView from "./views/admin/AdminAdsView";
 import { OffersView } from "./views/OffersView";
 import { MyJourneyView } from "./views/MyJourneyView";
+import { PortfolioView } from "./views/PortfolioView";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { ActionHistoryView } from "./views/ActionHistoryView";
 import { AthleteHubView } from "./views/AthleteHubView";
@@ -60,6 +63,7 @@ export default function DashboardClient({
     initialView = "home",
     canManageVoiceLab,
     isOnboardingComplete,
+    showDay0Welcome = false,
 }: {
     profile: ProfileData;
     referralUrl: string;
@@ -68,6 +72,7 @@ export default function DashboardClient({
     initialView?: DashboardView;
     canManageVoiceLab: boolean;
     isOnboardingComplete: boolean;
+    showDay0Welcome?: boolean;
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
@@ -282,6 +287,9 @@ export default function DashboardClient({
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":
                 return <MyJourneyView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "portfolio":
+                // Portfolio（Journey履歴 / 活動記録 / 成長軌跡 / 実績）= Profile と責務分離した専用ビュー。
+                return <PortfolioView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "notifications":
                 return <NotificationsView t={t} roleColor={roleColor} setView={handleSetView} onUnreadCountChange={setNotificationUnreadCount} />;
             case "admin_posts":
@@ -365,6 +373,7 @@ export default function DashboardClient({
 
             <div style={{ minHeight: "100vh", background: "#09090f", color: "#f0f0f5", fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s", ["--vz-text" as string]: "#f0f0f5", ["--vz-sub" as string]: "rgba(255,255,255,0.55)", ["--vz-surface" as string]: "#111118", ["--vz-border" as string]: "rgba(255,255,255,0.08)" }}>
                 <ProfilePreviewModal slug={selectedProfileSlug} onClose={() => setSelectedProfileSlug(null)} />
+                <Day0WelcomeModal enabled={showDay0Welcome && isOnboardingComplete} />
                 <AnimatePresence>
                     {sidebarOpen && isMobile && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 40, backdropFilter: "blur(4px)" }} />
@@ -401,7 +410,7 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        <div ref={contentRef} style={{ flex: 1, maxWidth: 1180, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px" : "20px 20px" }}>
+                        <div ref={contentRef} style={{ flex: 1, maxWidth: 1180, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(80px + env(safe-area-inset-bottom))" : "20px 20px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}
@@ -411,6 +420,17 @@ export default function DashboardClient({
                     </main>
 
                 </div>
+
+                {isMobile && (
+                    <BottomNav
+                        role={profile.role}
+                        view={view}
+                        setView={handleMenuSetView}
+                        t={t}
+                        theme={theme}
+                        roleColor={roleColor}
+                    />
+                )}
             </div>
         </>
     );

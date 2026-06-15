@@ -9,6 +9,7 @@ import type { ProfileData, LatestCheerItem } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "../types";
 import { CardHeader } from "./ui";
 import SponsorBadge from "@/components/SponsorBadge";
+import { calcDayCount } from "@/lib/day-count";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
@@ -555,7 +556,7 @@ export function ProfileCardSection({
                                         paddingLeft: 16,
                                     }}
                                 >
-                                    {((profile as any).journeyCount ?? (profile as any).streak) ? (
+                                    {(calcDayCount(profile.day0Date) ?? (profile as any).journeyCount ?? (profile as any).streak) != null ? (
                                         <span
                                             style={{
                                                 position: "absolute",
@@ -572,7 +573,7 @@ export function ProfileCardSection({
                                                 lineHeight: 1.6,
                                             }}
                                         >
-                                            DAY {(profile as any).journeyCount ?? (profile as any).streak}
+                                            DAY {calcDayCount(profile.day0Date) ?? (profile as any).journeyCount ?? (profile as any).streak}
                                         </span>
                                     ) : null}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>

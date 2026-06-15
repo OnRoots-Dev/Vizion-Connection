@@ -49,6 +49,8 @@ type UserRow = {
     created_at: string;
     last_login_at: string | null;
     is_onboarding_complete: boolean;
+    day0_declaration: string | null;
+    day0_date: string | null;
 };
 
 function toProfile(row: UserRow) {
@@ -100,6 +102,8 @@ function toProfile(row: UserRow) {
         createdAt: row.created_at,
         lastLoginAt: row.last_login_at,
         isOnboardingComplete: row.is_onboarding_complete ?? false,
+        day0Declaration: row.day0_declaration ?? null,
+        day0Date: row.day0_date ?? null,
     };
 }
 
@@ -234,6 +238,26 @@ export async function updateUserProfile(slug: string, fields: Record<string, unk
 
 export async function updateLastLogin(slug: string): Promise<void> {
     await supabase.from("users").update({ last_login_at: new Date().toISOString() }).eq("slug", slug);
+}
+
+export async function saveDay0Declaration(slug: string, declaration: string | null): Promise<boolean> {
+    // day0_date は初回のみ設定（DAYカウントの基準日を上書きしない）
+    const { data: existing } = await supabase
+        .from("users")
+        .select("day0_date")
+        .eq("slug", slug)
+        .single();
+
+    const update: { day0_declaration: string | null; day0_date?: string } = {
+        day0_declaration: declaration,
+    };
+    if (!existing?.day0_date) {
+        update.day0_date = new Date().toISOString();
+    }
+
+    const { error } = await supabase.from("users").update(update).eq("slug", slug);
+    if (error) { console.error("[saveDay0Declaration]", error); return false; }
+    return true;
 }
 
 export async function markUserVerified(slug: string): Promise<boolean> {

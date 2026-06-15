@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { LottieAnim } from "@/components/ui/LottieAnim";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "var(--electric)",
@@ -20,11 +21,34 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
     const router = useRouter();
     const roleColor = ROLE_COLOR[profile.role] ?? "var(--electric)";
     const [reason, setReason] = useState("");
-    const [isPressing, setIsPressing] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [showBurst, setShowBurst] = useState(false);
+    const [error, setError] = useState("");
 
-    function handleStartJourney() {
-        setIsPressing(true);
-        window.setTimeout(() => router.push("/onboarding/journey"), 200);
+    async function handleStartJourney() {
+        if (submitting || showBurst) return;
+        setSubmitting(true);
+        setError("");
+
+        try {
+            const res = await fetch("/api/onboarding/day0", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ declaration: reason.trim() || undefined }),
+            });
+            const data = await res.json();
+            if (!data.success) {
+                setError(data.error ?? "保存に失敗しました");
+                return;
+            }
+            // カウントダウン→炎バーストの演出後にJourneyへ
+            setShowBurst(true);
+            setTimeout(() => router.push("/onboarding/journey"), 2100);
+        } catch {
+            setError("通信エラーが発生しました");
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     return (
@@ -34,6 +58,31 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
             transition={{ duration: 0.4 }}
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
+            <AnimatePresence>
+                {showBurst && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: "fixed", inset: 0, zIndex: 9999,
+                            background: "rgba(5,5,8,0.92)", backdropFilter: "blur(8px)",
+                            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16,
+                        }}
+                    >
+                        <LottieAnim src="/lottie/day0-burst.json" className="h-52 w-52" />
+                        <motion.p
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.2, duration: 0.5 }}
+                            style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "var(--foreground)", letterSpacing: "0.04em" }}
+                        >
+                            DAY 0 を刻みました
+                        </motion.p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px 0" }}>
                 <OnboardingStepBar current={2} />
                 <button
@@ -52,7 +101,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     style={{ textAlign: "center", marginBottom: 32 }}
                 >
-                    <p style={{ margin: "0 0 8px", fontSize: "4rem", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)", lineHeight: 1, textShadow: "0 0 24px rgba(0,194,255,0.45)" }}>
+                    <p style={{ margin: "0 0 8px", fontSize: "4rem", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)", lineHeight: 1, textShadow: "0 0 24px var(--electric-glow)" }}>
                         DAY 0
                     </p>
                     <h1 style={{ margin: "0 0 12px", fontSize: 22, fontWeight: 900, color: "var(--foreground)", lineHeight: 1.3 }}>
@@ -85,13 +134,13 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                 >
                     <textarea
                         value={reason}
-                        onChange={(event) => setReason(event.target.value)}
+                        onChange={(event) => setReason(event.target.value.slice(0, 200))}
                         placeholder="私は___を目指して、今日から始める。"
                         rows={3}
                         style={{
                             width: "100%",
                             boxSizing: "border-box",
-                            margin: "0 0 20px",
+                            margin: "0 0 6px",
                             padding: "12px 16px",
                             borderRadius: 14,
                             border: "1px solid var(--border)",
@@ -104,26 +153,42 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                             outline: "none",
                         }}
                     />
+                    <p style={{ margin: "0 0 14px", fontSize: 10, color: "var(--muted-foreground)", textAlign: "right" }}>
+                        {reason.length} / 200
+                    </p>
+
+                    {error && (
+                        <div style={{
+                            margin: "0 0 16px", padding: "12px 16px", borderRadius: 12, textAlign: "left",
+                            border: "1px solid rgba(255,107,0,0.35)", background: "rgba(255,107,0,0.08)",
+                            color: "var(--flame)", fontSize: 13, fontWeight: 500,
+                        }}>
+                            {error}
+                        </div>
+                    )}
+
                     <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.7, fontWeight: 700 }}>
-                        最初のJourneyへ進みましょう。
+                        この宣言が、DAYカウントの原点になります。
                     </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 360, margin: "0 auto" }}>
-                        <motion.button
+                        <button
                             type="button"
-                            animate={{ scale: isPressing ? 1.05 : 1 }}
-                            transition={{ duration: 0.2 }}
-                            onClick={handleStartJourney}
+                            disabled={submitting}
+                            onClick={() => void handleStartJourney()}
                             style={{
                                 width: "100%", padding: "14px 20px",
                                 borderRadius: 14, border: "none",
-                                background: "var(--electric)", color: "#0a0a0a",
-                                fontSize: 14, fontWeight: 900, cursor: "pointer",
-                                boxShadow: "0 0 24px rgba(0,194,255,0.35)",
+                                background: "var(--electric)", color: "#ffffff",
+                                fontSize: 14, fontWeight: 900, cursor: submitting ? "wait" : "pointer",
+                                boxShadow: "0 0 24px var(--electric-glow)",
+                                opacity: submitting ? 0.7 : 1,
+                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                                 transition: "all 0.2s ease",
                             }}
                         >
-                            DAY 0 を刻む
-                        </motion.button>
+                            {submitting && <LottieAnim src="/lottie/loading-pulse.json" loop className="h-5 w-5" />}
+                            {submitting ? "刻んでいます..." : "DAY 0 を刻む"}
+                        </button>
                         <button
                             type="button"
                             onClick={() => window.location.assign("/dashboard")}

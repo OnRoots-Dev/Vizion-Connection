@@ -6,6 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { LottieAnim } from "@/components/ui/LottieAnim";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
@@ -26,7 +28,7 @@ export default function LoginForm() {
     const searchParams = useSearchParams();
     const redirectTo = searchParams.get("redirect") ?? "/dashboard";
     const [form, setForm] = useState({ email: "", password: "" });
-    const [showPassword, setShowPassword] = useState(false); // ← 修正
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -44,6 +46,7 @@ export default function LoginForm() {
             const data = await res.json();
             if (!data.success) {
                 setError(data.error ?? "メールアドレスまたはパスワードが正しくありません");
+                setLoading(false);
                 return;
             }
             // Use a full navigation so the next request definitely carries
@@ -59,14 +62,12 @@ export default function LoginForm() {
             }
         } catch {
             setError("通信エラーが発生しました");
-        } finally {
             setLoading(false);
         }
     }
 
     return (
         <div className="vc-auth-shell">
-
             <a
                 href={MARKETING_HOME_URL}
                 title="Vizion Connection"
@@ -78,17 +79,22 @@ export default function LoginForm() {
                     width={280}
                     height={90}
                     priority
-                    className="h-[13vw] w-auto"
+                    className="h-[13vw] max-h-24 w-auto"
                 />
             </a>
 
-            <div className="w-full max-w-md">
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-md"
+            >
                 <div className="mb-8 text-center space-y-1">
                     <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
                         VIZION CONNECTION
                     </p>
-                    <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Pulseに戻る</h1>
-                    <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>あなたの挑戦が待っています。</p>
+                    <h1 className="text-2xl font-bold text-white">Pulseに戻る</h1>
+                    <p className="text-sm text-white/45">あなたの挑戦が待っています。</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,7 +110,6 @@ export default function LoginForm() {
                         />
                     </div>
 
-                    {/* ← 修正: パスワード入力 + 目マーク */}
                     <div className="space-y-1.5">
                         <label className="text-xs text-white/40 font-medium">パスワード</label>
                         <div className="relative">
@@ -128,7 +133,14 @@ export default function LoginForm() {
                     </div>
 
                     {error && (
-                        <div className="rounded-xl border border-[rgba(255,80,80,0.2)] bg-[rgba(255,80,80,0.08)] px-4 py-3 text-sm text-red-400">
+                        <div
+                            className="rounded-xl px-4 py-3 text-sm font-medium"
+                            style={{
+                                border: "1px solid rgba(255,107,0,0.35)",
+                                background: "rgba(255,107,0,0.08)",
+                                color: "var(--flame)",
+                            }}
+                        >
                             {error}
                         </div>
                     )}
@@ -136,14 +148,13 @@ export default function LoginForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full rounded-xl py-3.5 text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-white transition-all disabled:cursor-not-allowed disabled:opacity-70"
                         style={{
-                            background: loading ? "#333" : "var(--electric)",
-                            color: "#ffffff",
-                            fontWeight: 900,
-                            boxShadow: loading ? "none" : "0 0 24px rgba(0,194,255,0.35)",
+                            background: "var(--electric)",
+                            boxShadow: loading ? "none" : "0 0 24px var(--electric-glow)",
                         }}
                     >
+                        {loading && <LottieAnim src="/lottie/loading-pulse.json" loop className="h-5 w-5" />}
                         {loading ? "ログイン中..." : "ログインしてPulseへ"}
                     </button>
                 </form>
@@ -160,7 +171,7 @@ export default function LoginForm() {
                         こちら
                     </Link>
                 </p>
-            </div>
+            </motion.div>
         </div>
     );
 }

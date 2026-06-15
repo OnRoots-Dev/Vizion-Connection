@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { LottieAnim } from "@/components/ui/LottieAnim";
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 
@@ -51,7 +52,8 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
             if (!completed) {
                 await ensureOnboardingComplete();
             }
-            window.location.assign("/dashboard");
+            // welcome=1 でdashboard側の初回ウェルカム演出を起動する
+            window.location.assign("/dashboard?welcome=1");
         } finally {
             setCompleting(false);
         }
@@ -71,7 +73,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ padding: "16px 24px 0" }}>
-                <OnboardingStepBar current={5} />
+                <OnboardingStepBar current={4} />
             </div>
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "40px 20px 0", textAlign: "center" }}>
@@ -80,7 +82,9 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 >
-                    <p style={{ margin: "0 0 8px", fontSize: 32 }}>🎉</p>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+                        <LottieAnim src="/lottie/success-check.json" className="h-24 w-24" />
+                    </div>
                     <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)", opacity: 0.8 }}>
                         ONBOARDING COMPLETE
                     </p>

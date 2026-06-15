@@ -7,7 +7,9 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import type { ProfileData } from "@/features/profile/types";
 import type { DailyLog } from "@/features/daily-log/types";
 import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
+import { ActivityExtras } from "@/components/DailyLog/ActivityExtras";
 import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
+import { calcDayCount } from "@/lib/day-count";
 
 function getJourneyPlaceholder(role: string): string {
   const r = role.toLowerCase();
@@ -75,6 +77,10 @@ export function MyJourneyView({
 
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [isPublic, setIsPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -156,6 +162,12 @@ export function MyJourneyView({
     }
     return count;
   }, [logMap]);
+
+  // DAYカウント: day0_date基準（未設定ならログ起点 = 従来のstreakにフォールバック）
+  const dayCount = useMemo(
+    () => calcDayCount(profile.day0Date, logs.at(-1)?.log_date ?? null),
+    [profile.day0Date, logs],
+  );
 
   const weeklyStats = useMemo(
     () =>
@@ -248,6 +260,10 @@ export function MyJourneyView({
         body: JSON.stringify({
           content: content.trim(),
           condition_score: conditionScore ?? undefined,
+          image_url: imageUrl ?? undefined,
+          video_url: videoUrl ?? undefined,
+          tags: tags.length ? tags : undefined,
+          is_public: isPublic,
         }),
       });
 
@@ -265,6 +281,10 @@ export function MyJourneyView({
       setSubmitted(true);
       setContent("");
       setConditionScore(null);
+      setImageUrl(null);
+      setVideoUrl(null);
+      setTags([]);
+      setIsPublic(true);
       setSuccessModalOpen(true);
     } catch {
       setError("通信エラーが発生しました");
@@ -337,7 +357,7 @@ export function MyJourneyView({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>
               <span style={{ fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.12)", color: "#FF5050", whiteSpace: "nowrap" }}>
-                連続{streak}日🔥
+                {dayCount !== null ? `DAY ${dayCount}🔥` : `連続${streak}日🔥`}
               </span>
             </div>
           )}
@@ -432,6 +452,20 @@ export function MyJourneyView({
                   />
                 </div>
 
+                <ActivityExtras
+                  imageUrl={imageUrl}
+                  videoUrl={videoUrl}
+                  tags={tags}
+                  isPublic={isPublic}
+                  onImageChange={setImageUrl}
+                  onVideoChange={setVideoUrl}
+                  onTagsChange={setTags}
+                  onPublicChange={setIsPublic}
+                  t={t}
+                  roleColor={roleColor}
+                  disabled={isSubmitting}
+                />
+
                 <button
                   type="button"
                   className="vz-btn"
@@ -482,7 +516,7 @@ export function MyJourneyView({
                   return (
                     <>
                       <p style={{ position: "relative", margin: 0, fontSize: 14, color: t.text, lineHeight: 1.9, fontWeight: 800 }}>
-                        "{quote}"
+                        &ldquo;{quote}&rdquo;
                       </p>
                       {author ? (
                         <p style={{ position: "relative", margin: "6px 0 0", fontSize: 12, color: t.sub, fontFamily: "monospace", letterSpacing: "0.04em", lineHeight: 1.4, width: "fit-content", marginLeft: "auto", paddingRight: "18%" }}>

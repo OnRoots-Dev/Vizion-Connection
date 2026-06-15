@@ -156,7 +156,6 @@ export const config = {
         "/login",
         "/register",
         "/reset-password",
-        "/verify",
         "/thanks",
         "/auth/confirm",
     ],

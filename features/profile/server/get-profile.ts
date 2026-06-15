@@ -60,6 +60,8 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     isDeleted: user.isDeleted ?? false,
                     latestCheers,
                     isOnboardingComplete: user.isOnboardingComplete ?? false,
+                    day0Declaration: user.day0Declaration ?? null,
+                    day0Date: user.day0Date ?? null,
                 },
                 referralUrl,
                 referralCount,

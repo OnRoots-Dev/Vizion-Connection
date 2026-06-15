@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { StepHeader, Field } from "@/components/career-wizard/WizardUI";
+import { StepHeader } from "@/components/career-wizard/WizardUI";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
+import { validateImageFile, blobToUploadFile } from "@/features/media";
+import AvatarCropModal from "@/components/profile/AvatarCropModal";
 import Image from "next/image";
 
 export default function StepProfileMediaWizard() {
@@ -18,6 +20,48 @@ export default function StepProfileMediaWizard() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [avatarError, setAvatarError] = useState("");
+  const [avatarCropSrc, setAvatarCropSrc] = useState<string | null>(null);
+
+  // アバターはアップロード前に Crop Editor を経由する
+  function handleAvatarPick() {
+    const input = avatarInputRef.current;
+    const file = input?.files?.[0];
+    if (!file) return;
+    setAvatarError("");
+    const validation = validateImageFile(file, { maxBytes: 5 * 1024 * 1024 });
+    if (!validation.ok) {
+      setAvatarError(validation.error ?? "画像ファイルを選択してください");
+      input!.value = "";
+      return;
+    }
+    setAvatarCropSrc(URL.createObjectURL(file));
+    input!.value = "";
+  }
+
+  function closeAvatarCrop() {
+    if (uploadingAvatar) return;
+    setAvatarCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+
+  async function handleAvatarCropped(blob: Blob) {
+    setUploadingAvatar(true);
+    setAvatarError("");
+    try {
+      const url = await uploadImageToSupabase(blobToUploadFile(blob, "avatar"), "avatar");
+      setField("avatarUrl", url);
+      setAvatarCropSrc((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    } catch (e) {
+      setAvatarError(e instanceof Error ? e.message : "画像アップロードに失敗しました");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   async function handleImageUpload(type: "profile" | "avatar") {
     const input = type === "profile" ? profileInputRef.current : avatarInputRef.current;
@@ -57,6 +101,14 @@ export default function StepProfileMediaWizard() {
 
   return (
     <div>
+      <AvatarCropModal
+        isOpen={avatarCropSrc !== null}
+        src={avatarCropSrc}
+        onClose={closeAvatarCrop}
+        onComplete={(blob) => void handleAvatarCropped(blob)}
+        busy={uploadingAvatar}
+      />
+
       <StepHeader
         eyebrow="PROFILE"
         title="プロフィール画像"
@@ -150,7 +202,7 @@ export default function StepProfileMediaWizard() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={() => void handleImageUpload("avatar")}
+            onChange={handleAvatarPick}
             aria-label="アバター画像を選択"
           />
 
@@ -164,16 +216,26 @@ export default function StepProfileMediaWizard() {
               {uploadingAvatar ? "アップロード中..." : "画像を選択"}
             </button>
             {avatarUrl ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setField("avatarUrl", "");
-                  setAvatarError("");
-                }}
-                className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70"
-              >
-                削除
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAvatarCropSrc(avatarUrl)}
+                  disabled={uploadingAvatar}
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
+                >
+                  調整
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setField("avatarUrl", "");
+                    setAvatarError("");
+                  }}
+                  className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70"
+                >
+                  削除
+                </button>
+              </>
             ) : null}
           </div>
 

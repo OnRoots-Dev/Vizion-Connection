@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { calcDayCount } from "@/lib/day-count";
 
 type PulseStatus = "active" | "stalled" | "revived" | "day0";
 
@@ -125,6 +126,7 @@ function LoadingState() {
 export default function PulseClient() {
   const [rows, setRows] = useState<JourneyDateRow[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
+  const [day0Date, setDay0Date] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -157,12 +159,21 @@ export default function PulseClient() {
     setSlug(resolvedSlug ?? null);
 
     const since365 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: journeys, error: journeysError } = await supabaseBrowser
-      .from("journeys")
-      .select("created_at")
-      .eq("user_slug", resolvedSlug)
-      .gte("created_at", since365)
-      .order("created_at", { ascending: false });
+    const [{ data: journeys, error: journeysError }, { data: userRow }] = await Promise.all([
+      supabaseBrowser
+        .from("journeys")
+        .select("created_at")
+        .eq("user_slug", resolvedSlug)
+        .gte("created_at", since365)
+        .order("created_at", { ascending: false }),
+      supabaseBrowser
+        .from("users")
+        .select("day0_date")
+        .eq("slug", resolvedSlug)
+        .single(),
+    ]);
+
+    setDay0Date((userRow?.day0_date as string | null) ?? null);
 
     if (journeysError) {
       setError("Pulseを読み込めませんでした。");
@@ -180,6 +191,11 @@ export default function PulseClient() {
 
   const stats = useMemo(() => calculateStats(rows), [rows]);
   const status = useMemo(() => resolveStatus(stats), [stats]);
+  // DAYカウント: day0_date基準。未設定ならjourneys初回投稿日にフォールバック
+  const dayCount = useMemo(
+    () => calcDayCount(day0Date, rows.at(-1)?.created_at ?? null),
+    [day0Date, rows],
+  );
   const graphDays = useMemo(
     () => Array.from({ length: 28 }, (_, index) => addDays(new Date(), index - 27)),
     [],
@@ -208,7 +224,7 @@ export default function PulseClient() {
             <span className="animate-pulse-ring absolute inset-0 rounded-full border border-[var(--electric)] bg-[var(--pulse-dim)]" />
             <span className="animate-pulse-ring absolute inset-0 rounded-full border border-[var(--electric)] bg-[var(--pulse-dim)] [animation-delay:1s]" />
             <div className="relative">
-              <div className="font-mono text-5xl text-[var(--foreground)]">DAY 0</div>
+              <div className="font-mono text-5xl text-[var(--foreground)]">DAY {dayCount ?? 0}</div>
               <div className="mt-2 font-display text-sm uppercase tracking-[0.28em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
                 PULSE
               </div>
@@ -270,8 +286,11 @@ export default function PulseClient() {
               className={`absolute inset-0 rounded-full bg-[var(--pulse-glow)] blur-2xl ${glowOpacity}`}
             />
             <div className="relative text-center">
+              <div className="font-mono text-sm uppercase tracking-[0.3em] text-[var(--electric)]">
+                DAY
+              </div>
               <div className="font-mono text-6xl text-[var(--foreground)]">
-                {stats.currentStreak}
+                {dayCount ?? stats.currentStreak}
               </div>
               <div className="mt-2 font-display text-sm uppercase tracking-[0.32em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
                 PULSE

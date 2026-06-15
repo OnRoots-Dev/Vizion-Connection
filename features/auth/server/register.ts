@@ -129,6 +129,28 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         return { success: false, error: "登録に失敗しました" };
     }
 
+    // Supabase Auth は既存メールへの signUp でエラーを返さず、
+    // identities が空のダミーユーザーを返す（メール列挙対策）。
+    // この場合、確認メールは送信されないため登録済みとして扱う。
+    if (!data.user.identities || data.user.identities.length === 0) {
+        const resendResult = await resendSignupVerificationEmail({ email, redirectTo });
+        if (resendResult.success) {
+            return {
+                success: false,
+                code: "PENDING_VERIFICATION",
+                email,
+                resent: true,
+                error: "このメールアドレスは既に仮登録されています",
+            };
+        }
+        return {
+            success: false,
+            code: "ALREADY_REGISTERED",
+            email,
+            error: "このメールアドレスは既に登録済みです",
+        };
+    }
+
     const user = await createUser({
         authId: data.user.id,
         email,

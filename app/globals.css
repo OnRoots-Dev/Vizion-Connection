@@ -442,7 +442,19 @@ html {
   }
 
   .vc-auth-input:focus {
-    border-color: var(--vc-focus-color, #a78bfa);
+    border-color: var(--vc-focus-color, var(--electric));
+    box-shadow: 0 0 0 1px var(--vc-focus-color, var(--electric)), 0 0 16px var(--electric-glow);
+  }
+
+  /* Chromeオートフィル時に黒文字・白背景になるのを防ぐ */
+  .vc-auth-input:-webkit-autofill,
+  .vc-auth-input:-webkit-autofill:hover,
+  .vc-auth-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #ffffff;
+    -webkit-box-shadow: 0 0 0 1000px #111118 inset;
+    box-shadow: 0 0 0 1000px #111118 inset;
+    caret-color: #ffffff;
+    transition: background-color 9999s ease-in-out 0s;
   }
 
   .vc-auth-card {

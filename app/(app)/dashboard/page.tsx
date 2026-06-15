@@ -16,6 +16,7 @@ function resolveInitialView(view?: string): DashboardView {
         "hub",
         "collections",
         "journey",
+        "portfolio",
         "card",
         "profile",
         "schedule",
@@ -38,7 +39,7 @@ function resolveInitialView(view?: string): DashboardView {
 export default async function DashboardPage({
     searchParams,
 }: {
-    searchParams?: Promise<{ view?: string }>;
+    searchParams?: Promise<{ view?: string; welcome?: string }>;
 }) {
     const result = await getProfileFromSession();
 
@@ -61,6 +62,7 @@ export default async function DashboardPage({
             initialView={initialView}
             canManageVoiceLab={canManageVoiceLab}
             isOnboardingComplete={profile.isOnboardingComplete ?? false}
+            showDay0Welcome={params?.welcome === "1"}
         />
     );
 }

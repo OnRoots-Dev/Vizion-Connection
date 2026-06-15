@@ -3,6 +3,8 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
+import { validateImageFile, blobToUploadFile } from "@/features/media";
+import AvatarCropModal from "@/components/profile/AvatarCropModal";
 
 // ── Sports master data ──────────────────────────────────────────────────────
 
@@ -120,6 +122,7 @@ export default function OnboardingProfileForm() {
     const [uploadingProfile, setUploadingProfile] = useState(false);
     const [avatarError, setAvatarError] = useState("");
     const [profileError, setProfileError] = useState("");
+    const [avatarCropSrc, setAvatarCropSrc] = useState<string | null>(null);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
@@ -163,6 +166,47 @@ export default function OnboardingProfileForm() {
         } finally {
             setUploading(false);
             if (input) input.value = "";
+        }
+    }
+
+    // アバターはアップロード前に Crop Editor を経由する
+    function handleAvatarPick() {
+        const input = avatarInputRef.current;
+        const file = input?.files?.[0];
+        if (!file) return;
+        setAvatarError("");
+        const validation = validateImageFile(file, { maxBytes: 5 * 1024 * 1024 });
+        if (!validation.ok) {
+            setAvatarError(validation.error ?? "画像ファイルを選択してください");
+            input!.value = "";
+            return;
+        }
+        setAvatarCropSrc(URL.createObjectURL(file));
+        input!.value = "";
+    }
+
+    function closeAvatarCrop() {
+        if (uploadingAvatar) return;
+        setAvatarCropSrc((prev) => {
+            if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return null;
+        });
+    }
+
+    async function handleAvatarCropped(blob: Blob) {
+        setUploadingAvatar(true);
+        setAvatarError("");
+        try {
+            const url = await uploadImageToSupabase(blobToUploadFile(blob, "avatar"), "avatar");
+            setAvatarUrl(url);
+            setAvatarCropSrc((prev) => {
+                if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+                return null;
+            });
+        } catch (e) {
+            setAvatarError(e instanceof Error ? e.message : "アップロードに失敗しました");
+        } finally {
+            setUploadingAvatar(false);
         }
     }
 
@@ -313,6 +357,14 @@ export default function OnboardingProfileForm() {
                 <div style={CARD}>
                     <p style={SECTION_LABEL}>写真</p>
 
+                    <AvatarCropModal
+                        isOpen={avatarCropSrc !== null}
+                        src={avatarCropSrc}
+                        onClose={closeAvatarCrop}
+                        onComplete={(blob) => void handleAvatarCropped(blob)}
+                        busy={uploadingAvatar}
+                    />
+
                     {/* アカウント写真 */}
                     <div style={{ marginBottom: 18 }}>
                         <Label text="アカウント写真" />
@@ -324,7 +376,7 @@ export default function OnboardingProfileForm() {
                                     : <span style={{ fontSize: 22 }}>👤</span>}
                             </div>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                <input ref={avatarInputRef} type="file" accept="image/*" aria-label="アカウント写真を選択" style={{ display: "none" }} onChange={() => void handleImageUpload("avatar")} />
+                                <input ref={avatarInputRef} type="file" accept="image/*" aria-label="アカウント写真を選択" style={{ display: "none" }} onChange={handleAvatarPick} />
                                 <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
                                     style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                                     {uploadingAvatar ? "アップロード中..." : "画像を選択"}

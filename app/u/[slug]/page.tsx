@@ -27,6 +27,7 @@ import PublicProfileCountValue from "./PublicProfileCountValue";
 import Image from "next/image";
 import Link from "next/link";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
+import { ProfilePortfolioNav } from "./ProfilePortfolioNav";
 
 function _jstKey(d: Date): string {
     return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
@@ -107,10 +108,11 @@ export default async function UserProfilePage({ params }: Props) {
     if (result.data.isPublic === false && !isOwn) return <PrivateProfilePage displayName={result.data.displayName} />;
 
     const { data: profile } = result;
-    const today = new Date();
+    const now = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
 
-    const since365 = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    const since365 = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
     const [collectorCount, rawCareerProfile, ads, publicSchedules, journeyCount, instandCount, journeyDates] = await Promise.all([
         getCollectorCount(slug),
         getCareerProfile(slug),
@@ -339,7 +341,7 @@ export default async function UserProfilePage({ params }: Props) {
                 `}</style>
 
                 <header className="a-header">
-                    <div className="a-header-inner">
+                    <div className="a-header-inner" style={{ justifyContent: "space-between", gap: 12 }}>
                         <Image
                             src="/images/Vizion_Connection_logo-wt.png"
                             alt="Vizion Connection"
@@ -348,6 +350,7 @@ export default async function UserProfilePage({ params }: Props) {
                             priority
                             style={{ height: 40, width: "auto", opacity: 0.95 }}
                         />
+                        <ProfilePortfolioNav slug={slug} active="profile" accent={rl} />
                     </div>
                     <nav className="a-subnav">
                         <a className="a-nav-item act" href="#overview">Overview</a>
@@ -606,7 +609,7 @@ export default async function UserProfilePage({ params }: Props) {
 
             {/* Header */}
             <header className="fi" style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(7,7,14,0.82)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)" }}>
-                <div style={{ maxWidth: "980px", margin: "0 auto", padding: "0 20px", height: 76, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ maxWidth: "980px", margin: "0 auto", padding: "0 20px", height: 76, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <Image
                         src="/images/Vizion_Connection_logo-wt.png"
                         alt="Vizion Connection"
@@ -615,6 +618,7 @@ export default async function UserProfilePage({ params }: Props) {
                         priority
                         style={{ height: 46, width: "auto", opacity: 0.95 }}
                     />
+                    <ProfilePortfolioNav slug={slug} active="profile" accent={rl} />
                 </div>
             </header>
 

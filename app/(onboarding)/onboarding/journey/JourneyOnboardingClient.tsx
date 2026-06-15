@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
 import { JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { LottieAnim } from "@/components/ui/LottieAnim";
 
 const T = {
     bg: "var(--surface-1)", surface: "var(--surface-2)", border: "var(--border)",
@@ -51,7 +52,8 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
 
             setDone(true);
             setIsRouting(true);
-            setTimeout(() => router.push("/onboarding/invite"), 200);
+            // パルスLottieを見せてから次のステップへ
+            setTimeout(() => router.push("/onboarding/invite"), 1400);
 
         } catch {
             setError("通信エラーが発生しました");
@@ -102,8 +104,10 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
                         animate={{ opacity: 1, scale: 1 }}
                         style={{ textAlign: "center", padding: "32px 20px", borderRadius: 24, border: "1px solid var(--border)", background: "var(--surface-2)", boxShadow: "0 24px 80px rgba(0,0,0,0.7)" }}
                     >
-                        <p style={{ margin: "0 0 8px", fontSize: 28 }}>✦</p>
-                        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "var(--foreground)" }}>Pulseを刻んでいます...</p>
+                        <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                            <LottieAnim src="/lottie/pulse-line.json" className="h-20 w-52" />
+                        </div>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "var(--foreground)" }}>Pulseを刻みました</p>
                         <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--muted-foreground)" }}>次のステップへ移動中…</p>
                     </motion.div>
                 ) : (

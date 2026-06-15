@@ -48,6 +48,8 @@ export interface ProfileData {
     hasShared?: boolean;
     latestCheers?: LatestCheerItem[];
     isOnboardingComplete?: boolean;
+    day0Declaration?: string | null;
+    day0Date?: string | null;
 }
 
 export interface DashboardData {

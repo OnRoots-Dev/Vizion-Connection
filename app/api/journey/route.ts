@@ -9,6 +9,9 @@ const schema = z.object({
     content: z.string().min(1, "内容は必須です").max(500, "500文字以内で入力してください"),
     condition_score: z.number().int().min(1).max(5).optional(),
     image_url: z.string().url().optional(),
+    video_url: z.string().url().optional(),
+    tags: z.array(z.string().min(1).max(20)).max(5, "タグは5つまでです").optional(),
+    is_public: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -34,7 +37,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: message }, { status: 400 });
     }
 
-    const { content, condition_score, image_url } = parsed.data;
+    const { content, condition_score, image_url, video_url, tags, is_public } = parsed.data;
 
     // 同日投稿チェック（JST基準）
     const jstToday = new Date(Date.now() + 9 * 60 * 60 * 1000)
@@ -61,9 +64,12 @@ export async function POST(req: NextRequest) {
             content,
             condition_score: condition_score ?? null,
             image_url: image_url ?? null,
+            video_url: video_url ?? null,
+            tags: tags ?? [],
+            is_public: is_public ?? true,
             cheer_count: 0,
         })
-        .select("id, user_slug, content, condition_score, created_at")
+        .select("id, user_slug, content, condition_score, image_url, video_url, tags, is_public, cheer_count, created_at")
         .single();
 
     if (error || !data) {

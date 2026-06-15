@@ -1,5 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
+import { completeEmailVerification } from '@/features/auth/server/complete-verification'
 import { NextRequest, NextResponse } from 'next/server'
+import type { User } from '@supabase/supabase-js'
+
+// メール認証成功時の後処理（users.verified更新・各種報酬）。
+// リダイレクトを止めないよう失敗はログのみ。
+async function runPostVerification(user: User | null | undefined) {
+  const slug = user?.user_metadata?.slug as string | undefined
+  if (!slug) return
+  try {
+    await completeEmailVerification(slug)
+  } catch (err) {
+    console.error('[auth/confirm] completeEmailVerification failed:', err)
+  }
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -20,6 +34,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      await runPostVerification(data.session?.user)
       const role = data.session?.user?.user_metadata?.role as string | undefined
       const defaultNext = role === 'Business' ? '/dashboard/business/checkout' : '/onboarding'
       return NextResponse.redirect(
@@ -36,6 +51,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: otpType })
     if (!error) {
+      await runPostVerification(data.session?.user)
       const role = data.session?.user?.user_metadata?.role as string | undefined
       const defaultNext = role === 'Business' ? '/dashboard/business/checkout' : '/onboarding'
       return NextResponse.redirect(

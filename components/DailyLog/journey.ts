@@ -2,6 +2,27 @@ import type { DailyLog } from "@/features/daily-log/types";
 
 export const JOURNEY_MAX_CHARS = 100;
 
+// 活動タグ（活動の種類）。Activity 記録時に複数選択でき、Portfolio で軌跡を分類する。
+export const ACTIVITY_TAGS = [
+  "練習",
+  "試合",
+  "トレーニング",
+  "コンディショニング",
+  "休養",
+  "食事・栄養",
+  "学習・分析",
+  "指導",
+  "ミーティング",
+  "遠征",
+  "リハビリ",
+  "目標設定",
+] as const;
+
+export type ActivityTag = (typeof ACTIVITY_TAGS)[number];
+
+// 1 記録あたりのタグ上限
+export const ACTIVITY_TAGS_MAX = 5;
+
 export const CONDITION_OPTIONS = [
   { score: 1, emoji: "😔", label: "低調", sub: "立て直し中" },
   { score: 2, emoji: "😐", label: "やや重い", sub: "調整フェーズ" },
