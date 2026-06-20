@@ -2,17 +2,17 @@
 
 import MediaCropModal from "./MediaCropModal";
 
-// Banner 専用プリセット（矩形 / 3:1 / natural解像度 webp）。MediaCropModal の薄ラッパ。
-// 出力は crop 領域の自然解像度のまま（強制リサイズしない）→ banner_url の 3:1 webp 仕様を維持。
-// 旧実装の自前ファイル選択は廃止し、src を親から受け取る統一設計に移行。
-export default function BannerCropModal({
+// Profile(hero) 専用プリセット（矩形 / 16:9 / natural解像度 webp）。MediaCropModal の薄ラッパ。
+// 出力は crop 領域の自然解像度のまま（強制リサイズしない）→ profile_image_url の保存スキームを維持。
+// src は親から受け取る統一設計（Avatar / Banner と同型）。
+export default function ProfileHeroCropModal({
     isOpen,
     src,
     onClose,
     onComplete,
     busy = false,
     accentColor = "#a78bfa",
-    aspect = 3 / 1,
+    aspect = 16 / 9,
 }: {
     isOpen: boolean;
     src: string | null;
@@ -33,9 +33,9 @@ export default function BannerCropModal({
             aspect={aspect}
             cropShape="rect"
             optimize={{ maxEdge: 1920, quality: 0.85 }}
-            eyebrow="Banner"
-            title="バナー画像を調整"
-            hint="ドラッグで位置調整・スライダーで拡大（3:1）"
+            eyebrow="Profile"
+            title="プロフィール画像を調整"
+            hint="ドラッグで位置調整・スライダーで拡大（16:9）"
         />
     );
 }

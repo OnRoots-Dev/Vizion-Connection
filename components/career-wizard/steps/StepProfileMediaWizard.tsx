@@ -3,9 +3,9 @@
 import { useRef, useState } from "react";
 import { StepHeader } from "@/components/career-wizard/WizardUI";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
-import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
-import { validateImageFile, blobToUploadFile } from "@/features/media";
+import { useCropUpload } from "@/features/media";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import ProfileHeroCropModal from "@/components/profile/ProfileHeroCropModal";
 import Image from "next/image";
 
 export default function StepProfileMediaWizard() {
@@ -16,88 +16,67 @@ export default function StepProfileMediaWizard() {
   const profileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const [uploadingProfile, setUploadingProfile] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [profileError, setProfileError] = useState("");
-  const [avatarError, setAvatarError] = useState("");
   const [avatarCropSrc, setAvatarCropSrc] = useState<string | null>(null);
+  const [profileCropSrc, setProfileCropSrc] = useState<string | null>(null);
+
+  function clearAvatarCrop() {
+    setAvatarCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+  function clearProfileCrop() {
+    setProfileCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+
+  // crop 後〜upload は useCropUpload に集約（UI/cropSrc は本 component が保持）
+  const avatarUpload = useCropUpload({
+    uploadType: "avatar",
+    baseName: "avatar",
+    maxBytes: 5 * 1024 * 1024,
+    onUploaded: (url) => { setField("avatarUrl", url); clearAvatarCrop(); },
+  });
+  const profileUpload = useCropUpload({
+    uploadType: "profile",
+    baseName: "profile",
+    maxBytes: 5 * 1024 * 1024,
+    onUploaded: (url) => { setField("profileImageUrl", url); clearProfileCrop(); },
+  });
 
   // アバターはアップロード前に Crop Editor を経由する
   function handleAvatarPick() {
     const input = avatarInputRef.current;
     const file = input?.files?.[0];
     if (!file) return;
-    setAvatarError("");
-    const validation = validateImageFile(file, { maxBytes: 5 * 1024 * 1024 });
-    if (!validation.ok) {
-      setAvatarError(validation.error ?? "画像ファイルを選択してください");
-      input!.value = "";
-      return;
-    }
+    if (!avatarUpload.validateFile(file)) { input.value = ""; return; }
     setAvatarCropSrc(URL.createObjectURL(file));
-    input!.value = "";
+    input.value = "";
   }
 
   function closeAvatarCrop() {
-    if (uploadingAvatar) return;
-    setAvatarCropSrc((prev) => {
-      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return null;
-    });
+    if (avatarUpload.uploading) return;
+    clearAvatarCrop();
   }
 
-  async function handleAvatarCropped(blob: Blob) {
-    setUploadingAvatar(true);
-    setAvatarError("");
-    try {
-      const url = await uploadImageToSupabase(blobToUploadFile(blob, "avatar"), "avatar");
-      setField("avatarUrl", url);
-      setAvatarCropSrc((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-    } catch (e) {
-      setAvatarError(e instanceof Error ? e.message : "画像アップロードに失敗しました");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  }
-
-  async function handleImageUpload(type: "profile" | "avatar") {
-    const input = type === "profile" ? profileInputRef.current : avatarInputRef.current;
+  // プロフィール(hero)画像もアップロード前に Crop Editor を経由する（16:9）
+  function handleProfilePick() {
+    const input = profileInputRef.current;
     const file = input?.files?.[0];
     if (!file) return;
-
-    const setUploading = type === "profile" ? setUploadingProfile : setUploadingAvatar;
-    const setErr = type === "profile" ? setProfileError : setAvatarError;
-
-    setErr("");
-
-    if (!file.type.startsWith("image/")) {
-      setErr("画像ファイルを選択してください");
-      if (input) input.value = "";
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErr("画像サイズは5MB以内にしてください");
-      if (input) input.value = "";
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const url = await uploadImageToSupabase(file, type);
-      if (type === "profile") setField("profileImageUrl", url);
-      else setField("avatarUrl", url);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "画像アップロードに失敗しました");
-    } finally {
-      setUploading(false);
-      if (input) input.value = "";
-    }
+    if (!profileUpload.validateFile(file)) { input.value = ""; return; }
+    setProfileCropSrc(URL.createObjectURL(file));
+    input.value = "";
   }
 
-  const uploading = uploadingProfile || uploadingAvatar;
+  function closeProfileCrop() {
+    if (profileUpload.uploading) return;
+    clearProfileCrop();
+  }
+
+  const uploading = profileUpload.uploading || avatarUpload.uploading;
 
   return (
     <div>
@@ -105,8 +84,16 @@ export default function StepProfileMediaWizard() {
         isOpen={avatarCropSrc !== null}
         src={avatarCropSrc}
         onClose={closeAvatarCrop}
-        onComplete={(blob) => void handleAvatarCropped(blob)}
-        busy={uploadingAvatar}
+        onComplete={(blob) => void avatarUpload.upload(blob)}
+        busy={avatarUpload.uploading}
+      />
+
+      <ProfileHeroCropModal
+        isOpen={profileCropSrc !== null}
+        src={profileCropSrc}
+        onClose={closeProfileCrop}
+        onComplete={(blob) => void profileUpload.upload(blob)}
+        busy={profileUpload.uploading}
       />
 
       <StepHeader
@@ -142,7 +129,7 @@ export default function StepProfileMediaWizard() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={() => void handleImageUpload("profile")}
+            onChange={handleProfilePick}
             aria-label="プロフィール画像を選択"
           />
 
@@ -150,28 +137,38 @@ export default function StepProfileMediaWizard() {
             <button
               type="button"
               onClick={() => profileInputRef.current?.click()}
-              disabled={uploadingProfile}
+              disabled={profileUpload.uploading}
               className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
             >
-              {uploadingProfile ? "アップロード中..." : "画像を選択"}
+              {profileUpload.uploading ? "アップロード中..." : "画像を選択"}
             </button>
             {profileImageUrl ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setField("profileImageUrl", "");
-                  setProfileError("");
-                }}
-                className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70"
-              >
-                削除
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setProfileCropSrc(profileImageUrl)}
+                  disabled={profileUpload.uploading}
+                  className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
+                >
+                  調整
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setField("profileImageUrl", "");
+                    profileUpload.setError("");
+                  }}
+                  className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70"
+                >
+                  削除
+                </button>
+              </>
             ) : null}
           </div>
 
-          {profileError ? (
+          {profileUpload.error ? (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {profileError}
+              {profileUpload.error}
             </div>
           ) : null}
         </div>
@@ -210,17 +207,17 @@ export default function StepProfileMediaWizard() {
             <button
               type="button"
               onClick={() => avatarInputRef.current?.click()}
-              disabled={uploadingAvatar}
+              disabled={avatarUpload.uploading}
               className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
             >
-              {uploadingAvatar ? "アップロード中..." : "画像を選択"}
+              {avatarUpload.uploading ? "アップロード中..." : "画像を選択"}
             </button>
             {avatarUrl ? (
               <>
                 <button
                   type="button"
                   onClick={() => setAvatarCropSrc(avatarUrl)}
-                  disabled={uploadingAvatar}
+                  disabled={avatarUpload.uploading}
                   className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
                 >
                   調整
@@ -229,7 +226,7 @@ export default function StepProfileMediaWizard() {
                   type="button"
                   onClick={() => {
                     setField("avatarUrl", "");
-                    setAvatarError("");
+                    avatarUpload.setError("");
                   }}
                   className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70"
                 >
@@ -239,9 +236,9 @@ export default function StepProfileMediaWizard() {
             ) : null}
           </div>
 
-          {avatarError ? (
+          {avatarUpload.error ? (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {avatarError}
+              {avatarUpload.error}
             </div>
           ) : null}
         </div>

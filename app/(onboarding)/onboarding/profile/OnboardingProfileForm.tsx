@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
-import { validateImageFile, blobToUploadFile } from "@/features/media";
+import { useCropUpload } from "@/features/media";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import ProfileHeroCropModal from "@/components/profile/ProfileHeroCropModal";
 
 // ── Sports master data ──────────────────────────────────────────────────────
 
@@ -118,11 +118,8 @@ export default function OnboardingProfileForm() {
 
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState("");
-    const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [uploadingProfile, setUploadingProfile] = useState(false);
-    const [avatarError, setAvatarError] = useState("");
-    const [profileError, setProfileError] = useState("");
     const [avatarCropSrc, setAvatarCropSrc] = useState<string | null>(null);
+    const [profileCropSrc, setProfileCropSrc] = useState<string | null>(null);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const profileInputRef = useRef<HTMLInputElement>(null);
@@ -144,29 +141,45 @@ export default function OnboardingProfileForm() {
         setPrefecture("");
     }
 
-    async function handleImageUpload(type: "avatar" | "profile") {
-        const input = type === "avatar" ? avatarInputRef.current : profileInputRef.current;
+    function clearAvatarCrop() {
+        setAvatarCropSrc((prev) => {
+            if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return null;
+        });
+    }
+    function clearProfileCrop() {
+        setProfileCropSrc((prev) => {
+            if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return null;
+        });
+    }
+
+    // crop 後〜upload は useCropUpload に集約（UI/cropSrc は本 component が保持）
+    const avatarUpload = useCropUpload({
+        uploadType: "avatar",
+        baseName: "avatar",
+        maxBytes: 5 * 1024 * 1024,
+        onUploaded: (url) => { setAvatarUrl(url); clearAvatarCrop(); },
+    });
+    const profileUpload = useCropUpload({
+        uploadType: "profile",
+        baseName: "profile",
+        maxBytes: 5 * 1024 * 1024,
+        onUploaded: (url) => { setProfileImageUrl(url); clearProfileCrop(); },
+    });
+
+    // プロフィールカード(hero)画像もアップロード前に Crop Editor を経由する（16:9）
+    function handleProfilePick() {
+        const input = profileInputRef.current;
         const file = input?.files?.[0];
         if (!file) return;
-
-        const setErr = type === "avatar" ? setAvatarError : setProfileError;
-        const setUploading = type === "avatar" ? setUploadingAvatar : setUploadingProfile;
-
-        setErr("");
-        if (!file.type.startsWith("image/")) { setErr("画像ファイルを選択してください"); if (input) input.value = ""; return; }
-        if (file.size > 5 * 1024 * 1024) { setErr("5MB以内の画像を選択してください"); if (input) input.value = ""; return; }
-
-        setUploading(true);
-        try {
-            const url = await uploadImageToSupabase(file, type === "profile" ? "profile" : "avatar");
-            if (type === "avatar") setAvatarUrl(url);
-            else setProfileImageUrl(url);
-        } catch (e) {
-            setErr(e instanceof Error ? e.message : "アップロードに失敗しました");
-        } finally {
-            setUploading(false);
-            if (input) input.value = "";
-        }
+        if (!profileUpload.validateFile(file)) { input.value = ""; return; }
+        setProfileCropSrc(URL.createObjectURL(file));
+        input.value = "";
+    }
+    function closeProfileCrop() {
+        if (profileUpload.uploading) return;
+        clearProfileCrop();
     }
 
     // アバターはアップロード前に Crop Editor を経由する
@@ -174,40 +187,13 @@ export default function OnboardingProfileForm() {
         const input = avatarInputRef.current;
         const file = input?.files?.[0];
         if (!file) return;
-        setAvatarError("");
-        const validation = validateImageFile(file, { maxBytes: 5 * 1024 * 1024 });
-        if (!validation.ok) {
-            setAvatarError(validation.error ?? "画像ファイルを選択してください");
-            input!.value = "";
-            return;
-        }
+        if (!avatarUpload.validateFile(file)) { input.value = ""; return; }
         setAvatarCropSrc(URL.createObjectURL(file));
-        input!.value = "";
+        input.value = "";
     }
-
     function closeAvatarCrop() {
-        if (uploadingAvatar) return;
-        setAvatarCropSrc((prev) => {
-            if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-            return null;
-        });
-    }
-
-    async function handleAvatarCropped(blob: Blob) {
-        setUploadingAvatar(true);
-        setAvatarError("");
-        try {
-            const url = await uploadImageToSupabase(blobToUploadFile(blob, "avatar"), "avatar");
-            setAvatarUrl(url);
-            setAvatarCropSrc((prev) => {
-                if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-                return null;
-            });
-        } catch (e) {
-            setAvatarError(e instanceof Error ? e.message : "アップロードに失敗しました");
-        } finally {
-            setUploadingAvatar(false);
-        }
+        if (avatarUpload.uploading) return;
+        clearAvatarCrop();
     }
 
     async function handleSubmit() {
@@ -361,8 +347,16 @@ export default function OnboardingProfileForm() {
                         isOpen={avatarCropSrc !== null}
                         src={avatarCropSrc}
                         onClose={closeAvatarCrop}
-                        onComplete={(blob) => void handleAvatarCropped(blob)}
-                        busy={uploadingAvatar}
+                        onComplete={(blob) => void avatarUpload.upload(blob)}
+                        busy={avatarUpload.uploading}
+                    />
+
+                    <ProfileHeroCropModal
+                        isOpen={profileCropSrc !== null}
+                        src={profileCropSrc}
+                        onClose={closeProfileCrop}
+                        onComplete={(blob) => void profileUpload.upload(blob)}
+                        busy={profileUpload.uploading}
                     />
 
                     {/* アカウント写真 */}
@@ -377,19 +371,19 @@ export default function OnboardingProfileForm() {
                             </div>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                 <input ref={avatarInputRef} type="file" accept="image/*" aria-label="アカウント写真を選択" style={{ display: "none" }} onChange={handleAvatarPick} />
-                                <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
+                                <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUpload.uploading}
                                     style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                                    {uploadingAvatar ? "アップロード中..." : "画像を選択"}
+                                    {avatarUpload.uploading ? "アップロード中..." : "画像を選択"}
                                 </button>
                                 {avatarUrl && (
-                                    <button type="button" onClick={() => { setAvatarUrl(""); setAvatarError(""); }}
+                                    <button type="button" onClick={() => { setAvatarUrl(""); avatarUpload.setError(""); }}
                                         style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.38)", fontSize: 12, cursor: "pointer" }}>
                                         削除
                                     </button>
                                 )}
                             </div>
                         </div>
-                        {avatarError && <p style={{ margin: "6px 0 0", fontSize: 12, color: "#f87171" }}>{avatarError}</p>}
+                        {avatarUpload.error && <p style={{ margin: "6px 0 0", fontSize: 12, color: "#f87171" }}>{avatarUpload.error}</p>}
                     </div>
 
                     {/* プロフィールカード写真 */}
@@ -403,20 +397,20 @@ export default function OnboardingProfileForm() {
                                     : <span style={{ fontSize: 18 }}>🖼️</span>}
                             </div>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                                <input ref={profileInputRef} type="file" accept="image/*" aria-label="プロフィールカード写真を選択" style={{ display: "none" }} onChange={() => void handleImageUpload("profile")} />
-                                <button type="button" onClick={() => profileInputRef.current?.click()} disabled={uploadingProfile}
+                                <input ref={profileInputRef} type="file" accept="image/*" aria-label="プロフィールカード写真を選択" style={{ display: "none" }} onChange={handleProfilePick} />
+                                <button type="button" onClick={() => profileInputRef.current?.click()} disabled={profileUpload.uploading}
                                     style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                                    {uploadingProfile ? "アップロード中..." : "画像を選択"}
+                                    {profileUpload.uploading ? "アップロード中..." : "画像を選択"}
                                 </button>
                                 {profileImageUrl && (
-                                    <button type="button" onClick={() => { setProfileImageUrl(""); setProfileError(""); }}
+                                    <button type="button" onClick={() => { setProfileImageUrl(""); profileUpload.setError(""); }}
                                         style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.38)", fontSize: 12, cursor: "pointer" }}>
                                         削除
                                     </button>
                                 )}
                             </div>
                         </div>
-                        {profileError && <p style={{ margin: "6px 0 0", fontSize: 12, color: "#f87171" }}>{profileError}</p>}
+                        {profileUpload.error && <p style={{ margin: "6px 0 0", fontSize: 12, color: "#f87171" }}>{profileUpload.error}</p>}
                     </div>
                 </div>
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Cropper, { type Area } from "react-easy-crop";
-import { cropImageToBlob } from "@/features/media";
+import { cropImageToBlob, optimizeBlob, type OptimizeBlobOptions } from "@/features/media";
 
 export interface MediaCropOutput {
     width: number;
@@ -22,6 +22,8 @@ export interface MediaCropModalProps {
     cropShape?: "round" | "rect";
     /** 固定出力サイズ（指定時はリサイズ）。未指定なら crop の自然解像度をそのまま出力 */
     output?: MediaCropOutput;
+    /** 指定時、crop 後に長辺リサイズ/webp 最適化を適用（avatar は非接続=未指定） */
+    optimize?: OptimizeBlobOptions;
     eyebrow?: string;
     title?: string;
     hint?: string;
@@ -42,6 +44,7 @@ export default function MediaCropModal({
     aspect,
     cropShape = "rect",
     output,
+    optimize,
     eyebrow = "Media",
     title = "画像を調整",
     hint = "ドラッグで位置調整・スライダーで拡大",
@@ -79,11 +82,13 @@ export default function MediaCropModal({
         }
         setError("");
         try {
-            const blob = await cropImageToBlob(src, area, {
+            const cropped = await cropImageToBlob(src, area, {
                 ...(output ? { outputWidth: output.width, outputHeight: output.height } : {}),
                 mimeType: "image/webp",
                 quality: 0.9,
             });
+            // crop 後のみ最適化（optimize 未指定の avatar は素通り）
+            const blob = optimize ? await optimizeBlob(cropped, optimize) : cropped;
             onComplete(blob);
         } catch (e) {
             setError(e instanceof Error ? e.message : "画像の処理に失敗しました");

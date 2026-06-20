@@ -2,10 +2,10 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { uploadImageToSupabase } from "@/lib/supabase/upload-image";
-import { validateImageFile, blobToUploadFile } from "@/features/media";
+import { useCropUpload } from "@/features/media";
 import BannerCropModal from "@/components/profile/BannerCropModal";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import ProfileHeroCropModal from "@/components/profile/ProfileHeroCropModal";
 
 export default function StepProfileMedia({
   profileImageUrl,
@@ -30,54 +30,61 @@ export default function StepProfileMedia({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const [uploadingProfile, setUploadingProfile] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [profileError, setProfileError] = useState("");
-  const [avatarError, setAvatarError] = useState("");
-  const [bannerError, setBannerError] = useState("");
   const [avatarCropSrc, setAvatarCropSrc] = useState<string | null>(null);
   const [bannerCropSrc, setBannerCropSrc] = useState<string | null>(null);
+  const [profileCropSrc, setProfileCropSrc] = useState<string | null>(null);
+
+  function clearAvatarCrop() {
+    setAvatarCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+  function clearBannerCrop() {
+    setBannerCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+  function clearProfileCrop() {
+    setProfileCropSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+
+  // crop 後〜upload は useCropUpload に集約（UI/cropSrc は本 component が保持）
+  const avatarUpload = useCropUpload({
+    uploadType: "avatar",
+    baseName: "avatar",
+    maxBytes: 5 * 1024 * 1024,
+    onUploaded: (url) => { onAvatarChange(url); clearAvatarCrop(); },
+  });
+  const bannerUpload = useCropUpload({
+    uploadType: "banner",
+    baseName: "banner",
+    maxBytes: 8 * 1024 * 1024,
+    onUploaded: (url) => { onBannerChange(url); clearBannerCrop(); },
+  });
+  const profileUpload = useCropUpload({
+    uploadType: "profile",
+    baseName: "profile",
+    maxBytes: 5 * 1024 * 1024,
+    onUploaded: (url) => { onProfileImageChange(url); clearProfileCrop(); },
+  });
 
   // アバターはアップロード前に Crop Editor を経由する
   function handleAvatarPick() {
     const input = avatarInputRef.current;
     const file = input?.files?.[0];
     if (!file) return;
-    setAvatarError("");
-    const validation = validateImageFile(file, { maxBytes: 5 * 1024 * 1024 });
-    if (!validation.ok) {
-      setAvatarError(validation.error ?? "画像ファイルを選択してください");
-      input!.value = "";
-      return;
-    }
+    if (!avatarUpload.validateFile(file)) { input.value = ""; return; }
     setAvatarCropSrc(URL.createObjectURL(file));
-    input!.value = "";
+    input.value = "";
   }
-
   function closeAvatarCrop() {
-    if (uploadingAvatar) return;
-    setAvatarCropSrc((prev) => {
-      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return null;
-    });
-  }
-
-  async function handleAvatarCropped(blob: Blob) {
-    setUploadingAvatar(true);
-    setAvatarError("");
-    try {
-      const url = await uploadImageToSupabase(blobToUploadFile(blob, "avatar"), "avatar");
-      onAvatarChange(url);
-      setAvatarCropSrc((prev) => {
-        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-        return null;
-      });
-    } catch (e) {
-      setAvatarError(e instanceof Error ? e.message : "画像アップロードに失敗しました");
-    } finally {
-      setUploadingAvatar(false);
-    }
+    if (avatarUpload.uploading) return;
+    clearAvatarCrop();
   }
 
   // バナーもアップロード前に Crop Editor を経由する（src を親で管理）
@@ -85,74 +92,27 @@ export default function StepProfileMedia({
     const input = bannerInputRef.current;
     const file = input?.files?.[0];
     if (!file) return;
-    setBannerError("");
-    const validation = validateImageFile(file, { maxBytes: 8 * 1024 * 1024 });
-    if (!validation.ok) {
-      setBannerError(validation.error ?? "画像ファイルを選択してください");
-      input!.value = "";
-      return;
-    }
+    if (!bannerUpload.validateFile(file)) { input.value = ""; return; }
     setBannerCropSrc(URL.createObjectURL(file));
-    input!.value = "";
+    input.value = "";
   }
-
   function closeBannerCrop() {
-    if (uploadingBanner) return;
-    setBannerCropSrc((prev) => {
-      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return null;
-    });
+    if (bannerUpload.uploading) return;
+    clearBannerCrop();
   }
 
-  async function handleBannerCropped(blob: Blob) {
-    setUploadingBanner(true);
-    setBannerError("");
-    try {
-      const url = await uploadImageToSupabase(blobToUploadFile(blob, "banner"), "banner");
-      onBannerChange(url);
-      setBannerCropSrc((prev) => {
-        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-        return null;
-      });
-    } catch (e) {
-      setBannerError(e instanceof Error ? e.message : "画像アップロードに失敗しました");
-    } finally {
-      setUploadingBanner(false);
-    }
-  }
-
-  async function handleImageUpload(type: "profile" | "avatar") {
-    const input = type === "profile" ? profileInputRef.current : avatarInputRef.current;
+  // プロフィール(hero)画像もアップロード前に Crop Editor を経由する（16:9）
+  function handleProfilePick() {
+    const input = profileInputRef.current;
     const file = input?.files?.[0];
     if (!file) return;
-
-    const setUploading = type === "profile" ? setUploadingProfile : setUploadingAvatar;
-    const setErr = type === "profile" ? setProfileError : setAvatarError;
-    const setUrl = type === "profile" ? onProfileImageChange : onAvatarChange;
-
-    setErr("");
-
-    if (!file.type.startsWith("image/")) {
-      setErr("画像ファイルを選択してください");
-      if (input) input.value = "";
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErr("画像サイズは5MB以内にしてください");
-      if (input) input.value = "";
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const url = await uploadImageToSupabase(file, type);
-      setUrl(url);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "画像アップロードに失敗しました");
-    } finally {
-      setUploading(false);
-      if (input) input.value = "";
-    }
+    if (!profileUpload.validateFile(file)) { input.value = ""; return; }
+    setProfileCropSrc(URL.createObjectURL(file));
+    input.value = "";
+  }
+  function closeProfileCrop() {
+    if (profileUpload.uploading) return;
+    clearProfileCrop();
   }
 
   return (
@@ -161,16 +121,24 @@ export default function StepProfileMedia({
         isOpen={avatarCropSrc !== null}
         src={avatarCropSrc}
         onClose={closeAvatarCrop}
-        onComplete={(blob) => void handleAvatarCropped(blob)}
-        busy={uploadingAvatar}
+        onComplete={(blob) => void avatarUpload.upload(blob)}
+        busy={avatarUpload.uploading}
       />
 
       <BannerCropModal
         isOpen={bannerCropSrc !== null}
         src={bannerCropSrc}
         onClose={closeBannerCrop}
-        onComplete={(blob) => void handleBannerCropped(blob)}
-        busy={uploadingBanner}
+        onComplete={(blob) => void bannerUpload.upload(blob)}
+        busy={bannerUpload.uploading}
+      />
+
+      <ProfileHeroCropModal
+        isOpen={profileCropSrc !== null}
+        src={profileCropSrc}
+        onClose={closeProfileCrop}
+        onComplete={(blob) => void profileUpload.upload(blob)}
+        busy={profileUpload.uploading}
       />
 
       <div>
@@ -191,10 +159,10 @@ export default function StepProfileMedia({
             <button
               type="button"
               onClick={() => bannerInputRef.current?.click()}
-              disabled={uploadingBanner}
+              disabled={bannerUpload.uploading}
               className="shrink-0 rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
             >
-              {uploadingBanner ? "アップロード中..." : (bannerUrl ? "画像を変更" : "画像を設定")}
+              {bannerUpload.uploading ? "アップロード中..." : (bannerUrl ? "画像を変更" : "画像を設定")}
             </button>
           </div>
 
@@ -222,9 +190,9 @@ export default function StepProfileMedia({
                 type="button"
                 onClick={() => {
                   onBannerChange("");
-                  setBannerError("");
+                  bannerUpload.setError("");
                 }}
-                disabled={uploadingBanner}
+                disabled={bannerUpload.uploading}
                 className="rounded-xl border border-white/10 bg-transparent px-4 py-2 text-sm font-black text-white/70 disabled:opacity-60"
               >
                 削除
@@ -232,9 +200,9 @@ export default function StepProfileMedia({
             ) : null}
           </div>
 
-          {bannerError ? (
+          {bannerUpload.error ? (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {bannerError}
+              {bannerUpload.error}
             </div>
           ) : null}
         </div>
@@ -245,14 +213,15 @@ export default function StepProfileMedia({
           type="profile"
           currentUrl={profileImageUrl}
           inputRef={profileInputRef}
-          uploading={uploadingProfile}
-          error={profileError}
+          uploading={profileUpload.uploading}
+          error={profileUpload.error}
           onPick={() => profileInputRef.current?.click()}
           onRemove={() => {
             onProfileImageChange("");
-            setProfileError("");
+            profileUpload.setError("");
           }}
-          onChange={() => void handleImageUpload("profile")}
+          onChange={handleProfilePick}
+          onAdjust={profileImageUrl ? () => setProfileCropSrc(profileImageUrl) : undefined}
         />
 
         <ImageUploadCard
@@ -261,12 +230,12 @@ export default function StepProfileMedia({
           type="avatar"
           currentUrl={avatarUrl}
           inputRef={avatarInputRef}
-          uploading={uploadingAvatar}
-          error={avatarError}
+          uploading={avatarUpload.uploading}
+          error={avatarUpload.error}
           onPick={() => avatarInputRef.current?.click()}
           onRemove={() => {
             onAvatarChange("");
-            setAvatarError("");
+            avatarUpload.setError("");
           }}
           onChange={handleAvatarPick}
           onAdjust={avatarUrl ? () => setAvatarCropSrc(avatarUrl) : undefined}
@@ -285,10 +254,10 @@ export default function StepProfileMedia({
         <button
           type="button"
           onClick={onNext}
-          disabled={uploadingProfile || uploadingAvatar || uploadingBanner}
+          disabled={profileUpload.uploading || avatarUpload.uploading || bannerUpload.uploading}
           className="rounded-xl bg-white px-5 py-2.5 text-sm font-black text-black disabled:opacity-60"
         >
-          {uploadingProfile || uploadingAvatar || uploadingBanner ? "アップロード中..." : "保存して次へ"}
+          {profileUpload.uploading || avatarUpload.uploading || bannerUpload.uploading ? "アップロード中..." : "保存して次へ"}
         </button>
       </div>
     </div>

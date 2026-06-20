@@ -3,3 +3,4 @@ export * from "./crop-image";
 export * from "./optimize-image";
 export * from "./validate-image";
 export * from "./to-file";
+export * from "./use-crop-upload";

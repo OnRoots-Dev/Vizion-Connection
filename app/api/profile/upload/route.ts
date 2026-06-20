@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
 
     const { data } = supabaseServer.storage.from("profiles").getPublicUrl(path);
 
+    // 旧アセットの purge はここでは行わない。DB 更新成功後に置き換えられた旧URLのみを対象に
+    // /api/profile/save 側で実施する（upload 時点では DB 未更新のため使用中URLを誤削除しうる）。
+
     if (type === "banner") {
         const ok = await updateUserProfile(user.slug, { bannerUrl: data.publicUrl });
         if (!ok) {
