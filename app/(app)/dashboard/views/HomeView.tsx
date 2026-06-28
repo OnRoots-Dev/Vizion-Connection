@@ -48,11 +48,10 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
     const formatMd = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" });
 
-    // PULSE 日数・DAILY CIRCUIT 状態を既存データから導出（daily_circuits テーブルは存在しない）
+    // PULSE 日数を journeys から、DAILY CIRCUIT 状態を daily_circuits（API）から取得
     useEffect(() => {
         let cancelled = false;
         const t = todayJst();
-        const localFlag = (k: string) => typeof window !== "undefined" && window.localStorage.getItem(`vc-circuit:${k}:${t}`) === "1";
         void supabaseBrowser
             .from("journeys")
             .select("created_at")
@@ -64,12 +63,20 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 const dates = (data ?? []).map((r) => String(r.created_at));
                 const journeyToday = dates.some((d) => jstDay(d) === t);
                 setPulseDays(streakFrom(dates));
-                setCircuit({
-                    journey: journeyToday || localFlag("journey"),
-                    cheer: localFlag("cheer"),
-                    timeline: localFlag("timeline"),
-                });
+                // journeys に当日記録があれば journey は確定で done
+                if (journeyToday) setCircuit((prev) => ({ ...prev, journey: true }));
             });
+        void fetch("/api/daily-circuit", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((d) => {
+                if (cancelled || !d?.circuit) return;
+                setCircuit((prev) => ({
+                    journey: prev.journey || !!d.circuit.journey,
+                    cheer: !!d.circuit.cheer,
+                    timeline: !!d.circuit.timeline,
+                }));
+            })
+            .catch(() => { /* 取得失敗時は既定値のまま */ });
         return () => { cancelled = true; };
     }, [profile.slug]);
 

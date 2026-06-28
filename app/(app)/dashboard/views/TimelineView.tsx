@@ -5,8 +5,8 @@
 // 既存スキーマ（journeys / cheers / in_stand）に適合した Timeline ビュー。
 // - 投稿  : POST /api/journey（1日1件のJourneyとして記録）
 // - Cheer : POST /api/cheer { toSlug }
-// - IN STAND（観戦）: POST/DELETE /api/instand { target_slug }
-// posts / reactions / daily_circuits テーブルは存在しないため、それらには依存しない。
+// - Bond（観戦）: POST/DELETE /api/instand { target_slug }（user_follows）
+// - DAILY CIRCUIT: POST /api/daily-circuit { action } で daily_circuits に永続化。
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -75,10 +75,6 @@ function timeAgo(iso: string): string {
     return `${Math.floor(h / 24)}日前`;
 }
 
-function todayKey(): string {
-    return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
-
 function PostCard({ journey, currentUserSlug }: { journey: Journey; currentUserSlug: string }) {
     const roleColor = ROLE_COLOR[journey.user?.role ?? ""] ?? "var(--vc-accent)";
     const displayName = journey.user?.display_name ?? journey.user_slug;
@@ -101,7 +97,12 @@ function PostCard({ journey, currentUserSlug }: { journey: Journey; currentUserS
         setBusy(true);
         setCheer((p) => ({ count: p.count + 1, cheered: true }));
         window.localStorage.setItem(cheeredKey, "1");
-        window.localStorage.setItem(`vc-circuit:cheer:${todayKey()}`, "1");
+        // DAILY CIRCUIT: Cheer送信を daily_circuits に永続化
+        void fetch("/api/daily-circuit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "cheer" }),
+        }).catch(() => { /* サーキット記録失敗は無視 */ });
         try {
             const res = await fetch("/api/cheer", {
                 method: "POST",
@@ -291,10 +292,12 @@ export function TimelineView({
 
     useEffect(() => {
         void fetchJourneys();
-        // DAILY CIRCUIT: Timeline閲覧を記録
-        if (typeof window !== "undefined") {
-            window.localStorage.setItem(`vc-circuit:timeline:${todayKey()}`, "1");
-        }
+        // DAILY CIRCUIT: Timeline閲覧を daily_circuits に永続化
+        void fetch("/api/daily-circuit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "timeline" }),
+        }).catch(() => { /* サーキット記録失敗は無視 */ });
     }, [fetchJourneys]);
 
     const filtered = useMemo(() => {
@@ -314,7 +317,12 @@ export function TimelineView({
             });
             if (res.status === 201) {
                 setContent("");
-                window.localStorage.setItem(`vc-circuit:journey:${todayKey()}`, "1");
+                // DAILY CIRCUIT: Journey記録を daily_circuits に永続化
+                void fetch("/api/daily-circuit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "journey" }),
+                }).catch(() => { /* サーキット記録失敗は無視 */ });
                 await fetchJourneys();
             } else {
                 const body = (await res.json().catch(() => null)) as { error?: string } | null;

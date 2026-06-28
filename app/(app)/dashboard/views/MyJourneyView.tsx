@@ -347,9 +347,12 @@ export function MyJourneyView({
     if (sharePosting) return;
     setSharePosting(true);
     try {
-      // DAILY CIRCUIT 連携: 本日の Journey 記録を記録
-      const todayKey = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      window.localStorage.setItem(`vc-circuit:journey:${todayKey}`, "1");
+      // DAILY CIRCUIT 連携: 本日の Journey 記録を daily_circuits に永続化
+      await fetch("/api/daily-circuit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "journey" }),
+      }).catch(() => { /* サーキット記録失敗はシェア完了を妨げない */ });
       setShareCompleted(true);
     } finally {
       setSharePosting(false);

@@ -27,8 +27,15 @@ export const createClient = async () => {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (values) =>
-          values.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+        setAll: (values) => {
+          // Server Component から呼ばれた場合、cookie の書き込みは不可（middleware が
+          // セッション更新を担うため無視してよい）。Route Handler / Server Action では成功する。
+          try {
+            values.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          } catch {
+            /* called from a Server Component — safe to ignore */
+          }
+        },
       },
     },
   );
