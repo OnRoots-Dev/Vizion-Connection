@@ -1,8 +1,15 @@
 // features/auth/server/register.ts
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createUser, findUserByEmail, findUserBySlug, findUserByAmbassadorCode, countUsersByRole } from "@/lib/supabase/data/users.server";
 import type { RegisterInput, RegisterResponse } from "@/features/auth/types";
 import { rewardOnetimeMission } from "@/lib/onetime-missions";
+
+const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+);
 
 const FOUNDING_MEMBER_LIMIT = 100;
 
@@ -151,8 +158,9 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         };
     }
 
+    const authUserId = data.user.id;
     const user = await createUser({
-        authId: data.user.id,
+        authId: authUserId,
         email,
         passwordHash: "supabase-auth",
         role,
@@ -163,6 +171,10 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         isFoundingMember,
     });
     if (!user) {
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
+        if (deleteError) {
+            console.error("[register] orphan rollback failed", deleteError.message);
+        }
         return { success: false, error: "ユーザー作成に失敗しました" };
     }
 

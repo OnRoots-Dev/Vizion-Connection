@@ -4,6 +4,7 @@ import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { findUserByEmail } from "@/lib/supabase/data/users.server";
 import { resendSignupVerificationEmail } from "@/features/auth/server/register";
+import { resendLimiter, getIp } from "@/lib/ratelimit";
 
 const schema = z.object({
     email: z.string().email().max(320),
@@ -27,6 +28,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
         return NextResponse.json({ success: false, error: "リクエストが不正です" }, { status: 400 });
+    }
+
+    const ip = getIp(req);
+    const { success: rateLimitOk } = await resendLimiter.limit(`${ip}:${parsed.data.email}`);
+    if (!rateLimitOk) {
+        return NextResponse.json({ success: false, error: "リクエストが多すぎます。しばらく経ってから再度お試しください。" }, { status: 429 });
     }
 
     const existingUser = await findUserByEmail(parsed.data.email);

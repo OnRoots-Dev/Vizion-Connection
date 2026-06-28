@@ -30,12 +30,15 @@ export default function LoginForm() {
     const [form, setForm] = useState({ email: "", password: "" });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<{ message: string; code?: string } | null>(null);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendDone, setResendDone] = useState(false);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
-        setError("");
+        setError(null);
+        setResendDone(false);
 
         try {
             const res = await fetch("/api/login", {
@@ -45,7 +48,10 @@ export default function LoginForm() {
             });
             const data = await res.json();
             if (!data.success) {
-                setError(data.error ?? "メールアドレスまたはパスワードが正しくありません");
+                setError({
+                    message: data.message ?? data.error ?? "メールアドレスまたはパスワードが正しくありません",
+                    code: data.code,
+                });
                 setLoading(false);
                 return;
             }
@@ -61,8 +67,22 @@ export default function LoginForm() {
                 window.location.assign(target);
             }
         } catch {
-            setError("通信エラーが発生しました");
+            setError({ message: "通信エラーが発生しました" });
             setLoading(false);
+        }
+    }
+
+    async function handleResend() {
+        setResendLoading(true);
+        try {
+            await fetch("/api/register/resend", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: form.email }),
+            });
+        } finally {
+            setResendLoading(false);
+            setResendDone(true);
         }
     }
 
@@ -134,14 +154,31 @@ export default function LoginForm() {
 
                     {error && (
                         <div
-                            className="rounded-xl px-4 py-3 text-sm font-medium"
+                            className="rounded-xl px-4 py-3 text-sm font-medium space-y-2"
                             style={{
                                 border: "1px solid rgba(255,107,0,0.35)",
                                 background: "rgba(255,107,0,0.08)",
                                 color: "var(--flame)",
                             }}
                         >
-                            {error}
+                            <p>{error.message}</p>
+                            {error.code === 'email_not_confirmed' && (
+                                resendDone ? (
+                                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                                        認証メールを再送しました。メールボックスをご確認ください。
+                                    </p>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleResend}
+                                        disabled={resendLoading}
+                                        className="text-xs underline disabled:opacity-50"
+                                        style={{ color: "rgba(255,255,255,0.6)" }}
+                                    >
+                                        {resendLoading ? "送信中..." : "認証メールを再送する →"}
+                                    </button>
+                                )
+                            )}
                         </div>
                     )}
 

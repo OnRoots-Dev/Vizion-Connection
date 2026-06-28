@@ -8,9 +8,14 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// 登録：10分に3回
+// 登録：1時間に10回（IP+email複合キー）
 export const registerLimiter = new Ratelimit({
-    redis, limiter: Ratelimit.slidingWindow(3, "10 m"), prefix: "rl:register",
+    redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:register",
+});
+
+// 認証メール再送：1時間に5回
+export const resendLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(5, "1 h"), prefix: "rl:resend",
 });
 
 // ログイン：15分に10回

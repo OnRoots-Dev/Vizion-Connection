@@ -5,15 +5,16 @@ import { registerUser } from "@/features/auth/server/register";
 import type { RegisterInput } from "@/features/auth/types";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { registerLimiter, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 
 const schema = z.object({
     email: z.string().email().max(320),
-    password: z.string().min(8).max(100),
+    password: z.string().min(8).max(100).regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/),
     role: z.enum(["Athlete", "Trainer", "Crew", "Business"]),
     region: z.enum(["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"]).optional(),
-    displayName: z.string().max(120).optional(),
-    slug: z.string().min(1).max(64),
+    displayName: z.string().max(50).optional(),
+    slug: z.string().min(3).max(30).regex(/^[a-z0-9_.]+$/),
     referrerSlug: z.string().max(64).optional(),
     redirectTo: z.string().max(500).optional(),
     termsAccepted: z.literal(true),
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         const parsed = schema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ success: false, error: "リクエストが不正です" }, { status: 400 });
+
+        const ip = getIp(req);
+        const email = (parsed.data as { email: string }).email;
+        const { success: rateLimitOk } = await registerLimiter.limit(`${ip}:${email}`);
+        if (!rateLimitOk) {
+            return NextResponse.json({ success: false, error: "リクエストが多すぎます。しばらく経ってから再度お試しください。" }, { status: 429 });
+        }
+
         const input = parsed.data as RegisterInput;
         const result = await registerUser(input);
 
