@@ -9,6 +9,7 @@ import { getPlanFeatures } from "@/features/business/plan-features";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { PulseIndicator } from "./ui";
 import Image from "next/image";
+import Link from "next/link";
 
 // 現在の連続記録（PULSE）日数を JST 基準で計算する。
 function jstDayString(iso: string): string {
@@ -203,9 +204,10 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
 
         if (item.type === "external") {
             return (
-                <a
+                <Link
                     key={item.id}
                     href={item.href}
+                    prefetch
                     onClick={onClose}
                     className={`${NAV_ITEM_BASE} ${nested ? "mb-1 pl-[18px]" : ""}`}
                     style={leafStyle}
@@ -217,7 +219,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                     </svg>
                     <span>{item.label}</span>
-                </a>
+                </Link>
             );
         }
 

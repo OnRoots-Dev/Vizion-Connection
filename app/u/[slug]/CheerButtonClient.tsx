@@ -29,26 +29,39 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
 
     async function handleCheer() {
         if (cheered || loading || isOwn) return;
-        setLoading(true);
+        const sentComment = comment.trim() || undefined;
+        const prevCount = cheerCount;
+
+        // 楽観的更新: 押した瞬間に反映（失敗時のみ巻き戻し）
         setErrorMsg("");
+        setCheered(true);
+        setCheerCount((c) => c + 1);
+        setComment("");
+        setNotesBurst((n) => n + 1);
+        setLoading(true);
         try {
             const res = await fetch("/api/cheer", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ toSlug: slug, comment: comment.trim() || undefined }),
+                body: JSON.stringify({ toSlug: slug, comment: sentComment }),
             });
 
             const data: { success: boolean; cheerCount?: number; error?: string } = await res.json();
             if (data.success && data.cheerCount !== undefined) {
+                // サーバー値で確定（楽観値と差があれば補正）
                 setCheerCount(data.cheerCount);
-                setCheered(true);
-                setComment("");
-                setNotesBurst((n) => n + 1);
                 dispatchPublicProfileEngagement({ slug, cheerCount: data.cheerCount });
             } else {
+                // 失敗: 楽観的更新を巻き戻し
+                setCheered(false);
+                setCheerCount(prevCount);
+                setComment(sentComment ?? "");
                 setErrorMsg(data.error ?? "Cheerできませんでした");
             }
         } catch {
+            setCheered(false);
+            setCheerCount(prevCount);
+            setComment(sentComment ?? "");
             setErrorMsg("通信エラーが発生しました");
         } finally {
             setLoading(false);
@@ -130,16 +143,7 @@ export default function CheerButtonClient({ slug, initialCheerCount, roleColor, 
                         }}
                     />
                 ) : null}
-                {loading ? (
-                    <>
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                            style={{ animation: "spin 1s linear infinite" }}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 12a8 8 0 018-8v8H4z" />
-                        </svg>
-                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                        送信中...
-                    </>
-                ) : cheered ? (
+                {cheered ? (
                     <>
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
