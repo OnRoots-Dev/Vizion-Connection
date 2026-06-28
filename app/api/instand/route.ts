@@ -4,7 +4,7 @@ import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { validateCSRF } from "@/lib/security/csrf";
 import { createNotification } from "@/lib/supabase/notifications";
-import { instandLimiter, getIp } from "@/lib/ratelimit";
+import { bondLimiter, getIp } from "@/lib/ratelimit";
 
 const postSchema = z.object({
     target_slug: z.string().min(1),
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const user = await getSupabaseProfile();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { success } = await instandLimiter.limit(getIp(req));
+    const { success } = await bondLimiter.limit(getIp(req));
     if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
     let rawBody: unknown;
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const { target_slug } = parsed.data;
 
     if (target_slug === user.slug) {
-        return NextResponse.json({ error: "自分自身をIN STANDすることはできません" }, { status: 400 });
+        return NextResponse.json({ error: "自分自身をBondすることはできません" }, { status: 400 });
     }
 
     const { data: existing } = await supabaseServer
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
     if (existing) {
-        return NextResponse.json({ error: "既にIN STAND済みです" }, { status: 409 });
+        return NextResponse.json({ error: "既にBond済みです" }, { status: 409 });
     }
 
     const { error: insertError } = await supabaseServer
@@ -54,16 +54,16 @@ export async function POST(req: NextRequest) {
         .insert({ follower_slug: user.slug, target_slug });
 
     if (insertError) {
-        console.error("[instand/POST] insert error:", insertError);
-        return NextResponse.json({ error: "IN STANDに失敗しました" }, { status: 500 });
+        console.error("[bond/POST] insert error:", insertError);
+        return NextResponse.json({ error: "Bondに失敗しました" }, { status: 500 });
     }
 
     // 通知送信（失敗してもエラーにしない）
     await createNotification({
         recipientSlug: target_slug,
         actorSlug: user.slug,
-        type: "instand",
-        title: "IN STANDされました",
+        type: "bond",
+        title: "Bondされました",
         body: `${user.displayName}さんが観客席に入りました`,
         linkUrl: `/u/${user.slug}`,
     });
@@ -78,7 +78,7 @@ export async function DELETE(req: NextRequest) {
     const user = await getSupabaseProfile();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { success } = await instandLimiter.limit(getIp(req));
+    const { success } = await bondLimiter.limit(getIp(req));
     if (!success) return NextResponse.json({ error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
     const { searchParams } = new URL(req.url);
@@ -92,8 +92,8 @@ export async function DELETE(req: NextRequest) {
         .eq("target_slug", target_slug);
 
     if (error) {
-        console.error("[instand/DELETE] error:", error);
-        return NextResponse.json({ error: "IN STAND解除に失敗しました" }, { status: 500 });
+        console.error("[bond/DELETE] error:", error);
+        return NextResponse.json({ error: "Bond解除に失敗しました" }, { status: 500 });
     }
 
     return NextResponse.json({ following: false });

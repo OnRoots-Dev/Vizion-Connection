@@ -15,6 +15,38 @@
   --vc-accent:        #a78bfa;
   --vc-accent-dim:    rgba(167,139,250,0.12);
   --vc-radius:        12px;
+
+  /* Spec-aligned aliases (dashboard rebuild) — map to existing token values */
+  --vc-bg:       #09090f;
+  --vc-surface:  #111118;
+  --vc-elevated: #1a1a24;
+  --vc-text1:    #f0f0f5;
+  --vc-text2:    rgba(255,255,255,0.55);
+  --vc-text3:    rgba(255,255,255,0.28);
+
+  /* Role colors (badge / accent line only) */
+  --vc-athlete:  #FF5050;
+  --vc-trainer:  #32D278;
+  --vc-crew:     #FFC81E;
+  --vc-business: #3C8CFF;
+}
+
+/* ── Vizion Design System keyframes ── */
+@keyframes vcPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.15); opacity: 1; }
+}
+@keyframes vcWave {
+  0%, 100% { transform: scaleY(0.4); }
+  50%      { transform: scaleY(1); }
+}
+@keyframes vcFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes vcRing {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.0); opacity: 0; }
 }
 
 @custom-variant dark (&:is(.dark *));

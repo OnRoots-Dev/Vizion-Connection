@@ -280,3 +280,90 @@ export function DangerButton({ children, onClick, disabled, style }: {
         </button>
     );
 }
+
+// ── SectionHeader（ラベル + 区切り線） ────────────────────────────────────────
+export function SectionHeader({ label }: { label: string }) {
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <span
+                style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    fontFamily: "'Space Mono', monospace",
+                    color: "var(--vc-text3)",
+                }}
+            >
+                {label}
+            </span>
+            <div style={{ flex: 1, height: 1, background: "var(--vc-border)" }} />
+        </div>
+    );
+}
+
+// ── PulseIndicator（継続日数 + 波動バー） ────────────────────────────────────
+export function PulseIndicator({ days, size = "md" }: { days: number; size?: "sm" | "md" | "lg" }) {
+    const sizes = { sm: 11, md: 13, lg: 15 } as const;
+    const fontSize = sizes[size];
+
+    const getColor = (d: number) => {
+        if (d >= 100) return "#ffffff";
+        if (d >= 30) return "#c4b5fd";
+        if (d >= 7) return "#a78bfa";
+        return "rgba(167,139,250,0.6)";
+    };
+    const color = getColor(days);
+
+    return (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize,
+                color,
+                fontFamily: "'Space Mono', monospace",
+                fontWeight: 600,
+            }}
+        >
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 2, height: fontSize }}>
+                {[0.5, 0.9, 0.65, 1, 0.55].map((h, i) => (
+                    <span
+                        key={i}
+                        style={{
+                            display: "inline-block",
+                            width: 2,
+                            height: fontSize * h,
+                            borderRadius: 9,
+                            background: color,
+                            animation: `vcWave 1.2s ease-in-out ${i * 0.12}s infinite`,
+                            transformOrigin: "center bottom",
+                        }}
+                    />
+                ))}
+            </span>
+            PULSE {days}日
+        </span>
+    );
+}
+
+// ── StatBlock（大きな数値 + ラベル） ─────────────────────────────────────────
+export function StatBlock({ value, label, accent }: { value: string | number; label: string; accent?: string }) {
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span
+                style={{
+                    fontSize: 32,
+                    fontWeight: 800,
+                    color: accent || "var(--vc-text1)",
+                    lineHeight: 1,
+                    fontFamily: "'Space Mono', monospace",
+                }}
+            >
+                {value}
+            </span>
+            <span style={{ fontSize: 11, color: "var(--vc-text3)", letterSpacing: "0.05em" }}>{label}</span>
+        </div>
+    );
+}

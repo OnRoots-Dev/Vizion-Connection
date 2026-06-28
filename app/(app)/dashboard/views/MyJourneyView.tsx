@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
+import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader, PulseIndicator } from "@/app/(app)/dashboard/components/ui";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import type { ProfileData } from "@/features/profile/types";
 import type { DailyLog } from "@/features/daily-log/types";
@@ -10,6 +10,26 @@ import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker
 import { ActivityExtras } from "@/components/DailyLog/ActivityExtras";
 import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 import { calcDayCount } from "@/lib/day-count";
+import { supabaseBrowser } from "@/lib/supabase/browser";
+
+// 連続記録（PULSE）日数を JST 基準で算出（journeys から）
+function jstDayKey(iso: string): string {
+  return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+function computeStreakDays(dates: string[]): number {
+  const days = new Set(dates.map(jstDayKey));
+  if (days.size === 0) return 0;
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const yest = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
+  let cursor = days.has(today) ? today : days.has(yest) ? yest : null;
+  if (!cursor) return 0;
+  let streakCount = 0;
+  while (days.has(cursor)) {
+    streakCount += 1;
+    cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
+  }
+  return streakCount;
+}
 
 function getJourneyPlaceholder(role: string): string {
   const r = role.toLowerCase();
@@ -92,6 +112,13 @@ export function MyJourneyView({
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  // TIMELINE シェアモーダル（記録済み Journey は is_public なら既に Timeline 表示済み）
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [todayJourneyId, setTodayJourneyId] = useState<string | null>(null);
+  const [streakDays, setStreakDays] = useState<number>(0);
+  const [sharePosting, setSharePosting] = useState(false);
+  const [shareCompleted, setShareCompleted] = useState(false);
 
   const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
   const showForm = !submitted || isEditing;
@@ -278,6 +305,9 @@ export function MyJourneyView({
         return;
       }
 
+      const result = (await res.json().catch(() => null)) as { journey?: { id?: string } } | null;
+      const wasPublic = isPublic;
+
       setSubmitted(true);
       setContent("");
       setConditionScore(null);
@@ -285,11 +315,49 @@ export function MyJourneyView({
       setVideoUrl(null);
       setTags([]);
       setIsPublic(true);
-      setSuccessModalOpen(true);
+      setTodayJourneyId(result?.journey?.id ?? null);
+
+      // PULSE 継続日数を journeys から算出してモーダルへ反映
+      void supabaseBrowser
+        .from("journeys")
+        .select("created_at")
+        .eq("user_slug", profile.slug)
+        .order("created_at", { ascending: false })
+        .limit(120)
+        .then(({ data }) => {
+          setStreakDays(computeStreakDays((data ?? []).map((r) => String(r.created_at))));
+        });
+
+      // 公開Journeyは既に Timeline に表示済み → シェア導線（祝祭）を表示。
+      // 非公開Journeyは Timeline に出ないため従来の完了モーダル。
+      if (wasPublic) {
+        setShowShareModal(true);
+      } else {
+        setSuccessModalOpen(true);
+      }
     } catch {
       setError("通信エラーが発生しました");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  // シェア = 既に公開済みの今日の Journey を Timeline で見せる導線（別テーブルへのinsertは不要）
+  async function handleShareToTimeline() {
+    if (sharePosting) return;
+    setSharePosting(true);
+    try {
+      // DAILY CIRCUIT 連携: 本日の Journey 記録を記録
+      const todayKey = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      window.localStorage.setItem(`vc-circuit:journey:${todayKey}`, "1");
+      setShareCompleted(true);
+    } finally {
+      setSharePosting(false);
+      window.setTimeout(() => {
+        setShowShareModal(false);
+        setShareCompleted(false);
+        setView("timeline");
+      }, 1500);
     }
   }
 
@@ -805,6 +873,102 @@ export function MyJourneyView({
             </div>
           </div>
         </>
+      ) : null}
+
+      {showShareModal && !shareCompleted ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+            padding: 24,
+          }}
+        >
+          <div
+            style={{
+              background: "#111118",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "32px 28px",
+              maxWidth: 360,
+              width: "100%",
+              textAlign: "center",
+              animation: "vcFadeUp 0.3s ease-out",
+            }}
+          >
+            <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+              <PulseIndicator days={streakDays} size="lg" />
+            </div>
+
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#f0f0f5", marginBottom: 8 }}>
+              TIMELINEにシェアしますか？
+            </h3>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.8, marginBottom: 24 }}>
+              今日の記録はフォロワーに届いています。
+              <br />
+              Timelineで見てみましょう。
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => void handleShareToTimeline()}
+                disabled={sharePosting}
+                style={{
+                  padding: "13px",
+                  borderRadius: 10,
+                  background: "#a78bfa",
+                  color: "#000",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: sharePosting ? "default" : "pointer",
+                  opacity: sharePosting ? 0.7 : 1,
+                }}
+              >
+                {sharePosting ? "シェア中..." : "Timelineで見る"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                style={{
+                  padding: "13px",
+                  borderRadius: 10,
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.45)",
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                あとで
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showShareModal && shareCompleted ? (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+          }}
+        >
+          <div style={{ textAlign: "center", animation: "vcFadeUp 0.3s ease-out" }}>
+            <div style={{ fontSize: 48, marginBottom: 12, color: "#a78bfa" }}>✓</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#f0f0f5" }}>TIMELINEに表示中</div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

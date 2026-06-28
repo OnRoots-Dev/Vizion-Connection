@@ -5,10 +5,33 @@ import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
-import { ActionPill, CardHeader, SectionCard } from "@/app/(app)/dashboard/components/ui";
+import { ActionPill, CardHeader, SectionCard, SectionHeader, PulseIndicator, StatBlock } from "@/app/(app)/dashboard/components/ui";
 import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
+
+// 連続記録（PULSE）日数を JST 基準で算出
+function jstDay(iso: string): string {
+    return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+function streakFrom(dates: string[]): number {
+    const days = new Set(dates.map(jstDay));
+    if (days.size === 0) return 0;
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const yest = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
+    let cursor = days.has(today) ? today : days.has(yest) ? yest : null;
+    if (!cursor) return 0;
+    let streak = 0;
+    while (days.has(cursor)) {
+        streak += 1;
+        cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
+    }
+    return streak;
+}
+function todayJst(): string {
+    return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
 
 export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView }: {
     profile: ProfileData;
@@ -19,9 +42,43 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     setView: (v: DashboardView) => void;
 }) {
     const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
+    const [pulseDays, setPulseDays] = useState(0);
+    const [circuit, setCircuit] = useState({ journey: false, cheer: false, timeline: false });
 
     const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
     const formatMd = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" });
+
+    // PULSE 日数・DAILY CIRCUIT 状態を既存データから導出（daily_circuits テーブルは存在しない）
+    useEffect(() => {
+        let cancelled = false;
+        const t = todayJst();
+        const localFlag = (k: string) => typeof window !== "undefined" && window.localStorage.getItem(`vc-circuit:${k}:${t}`) === "1";
+        void supabaseBrowser
+            .from("journeys")
+            .select("created_at")
+            .eq("user_slug", profile.slug)
+            .order("created_at", { ascending: false })
+            .limit(120)
+            .then(({ data }) => {
+                if (cancelled) return;
+                const dates = (data ?? []).map((r) => String(r.created_at));
+                const journeyToday = dates.some((d) => jstDay(d) === t);
+                setPulseDays(streakFrom(dates));
+                setCircuit({
+                    journey: journeyToday || localFlag("journey"),
+                    cheer: localFlag("cheer"),
+                    timeline: localFlag("timeline"),
+                });
+            });
+        return () => { cancelled = true; };
+    }, [profile.slug]);
+
+    const circuitTasks = [
+        { key: "journey", label: "Journey記録", done: circuit.journey, view: "journey" as DashboardView },
+        { key: "cheer", label: "Cheer送信", done: circuit.cheer, view: "timeline" as DashboardView },
+        { key: "timeline", label: "Timeline閲覧", done: circuit.timeline, view: "timeline" as DashboardView },
+    ];
+    const circuitComplete = circuitTasks.every((task) => task.done);
 
     useEffect(() => {
         let cancelled = false;
@@ -48,6 +105,77 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     <span style={{ color: roleColor }}>{profile.role}</span> / BASE
                 </motion.h1>
             </div>
+
+            {/* DAILY CIRCUIT */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <SectionCard t={t} accentColor="#a78bfa">
+                    <CardHeader
+                        title="Daily Circuit"
+                        meta={
+                            <span style={{ fontSize: 11, color: circuitComplete ? "#32D278" : "var(--vc-text3)", fontFamily: "'Space Mono', monospace" }}>
+                                {circuitComplete ? "⊹ 本日のサーキット完了 — PULSE +1" : `${circuitTasks.filter((task) => task.done).length} / 3 完了`}
+                            </span>
+                        }
+                    />
+                    <div>
+                        {circuitTasks.map((task) => (
+                            <button
+                                key={task.key}
+                                type="button"
+                                onClick={() => setView(task.view)}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    width: "100%",
+                                    padding: "12px 0",
+                                    borderBottom: "1px solid var(--vc-border)",
+                                    background: "transparent",
+                                    border: "none",
+                                    borderBottomWidth: 1,
+                                    borderBottomStyle: "solid",
+                                    borderBottomColor: "var(--vc-border)",
+                                    cursor: "pointer",
+                                    opacity: task.done ? 0.5 : 1,
+                                    textAlign: "left",
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        width: 22,
+                                        height: 22,
+                                        borderRadius: "50%",
+                                        border: task.done ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                                        background: task.done ? "var(--vc-accent)" : "transparent",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        flexShrink: 0,
+                                        transition: "all 0.3s",
+                                    }}
+                                >
+                                    {task.done && <span style={{ fontSize: 12, color: "#000" }}>✓</span>}
+                                </span>
+                                <span style={{ fontSize: 14, color: task.done ? "var(--vc-text3)" : "var(--vc-text1)", textDecoration: task.done ? "line-through" : "none" }}>
+                                    {task.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </SectionCard>
+            </motion.div>
+
+            {/* PULSE ステータス */}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+                <SectionCard t={t} accentColor={roleColor}>
+                    <CardHeader title="Pulse" meta={<PulseIndicator days={pulseDays} size="md" />} />
+                    <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+                        <StatBlock value={pulseDays} label="継続日数" accent="var(--vc-accent)" />
+                        <StatBlock value={profile.cheerCount ?? 0} label="Cheer" accent="#FFC81E" />
+                        <StatBlock value={referralCount} label="Referral" />
+                    </div>
+                </SectionCard>
+            </motion.div>
 
             <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={setView} referralUrl={referralUrl} referralCount={referralCount} />
 

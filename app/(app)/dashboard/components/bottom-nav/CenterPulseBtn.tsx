@@ -40,7 +40,7 @@ export function CenterPulseBtn({ expanded, onToggle, roleColor }: Props) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "linear-gradient(150deg, var(--flame), var(--electric))",
+                    background: "linear-gradient(150deg, var(--pulse), var(--electric))",
                     boxShadow: `0 8px 24px var(--electric-glow), 0 0 0 4px ${roleColor}14`,
                     color: "#fff",
                 }}

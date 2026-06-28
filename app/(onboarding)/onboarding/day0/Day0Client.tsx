@@ -41,7 +41,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                 setError(data.error ?? "保存に失敗しました");
                 return;
             }
-            // カウントダウン→炎バーストの演出後にJourneyへ
+            // カウントダウン→脈動バーストの演出後にJourneyへ
             setShowBurst(true);
             setTimeout(() => router.push("/onboarding/journey"), 2100);
         } catch {

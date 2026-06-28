@@ -320,7 +320,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
 
                             {/* DAY 0 起点ノード */}
                             <div style={{ position: "relative", paddingLeft: 34, paddingTop: 4 }}>
-                                <div style={{ position: "absolute", left: 2, top: 6, width: 20, height: 20, borderRadius: "50%", background: `radial-gradient(circle, var(--flame), ${rl})`, boxShadow: `0 0 0 4px ${rl}22, 0 0 16px var(--flame-glow)`, border: "2px solid #07070e" }} />
+                                <div style={{ position: "absolute", left: 2, top: 6, width: 20, height: 20, borderRadius: "50%", background: `radial-gradient(circle, var(--pulse), ${rl})`, boxShadow: `0 0 0 4px ${rl}22, 0 0 16px var(--pulse-glow)`, border: "2px solid #07070e" }} />
                                 <div style={{ borderRadius: 14, border: `1px solid ${rl}44`, background: `linear-gradient(160deg, ${rl}14, rgba(255,255,255,0.02))`, padding: 14 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: since ? 6 : 0, flexWrap: "wrap" }}>
                                         <span style={{ fontFamily: "var(--font-bebas), sans-serif", fontSize: 20, letterSpacing: "0.04em", color: rl }}>DAY 0</span>

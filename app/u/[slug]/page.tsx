@@ -21,6 +21,7 @@ import AdCard from "@/components/AdCard";
 import SponsorBadge from "@/components/SponsorBadge";
 import PublicProfileRealtime from "./PublicProfileRealtime";
 import PublicProfileTabs from "./PublicProfileTabs";
+import BondAudience from "./BondAudience";
 import { supabaseServer } from "@/lib/supabase/server";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import PublicProfileCountValue from "./PublicProfileCountValue";
@@ -113,7 +114,7 @@ export default async function UserProfilePage({ params }: Props) {
     today.setHours(0, 0, 0, 0);
 
     const since365 = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
-    const [collectorCount, rawCareerProfile, ads, publicSchedules, journeyCount, instandCount, journeyDates] = await Promise.all([
+    const [collectorCount, rawCareerProfile, ads, publicSchedules, journeyCount, bondCount, journeyDates] = await Promise.all([
         getCollectorCount(slug),
         getCareerProfile(slug),
         getAdsForUser(profile.prefecture ?? "", profile.sport ?? undefined),
@@ -144,6 +145,17 @@ export default async function UserProfilePage({ params }: Props) {
             .then(({ data }) => (data ?? []) as Array<{ created_at: string }>),
     ]);
     const streakDays = computePublicStreak(journeyDates);
+    // 閲覧者がこのプロフィールを Bond（観客席入り）しているか
+    let isBonded = false;
+    if (viewerSlug && !isOwn) {
+        const { data: bondRow } = await supabaseServer
+            .from("user_follows")
+            .select("follower_slug")
+            .eq("follower_slug", viewerSlug)
+            .eq("target_slug", slug)
+            .maybeSingle();
+        isBonded = !!bondRow;
+    }
     const careerProfile = rawCareerProfile && (isOwn || rawCareerProfile.visibility === "public") ? rawCareerProfile : null;
     const regionalAd = ads.find((ad) => ad.adScope === "regional" || isLocalPlan(ad.plan)) ?? null;
 
@@ -360,6 +372,7 @@ export default async function UserProfilePage({ params }: Props) {
                         <a className="a-nav-item" href="#gallery">Gallery</a>
                         <a className="a-nav-item" href="#sns">SNS</a>
                         <a className="a-nav-item" href="#cheer">Cheer</a>
+                        <a className="a-nav-item" href="#bond">Bond</a>
                         <a className="a-nav-item" href="#offer">Offer</a>
                         <a className="a-nav-item" href="#share">Share</a>
                     </nav>
@@ -543,6 +556,11 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </div>
 
+                <div className="a-section" id="bond" style={{ scrollMarginTop: 60 }}>
+                    <h2>Bond</h2>
+                    <BondAudience bondCount={bondCount} isBonded={isBonded} />
+                </div>
+
                 <div className="a-section" id="offer" style={{ scrollMarginTop: 60 }}>
                     <h2>Offer</h2>
                     <div className="a-panel" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -697,7 +715,23 @@ export default async function UserProfilePage({ params }: Props) {
                             {profile.region && <><span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,.18)", display: "inline-block" }} /><span style={{ fontSize: 12, fontFamily: "monospace", color: "rgba(255,255,255,.32)" }}>{profile.region}</span></>}
                         </div>
                         <div className="u3" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-                            <div className="float" style={{ width: 58, height: 58, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${rl}`, background: `linear-gradient(145deg, ${bg1}, #111)`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 4px ${rl}18, 0 0 30px ${rl}45`, animation: "_glowPop 3s ease-in-out infinite, _float 3.8s ease-in-out infinite" }}>
+                          <div style={{ position: "relative", width: 58, height: 58, flexShrink: 0 }}>
+                            {/* Pulse 波動リング（アバター後ろ） */}
+                            {[0, 0.8, 1.6].map((delay, i) => (
+                                <span
+                                    key={i}
+                                    aria-hidden
+                                    style={{
+                                        position: "absolute",
+                                        inset: 0,
+                                        borderRadius: "50%",
+                                        border: `1.5px solid ${rl}`,
+                                        animation: `vcRing 2.4s ease-out ${delay}s infinite`,
+                                        pointerEvents: "none",
+                                    }}
+                                />
+                            ))}
+                            <div className="float" style={{ position: "relative", zIndex: 1, width: 58, height: 58, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${rl}`, background: `linear-gradient(145deg, ${bg1}, #111)`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 4px ${rl}18, 0 0 30px ${rl}45`, animation: "_glowPop 3s ease-in-out infinite, _float 3.8s ease-in-out infinite" }}>
                                 {profile.avatarUrl ? (
                                     <Image
                                         src={profile.avatarUrl}
@@ -710,6 +744,7 @@ export default async function UserProfilePage({ params }: Props) {
                                     <span style={{ fontSize: 20, fontWeight: 900, color: `${rl}dd`, fontFamily: "monospace" }}>{initials}</span>
                                 )}
                             </div>
+                          </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                                 <span style={{ fontSize: 8.5, fontFamily: "monospace", letterSpacing: ".22em", textTransform: "uppercase", color: "rgba(255,210,0,.45)" }}>CHEER</span>
                                 <span style={{ fontSize: 36, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1, letterSpacing: "-.025em", textShadow: "0 0 24px rgba(255,214,0,.5)" }}>
@@ -783,7 +818,7 @@ export default async function UserProfilePage({ params }: Props) {
                             journeyCount,
                             streakDays,
                             cheerCount: profile.cheerCount ?? 0,
-                            instandCount,
+                            bondCount,
                         }}
                         profilePanel={
                             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -865,6 +900,9 @@ export default async function UserProfilePage({ params }: Props) {
                             </div>
                         }
                     />
+                    <div className="u5">
+                        <BondAudience bondCount={bondCount} isBonded={isBonded} />
+                    </div>
                     {regionalAd && (
                         <div className="u7">
                             <p style={{ margin: "0 0 8px", fontSize: 10, letterSpacing: ".18em", fontFamily: "monospace", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>あなたの地域のスポンサー</p>

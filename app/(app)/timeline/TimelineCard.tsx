@@ -64,7 +64,7 @@ export function TimelineCard({
   const role = journey.users?.role ?? "Crew";
   const emoji = journey.condition_score ? conditionEmoji[journey.condition_score] ?? "✨" : "✨";
   const cheeredKey = `timeline-cheered:${journey.id}`;
-  const instandKey = `instand:${journey.user_slug}`;
+  const bondKey = `bond:${journey.user_slug}`;
   const isOwnJourney = currentUserSlug != null && currentUserSlug === journey.user_slug;
 
   const [optimisticCheer, setOptimisticCheer] = useState(() => ({
@@ -74,9 +74,9 @@ export function TimelineCard({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [isInStand, setIsInStand] = useState(() => {
+  const [isBond, setIsBond] = useState(() => {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(instandKey) === "1";
+    return window.localStorage.getItem(bondKey) === "1";
   });
 
   async function handleCheer() {
@@ -107,11 +107,11 @@ export function TimelineCard({
     }
   }
 
-  async function handleInStand() {
-    const prev = isInStand;
+  async function handleBond() {
+    const prev = isBond;
     const next = !prev;
-    setIsInStand(next);
-    window.localStorage.setItem(instandKey, next ? "1" : "0");
+    setIsBond(next);
+    window.localStorage.setItem(bondKey, next ? "1" : "0");
 
     try {
       const res = await (next
@@ -126,12 +126,12 @@ export function TimelineCard({
 
       if (!res.ok && res.status !== 409) {
         // 409（既にフォロー済み）はそのまま維持、それ以外は戻す
-        setIsInStand(prev);
-        window.localStorage.setItem(instandKey, prev ? "1" : "0");
+        setIsBond(prev);
+        window.localStorage.setItem(bondKey, prev ? "1" : "0");
       }
     } catch {
-      setIsInStand(prev);
-      window.localStorage.setItem(instandKey, prev ? "1" : "0");
+      setIsBond(prev);
+      window.localStorage.setItem(bondKey, prev ? "1" : "0");
     }
   }
 
@@ -225,15 +225,15 @@ export function TimelineCard({
             {!isOwnJourney && (
               <button
                 type="button"
-                onClick={() => void handleInStand()}
+                onClick={() => void handleBond()}
                 className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] transition"
                 style={
-                  isInStand
+                  isBond
                     ? { background: "rgba(0,194,255,0.1)", color: "var(--electric)", border: "1px solid rgba(0,194,255,0.3)" }
                     : { background: "transparent", color: "var(--muted-foreground)", border: "1px solid var(--border)" }
                 }
               >
-                {isInStand ? "観戦中" : "IN STAND"}
+                {isBond ? "観戦中" : "Bond"}
               </button>
             )}
           </div>

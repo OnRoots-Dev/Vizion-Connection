@@ -63,9 +63,9 @@ export const journeyLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:journey",
 });
 
-// IN STAND（フォロー/解除）：1分に30回
-export const instandLimiter = new Ratelimit({
-    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:instand",
+// Bond（フォロー/解除）：1分に30回
+export const bondLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:bond",
 });
 
 // discovery track：1分に60回

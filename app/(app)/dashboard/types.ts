@@ -14,6 +14,7 @@ export type DashboardView =
     | "admin_ads"
     | "collections"
     | "journey"
+    | "timeline"
     | "portfolio"
     | "card"
     | "profile"

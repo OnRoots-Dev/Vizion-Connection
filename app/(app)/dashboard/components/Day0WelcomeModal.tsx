@@ -65,7 +65,7 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25, duration: 0.4 }}
-                            style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--flame)" }}
+                            style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--pulse)" }}
                         >
                             YOUR JOURNEY BEGINS
                         </motion.p>

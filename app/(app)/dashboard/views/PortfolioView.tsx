@@ -310,7 +310,7 @@ export function PortfolioView({
 
             {/* ── DAY 0 起点ノード ── */}
             <div style={{ position: "relative", paddingLeft: 34, paddingTop: 4 }}>
-              <div style={{ position: "absolute", left: 2, top: 6, width: 20, height: 20, borderRadius: "50%", background: `radial-gradient(circle, var(--flame), ${roleColor})`, boxShadow: `0 0 0 4px ${roleColor}22, 0 0 16px var(--flame-glow)`, border: "2px solid #0B0B0F" }} />
+              <div style={{ position: "absolute", left: 2, top: 6, width: 20, height: 20, borderRadius: "50%", background: `radial-gradient(circle, var(--pulse), ${roleColor})`, boxShadow: `0 0 0 4px ${roleColor}22, 0 0 16px var(--pulse-glow)`, border: "2px solid #0B0B0F" }} />
               <div style={{ borderRadius: 14, border: `1px solid ${roleColor}44`, background: `linear-gradient(160deg, ${roleColor}14, rgba(255,255,255,0.02))`, padding: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: day0DateLabel ? 6 : 0, flexWrap: "wrap" }}>
                   <span style={{ fontFamily: "var(--font-bebas)", fontSize: 20, letterSpacing: "0.04em", color: roleColor }}>DAY 0</span>

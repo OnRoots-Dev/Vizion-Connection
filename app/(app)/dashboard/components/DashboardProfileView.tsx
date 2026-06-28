@@ -106,7 +106,7 @@ export function DashboardProfileView({
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
   const [journeyCount, setJourneyCount] = useState<number | null>(null);
-  const [instandCount, setInstandCount] = useState<number | null>(null);
+  const [bondCount, setBondCount] = useState<number | null>(null);
   const [streakDays, setStreakDays] = useState<number | null>(null);
 
   const monthRange = useMemo(() => {
@@ -149,7 +149,7 @@ export function DashboardProfileView({
       supabaseBrowser.from("journeys").select("created_at").eq("user_slug", slug).gte("created_at", since365),
     ]).then(([jRes, iRes, dRes]) => {
       setJourneyCount(jRes.count ?? 0);
-      setInstandCount(iRes.count ?? 0);
+      setBondCount(iRes.count ?? 0);
       if (dRes.data) setStreakDays(_pulseStreak(dRes.data as Array<{ created_at: string }>));
     });
   }, [profile.slug]);
@@ -569,9 +569,9 @@ export function DashboardProfileView({
           </div>
           <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
             <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
-              {instandCount === null ? "—" : instandCount.toLocaleString()}
+              {bondCount === null ? "—" : bondCount.toLocaleString()}
             </p>
-            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>IN STAND</p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>Bond</p>
           </div>
         </div>
       </section>

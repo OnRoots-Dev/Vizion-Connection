@@ -8,7 +8,7 @@ interface PulseStats {
     journeyCount: number;
     streakDays: number;
     cheerCount: number;
-    instandCount: number;
+    bondCount: number;
 }
 
 function PulseStatItem({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
@@ -137,7 +137,7 @@ export default function PublicProfileTabs({
                                 <PulseStatItem label="JOURNEY" value={pulseStats.journeyCount} />
                                 <PulseStatItem label="STREAK" value={pulseStats.streakDays} suffix="日" />
                                 <PulseStatItem label="CHEER" value={pulseStats.cheerCount} />
-                                <PulseStatItem label="IN STAND" value={pulseStats.instandCount} />
+                                <PulseStatItem label="Bond" value={pulseStats.bondCount} />
                             </div>
                         ) : null}
                         {profilePanel}

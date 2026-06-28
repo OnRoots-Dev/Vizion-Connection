@@ -9,6 +9,7 @@ import { THEME_MAP, ROLE_COLOR } from "./types";
 import type { Theme, DashboardView } from "./types";
 import type { ProfileData } from "@/features/profile/types";
 import { HomeView } from "./views/HomeView";
+import { TimelineView } from "./views/TimelineView";
 import { CardView } from "./views/CardView";
 import { CheerView } from "./views/CheerView";
 import { CheerGraphView } from "./views/CheerGraphView";
@@ -287,6 +288,8 @@ export default function DashboardClient({
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
             case "journey":
                 return <MyJourneyView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "timeline":
+                return <TimelineView profile={profile} setView={handleSetView} />;
             case "portfolio":
                 // Portfolio（Journey履歴 / 活動記録 / 成長軌跡 / 実績）= Profile と責務分離した専用ビュー。
                 return <PortfolioView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
@@ -410,7 +413,7 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        <div ref={contentRef} style={{ flex: 1, maxWidth: 1180, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(80px + env(safe-area-inset-bottom))" : "20px 20px" }}>
+                        <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(80px + env(safe-area-inset-bottom))" : "32px 24px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}

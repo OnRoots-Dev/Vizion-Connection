@@ -1,12 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { usePathname } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
 import { getPlanFeatures } from "@/features/business/plan-features";
+import { supabaseBrowser } from "@/lib/supabase/browser";
+import { PulseIndicator } from "./ui";
 import Image from "next/image";
+
+// 現在の連続記録（PULSE）日数を JST 基準で計算する。
+function jstDayString(iso: string): string {
+    return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+function computeStreak(dates: string[]): number {
+    const days = new Set(dates.map(jstDayString));
+    if (days.size === 0) return 0;
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
+    // 今日 or 昨日に記録がなければ連続記録は途切れている
+    let cursor = days.has(today) ? today : days.has(yesterday) ? yesterday : null;
+    if (!cursor) return 0;
+    let streak = 0;
+    while (days.has(cursor)) {
+        streak += 1;
+        cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
+    }
+    return streak;
+}
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",
@@ -29,6 +51,7 @@ type NavLeaf = {
     label: string;
     icon: string;
     badge?: "notifications" | "cheer_total";
+    tag?: string;
 };
 
 type NavActionLeaf = {
@@ -86,21 +109,46 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
     const isPaidPlan = Boolean(profile.sponsorPlan);
     const planLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
 
+    // PULSE（連続記録日数）— 自分の Journey 投稿日から算出
+    const [pulseDays, setPulseDays] = useState(0);
+    useEffect(() => {
+        let cancelled = false;
+        void supabaseBrowser
+            .from("journeys")
+            .select("created_at")
+            .eq("user_slug", profile.slug)
+            .order("created_at", { ascending: false })
+            .limit(120)
+            .then(({ data }) => {
+                if (cancelled || !data) return;
+                setPulseDays(computeStreak(data.map((r) => String(r.created_at))));
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [profile.slug]);
+
     const navSections = useMemo<NavSection[]>(() => {
         const sections: NavSection[] = [
             {
                 group: "PULSE",
                 items: [
+                    { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
+                    { type: "item", id: "timeline", label: "Timeline", tag: "NEW", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" },
                     { type: "item", id: "journey", label: "Journey", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h10.5" },
-                    { type: "external", id: "pulse", label: "Pulse", href: "/pulse", icon: "M3.75 12h2.25m13.5 0h2.25m-15.75 0a6.75 6.75 0 1113.5 0" },
-                    { type: "external", id: "timeline", label: "Timeline", href: "/timeline", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" },
+                    { type: "item", id: "cheer", label: "Cheer", badge: "cheer_total", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
+                    { type: "item", id: "discovery", label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
+                    { type: "item", id: "portfolio", label: "Portfolio", icon: "M20.25 14.15v4.073a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25v-4.072M16.5 9.75l-4.5 4.5-4.5-4.5M12 3v11.25" },
+                    { type: "item", id: "hub", label: hubMenuLabel, icon: "M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" },
                 ],
             },
             {
-                group: "CONNECT",
+                group: "MORE",
                 items: [
-                    { type: "item", id: "discovery", label: "Discovery", icon: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" },
-                    { type: "item", id: "cheer", label: "Cheer", badge: "cheer_total", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
+                    { type: "item", id: "missions", label: "Missions", icon: "M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" },
+                    { type: "item", id: "referral", label: "Referral", icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" },
+                    { type: "item", id: "voicelab", label: "Voice Lab", icon: "M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21a48.25 48.25 0 01-8.135-.687c-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" },
+                    { type: "item", id: "news", label: "News", icon: "M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" },
                     { type: "item", id: "notifications", label: "Notifications", badge: "notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75v-.7V9A6 6 0 006 9v.05.7a8.967 8.967 0 00-2.312 6.022 23.848 23.848 0 005.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" },
                 ],
             },
@@ -121,7 +169,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
         ];
 
         return sections;
-    }, [onLogout]);
+    }, [onLogout, hubMenuLabel]);
     const isSubmenuOpen = (submenuId: string) => openSubmenu === submenuId;
 
     const itemStyle = (active: boolean): CSSProperties => ({
@@ -194,6 +242,14 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                 </svg>
                 <span>{item.label}</span>
+                {item.type === "item" && item.tag && (
+                    <span
+                        className="ml-auto inline-flex items-center justify-center rounded-[4px] px-[5px] py-[2px] font-mono text-[8px] font-black uppercase leading-none tracking-[0.1em]"
+                        style={{ background: "rgba(167,139,250,0.18)", color: "var(--vc-accent)", border: "1px solid rgba(167,139,250,0.35)" }}
+                    >
+                        {item.tag}
+                    </span>
+                )}
                 {item.type === "item" && item.badge === "notifications" && notificationUnreadCount > 0 && (
                     <span
                         className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-[999px] px-[5px] text-[9px] font-black leading-none"
@@ -302,15 +358,20 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     className="flex items-center gap-[9px] rounded-[12px] px-3 py-[10px]"
                     style={{ background: `${roleColor}10`, border: `1px solid ${roleColor}25` }}
                 >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 text-[13px] font-black" style={{ background: `${roleColor}20`, borderColor: `${roleColor}50`, color: roleColor, boxShadow: `0 0 10px ${roleColor}20` }}>
-                        {profile.avatarUrl
-                            ? <Image src={profile.avatarUrl} alt={profile.displayName} width={36} height={36} className="h-full w-full object-cover" />
-                            : profile.displayName[0].toUpperCase()
-                        }
+                    <div className="relative h-9 w-9 shrink-0">
+                        <span className="pointer-events-none absolute inset-0 rounded-full" style={{ border: "1px solid var(--vc-accent)", animation: "vcRing 2s ease-out infinite" }} />
+                        <span className="pointer-events-none absolute inset-0 rounded-full" style={{ border: "1px solid var(--vc-accent)", animation: "vcRing 2s ease-out 1s infinite" }} />
+                        <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 text-[13px] font-black" style={{ background: `${roleColor}20`, borderColor: `${roleColor}50`, color: roleColor, boxShadow: `0 0 10px ${roleColor}20` }}>
+                            {profile.avatarUrl
+                                ? <Image src={profile.avatarUrl} alt={profile.displayName} width={36} height={36} className="h-full w-full object-cover" />
+                                : profile.displayName[0].toUpperCase()
+                            }
+                        </div>
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="m-0 truncate text-[12px] font-bold" style={{ color: t.text }}>{profile.displayName}</p>
                         <p className="mb-0 mt-px font-mono text-[9px] opacity-60" style={{ color: t.sub }}>@{profile.slug}</p>
+                        <div className="mt-1"><PulseIndicator days={pulseDays} size="sm" /></div>
                     </div>
                     <span className="shrink-0 rounded-[4px] border px-[6px] py-[2px] font-mono text-[7px] font-black uppercase tracking-[0.08em]" style={{ background: `${roleColor}22`, color: roleColor, borderColor: `${roleColor}35` }}>
                         {ROLE_LABEL[profile.role] ?? profile.role}
