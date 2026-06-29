@@ -163,7 +163,19 @@ export function CheerView({ profile, t, roleColor, setView }: {
         {receivedLoading ? (
           <SkeletonList rows={5} />
         ) : received.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "28px 0", color: t.sub, fontSize: 12 }}>まだCheerコメントがありません</div>
+          <div style={{ textAlign: "center", padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <p style={{ margin: 0, fontSize: 13, color: t.sub, lineHeight: 1.75 }}>
+              まだCheerがありません。公開プロフイールをシェアして最初の応援をもらいましょう
+            </p>
+            <a
+              href={`/u/${profile.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 8, background: roleColor, color: "#000", fontSize: 12, fontWeight: 800, textDecoration: "none" }}
+            >
+              プロフィールをシェアする ↗
+            </a>
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {received.map((item) => {

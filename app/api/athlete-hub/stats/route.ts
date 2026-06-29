@@ -24,7 +24,7 @@ export async function GET() {
         supabaseServer
             .from("user_follows")
             .select("id", { count: "exact", head: true })
-            .eq("following_slug", user.slug),
+            .eq("target_slug", user.slug),
     ]);
 
     const dates = (journeysRes.data ?? []).map((r) => r.created_at as string);

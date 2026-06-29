@@ -271,7 +271,18 @@ export function NotificationsView({
 
       {items.length === 0 ? (
         <SectionCard t={t}>
-          <p style={{ margin: 0, fontSize: 12, color: t.sub }}>通知はまだありません。</p>
+          <div style={{ textAlign: "center", padding: "28px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <p style={{ margin: 0, fontSize: 13, color: t.sub, lineHeight: 1.75 }}>
+              まだ通知がありません。Journeyを記録してCheerをもらいましょう
+            </p>
+            <button
+              type="button"
+              onClick={() => setView("journey")}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 22px", borderRadius: 8, background: roleColor, color: "#000", fontSize: 12, fontWeight: 800, border: "none", cursor: "pointer" }}
+            >
+              最初のJourneyを記録する
+            </button>
+          </div>
         </SectionCard>
       ) : (
         <div style={{ display: "grid", gap: 8 }}>

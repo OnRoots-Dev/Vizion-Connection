@@ -4,6 +4,7 @@ import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 import { validateCSRF } from "@/lib/security/csrf";
 import { journeyLimiter, getIp } from "@/lib/ratelimit";
+import { recordMissionAction } from "@/lib/missions";
 
 const schema = z.object({
     content: z.string().min(1, "内容は必須です").max(500, "500文字以内で入力してください"),
@@ -76,6 +77,20 @@ export async function POST(req: NextRequest) {
         console.error("[journey/route] insert error:", error);
         return NextResponse.json({ error: "投稿に失敗しました" }, { status: 500 });
     }
+
+    // Mission進捗・Daily Circuit連動（サイレント失敗）
+    const userId = String(user.id);
+    void Promise.all([
+        recordMissionAction({ userId, slug: user.slug, requiredAction: "journey" }).catch(() => {}),
+        Promise.resolve(
+            supabaseServer
+                .from("daily_circuits")
+                .upsert(
+                    { user_id: userId, circuit_date: jstToday, journey_done: true },
+                    { onConflict: "user_id,circuit_date" }
+                )
+        ).catch(() => {}),
+    ]);
 
     return NextResponse.json({ journey: data }, { status: 201 });
 }

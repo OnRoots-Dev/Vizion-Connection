@@ -633,7 +633,10 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                   {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} height={72} />)}
                 </div>
               ) : users.length === 0 ? (
-                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10, padding: "4px 0" }}>
+                  <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+                  <button type="button" onClick={() => { setRole(""); setRegion(""); setPrefecture(""); setSport(""); setQ(""); }} style={{ border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: t.sub, borderRadius: 7, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>フィルターをリセット</button>
+                </div>
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {users.slice(0, 10).map((u, i) => (
@@ -668,7 +671,10 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                   {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} height={72} />)}
                 </div>
               ) : users.length === 0 ? (
-                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10, padding: "4px 0" }}>
+                  <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
+                  <button type="button" onClick={() => { setRole(""); setRegion(""); setPrefecture(""); setSport(""); setQ(""); }} style={{ border: "1px solid rgba(255,255,255,0.15)", background: "transparent", color: t.sub, borderRadius: 7, padding: "6px 14px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>フィルターをリセット</button>
+                </div>
               ) : (
                 <div style={{ display: "grid", gap: 8 }}>
                   {boostedUsers.slice(0, 10).map((u, i) => (

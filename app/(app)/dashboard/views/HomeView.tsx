@@ -5,11 +5,9 @@ import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
-import { ActionPill, CardHeader, SectionCard, SectionHeader, PulseIndicator, StatBlock } from "@/app/(app)/dashboard/components/ui";
+import { ActionPill, CardHeader, SectionCard, PulseIndicator, StatBlock } from "@/app/(app)/dashboard/components/ui";
 import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { CATEGORY_CONFIG } from "@/types/schedule";
-import type { Schedule } from "@/types/schedule";
 import { SkeletonCard } from "@/components/ui/skeleton/SkeletonCard";
 import { computeStreak } from "@/lib/pulse-stats";
 import { getJstDateKey } from "@/lib/day-count";
@@ -27,15 +25,11 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     roleColor: string;
     setView: (v: DashboardView) => void;
 }) {
-    const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
     const [pulseDays, setPulseDays] = useState(0);
     const [pulseScore, setPulseScore] = useState<{ score: number; cheerCount: number; bondCount: number } | null>(null);
     const [circuit, setCircuit] = useState({ journey: false, cheer: false, timeline: false });
     const [initialLoading, setInitialLoading] = useState(true);
     const loadedRef = useRef(false);
-
-    const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
-    const formatMd = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" });
 
     // PULSE 日数を journeys から、DAILY CIRCUIT 状態を daily_circuits（API）から取得
     useEffect(() => {
@@ -83,21 +77,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         { key: "timeline", label: "Timeline閲覧", done: circuit.timeline, view: "timeline" as DashboardView },
     ];
     const circuitComplete = circuitTasks.every((task) => task.done);
-
-    useEffect(() => {
-        let cancelled = false;
-        fetch("/api/schedules/upcoming?limit=3", { cache: "no-store" })
-            .then((r) => r.json())
-            .then((d) => {
-                if (!cancelled) {
-                    setUpcomingSchedules(Array.isArray(d.schedules) ? (d.schedules as Schedule[]) : []);
-                }
-            })
-            .catch(() => {
-                if (!cancelled) setUpcomingSchedules([]);
-            });
-        return () => { cancelled = true; };
-    }, []);
 
     if (initialLoading) {
         return (

@@ -202,14 +202,11 @@ export default function PulseClient() {
               className={`absolute inset-0 rounded-full bg-[var(--pulse-glow)] blur-2xl ${glowOpacity}`}
             />
             <div className="relative text-center">
-              <div className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--electric)]">
+              <div className="font-mono text-[9px] uppercase tracking-[0.3em] text-[var(--electric)]">
                 PULSE SCORE
               </div>
-              <div className="font-mono text-6xl text-[var(--foreground)]">
+              <div className="font-mono text-7xl font-black leading-none text-[var(--foreground)]">
                 {pulseScore?.score ?? "—"}
-              </div>
-              <div className="mt-2 font-display text-xs uppercase tracking-[0.32em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
-                DAY {dayCount ?? stats.currentStreak}
               </div>
             </div>
           </div>
@@ -235,14 +232,31 @@ export default function PulseClient() {
             ))}
           </motion.div>
 
-          <p className="mt-5 min-h-6 text-center text-sm text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
+          {/* DAY カウンター（リング直下） */}
+          <div className="mt-3 font-display text-xs uppercase tracking-[0.28em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
+            DAY {dayCount ?? stats.currentStreak}
+          </div>
+
+          <p className="mt-3 min-h-5 text-center text-sm text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
             {isStalled ? "Pulseが弱まっています" : isRevived ? "Pulseが戻ってきた" : "今日もPulseが続いています"}
           </p>
+
+          {/* シェアボタン — スコア直下・目立つ黄色CTA */}
+          {pulseScore && slug ? (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="mt-4"
+            >
+              <PulseShareButton slug={slug} pulseScore={pulseScore} />
+            </motion.div>
+          ) : null}
 
           {isStalled ? (
             <Link
               href="/dashboard?view=journey"
-              className="mt-4 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--surface-1)]"
+              className="mt-3 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--surface-1)]"
             >
               今日のJourneyを記録する
             </Link>
@@ -290,17 +304,6 @@ export default function PulseClient() {
           最長継続 {stats.longestStreak}日 &nbsp;/&nbsp; 今週 {stats.weeklyCount}/7 &nbsp;/&nbsp; 総Journey {stats.totalJourneys}
         </motion.p>
 
-        {/* ─── シェアボタン ─── */}
-        {pulseScore && slug ? (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65 }}
-            className="mt-6 flex justify-center"
-          >
-            <PulseShareButton slug={slug} pulseScore={pulseScore} />
-          </motion.div>
-        ) : null}
       </div>
     </main>
   );
@@ -329,7 +332,7 @@ function PulseShareButton({ slug, pulseScore }: { slug: string; pulseScore: { sc
   return (
     <button
       onClick={() => void handleShare()}
-      className="flex items-center gap-2 rounded-lg border border-[var(--electric)] bg-[var(--pulse-dim)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--electric)] transition-opacity hover:opacity-80"
+      className="flex items-center gap-2 rounded-xl bg-[var(--electric)] px-6 py-3.5 font-display text-sm font-black uppercase tracking-[0.16em] text-[var(--surface-1)] transition-opacity hover:opacity-85"
     >
       {shared === "done" ? (
         "シェアしました ✓"
