@@ -68,6 +68,59 @@ export function BottomNav({ role, view, setView, t, theme, roleColor, notificati
                 const badge = item.id === "notifications" && notificationUnreadCount > 0
                     ? notificationUnreadCount
                     : 0;
+
+                // Pulse はサービスの核。中央で一段持ち上げて常時強調表示する。
+                if (item.id === "pulse") {
+                    return (
+                        <motion.button
+                            key={item.id}
+                            type="button"
+                            aria-label="Pulse"
+                            aria-current={active ? "page" : undefined}
+                            onClick={() => go(item)}
+                            whileTap={{ scale: 0.9 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            style={{
+                                flex: 1, display: "flex", flexDirection: "column",
+                                alignItems: "center", justifyContent: "center", gap: 3,
+                                background: "none", border: "none", cursor: "pointer",
+                                padding: 0, minWidth: 0, position: "relative",
+                                color: roleColor,
+                            }}
+                        >
+                            <span
+                                style={{
+                                    position: "relative", display: "inline-flex",
+                                    alignItems: "center", justifyContent: "center",
+                                    width: 46, height: 46, marginTop: -18, borderRadius: "50%",
+                                    background: "linear-gradient(150deg, var(--pulse, #C8E800), var(--electric, #C8E800))",
+                                    boxShadow: `0 8px 22px var(--electric-glow, rgba(200,232,0,0.45)), 0 0 0 4px ${barBg}`,
+                                    color: "#000",
+                                }}
+                            >
+                                {active && (
+                                    <motion.span
+                                        aria-hidden
+                                        initial={{ opacity: 0.5, scale: 1 }}
+                                        animate={{ opacity: 0, scale: 1.6 }}
+                                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                                        style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--electric, #00c2ff)" }}
+                                    />
+                                )}
+                                <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} style={{ position: "relative" }}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                </svg>
+                            </span>
+                            <span style={{
+                                fontSize: 9.5, fontWeight: 800, letterSpacing: "0.02em",
+                                lineHeight: 1, marginTop: -2, color: active ? roleColor : t.sub,
+                            }}>
+                                Pulse
+                            </span>
+                        </motion.button>
+                    );
+                }
+
                 return (
                     <motion.button
                         key={item.id}

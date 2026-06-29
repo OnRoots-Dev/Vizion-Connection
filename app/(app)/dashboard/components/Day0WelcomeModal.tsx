@@ -96,7 +96,7 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                             style={{
                                 width: "100%", padding: "14px 20px",
                                 borderRadius: 14, border: "none",
-                                background: "var(--electric)", color: "#fff",
+                                background: "var(--electric)", color: "#000",
                                 fontSize: 14, fontWeight: 900, cursor: "pointer",
                                 boxShadow: "0 0 24px var(--electric-glow)",
                             }}

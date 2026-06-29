@@ -1,561 +1,394 @@
 "use client";
 
-// app/(marketing)/page.tsx
+// app/(marketing)/page.tsx — LP 完全リビルド
+// ブランド: 純黒 #000000 / アクセント #C8E800 / Oswald(見出し)・Inter(本文)
+// 世界観: 「深夜の孤独な努力」×「瞬間の爆発」。Nikeの簡潔さ + グラスモーフィズム。
 
-import { useState } from "react";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import FloatingCTAWrapper from "@/components/marketing/sections/FloatingCTAWrapper";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
+
+const ACCENT = "#C8E800";
+const ACCENT_DIM = "rgba(200,232,0,0.18)";
+const GRID = "rgba(200,232,0,0.04)";
+const BG = "#000000";
+const TEXT = "#f5f5f5";
+const SUB = "rgba(255,255,255,0.55)";
+
+const HEAD = "'Oswald', system-ui, sans-serif";
+const BODY = "'Inter', system-ui, sans-serif";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+// 数字カウントアップ（ビューに入ったら発火）
+function CountUp({ to, duration = 1600, suffix = "" }: { to: number; duration?: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      setValue(Math.round(to * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, to, duration]);
+
+  return <span ref={ref}>{value.toLocaleString()}{suffix}</span>;
+}
+
+const FEATURES = [
+  { no: "01", label: "Journey & Pulse", title: "毎日の積み上げが、証明になる。", desc: "練習・試合・コンディションを記録するだけ。続けるほどPulseが脈打ち、あなたの軌跡が信用になる。" },
+  { no: "02", label: "Cheer & Bond", title: "応援が、関係になる。", desc: "Cheerを続けると脈動が育つ。3日でBond解放。応援の深さが可視化され、ただのフォローを超えた関係になる。" },
+  { no: "03", label: "Portfolio & Vizion Card", title: "URLひとつで、あなたが伝わる。", desc: "役割・競技・Pulse継続日数が1枚に。SNSに貼るだけでVizion Cardが自動表示される。" },
+];
+
+const ROLES = [
+  { id: "Athlete", color: "#FF5050", jp: "アスリート", line: "競技活動を記録・可視化・発見される。" },
+  { id: "Trainer", color: "#32D278", jp: "トレーナー", line: "指導実績を蓄積し、信頼を可視化する。" },
+  { id: "Crew", color: "#FFC81E", jp: "サポーター", line: "好きな選手を、深く応援できる場所。" },
+  { id: "Business", color: "#3C8CFF", jp: "ビジネス", line: "アスリートへの注目・広告・協業機会。" },
+];
+
+const FOUNDING = [
+  "#001から始まるシリアルナンバー（永久表示）",
+  "将来の有料プランが登録時点の価格で永久固定",
+  "Discovery永続優先表示",
+  "新機能への最優先アクセス",
+];
+
+function PrimaryCTA({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div whileTap={{ scale: 0.97 }} className={`inline-block ${className}`}>
+      <Link
+        href="/register"
+        style={{
+          display: "inline-block",
+          padding: "16px 40px",
+          background: ACCENT,
+          color: "#000",
+          borderRadius: 12,
+          fontFamily: HEAD,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          fontSize: 16,
+          textDecoration: "none",
+          boxShadow: `0 0 40px ${ACCENT_DIM}`,
+          textTransform: "uppercase",
+        }}
+      >
+        {children}
+      </Link>
+    </motion.div>
+  );
+}
 
 export default function Page() {
-  const [activeRole, setActiveRole] = useState("Athlete");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const roles = [
-    {
-      id: "Athlete", color: "#FF5050",
-      tagline: "競技活動を記録・可視化・発見される。",
-      points: [
-        "練習・試合・コンディションを毎日記録",
-        "Journeyが積み上がるほど、Portfolioが育つ",
-        "Pulseが育つほど、Discoveryで発見されやすくなる",
-        "BusinessからのオファーやスポンサーをHubで受け取る",
-      ],
-    },
-    {
-      id: "Trainer", color: "#32D278",
-      tagline: "指導実績を蓄積し、信頼を可視化する。",
-      points: [
-        "指導実績・資格をPortfolioに蓄積",
-        "Trainer Discoveryで新規Athleteに発見される",
-        "担当Athleteのコンディションをまとめて管理",
-        "第三者証言（Trainerコメント）で信頼を構築",
-      ],
-    },
-    {
-      id: "Crew", color: "#FFC81E",
-      tagline: "好きな選手を、深く応援できる場所。",
-      points: [
-        "Cheerを続けてPulse（脈動）を育てる",
-        "3日でBond解放・詳細Portfolioが閲覧できる",
-        "応援の記録がSUPPORT SCOREとして蓄積される",
-        "「最も熱いファン」として可視化される",
-      ],
-    },
-    {
-      id: "Business", color: "#3C8CFF",
-      tagline: "アスリートへの注目・広告・協業機会。",
-      points: [
-        "Discovery・Hub・Timelineに広告掲載",
-        "地域・競技・Pulseスコアでアスリートを検索",
-        "Cheerで注目を伝え、オファーを送信",
-        "効果測定ダッシュボードで投資対効果を確認",
-      ],
-    },
-  ];
-
-  const faqs = [
-    {
-      q: "登録は無料ですか？",
-      a: "はい。Athlete・Trainer・Crew・Businessすべてのロールで無料で登録・利用できます。",
-    },
-    {
-      q: "Businessプランとは何ですか？",
-      a: "アスリートへの広告掲載・Discovery優先表示・効果測定が利用できる企業向けプランです。5つのプランから選べます。",
-    },
-    {
-      q: "Founding Memberの枠はいつ埋まりますか？",
-      a: "先着100名限定です。枠がなくなり次第、Founding Member登録は終了します。お早めにどうぞ。",
-    },
-  ];
+  const [hoverFeature, setHoverFeature] = useState<number | null>(null);
+  const [hoverRole, setHoverRole] = useState<number | null>(null);
 
   return (
     <>
       <style>{`
-        @keyframes vcPulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
-        }
-        @keyframes vcFadeUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
       `}</style>
-      <Header />
-      <main style={{ background: "#07070e", minHeight: "100vh" }}>
 
-        {/* Section 1: Hero */}
-        <section style={{
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "80px 24px",
-          position: "relative",
-          overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 0,
-            backgroundImage: `
-              linear-gradient(rgba(167,139,250,0.04) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(167,139,250,0.04) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-            pointerEvents: "none",
+      <main style={{ background: BG, minHeight: "100vh", color: TEXT, fontFamily: BODY, overflowX: "hidden" }}>
+        {/* ── Header ── */}
+        <header
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "16px clamp(20px, 5vw, 56px)",
+            background: "rgba(0,0,0,0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <Link href="/" style={{ fontFamily: HEAD, fontWeight: 700, letterSpacing: "0.18em", fontSize: 15, color: TEXT, textDecoration: "none", textTransform: "uppercase" }}>
+            Vizion<span style={{ color: ACCENT }}>.</span>
+          </Link>
+          <nav style={{ display: "flex", alignItems: "center", gap: 22 }}>
+            <Link href="/login" style={{ fontFamily: HEAD, fontWeight: 500, letterSpacing: "0.12em", fontSize: 13, color: SUB, textDecoration: "none", textTransform: "uppercase" }}>
+              Login
+            </Link>
+            <Link href="/register" style={{ fontFamily: HEAD, fontWeight: 600, letterSpacing: "0.06em", fontSize: 13, color: "#000", background: ACCENT, padding: "9px 18px", borderRadius: 9, textDecoration: "none", textTransform: "uppercase" }}>
+              無料で始める
+            </Link>
+          </nav>
+        </header>
+
+        {/* ── Hero ── */}
+        <section
+          style={{
+            position: "relative", minHeight: "100vh", display: "flex", alignItems: "center",
+            padding: "120px clamp(20px, 5vw, 56px) 80px",
+          }}
+        >
+          {/* グリッドライン */}
+          <div aria-hidden style={{
+            position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+            backgroundImage: `linear-gradient(${GRID} 1px, transparent 1px), linear-gradient(90deg, ${GRID} 1px, transparent 1px)`,
+            backgroundSize: "64px 64px",
           }} />
-          <div style={{
-            position: "absolute",
-            top: "40%", left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 600, height: 600,
-            background: "radial-gradient(circle, rgba(167,139,250,0.08) 0%, transparent 70%)",
-            pointerEvents: "none",
+          <div aria-hidden style={{
+            position: "absolute", top: "20%", left: "10%", width: 520, height: 520, zIndex: 0, pointerEvents: "none",
+            background: `radial-gradient(circle, ${ACCENT_DIM} 0%, transparent 70%)`, filter: "blur(40px)", opacity: 0.5,
           }} />
-          <div style={{ position: "relative", zIndex: 1, maxWidth: 760 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              fontSize: 10, letterSpacing: "0.2em",
-              textTransform: "uppercase", fontFamily: "monospace",
-              color: "#a78bfa", marginBottom: 32,
-            }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: "#a78bfa",
-                animation: "vcPulse 2s ease-in-out infinite",
-                display: "inline-block",
-              }} />
-              IGNITION — 先行登録受付中
-            </div>
-            <h1 style={{
-              fontSize: "clamp(3rem, 8vw, 6rem)",
-              fontWeight: 900,
-              color: "#f0f0f5",
-              lineHeight: 1.05,
-              letterSpacing: "-0.03em",
-              marginBottom: 28,
-            }}>
-              活動が、<br />
-              信用になる。
-            </h1>
-            <p style={{
-              fontSize: "clamp(15px, 2vw, 18px)",
-              color: "rgba(255,255,255,0.55)",
-              lineHeight: 1.9,
-              marginBottom: 48,
-              maxWidth: 520,
-              margin: "0 auto 48px",
-            }}>
-              アスリート・トレーナー・クルー・企業。<br />
-              スポーツに関わるすべての人の<br />
-              役割と信頼を可視化する場所。
-            </p>
-            <div style={{
-              display: "flex", gap: 12,
-              justifyContent: "center", flexWrap: "wrap",
-            }}>
-              <a href="/register" style={{
-                display: "inline-block",
-                padding: "16px 40px",
-                background: "#a78bfa",
-                color: "#000",
-                borderRadius: 10,
-                fontSize: 15, fontWeight: 700,
-                textDecoration: "none",
-                boxShadow: "0 0 32px rgba(167,139,250,0.4)",
-                transition: "all 0.2s",
-              }}>
-                今すぐ登録する（無料）
-              </a>
-              <a href="/business" style={{
-                display: "inline-block",
-                padding: "16px 32px",
-                background: "transparent",
-                color: "rgba(255,255,255,0.65)",
-                borderRadius: 10,
-                fontSize: 14, fontWeight: 600,
-                textDecoration: "none",
-                border: "1px solid rgba(255,255,255,0.15)",
-                transition: "all 0.2s",
-              }}>
-                Businessプランを見る →
-              </a>
-            </div>
+
+          <div style={{
+            position: "relative", zIndex: 1, width: "100%", maxWidth: 1200, margin: "0 auto",
+            display: "grid", gridTemplateColumns: "1fr", gap: 48, alignItems: "center",
+          }} className="vc-hero-grid">
+            {/* 左: コピー */}
+            <motion.div initial="hidden" animate="show" variants={stagger}>
+              <motion.div variants={fadeUp} transition={{ duration: 0.6 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 28, fontFamily: HEAD, fontSize: 11, letterSpacing: "0.24em", textTransform: "uppercase", color: ACCENT }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT, boxShadow: `0 0 10px ${ACCENT}` }} />
+                IGNITION — 先行登録受付中
+              </motion.div>
+              <motion.h1 variants={fadeUp} transition={{ duration: 0.7 }}
+                style={{ fontFamily: HEAD, fontWeight: 700, fontSize: "clamp(56px, 9vw, 96px)", lineHeight: 0.98, letterSpacing: "-0.02em", margin: "0 0 28px" }}>
+                活動が、<br />
+                <span style={{ color: ACCENT }}>信用</span>になる。
+              </motion.h1>
+              <motion.p variants={fadeUp} transition={{ duration: 0.7 }}
+                style={{ fontSize: 17, lineHeight: 1.9, color: SUB, maxWidth: 460, margin: "0 0 40px" }}>
+                アスリート・トレーナー・クルー・企業。<br />
+                スポーツに関わるすべての人の役割と信頼を可視化する場所。
+              </motion.p>
+              <motion.div variants={fadeUp} transition={{ duration: 0.7 }}>
+                <PrimaryCTA>今すぐ登録する（無料）</PrimaryCTA>
+              </motion.div>
+            </motion.div>
+
+            {/* 右: Pulse グラスカード */}
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: "relative",
+                borderRadius: 24,
+                border: `1px solid ${ACCENT_DIM}`,
+                background: "rgba(255,255,255,0.03)",
+                backdropFilter: "blur(30px)", WebkitBackdropFilter: "blur(30px)",
+                boxShadow: `0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)`,
+                padding: "32px 30px",
+                maxWidth: 420,
+                justifySelf: "center",
+                width: "100%",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                <span style={{ fontFamily: HEAD, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: SUB }}>Pulse Score</span>
+                <span style={{ fontFamily: HEAD, fontSize: 11, letterSpacing: "0.1em", color: ACCENT, border: `1px solid ${ACCENT_DIM}`, borderRadius: 999, padding: "3px 10px" }}>LIVE</span>
+              </div>
+              <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 84, lineHeight: 1, color: ACCENT, letterSpacing: "-0.02em" }}>
+                <CountUp to={1428} />
+              </div>
+              <div style={{ fontSize: 13, color: SUB, margin: "8px 0 28px" }}>あなたの脈動は、止まらない。</div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+                {[
+                  { label: "継続", to: 365, suffix: "日" },
+                  { label: "Cheer", to: 892, suffix: "" },
+                  { label: "Bond", to: 47, suffix: "" },
+                ].map((s) => (
+                  <div key={s.label} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", padding: "14px 8px", textAlign: "center" }}>
+                    <div style={{ fontFamily: HEAD, fontWeight: 600, fontSize: 24, color: TEXT }}>
+                      <CountUp to={s.to} suffix={s.suffix} />
+                    </div>
+                    <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: SUB, marginTop: 4 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 28日ドット */}
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 24 }}>
+                {Array.from({ length: 28 }).map((_, i) => (
+                  <motion.span key={i}
+                    initial={{ opacity: 0, scale: 0.4 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 + i * 0.02 }}
+                    style={{ width: 9, height: 9, borderRadius: "50%", background: i % 5 === 3 ? "rgba(255,255,255,0.12)" : ACCENT, boxShadow: i % 5 === 3 ? "none" : `0 0 6px ${ACCENT_DIM}` }}
+                  />
+                ))}
+              </div>
+            </motion.div>
           </div>
         </section>
 
-        {/* Section 2: Core Features */}
-        <section style={{
-          padding: "100px 24px",
-          maxWidth: 1100, margin: "0 auto",
-        }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <div style={{
-              fontSize: 10, letterSpacing: "0.2em",
-              textTransform: "uppercase", fontFamily: "monospace",
-              color: "rgba(255,255,255,0.28)", marginBottom: 16,
-            }}>
-              Core Features
-            </div>
-            <h2 style={{
-              fontSize: "clamp(2rem, 5vw, 3rem)",
-              fontWeight: 900, color: "#f0f0f5",
-              letterSpacing: "-0.02em",
-            }}>
-              毎日使える。育つ。見つかる。
-            </h2>
-          </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: 20,
-          }}>
-            {[
-              {
-                icon: "⊹",
-                color: "#a78bfa",
-                title: "毎日の積み上げが、証明になる。",
-                desc: "練習・試合・コンディションを記録するだけ。続けるほどPortfolioが自動で育ち、あなたの軌跡が信用になる。",
-                label: "Journey & Pulse",
-              },
-              {
-                icon: "◈",
-                color: "#32D278",
-                title: "応援が、関係になる。",
-                desc: "Cheerを続けると脈動（Pulse）が育つ。3日でBond解放。応援の深さが可視化され、単なるフォローを超えた関係になる。",
-                label: "Cheer & Bond",
-              },
-              {
-                icon: "◎",
-                color: "#3C8CFF",
-                title: "URLひとつで、あなたが伝わる。",
-                desc: "役割・競技・Pulse継続日数が1枚に。SNSに貼るだけでVizion Cardが自動表示される。",
-                label: "Portfolio & Vizion Card",
-              },
-            ].map((f) => (
-              <div key={f.label} style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 16, padding: 32,
-                transition: "border-color 0.2s",
-              }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = f.color + "44";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+        {/* ── Features 3列 ── */}
+        <section style={{ padding: "100px clamp(20px, 5vw, 56px)", maxWidth: 1200, margin: "0 auto" }}>
+          <motion.h2
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} transition={{ duration: 0.6 }}
+            style={{ fontFamily: HEAD, fontWeight: 700, fontSize: "clamp(32px, 5vw, 56px)", letterSpacing: "-0.01em", margin: "0 0 56px" }}>
+            毎日使える。<span style={{ color: ACCENT }}>育つ。</span>見つかる。
+          </motion.h2>
+
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} variants={stagger}
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+            {FEATURES.map((f, i) => (
+              <motion.div
+                key={f.no}
+                variants={fadeUp}
+                transition={{ duration: 0.5 }}
+                onMouseEnter={() => setHoverFeature(i)}
+                onMouseLeave={() => setHoverFeature(null)}
+                style={{
+                  position: "relative", overflow: "hidden",
+                  borderRadius: 18, padding: "32px 28px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.02)",
+                  backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
                 }}
               >
-                <div style={{
-                  width: 52, height: 52, borderRadius: 12,
-                  background: f.color + "18",
-                  border: `1px solid ${f.color}33`,
-                  display: "flex", alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 22, color: f.color,
-                  marginBottom: 20,
-                }}>
-                  {f.icon}
-                </div>
-                <div style={{
-                  fontSize: 10, letterSpacing: "0.15em",
-                  textTransform: "uppercase", fontFamily: "monospace",
-                  color: f.color, marginBottom: 10,
-                }}>
-                  {f.label}
-                </div>
-                <h3 style={{
-                  fontSize: 18, fontWeight: 700,
-                  color: "#f0f0f5", marginBottom: 12,
-                  lineHeight: 1.4,
-                }}>
-                  {f.title}
-                </h3>
-                <p style={{
-                  fontSize: 14, color: "rgba(255,255,255,0.5)",
-                  lineHeight: 1.8,
-                }}>
-                  {f.desc}
-                </p>
-              </div>
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 14, letterSpacing: "0.2em", color: ACCENT, marginBottom: 18 }}>{f.no}</div>
+                <div style={{ fontFamily: HEAD, fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: SUB, marginBottom: 10 }}>{f.label}</div>
+                <h3 style={{ fontFamily: HEAD, fontWeight: 600, fontSize: 20, lineHeight: 1.4, margin: "0 0 12px" }}>{f.title}</h3>
+                <p style={{ fontSize: 14, lineHeight: 1.8, color: SUB, margin: 0 }}>{f.desc}</p>
+                {/* ホバーで左から展開する #C8E800 ライン */}
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: hoverFeature === i ? 1 : 0 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ position: "absolute", left: 0, bottom: 0, height: 2, width: "100%", background: ACCENT, transformOrigin: "left" }}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
-        {/* Section 3: Role Benefits */}
-        <section style={{
-          padding: "100px 24px",
-          background: "rgba(255,255,255,0.015)",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-        }}>
-          <div style={{ maxWidth: 860, margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <div style={{
-                fontSize: 10, letterSpacing: "0.2em",
-                textTransform: "uppercase", fontFamily: "monospace",
-                color: "rgba(255,255,255,0.28)", marginBottom: 16,
-              }}>
-                Roles
-              </div>
-              <h2 style={{
-                fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-                fontWeight: 900, color: "#f0f0f5",
-                letterSpacing: "-0.02em",
-              }}>
-                あなたのロールはどれですか？
-              </h2>
-            </div>
-            <div style={{
-              display: "flex", gap: 4, justifyContent: "center",
-              marginBottom: 40, flexWrap: "wrap",
-            }}>
-              {roles.map(r => (
-                <button key={r.id}
-                  onClick={() => setActiveRole(r.id)}
-                  style={{
-                    padding: "9px 22px", borderRadius: 999,
-                    background: "transparent", border: "none",
-                    cursor: "pointer", fontSize: 13, fontWeight: 600,
-                    color: activeRole === r.id ? r.color : "rgba(255,255,255,0.35)",
-                    borderBottom: activeRole === r.id
-                      ? `2px solid ${r.color}`
-                      : "2px solid transparent",
-                    transition: "all 0.2s",
-                  }}>
-                  {r.id}
-                </button>
-              ))}
-            </div>
-            {roles.filter(r => r.id === activeRole).map(r => (
-              <div key={r.id} style={{
-                animation: "vcFadeUp 0.25s ease-out",
-                background: "#111118",
-                border: `1px solid ${r.color}22`,
-                borderRadius: 16, padding: "32px 36px",
-              }}>
-                <p style={{
-                  fontSize: 18, fontWeight: 700,
-                  color: "#f0f0f5", marginBottom: 24,
-                  lineHeight: 1.5,
-                }}>
-                  {r.tagline}
-                </p>
-                <div style={{
-                  display: "flex", flexDirection: "column", gap: 12,
-                }}>
-                  {r.points.map((p, i) => (
-                    <div key={i} style={{
-                      display: "flex", alignItems: "flex-start", gap: 12,
-                    }}>
-                      <span style={{
-                        color: r.color, fontSize: 14,
-                        marginTop: 2, flexShrink: 0,
-                      }}>✓</span>
-                      <span style={{
-                        fontSize: 14, color: "rgba(255,255,255,0.65)",
-                        lineHeight: 1.7,
-                      }}>
-                        {p}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <a href="/register" style={{
-                  display: "inline-block", marginTop: 28,
-                  padding: "12px 28px", borderRadius: 8,
-                  background: r.color, color: "#000",
-                  fontWeight: 700, fontSize: 13,
-                  textDecoration: "none",
-                }}>
-                  {r.id}として登録する →
-                </a>
-              </div>
-            ))}
-          </div>
+        {/* ── Quote 全幅 ── */}
+        <section style={{ position: "relative", padding: "120px clamp(20px, 5vw, 56px)", textAlign: "center" }}>
+          <div aria-hidden style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at center, rgba(200,232,0,0.05) 0%, transparent 65%)", pointerEvents: "none" }} />
+          <motion.blockquote
+            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.8 }}
+            style={{ position: "relative", fontFamily: HEAD, fontWeight: 500, fontSize: "clamp(26px, 4.5vw, 48px)", lineHeight: 1.4, letterSpacing: "-0.01em", maxWidth: 900, margin: "0 auto" }}>
+            誰も見ていない練習が、<br />いつか<span style={{ color: ACCENT }}>誰かの目</span>に届く。
+          </motion.blockquote>
         </section>
 
-        {/* Section 4: Founding Member */}
-        <section style={{
-          padding: "100px 24px",
-          background: "linear-gradient(135deg, rgba(167,139,250,0.06) 0%, rgba(59,130,246,0.04) 100%)",
-        }}>
+        {/* ── Roles 4列 ── */}
+        <section style={{ padding: "100px clamp(20px, 5vw, 56px)", maxWidth: 1200, margin: "0 auto" }}>
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} variants={fadeUp} transition={{ duration: 0.6 }}
+            style={{ marginBottom: 48 }}>
+            <div style={{ fontFamily: HEAD, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: ACCENT, marginBottom: 14 }}>Roles</div>
+            <h2 style={{ fontFamily: HEAD, fontWeight: 700, fontSize: "clamp(30px, 5vw, 52px)", letterSpacing: "-0.01em", margin: 0 }}>あなたのロールはどれですか？</h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden" whileInView="show" viewport={{ once: true, margin: "-40px" }} variants={stagger}
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            {ROLES.map((r, i) => (
+              <motion.div
+                key={r.id}
+                variants={fadeUp}
+                transition={{ duration: 0.5 }}
+                onMouseEnter={() => setHoverRole(i)}
+                onMouseLeave={() => setHoverRole(null)}
+                style={{
+                  borderRadius: 18, padding: "28px 24px",
+                  border: `1px solid ${hoverRole === i ? ACCENT : "rgba(255,255,255,0.1)"}`,
+                  background: "rgba(255,255,255,0.02)",
+                  backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                  transition: "border-color 0.3s",
+                }}
+              >
+                <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: r.color, marginBottom: 16, boxShadow: `0 0 10px ${r.color}` }} />
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 22, textTransform: "uppercase", letterSpacing: "0.02em" }}>{r.id}</div>
+                <div style={{ fontSize: 12, color: SUB, margin: "2px 0 14px" }}>{r.jp}</div>
+                <p style={{ fontSize: 13, lineHeight: 1.7, color: SUB, margin: 0 }}>{r.line}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── Founding Member ── */}
+        <section style={{ padding: "100px clamp(20px, 5vw, 56px)", background: "linear-gradient(180deg, transparent, rgba(200,232,0,0.03))" }}>
           <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
-            <div style={{
-              fontSize: 10, letterSpacing: "0.2em",
-              textTransform: "uppercase", fontFamily: "monospace",
-              color: "#a78bfa", marginBottom: 16,
-              display: "flex", alignItems: "center",
-              justifyContent: "center", gap: 8,
-            }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: "#a78bfa",
-                animation: "vcPulse 2s ease-in-out infinite",
-                display: "inline-block",
-              }} />
-              Founding Member
-            </div>
-            <h2 style={{
-              fontSize: "clamp(2rem, 5vw, 3rem)",
-              fontWeight: 900, color: "#f0f0f5",
-              letterSpacing: "-0.02em", marginBottom: 16,
-            }}>
-              最初の記録が、永遠に残る。
-            </h2>
-            <p style={{
-              fontSize: 16, color: "rgba(255,255,255,0.5)",
-              marginBottom: 48, lineHeight: 1.8,
-            }}>
-              シリアルナンバー #001 から埋まります。
-            </p>
-            <div style={{
-              display: "flex", flexDirection: "column", gap: 12,
-              textAlign: "left", marginBottom: 48,
-              background: "#111118",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 16, padding: "28px 32px",
-            }}>
-              {[
-                "#001から始まるシリアルナンバー（永久表示）",
-                "将来の有料プランが登録時点の価格で永久固定",
-                "Discovery永続優先表示",
-                "新機能への最優先アクセス",
-              ].map((item, i) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                }}>
-                  <span style={{ color: "#32D278", fontSize: 14 }}>✓</span>
-                  <span style={{
-                    fontSize: 14, color: "rgba(255,255,255,0.7)",
-                  }}>
-                    {item}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginBottom: 36 }}>
-              <div style={{
-                display: "flex", justifyContent: "space-between",
-                fontSize: 12, color: "rgba(255,255,255,0.4)",
-                marginBottom: 8,
-              }}>
-                <span>現在 0名</span>
-                <span>上限 100名</span>
+            <motion.div
+              initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} variants={fadeUp} transition={{ duration: 0.6 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16, fontFamily: HEAD, fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", color: ACCENT }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT, boxShadow: `0 0 10px ${ACCENT}` }} />
+                Founding Member
               </div>
-              <div style={{
-                height: 4, borderRadius: 2,
-                background: "rgba(255,255,255,0.08)",
-              }}>
-                <div style={{
-                  height: "100%", width: "2%",
-                  background: "#a78bfa", borderRadius: 2,
-                }} />
-              </div>
-            </div>
-            <a href="/register" style={{
-              display: "inline-block",
-              padding: "16px 48px",
-              background: "#a78bfa", color: "#000",
-              borderRadius: 10, fontSize: 15,
-              fontWeight: 700, textDecoration: "none",
-              boxShadow: "0 0 32px rgba(167,139,250,0.4)",
-            }}>
-              番号を確保する（無料）
-            </a>
-          </div>
-        </section>
-
-        {/* Section 5: FAQ + Footer CTA */}
-        <section style={{ padding: "100px 24px" }}>
-          <div style={{ maxWidth: 680, margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <h2 style={{
-                fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
-                fontWeight: 900, color: "#f0f0f5",
-                letterSpacing: "-0.02em",
-              }}>
-                よくある質問
+              <h2 style={{ fontFamily: HEAD, fontWeight: 700, fontSize: "clamp(30px, 5vw, 52px)", letterSpacing: "-0.01em", margin: "0 0 14px" }}>
+                最初の記録が、永遠に残る。
               </h2>
-            </div>
-            <div style={{
-              display: "flex", flexDirection: "column", gap: 2,
-              marginBottom: 100,
-            }}>
-              {faqs.map((faq, i) => (
-                <div key={i} style={{
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
-                  overflow: "hidden",
-                }}>
-                  <button
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    style={{
-                      width: "100%", display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "20px 0",
-                      background: "transparent", border: "none",
-                      cursor: "pointer",
-                      color: "#f0f0f5", fontSize: 15,
-                      fontWeight: 600, textAlign: "left", gap: 16,
-                    }}
-                  >
-                    {faq.q}
-                    <span style={{
-                      fontSize: 18,
-                      color: "rgba(255,255,255,0.4)",
-                      transform: openFaq === i ? "rotate(45deg)" : "rotate(0deg)",
-                      transition: "transform 0.25s",
-                      flexShrink: 0,
-                    }}>+</span>
-                  </button>
-                  <div style={{
-                    maxHeight: openFaq === i ? 200 : 0,
-                    overflow: "hidden",
-                    transition: "max-height 0.3s ease",
-                  }}>
-                    <p style={{
-                      padding: "0 0 20px",
-                      fontSize: 14,
-                      color: "rgba(255,255,255,0.55)",
-                      lineHeight: 1.8,
-                    }}>
-                      {faq.a}
-                    </p>
-                  </div>
-                </div>
+              <p style={{ fontSize: 15, color: SUB, margin: "0 0 40px" }}>シリアルナンバー #001 から埋まります。先着100名限定。</p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden" whileInView="show" viewport={{ once: true, margin: "-40px" }} variants={stagger}
+              style={{ display: "grid", gap: 10, textAlign: "left", marginBottom: 40 }}>
+              {FOUNDING.map((item) => (
+                <motion.div key={item} variants={fadeUp} transition={{ duration: 0.4 }}
+                  style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", padding: "14px 18px" }}>
+                  <span style={{ color: ACCENT, fontWeight: 700 }}>✓</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.78)" }}>{item}</span>
+                </motion.div>
               ))}
+            </motion.div>
+
+            {/* カウンター */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: SUB, marginBottom: 8, fontFamily: HEAD, letterSpacing: "0.08em" }}>
+                <span>現在 <CountUp to={37} /> 名</span>
+                <span>上限 100 名</span>
+              </div>
+              <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <motion.div
+                  initial={{ width: 0 }} whileInView={{ width: "37%" }} viewport={{ once: true }} transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ height: "100%", background: ACCENT, boxShadow: `0 0 16px ${ACCENT_DIM}` }} />
+              </div>
             </div>
-            <div style={{
-              textAlign: "center",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-              paddingTop: 80,
-            }}>
-              <p style={{
-                fontSize: "clamp(1.2rem, 3vw, 1.8rem)",
-                fontWeight: 800, color: "#f0f0f5",
-                marginBottom: 32, lineHeight: 1.4,
-              }}>
-                迷っているなら、今日が最安です。
-              </p>
-              <a href="/register" style={{
-                display: "inline-block",
-                padding: "16px 48px",
-                background: "#a78bfa", color: "#000",
-                borderRadius: 10, fontSize: 15,
-                fontWeight: 700, textDecoration: "none",
-                boxShadow: "0 0 32px rgba(167,139,250,0.4)",
-              }}>
-                今すぐ登録する（無料）
-              </a>
-            </div>
+
+            <PrimaryCTA>番号を確保する（無料）</PrimaryCTA>
           </div>
         </section>
 
-        <Footer />
-        <FloatingCTAWrapper />
+        {/* ── Footer ── */}
+        <footer style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "56px clamp(20px, 5vw, 56px) 40px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontFamily: HEAD, fontWeight: 700, letterSpacing: "0.18em", fontSize: 18, textTransform: "uppercase" }}>
+                Vizion<span style={{ color: ACCENT }}>.</span>Connection
+              </div>
+              <p style={{ fontSize: 12, color: SUB, margin: "8px 0 0" }}>活動が、信用になる。</p>
+            </div>
+            <div style={{ display: "flex", gap: 22, fontSize: 13 }}>
+              <Link href="/login" style={{ color: SUB, textDecoration: "none" }}>ログイン</Link>
+              <Link href="/register" style={{ color: ACCENT, textDecoration: "none" }}>無料で始める</Link>
+              <Link href="/business" style={{ color: SUB, textDecoration: "none" }}>Business</Link>
+            </div>
+          </div>
+          <p style={{ maxWidth: 1200, margin: "32px auto 0", fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
+            © {new Date().getFullYear()} Vizion Connection. All rights reserved.
+          </p>
+        </footer>
       </main>
+
+      <style>{`
+        @media (min-width: 900px) {
+          .vc-hero-grid { grid-template-columns: 1.1fr 0.9fr !important; }
+        }
+      `}</style>
     </>
   );
 }

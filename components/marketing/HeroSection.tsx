@@ -73,7 +73,7 @@ export function HeroSection() {
         >
           <Link
             href="/register"
-            className="w-full max-w-[320px] rounded-xl px-8 py-4 text-center font-display text-[15px] font-black tracking-[0.12em] text-white transition-all hover:opacity-90 active:scale-[0.98]"
+            className="w-full max-w-[320px] rounded-xl px-8 py-4 text-center font-display text-[15px] font-black tracking-[0.12em] text-black transition-all hover:opacity-90 active:scale-[0.98]"
             style={{ background: "var(--electric)", boxShadow: "0 0 32px var(--electric-glow)" }}
           >
             無料で始める

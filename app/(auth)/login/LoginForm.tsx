@@ -185,7 +185,7 @@ export default function LoginForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-white transition-all disabled:cursor-not-allowed disabled:opacity-70"
+                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black transition-all disabled:cursor-not-allowed disabled:opacity-70"
                         style={{
                             background: "var(--electric)",
                             boxShadow: loading ? "none" : "0 0 24px var(--electric-glow)",

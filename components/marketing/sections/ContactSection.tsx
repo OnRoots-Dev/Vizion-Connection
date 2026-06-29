@@ -250,10 +250,10 @@ export default function ContactSection() {
                                     whileTap={{ scale: 0.97 }}
                                     style={{
                                         padding: "14px", borderRadius: "12px", border: "none",
-                                        background: loading ? "rgba(0,194,255,0.4)" : "var(--electric)",
+                                        background: loading ? "rgba(200,232,0,0.4)" : "var(--electric)",
                                         color: "#0a0a0a", fontSize: "14px", fontWeight: 700,
                                         cursor: loading ? "not-allowed" : "pointer",
-                                        boxShadow: loading ? "none" : "0 0 24px rgba(0,194,255,0.35)",
+                                        boxShadow: loading ? "none" : "0 0 24px rgba(200,232,0,0.35)",
                                         transition: "all 0.2s",
                                     }}
                                 >
