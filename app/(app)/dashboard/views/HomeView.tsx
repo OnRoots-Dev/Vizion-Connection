@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
@@ -10,6 +10,7 @@ import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
+import { SkeletonCard } from "@/components/ui/skeleton/SkeletonCard";
 
 // 連続記録（PULSE）日数を JST 基準で算出
 function jstDay(iso: string): string {
@@ -44,6 +45,8 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
     const [pulseDays, setPulseDays] = useState(0);
     const [circuit, setCircuit] = useState({ journey: false, cheer: false, timeline: false });
+    const [initialLoading, setInitialLoading] = useState(true);
+    const loadedRef = useRef(false);
 
     const formatTime = (iso: string) => new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
     const formatMd = (iso: string) => new Date(iso).toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" });
@@ -52,6 +55,10 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     useEffect(() => {
         let cancelled = false;
         const t = todayJst();
+        if (!loadedRef.current) {
+            loadedRef.current = true;
+            window.setTimeout(() => { if (!cancelled) setInitialLoading(false); }, 600);
+        }
         void supabaseBrowser
             .from("journeys")
             .select("created_at")
@@ -101,6 +108,16 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             });
         return () => { cancelled = true; };
     }, []);
+
+    if (initialLoading) {
+        return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <SkeletonCard height={80} />
+                <SkeletonCard height={160} />
+                <SkeletonCard height={120} />
+            </div>
+        );
+    }
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

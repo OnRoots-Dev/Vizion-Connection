@@ -8,6 +8,7 @@ import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/component
 import { ProfilePreviewModal } from "@/app/(app)/dashboard/components/ProfilePreviewModal";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 import Image from "next/image";
+import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
 
 type InlineAd = {
   id: string;
@@ -108,7 +109,7 @@ export function CheerView({ profile, t, roleColor, setView }: {
       <SectionCard t={t} accentColor="#a78bfa">
         <SLabel text="Cheerコメント" />
         {receivedLoading ? (
-          <div style={{ textAlign: "center", padding: "28px 0", color: t.sub, fontSize: 12 }}>読み込み中...</div>
+          <SkeletonList rows={5} />
         ) : received.length === 0 ? (
           <div style={{ textAlign: "center", padding: "28px 0", color: t.sub, fontSize: 12 }}>まだCheerコメントがありません</div>
         ) : (

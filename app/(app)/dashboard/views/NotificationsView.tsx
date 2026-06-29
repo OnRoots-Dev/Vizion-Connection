@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
-import { SectionCard, SLabel, ViewHeader, ViewLoader } from "@/app/(app)/dashboard/components/ui";
+import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
+import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 
 type InlineAd = {
@@ -224,10 +225,10 @@ export function NotificationsView({
 
   if (loading) {
     return (
-      <>
+      <div style={{ display: "grid", gap: 12 }}>
         <ViewHeader title="Notifications" sub="通知一覧" onBack={() => setView("home")} t={t} roleColor={roleColor} />
-        <ViewLoader t={t} />
-      </>
+        <SkeletonList rows={8} />
+      </div>
     );
   }
 

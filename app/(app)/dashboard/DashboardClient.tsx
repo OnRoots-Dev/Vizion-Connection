@@ -432,6 +432,7 @@ export default function DashboardClient({
                         t={t}
                         theme={theme}
                         roleColor={roleColor}
+                        notificationUnreadCount={notificationUnreadCount}
                     />
                 )}
             </div>

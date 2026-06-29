@@ -9,6 +9,7 @@ import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
 import { REGION_OPTIONS, ROLE_DISCOVERY_OPTIONS, getPrefectureOptions } from "@/lib/discovery-filters";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
+import { SkeletonCard } from "@/components/ui/skeleton/SkeletonCard";
 
 type DiscoveryUser = {
   slug: string;
@@ -628,7 +629,9 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                 </button>
               </div>
               {loading ? (
-                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }}>
+                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} height={72} />)}
+                </div>
               ) : users.length === 0 ? (
                 <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
               ) : (
@@ -661,7 +664,9 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                 </div>
               </div>
               {loading ? (
-                <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>レーダー同期中...</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }}>
+                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} height={72} />)}
+                </div>
               ) : users.length === 0 ? (
                 <p style={{ fontSize: 12, color: t.sub, margin: 0 }}>条件に一致するユーザーがいません。</p>
               ) : (
