@@ -31,6 +31,27 @@ function LoadingState() {
   );
 }
 
+// PULSE SCORE のカウントアップ表示（値が確定したら 0→score へ Framer Motion 風 RAF アニメ）
+function ScoreCountUp({ value }: { value: number | null }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (value === null) return;
+    let raf = 0;
+    const start = performance.now();
+    const duration = 1200;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3); // easeOutCubic
+      setDisplay(Math.round(value * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  if (value === null) return <>—</>;
+  return <>{display.toLocaleString()}</>;
+}
+
 export default function PulseClient() {
   const [journeyDates, setJourneyDates] = useState<string[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
@@ -206,7 +227,7 @@ export default function PulseClient() {
                 PULSE SCORE
               </div>
               <div className="font-mono text-7xl font-black leading-none text-[var(--foreground)]">
-                {pulseScore?.score ?? "—"}
+                <ScoreCountUp value={pulseScore?.score ?? null} />
               </div>
             </div>
           </div>
