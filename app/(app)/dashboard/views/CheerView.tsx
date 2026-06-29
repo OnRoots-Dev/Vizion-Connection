@@ -9,6 +9,7 @@ import { ProfilePreviewModal } from "@/app/(app)/dashboard/components/ProfilePre
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 import Image from "next/image";
 import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
+import CheerButton from "@/components/ui/CheerButton";
 
 type InlineAd = {
   id: string;
@@ -24,6 +25,16 @@ const ROLE_COLOR_MAP: Record<string, string> = {
   Trainer: "#32D278",
   Crew: "#FFC81E",
   Business: "#3C8CFF",
+};
+
+type CheerSuggestItem = {
+  slug: string;
+  displayName: string;
+  role?: string | null;
+  region?: string | null;
+  prefecture?: string | null;
+  avatarUrl?: string | null;
+  profileImageUrl?: string | null;
 };
 
 type CheerReceivedItem = {
@@ -55,12 +66,20 @@ export function CheerView({ profile, t, roleColor, setView }: {
   const [ads, setAds] = useState<InlineAd[]>([]);
   const [received, setReceived] = useState<CheerReceivedItem[]>([]);
   const [receivedLoading, setReceivedLoading] = useState(true);
+  const [suggests, setSuggests] = useState<CheerSuggestItem[]>([]);
 
   useEffect(() => {
     fetch("/api/ads", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setAds(Array.isArray(data?.ads) ? data.ads : []))
       .catch(() => setAds([]));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/cheer/suggest")
+      .then((r) => r.json())
+      .then((d) => setSuggests(Array.isArray(d?.items) ? d.items : []))
+      .catch(() => setSuggests([]));
   }, []);
 
   useEffect(() => {
@@ -105,6 +124,39 @@ export function CheerView({ profile, t, roleColor, setView }: {
           </a>
         </SectionCard>
       </div>
+
+      {suggests.length > 0 && (
+        <SectionCard t={t} accentColor="#32D278">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <SLabel text="Cheerを送る" />
+            <button type="button" onClick={() => setView("discovery")} style={{ border: "none", background: "none", color: "#32D278", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+              もっと見る →
+            </button>
+          </div>
+          <p style={{ margin: "0 0 12px", fontSize: 11, color: t.sub }}>直近24時間にJourneyを投稿したユーザー</p>
+          <div style={{ display: "grid", gap: 10 }}>
+            {suggests.map((user) => {
+              const rowColor = (user.role ? (ROLE_COLOR_MAP[user.role] ?? roleColor) : roleColor);
+              return (
+                <div key={user.slug} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 14, border: `1px solid ${rowColor}25`, background: "rgba(255,255,255,0.02)" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 999, overflow: "hidden", border: `1px solid ${rowColor}45`, background: `${rowColor}18`, display: "flex", alignItems: "center", justifyContent: "center", color: rowColor, fontWeight: 900, flexShrink: 0 }}>
+                    {user.avatarUrl ? (
+                      <Image src={user.avatarUrl} alt={user.displayName} width={40} height={40} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontSize: 14 }}>{(user.displayName ?? "?").slice(0, 1)}</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.displayName}</div>
+                    {user.role && <div style={{ fontSize: 10, color: rowColor, fontWeight: 700 }}>{user.role}</div>}
+                  </div>
+                  <CheerButton slug={user.slug} initialCount={0} roleColor={rowColor} isOwn={false} />
+                </div>
+              );
+            })}
+          </div>
+        </SectionCard>
+      )}
 
       <SectionCard t={t} accentColor="#a78bfa">
         <SLabel text="Cheerコメント" />
@@ -166,13 +218,7 @@ export function CheerView({ profile, t, roleColor, setView }: {
         )}
       </SectionCard>
 
-      {ads.length > 0 ? (
-        <AdCard ad={ads[0]!} />
-      ) : (
-        <SectionCard t={t}>
-          <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
-        </SectionCard>
-      )}
+      {ads.length > 0 && <AdCard ad={ads[0]!} />}
     </div>
   );
 }

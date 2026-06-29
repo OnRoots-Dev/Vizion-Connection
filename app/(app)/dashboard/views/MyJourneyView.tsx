@@ -417,13 +417,9 @@ export function MyJourneyView({
 
       <ViewHeader title="Journey" sub="記録画面" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
-      <SectionCard t={t}>
-        <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
-      </SectionCard>
-
       <SectionCard t={t} accentColor="#a78bfa">
         <CardHeader
-          title="Today's Hype"
+          title="今日の記録"
           meta={(
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>
@@ -437,7 +433,7 @@ export function MyJourneyView({
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ borderRadius: 0, border: "none", background: "transparent", padding: 0 }}>
             <p style={{ margin: "0 0 10px", fontSize: 10, color: t.sub, fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", fontFamily: "monospace" }}>
-              Today + Your HYPE
+              今日の一言
             </p>
 
             {showForm ? (

@@ -267,13 +267,7 @@ export function NotificationsView({
         )}
       </SectionCard>
 
-      {ads.length > 0 ? (
-        <AdCard ad={ads[0]!} />
-      ) : (
-        <SectionCard t={t}>
-          <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
-        </SectionCard>
-      )}
+      {ads.length > 0 && <AdCard ad={ads[0]!} />}
 
       {items.length === 0 ? (
         <SectionCard t={t}>

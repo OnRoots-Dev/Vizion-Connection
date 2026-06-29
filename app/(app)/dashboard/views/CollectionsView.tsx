@@ -114,10 +114,6 @@ export function CollectionsView({
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <ViewHeader title="Collection" sub="コレクトしたカードを回して確認" onBack={() => setView("home")} t={t} roleColor={roleColor} />
 
-      <SectionCard t={t}>
-        <div style={{ height: 60, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }} />
-      </SectionCard>
-
       <SectionCard t={t} accentColor="#a78bfa">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <SLabel text="Card Collection" />

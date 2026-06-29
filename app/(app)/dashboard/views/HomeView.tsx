@@ -89,7 +89,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 
     const circuitTasks = [
         { key: "journey", label: "Journey記録", done: circuit.journey, view: "journey" as DashboardView },
-        { key: "cheer", label: "Cheer送信", done: circuit.cheer, view: "timeline" as DashboardView },
+        { key: "cheer", label: "Cheer送信", done: circuit.cheer, view: "cheer" as DashboardView },
         { key: "timeline", label: "Timeline閲覧", done: circuit.timeline, view: "timeline" as DashboardView },
     ];
     const circuitComplete = circuitTasks.every((task) => task.done);
@@ -126,7 +126,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     Vizion Connection Dashboard
                 </motion.p>
                 <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.05 }} className="font-display" style={{ fontSize: "clamp(2rem,5vw,3.5rem)", fontWeight: 800, color: "#f0f0f5", margin: 0, lineHeight: 1, letterSpacing: "-0.01em", textTransform: "uppercase" }}>
-                    <span style={{ color: roleColor }}>{profile.role}</span> / BASE
+                    <span style={{ color: roleColor }}>{profile.role}</span> / ホーム
                 </motion.h1>
             </div>
 

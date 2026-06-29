@@ -17,16 +17,12 @@ export function HubAdPanel({
   const localAd = ads.find((ad) => isLocalPlan(ad.plan)) ?? null;
   const primaryAd = nationalAd ?? localAd ?? null;
 
+  if (!primaryAd) return null;
+
   return (
     <SectionCard t={t}>
       <SLabel text="Hub Sponsor" color="#FFD600" />
-      {primaryAd ? (
-        <AdCard ad={primaryAd} size={nationalAd ? "medium" : "small"} />
-      ) : (
-        <div className="rounded-[14px] border border-dashed p-[18px] text-[12px]" style={{ borderColor: t.border, color: t.sub }}>
-          Hub スポンサー広告枠（準備中）
-        </div>
-      )}
+      <AdCard ad={primaryAd} size={nationalAd ? "medium" : "small"} />
     </SectionCard>
   );
 }
