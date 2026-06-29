@@ -44,3 +44,6 @@ next-env.d.ts
 
 # local lottie preview player
 /tools/lottie-player/
+
+# local Claude Code skills / tooling (not part of the app)
+.claude/skills/
