@@ -52,6 +52,7 @@ type NavExternalLeaf = {
     label: string;
     icon: string;
     href: string;
+    tag?: string;
 };
 
 type NavSubmenu = {
@@ -117,6 +118,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 group: "PULSE",
                 items: [
                     { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
+                    { type: "external", id: "pulse", label: "Pulse", href: "/pulse", tag: "CORE", icon: "M3.75 12h2.25l1.5 6 3-13.5 3 9 1.5-3h4.5" },
                     { type: "item", id: "timeline", label: "Timeline", tag: "NEW", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" },
                     { type: "item", id: "journey", label: "Journey", icon: "M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h10.5" },
                     { type: "item", id: "cheer", label: "Cheer", badge: "cheer_total", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
@@ -201,6 +203,14 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                     </svg>
                     <span>{item.label}</span>
+                    {item.tag && (
+                        <span
+                            className="ml-auto inline-flex items-center justify-center rounded-[4px] px-[5px] py-[2px] font-mono text-[8px] font-black uppercase leading-none tracking-[0.1em]"
+                            style={{ background: "rgba(167,139,250,0.18)", color: "var(--vc-accent)", border: "1px solid rgba(167,139,250,0.35)" }}
+                        >
+                            {item.tag}
+                        </span>
+                    )}
                 </Link>
             );
         }

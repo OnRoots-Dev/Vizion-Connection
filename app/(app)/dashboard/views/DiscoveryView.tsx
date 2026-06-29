@@ -78,17 +78,23 @@ function ArcadeDiscoveryRow({
   const rankIcon = getRankIcon(rank);
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onOpen}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ type: "spring", stiffness: 400, damping: 28 }}
       style={{
         position: "relative",
         overflow: "hidden",
         width: "100%",
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.1)",
         borderLeft: `3px solid ${roleColor}`,
-        background: "#111118",
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
         color: "#fff",
         textAlign: "left",
         cursor: "pointer",
@@ -184,18 +190,18 @@ function ArcadeDiscoveryRow({
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-            <span style={{ fontSize: 10, fontWeight: 900, color: roleColor }}>{user.role}</span>
+            <span style={{ fontSize: 9, fontWeight: 900, color: roleColor, textTransform: "uppercase", letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 999, border: `1px solid ${roleColor}55`, background: `${roleColor}1a` }}>{user.role}</span>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.72)" }}>{formatLocation(user)}</span>
           </div>
           <p style={{ margin: "0 0 3px", fontSize: "clamp(13px, 2.3vw, 15px)", fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.display_name}</p>
           <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.sport || "活動情報なし"}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: scoreTone === "gold" ? "#FFD600" : "#fff", lineHeight: 1 }}>{score}</div>
-          <div style={{ marginTop: 4, fontSize: 10, color: "#fff", fontWeight: 800 }}>Check →</div>
+          <div style={{ fontSize: "clamp(18px, 3.2vw, 22px)", fontWeight: 900, color: scoreTone === "gold" ? "#C8E800" : "#fff", lineHeight: 1 }}>{score}</div>
+          <div style={{ marginTop: 4, fontSize: 10, color: "#C8E800", fontWeight: 800 }}>Check →</div>
         </div>
       </div>
-    </button>
+    </motion.button>
   );
 }
 
