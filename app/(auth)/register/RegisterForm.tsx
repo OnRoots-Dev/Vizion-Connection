@@ -94,7 +94,7 @@ function StepBar({ current }: { current: number }) {
                                 className="flex h-7 w-7 items-center justify-center rounded-full font-display text-[11px] font-black transition-all"
                                 style={{
                                     background: active || done ? "var(--electric)" : "rgba(255,255,255,0.06)",
-                                    color: active || done ? "#fff" : "rgba(255,255,255,0.3)",
+                                    color: active || done ? "#000" : "rgba(255,255,255,0.3)",
                                     boxShadow: active ? "0 0 14px var(--electric-glow)" : "none",
                                 }}
                             >
@@ -335,7 +335,7 @@ export default function RegisterForm() {
                             <button
                                 type="button"
                                 onClick={() => goTo(2)}
-                                className="w-full rounded-xl py-3.5 text-sm font-black text-white transition-all hover:opacity-90 active:scale-[0.99]"
+                                className="w-full rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
                                 style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                             >
                                 次へ進む
@@ -444,7 +444,7 @@ export default function RegisterForm() {
                                     type="checkbox"
                                     checked={form.termsAccepted}
                                     onChange={(e) => setForm({ ...form, termsAccepted: e.target.checked })}
-                                    className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/20 accent-[#00c2ff]"
+                                    className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black/20 accent-[#C8E800]"
                                 />
                                 <span className="text-xs leading-relaxed text-white/55">
                                     <a href={TERMS_URL} target="_blank" rel="noopener noreferrer" className="text-white/80 underline underline-offset-4 hover:text-white">
@@ -471,7 +471,7 @@ export default function RegisterForm() {
                                 <button
                                     type="button"
                                     onClick={handleStep2Next}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-white transition-all hover:opacity-90 active:scale-[0.99]"
+                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     確認画面へ
@@ -530,7 +530,7 @@ export default function RegisterForm() {
                                 <button
                                     type="button"
                                     onClick={() => void handleSubmit()}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-white transition-all hover:opacity-90 active:scale-[0.99]"
+                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     登録してPulseをはじめる
@@ -593,7 +593,7 @@ export default function RegisterForm() {
                                         type="button"
                                         onClick={() => void handleResend()}
                                         disabled={resendLoading}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-white transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black transition-all disabled:cursor-not-allowed disabled:opacity-60"
                                         style={{ background: "var(--electric)", boxShadow: resendLoading ? "none" : "0 0 24px var(--electric-glow)" }}
                                     >
                                         {resendLoading && <LottieAnim src="/lottie/loading-pulse.json" loop className="h-5 w-5" />}
@@ -636,7 +636,7 @@ export default function RegisterForm() {
 
                                     <Link
                                         href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
-                                        className="block w-full rounded-xl py-3.5 text-center text-sm font-black text-white transition-all"
+                                        className="block w-full rounded-xl py-3.5 text-center text-sm font-black text-black transition-all"
                                         style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                     >
                                         ログインへ進む

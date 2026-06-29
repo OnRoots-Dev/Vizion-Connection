@@ -21,7 +21,7 @@ export function OnboardingStepBar({ current }: { current: number }) {
                                 background: done || active ? "var(--electric)" : "rgba(255,255,255,0.08)",
                                 border: active ? "2px solid var(--electric)" : done ? "none" : "1px solid rgba(255,255,255,0.15)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 10, fontWeight: 900, color: done || active ? "#fff" : "rgba(255,255,255,0.35)",
+                                fontSize: 10, fontWeight: 900, color: done || active ? "#000" : "rgba(255,255,255,0.35)",
                                 boxShadow: active ? "0 0 14px var(--electric-glow)" : "none",
                                 transition: "all 0.3s ease",
                             }}>

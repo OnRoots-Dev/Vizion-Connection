@@ -93,9 +93,9 @@ export function BottomNav({ role, view, setView, t, theme, roleColor, notificati
                                     position: "relative", display: "inline-flex",
                                     alignItems: "center", justifyContent: "center",
                                     width: 46, height: 46, marginTop: -18, borderRadius: "50%",
-                                    background: "linear-gradient(150deg, var(--pulse, #a78bfa), var(--electric, #00c2ff))",
-                                    boxShadow: `0 8px 22px var(--electric-glow, rgba(0,194,255,0.45)), 0 0 0 4px ${barBg}`,
-                                    color: "#fff",
+                                    background: "linear-gradient(150deg, var(--pulse, #C8E800), var(--electric, #C8E800))",
+                                    boxShadow: `0 8px 22px var(--electric-glow, rgba(200,232,0,0.45)), 0 0 0 4px ${barBg}`,
+                                    color: "#000",
                                 }}
                             >
                                 {active && (

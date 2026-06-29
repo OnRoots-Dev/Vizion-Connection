@@ -309,9 +309,9 @@ export function PulseIndicator({ days, size = "md" }: { days: number; size?: "sm
 
     const getColor = (d: number) => {
         if (d >= 100) return "#ffffff";
-        if (d >= 30) return "#c4b5fd";
-        if (d >= 7) return "#a78bfa";
-        return "rgba(167,139,250,0.6)";
+        if (d >= 30) return "#e2f56b";
+        if (d >= 7) return "#C8E800";
+        return "rgba(200,232,0,0.6)";
     };
     const color = getColor(days);
 

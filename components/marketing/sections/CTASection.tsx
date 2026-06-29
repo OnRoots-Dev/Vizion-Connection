@@ -50,7 +50,7 @@ export function CTASection() {
       >
         <Link
           href="/register"
-          className="block rounded-xl px-12 py-5 font-display text-[clamp(18px,4.5vw,24px)] font-black tracking-[0.08em] text-white"
+          className="block rounded-xl px-12 py-5 font-display text-[clamp(18px,4.5vw,24px)] font-black tracking-[0.08em] text-black"
           style={{ background: "var(--electric)", boxShadow: "0 0 40px var(--electric-glow)" }}
         >
           今すぐ始める
@@ -134,7 +134,7 @@ export function FloatingCTA() {
         >
           <Link
             href="/register"
-            className="group flex w-full items-center justify-center gap-3 rounded-xl px-7 py-3.5 font-display text-[13px] font-black uppercase tracking-[0.18em] text-white transition-all hover:opacity-90"
+            className="group flex w-full items-center justify-center gap-3 rounded-xl px-7 py-3.5 font-display text-[13px] font-black uppercase tracking-[0.18em] text-black transition-all hover:opacity-90"
             style={{ maxWidth: 360, background: "var(--electric)", boxShadow: "0 8px 40px var(--electric-glow)" }}
           >
             <span>無料で始める</span>

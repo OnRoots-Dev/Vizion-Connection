@@ -156,11 +156,11 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
                             style={{
                                 width: "100%", padding: "13px 0", borderRadius: 14, border: "none",
                                 background: canSubmit || isSubmitting ? "var(--electric)" : "var(--surface-3)",
-                                color: canSubmit || isSubmitting ? "#ffffff" : "var(--muted-foreground)",
+                                color: canSubmit || isSubmitting ? "#000" : "var(--muted-foreground)",
                                 fontSize: 13, fontWeight: 800,
                                 cursor: canSubmit ? "pointer" : "not-allowed",
                                 transition: "all 0.2s ease",
-                                boxShadow: canSubmit ? "0 0 24px rgba(0,194,255,0.35)" : "none",
+                                boxShadow: canSubmit ? "0 0 24px rgba(200,232,0,0.35)" : "none",
                                 opacity: isSubmitting ? 0.7 : 1,
                             }}
                         >
