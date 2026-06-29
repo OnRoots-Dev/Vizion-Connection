@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getNewsPostById, incrementNewsPostCheer } from "@/lib/news";
 import { PayloadTooLargeError, readLimitedJson } from "@/lib/security/body";
 import { validateCSRF } from "@/lib/security/csrf";
+import { newsCheerLimiter, getIp } from "@/lib/ratelimit";
 
 const schema = z.object({
     postId: z.string().trim().min(1).max(120),
@@ -11,6 +12,11 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
     const csrfError = validateCSRF(req);
     if (csrfError) return csrfError as unknown as NextResponse;
+
+    const { success: rlOk } = await newsCheerLimiter.limit(getIp(req));
+    if (!rlOk) {
+        return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
+    }
 
     let body: unknown;
     try {

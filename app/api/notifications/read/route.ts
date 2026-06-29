@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseProfile } from "@/lib/auth/session";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { notificationLimiter } from "@/lib/ratelimit";
 import {
   getUnreadNotificationCount,
   markAllNotificationsRead,
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const session = await getSupabaseProfile();
     if (!session) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success: rlOk } = await notificationLimiter.limit(session.slug);
+    if (!rlOk) {
+      return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
     }
 
     let body: unknown;

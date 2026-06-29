@@ -4,6 +4,7 @@ import { createNewsPostComment, getNewsPostComments, getNewsPostById } from "@/l
 import { validateCSRF } from "@/lib/security/csrf";
 import { PayloadTooLargeError, readLimitedJson } from "@/lib/security/body";
 import { getSupabaseProfile } from "@/lib/auth/session";
+import { newsCommentLimiter } from "@/lib/ratelimit";
 
 const schema = z.object({
     postId: z.string().trim().min(1).max(120),
@@ -28,6 +29,11 @@ export async function POST(req: NextRequest) {
         const user = await getSupabaseProfile();
         if (!user) {
             return NextResponse.json({ success: false, error: "ユーザーが見つかりません" }, { status: 404 });
+        }
+
+        const { success: rlOk } = await newsCommentLimiter.limit(user.slug);
+        if (!rlOk) {
+            return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
         }
 
         let body: unknown;

@@ -78,6 +78,26 @@ export const discoveryTrackLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(60, "1 m"), prefix: "rl:discovery-track",
 });
 
+// ニュースCheer（未認証カウンタ）：1分に10回/IP
+export const newsCheerLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:news-cheer",
+});
+
+// ニュースコメント：1分に10回
+export const newsCommentLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:news-comment",
+});
+
+// 通知既読：1分に30回
+export const notificationLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:notif",
+});
+
+// オンボーディング完了：1時間に10回
+export const onboardingLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:onboarding",
+});
+
 // パスワードリセット：IP 10分に5回, Email 10分に3回
 export const resetIpLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(5, "10 m"), prefix: "rl:reset:ip",
