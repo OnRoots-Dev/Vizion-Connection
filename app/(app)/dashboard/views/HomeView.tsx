@@ -11,25 +11,10 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import type { Schedule } from "@/types/schedule";
 import { SkeletonCard } from "@/components/ui/skeleton/SkeletonCard";
+import { computeStreak } from "@/lib/pulse-stats";
+import { getJstDateKey } from "@/lib/day-count";
+import Link from "next/link";
 
-// 連続記録（PULSE）日数を JST 基準で算出
-function jstDay(iso: string): string {
-    return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
-function streakFrom(dates: string[]): number {
-    const days = new Set(dates.map(jstDay));
-    if (days.size === 0) return 0;
-    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const yest = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
-    let cursor = days.has(today) ? today : days.has(yest) ? yest : null;
-    if (!cursor) return 0;
-    let streak = 0;
-    while (days.has(cursor)) {
-        streak += 1;
-        cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
-    }
-    return streak;
-}
 function todayJst(): string {
     return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
@@ -44,6 +29,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
 }) {
     const [upcomingSchedules, setUpcomingSchedules] = useState<Schedule[]>([]);
     const [pulseDays, setPulseDays] = useState(0);
+    const [pulseScore, setPulseScore] = useState<{ score: number; cheerCount: number; bondCount: number } | null>(null);
     const [circuit, setCircuit] = useState({ journey: false, cheer: false, timeline: false });
     const [initialLoading, setInitialLoading] = useState(true);
     const loadedRef = useRef(false);
@@ -68,11 +54,15 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             .then(({ data }) => {
                 if (cancelled) return;
                 const dates = (data ?? []).map((r) => String(r.created_at));
-                const journeyToday = dates.some((d) => jstDay(d) === t);
-                setPulseDays(streakFrom(dates));
+                const journeyToday = dates.some((d) => getJstDateKey(new Date(d)) === t);
+                setPulseDays(computeStreak(dates));
                 // journeys に当日記録があれば journey は確定で done
                 if (journeyToday) setCircuit((prev) => ({ ...prev, journey: true }));
             });
+        void fetch("/api/pulse/score", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((d) => { if (!cancelled) setPulseScore(d as { score: number; cheerCount: number; bondCount: number }); })
+            .catch(() => { /* サイレント */ });
         void fetch("/api/daily-circuit", { cache: "no-store" })
             .then((r) => r.json())
             .then((d) => {
@@ -189,14 +179,22 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </SectionCard>
             </motion.div>
 
-            {/* PULSE ステータス */}
+            {/* PULSE スコアカード */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                 <SectionCard t={t} accentColor={roleColor}>
-                    <CardHeader title="Pulse" meta={<PulseIndicator days={pulseDays} size="md" />} />
-                    <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+                    <CardHeader
+                        title="Pulse Score"
+                        meta={<PulseIndicator days={pulseDays} size="md" />}
+                        action={<Link href="/pulse" style={{ textDecoration: "none" }}><ActionPill onClick={() => {}} color={roleColor} t={t}>詳細 →</ActionPill></Link>}
+                    />
+                    <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-end" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                            <span style={{ fontSize: 10, fontFamily: "monospace", letterSpacing: "0.18em", textTransform: "uppercase", color: t.sub, opacity: 0.7, marginBottom: 2 }}>PULSE SCORE</span>
+                            <span style={{ fontSize: 36, fontWeight: 900, fontFamily: "monospace", color: roleColor, lineHeight: 1 }}>{pulseScore?.score ?? "—"}</span>
+                        </div>
                         <StatBlock value={pulseDays} label="継続日数" accent="var(--vc-accent)" />
-                        <StatBlock value={profile.cheerCount ?? 0} label="Cheer" accent="#FFC81E" />
-                        <StatBlock value={referralCount} label="Referral" />
+                        <StatBlock value={pulseScore?.cheerCount ?? (profile.cheerCount ?? 0)} label="Cheer" accent="#FFC81E" />
+                        <StatBlock value={pulseScore?.bondCount ?? 0} label="Bond" accent="#3C8CFF" />
                     </div>
                 </SectionCard>
             </motion.div>

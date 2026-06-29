@@ -15,6 +15,7 @@ import { useCareerWizard } from "@/hooks/useCareerWizard";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
 import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { computeStreak } from "@/lib/pulse-stats";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
@@ -44,22 +45,6 @@ function hasCareerSignal(careerProfile?: CareerProfileRow | null) {
   return Boolean(careerProfile?.tagline || careerProfile?.bio_career || careerProfile?.stats?.length || careerProfile?.episodes?.length || careerProfile?.skills?.length);
 }
 
-function _dkJst(d: Date): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
-}
-function _addD(d: Date, n: number): Date {
-  const r = new Date(d); r.setDate(r.getDate() + n); return r;
-}
-function _pulseStreak(rows: Array<{ created_at: string }>): number {
-  const days = new Set(rows.map(r => _dkJst(new Date(r.created_at))));
-  const today = _dkJst(new Date());
-  const yesterday = _dkJst(_addD(new Date(), -1));
-  if (!days.has(today) && !days.has(yesterday)) return 0;
-  let count = 0;
-  let cursor = days.has(today) ? new Date() : _addD(new Date(), -1);
-  while (days.has(_dkJst(cursor))) { count++; cursor = _addD(cursor, -1); }
-  return count;
-}
 
 export function DashboardProfileView({
   profile,
@@ -150,7 +135,7 @@ export function DashboardProfileView({
     ]).then(([jRes, iRes, dRes]) => {
       setJourneyCount(jRes.count ?? 0);
       setBondCount(iRes.count ?? 0);
-      if (dRes.data) setStreakDays(_pulseStreak(dRes.data as Array<{ created_at: string }>));
+      if (dRes.data) setStreakDays(computeStreak((dRes.data as Array<{ created_at: string }>).map(r => r.created_at)));
     });
   }, [profile.slug]);
 

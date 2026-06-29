@@ -5,31 +5,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { calcDayCount } from "@/lib/day-count";
+import { calcDayCount, getJstDateKey } from "@/lib/day-count";
+import { computePulseStats } from "@/lib/pulse-stats";
 
-type PulseStatus = "active" | "stalled" | "revived" | "day0";
-
-interface JourneyDateRow {
-  created_at: string;
-}
-
-interface PulseStats {
-  currentStreak: number;
-  longestStreak: number;
-  weeklyCount: number;
-  totalCount: number;
-  daysSinceLast: number | null;
-  activityDays: Set<string>;
-}
-
-function getDateKey(date: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Tokyo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
+type PulseScore = { score: number; streak: number; cheerCount: number; bondCount: number };
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -37,84 +16,13 @@ function addDays(date: Date, days: number) {
   return next;
 }
 
-function diffDays(fromKey: string, toKey: string) {
-  const from = new Date(`${fromKey}T00:00:00+09:00`).getTime();
-  const to = new Date(`${toKey}T00:00:00+09:00`).getTime();
-  return Math.round((to - from) / 86400000);
-}
-
-function calculateStats(rows: JourneyDateRow[]): PulseStats {
-  const todayKey = getDateKey(new Date());
-  const activityDays = new Set(rows.map((row) => getDateKey(new Date(row.created_at))));
-  const sortedDays = Array.from(activityDays).sort();
-  const lastDay = sortedDays.at(-1) ?? null;
-  const daysSinceLast = lastDay ? diffDays(lastDay, todayKey) : null;
-
-  let currentStreak = 0;
-  if (activityDays.has(todayKey) || activityDays.has(getDateKey(addDays(new Date(), -1)))) {
-    let cursor = activityDays.has(todayKey) ? new Date() : addDays(new Date(), -1);
-    while (activityDays.has(getDateKey(cursor))) {
-      currentStreak += 1;
-      cursor = addDays(cursor, -1);
-    }
-  }
-
-  let longestStreak = 0;
-  let run = 0;
-  let previous: string | null = null;
-  for (const day of sortedDays) {
-    if (previous && diffDays(previous, day) === 1) {
-      run += 1;
-    } else {
-      run = 1;
-    }
-    longestStreak = Math.max(longestStreak, run);
-    previous = day;
-  }
-
-  const weeklyCount = Array.from({ length: 7 }, (_, index) => getDateKey(addDays(new Date(), -index)))
-    .filter((day) => activityDays.has(day)).length;
-
-  return {
-    currentStreak,
-    longestStreak,
-    weeklyCount,
-    totalCount: rows.length,
-    daysSinceLast,
-    activityDays,
-  };
-}
-
-function resolveStatus(stats: PulseStats): PulseStatus {
-  if (stats.totalCount === 0) return "day0";
-  if ((stats.daysSinceLast ?? 0) >= 3) return "stalled";
-  if (stats.currentStreak === 1 && stats.longestStreak > 1) return "revived";
-  return "active";
-}
-
-function StatCard({ label, value, delay }: { label: string; value: string; delay: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="rounded-lg bg-[var(--surface-2)] p-4 text-center"
-    >
-      <div className="font-mono text-2xl text-[var(--foreground)]">{value}</div>
-      <div className="mt-1 font-display text-xs uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
-        {label}
-      </div>
-    </motion.div>
-  );
-}
-
 function LoadingState() {
   return (
     <main className="min-h-screen bg-[var(--surface-1)] px-5 py-8 text-[var(--foreground)]">
       <div className="mx-auto max-w-md space-y-5">
         <div className="mx-auto h-[200px] w-[200px] rounded-full bg-[var(--surface-2)]" />
-        <div className="grid grid-cols-2 gap-3">
-          {[0, 1, 2, 3].map((item) => (
+        <div className="grid grid-cols-3 gap-3">
+          {[0, 1, 2].map((item) => (
             <div key={item} className="h-20 rounded-lg bg-[var(--surface-3)]" />
           ))}
         </div>
@@ -124,9 +32,10 @@ function LoadingState() {
 }
 
 export default function PulseClient() {
-  const [rows, setRows] = useState<JourneyDateRow[]>([]);
+  const [journeyDates, setJourneyDates] = useState<string[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
   const [day0Date, setDay0Date] = useState<string | null>(null);
+  const [pulseScore, setPulseScore] = useState<PulseScore | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -140,7 +49,6 @@ export default function PulseClient() {
       return;
     }
 
-    // Use JWT metadata slug to skip users table round-trip when available
     let resolvedSlug = authData.user.user_metadata?.slug as string | undefined;
     if (!resolvedSlug) {
       const { data: profile, error: profileError } = await supabaseBrowser
@@ -181,7 +89,7 @@ export default function PulseClient() {
       return;
     }
 
-    setRows((journeys ?? []) as JourneyDateRow[]);
+    setJourneyDates((journeys ?? []).map((r) => r.created_at as string));
     setIsLoading(false);
   }, []);
 
@@ -189,18 +97,24 @@ export default function PulseClient() {
     void fetchPulse();
   }, [fetchPulse]);
 
-  const stats = useMemo(() => calculateStats(rows), [rows]);
-  const status = useMemo(() => resolveStatus(stats), [stats]);
-  // DAYカウント: day0_date基準。未設定ならjourneys初回投稿日にフォールバック
+  useEffect(() => {
+    fetch("/api/pulse/score")
+      .then((r) => r.json())
+      .then((d) => setPulseScore(d as PulseScore))
+      .catch(() => { /* サイレント */ });
+  }, []);
+
+  const stats = useMemo(() => computePulseStats(journeyDates), [journeyDates]);
+  const { status } = stats;
   const dayCount = useMemo(
-    () => calcDayCount(day0Date, rows.at(-1)?.created_at ?? null),
-    [day0Date, rows],
+    () => calcDayCount(day0Date, journeyDates.at(-1) ?? null),
+    [day0Date, journeyDates],
   );
   const graphDays = useMemo(
     () => Array.from({ length: 28 }, (_, index) => addDays(new Date(), index - 27)),
     [],
   );
-  const todayKey = getDateKey(new Date());
+  const todayKey = getJstDateKey(new Date());
   const isStalled = status === "stalled";
   const isRevived = status === "revived";
   const glowOpacity = isStalled ? "opacity-30" : "opacity-80";
@@ -223,10 +137,11 @@ export default function PulseClient() {
           >
             <span className="animate-pulse-ring absolute inset-0 rounded-full border border-[var(--electric)] bg-[var(--pulse-dim)]" />
             <span className="animate-pulse-ring absolute inset-0 rounded-full border border-[var(--electric)] bg-[var(--pulse-dim)] [animation-delay:1s]" />
-            <div className="relative">
-              <div className="font-mono text-5xl text-[var(--foreground)]">DAY {dayCount ?? 0}</div>
-              <div className="mt-2 font-display text-sm uppercase tracking-[0.28em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
-                PULSE
+            <div className="relative text-center">
+              <div className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--electric)]">PULSE SCORE</div>
+              <div className="font-mono text-5xl text-[var(--foreground)]">0</div>
+              <div className="mt-2 font-display text-xs uppercase tracking-[0.28em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
+                DAY {dayCount ?? 0}
               </div>
             </div>
           </motion.div>
@@ -254,7 +169,7 @@ export default function PulseClient() {
               {slug ?? "PULSE"}
             </p>
             <h1 className="mt-1 font-display text-4xl uppercase tracking-wider text-[var(--foreground)]">
-              PULSE
+              PULSE SCORE
             </h1>
           </div>
           {status === "active" ? (
@@ -270,6 +185,7 @@ export default function PulseClient() {
           </div>
         ) : null}
 
+        {/* ─── メインリング（PULSE SCORE 中央表示） ─── */}
         <motion.section
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -286,44 +202,59 @@ export default function PulseClient() {
               className={`absolute inset-0 rounded-full bg-[var(--pulse-glow)] blur-2xl ${glowOpacity}`}
             />
             <div className="relative text-center">
-              <div className="font-mono text-sm uppercase tracking-[0.3em] text-[var(--electric)]">
-                DAY
+              <div className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--electric)]">
+                PULSE SCORE
               </div>
               <div className="font-mono text-6xl text-[var(--foreground)]">
-                {dayCount ?? stats.currentStreak}
+                {pulseScore?.score ?? "—"}
               </div>
-              <div className="mt-2 font-display text-sm uppercase tracking-[0.32em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
-                PULSE
+              <div className="mt-2 font-display text-xs uppercase tracking-[0.32em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
+                DAY {dayCount ?? stats.currentStreak}
               </div>
             </div>
           </div>
 
-          <p className="mt-7 min-h-6 text-center text-sm text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
+          {/* スコア構成要素 3列 */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6 grid w-full grid-cols-3 gap-3"
+          >
+            {[
+              { label: "継続日数", value: `${stats.currentStreak}日` },
+              { label: "Cheer", value: `${pulseScore?.cheerCount ?? "—"}` },
+              { label: "Bond", value: `${pulseScore?.bondCount ?? "—"}人` },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg bg-[var(--surface-2)] p-3 text-center">
+                <div className="font-mono text-xl text-[var(--electric)]">{item.value}</div>
+                <div className="mt-1 font-display text-[10px] uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--foreground)_42%,transparent)]">
+                  {item.label}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+
+          <p className="mt-5 min-h-6 text-center text-sm text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
             {isStalled ? "Pulseが弱まっています" : isRevived ? "Pulseが戻ってきた" : "今日もPulseが続いています"}
           </p>
 
           {isStalled ? (
             <Link
               href="/dashboard?view=journey"
-              className="mt-5 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--surface-1)]"
+              className="mt-4 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--surface-1)]"
             >
               今日のJourneyを記録する
             </Link>
           ) : null}
         </motion.section>
 
-        <section className="mt-10 grid grid-cols-2 gap-3">
-          <StatCard label="現在の継続日数" value={`${stats.currentStreak}`} delay={0.1} />
-          <StatCard label="最長継続日数" value={`${stats.longestStreak}`} delay={0.2} />
-          <StatCard label="今週の記録" value={`${stats.weeklyCount}/7`} delay={0.3} />
-          <StatCard label="総Journey数" value={`${stats.totalCount}`} delay={0.4} />
-        </section>
-
+        {/* ─── 28日アクティビティ ─── */}
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 rounded-lg bg-[var(--surface-2)] p-5"
+          transition={{ delay: 0.4 }}
+          className="mt-8 rounded-lg bg-[var(--surface-2)] p-5"
         >
           <div className="mb-4 flex items-center gap-2 font-display text-sm uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--foreground)_58%,transparent)]">
             <Activity className="h-4 w-4 text-[var(--electric)]" />
@@ -331,9 +262,9 @@ export default function PulseClient() {
           </div>
           <div className="grid grid-cols-7 gap-3">
             {graphDays.map((day) => {
-              const key = getDateKey(day);
+              const key = getJstDateKey(day);
               const active = stats.activityDays.has(key);
-              const today = key === todayKey;
+              const isToday = key === todayKey;
               return (
                 <div
                   key={key}
@@ -341,13 +272,23 @@ export default function PulseClient() {
                   className={[
                     "h-4 w-4 rounded-full",
                     active ? "bg-[var(--electric)]" : "bg-[var(--surface-3)]",
-                    today ? "ring-2 ring-[var(--electric)] ring-offset-2 ring-offset-[var(--surface-2)]" : "",
+                    isToday ? "ring-2 ring-[var(--electric)] ring-offset-2 ring-offset-[var(--surface-2)]" : "",
                   ].join(" ")}
                 />
               );
             })}
           </div>
         </motion.section>
+
+        {/* ─── サブ統計 ─── */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.55 }}
+          className="mt-4 text-center font-mono text-xs text-[color-mix(in_srgb,var(--foreground)_36%,transparent)]"
+        >
+          最長継続 {stats.longestStreak}日 &nbsp;/&nbsp; 今週 {stats.weeklyCount}/7 &nbsp;/&nbsp; 総Journey {stats.totalJourneys}
+        </motion.p>
       </div>
     </main>
   );

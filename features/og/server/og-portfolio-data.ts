@@ -5,6 +5,7 @@
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { supabaseServer } from "@/lib/supabase/server";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
+import { computeStreak } from "@/lib/pulse-stats";
 import { env } from "@/lib/env";
 import { fetchBase64 } from "./og-data-service";
 
@@ -42,25 +43,6 @@ interface JourneyRow {
     created_at: string;
 }
 
-function shiftDate(d: Date, n: number): Date {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
-}
-
-function currentStreak(dateKeys: Set<string>): number {
-    if (dateKeys.size === 0) return 0;
-    const today = getJstDateKey(new Date());
-    const yesterday = getJstDateKey(shiftDate(new Date(), -1));
-    if (!dateKeys.has(today) && !dateKeys.has(yesterday)) return 0;
-    let count = 0;
-    let cursor = dateKeys.has(today) ? new Date() : shiftDate(new Date(), -1);
-    while (dateKeys.has(getJstDateKey(cursor))) {
-        count += 1;
-        cursor = shiftDate(cursor, -1);
-    }
-    return count;
-}
 
 export async function getOgPortfolioData(
     slug: string,
@@ -89,8 +71,7 @@ export async function getOgPortfolioData(
 
     const dayCount = calcDayCount(day0Date, oldest) ?? 0;
     const journeyCount = journeys.length;
-    const keys = new Set(journeys.map((j) => getJstDateKey(new Date(j.created_at))));
-    const streak = currentStreak(keys);
+    const streak = computeStreak(journeys.map((j) => j.created_at));
 
     const completionItems = [
         Boolean(day0Date),

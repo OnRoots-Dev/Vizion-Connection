@@ -15,6 +15,7 @@ import { PortfolioShareButton } from "./PortfolioShareButton";
 import { env } from "@/lib/env";
 import type { UserRole } from "@/features/auth/types";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
+import { computeStreak, computeLongestStreak } from "@/lib/pulse-stats";
 import { getConditionMeta } from "@/components/DailyLog/journey";
 
 export const dynamic = "force-dynamic";
@@ -57,31 +58,6 @@ function monthLabel(iso: string): string {
 }
 function fullDate(iso: string): string {
     return new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" }).format(new Date(iso));
-}
-function computeStreaks(rows: PublicJourney[]): { current: number; longest: number } {
-    const days = new Set(rows.map((r) => getJstDateKey(new Date(r.created_at))));
-    if (days.size === 0) return { current: 0, longest: 0 };
-    const today = getJstDateKey(new Date());
-    const yesterday = getJstDateKey(shiftDate(new Date(), -1));
-    let current = 0;
-    if (days.has(today) || days.has(yesterday)) {
-        let cursor = days.has(today) ? new Date() : shiftDate(new Date(), -1);
-        while (days.has(getJstDateKey(cursor))) {
-            current += 1;
-            cursor = shiftDate(cursor, -1);
-        }
-    }
-    const sorted = [...days].sort();
-    let longest = 0;
-    let run = 0;
-    let prev: string | null = null;
-    for (const key of sorted) {
-        if (prev && diffJstDays(prev, key) === 1) run += 1;
-        else run = 1;
-        longest = Math.max(longest, run);
-        prev = key;
-    }
-    return { current, longest };
 }
 
 interface Props {
@@ -148,7 +124,9 @@ export default async function PublicPortfolioPage({ params }: Props) {
     const oldestIso = journeys.length ? journeys[journeys.length - 1].created_at : null;
     const basisKey = day0Date ? getJstDateKey(new Date(day0Date)) : oldestIso ? getJstDateKey(new Date(oldestIso)) : null;
     const dayCount = calcDayCount(day0Date, oldestIso) ?? 0;
-    const { current: currentStreak, longest: longestStreak } = computeStreaks(journeys);
+    const journeyIsoDates = journeys.map((j) => j.created_at);
+    const currentStreak = computeStreak(journeyIsoDates);
+    const longestStreak = computeLongestStreak(journeyIsoDates);
     const totalCheer = journeys.reduce((s, j) => s + (j.cheer_count ?? 0), 0);
     const since = day0Date ?? oldestIso;
 

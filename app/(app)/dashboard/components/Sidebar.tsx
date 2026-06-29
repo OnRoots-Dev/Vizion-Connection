@@ -8,28 +8,10 @@ import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
 import { getPlanFeatures } from "@/features/business/plan-features";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { PulseIndicator } from "./ui";
+import { computeStreak } from "@/lib/pulse-stats";
 import Image from "next/image";
 import Link from "next/link";
 
-// 現在の連続記録（PULSE）日数を JST 基準で計算する。
-function jstDayString(iso: string): string {
-    return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
-function computeStreak(dates: string[]): number {
-    const days = new Set(dates.map(jstDayString));
-    if (days.size === 0) return 0;
-    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
-    // 今日 or 昨日に記録がなければ連続記録は途切れている
-    let cursor = days.has(today) ? today : days.has(yesterday) ? yesterday : null;
-    if (!cursor) return 0;
-    let streak = 0;
-    while (days.has(cursor)) {
-        streak += 1;
-        cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
-    }
-    return streak;
-}
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",

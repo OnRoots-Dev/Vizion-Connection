@@ -9,27 +9,11 @@ import type { DailyLog } from "@/features/daily-log/types";
 import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
 import { ActivityExtras } from "@/components/DailyLog/ActivityExtras";
 import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, getTodayString, JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
+import { computeStreak } from "@/lib/pulse-stats";
 import { calcDayCount } from "@/lib/day-count";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 // 連続記録（PULSE）日数を JST 基準で算出（journeys から）
-function jstDayKey(iso: string): string {
-  return new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
-function computeStreakDays(dates: string[]): number {
-  const days = new Set(dates.map(jstDayKey));
-  if (days.size === 0) return 0;
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const yest = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10);
-  let cursor = days.has(today) ? today : days.has(yest) ? yest : null;
-  if (!cursor) return 0;
-  let streakCount = 0;
-  while (days.has(cursor)) {
-    streakCount += 1;
-    cursor = new Date(new Date(`${cursor}T00:00:00Z`).getTime() - 86400000).toISOString().slice(0, 10);
-  }
-  return streakCount;
-}
 
 function getJourneyPlaceholder(role: string): string {
   const r = role.toLowerCase();
@@ -325,7 +309,7 @@ export function MyJourneyView({
         .order("created_at", { ascending: false })
         .limit(120)
         .then(({ data }) => {
-          setStreakDays(computeStreakDays((data ?? []).map((r) => String(r.created_at))));
+          setStreakDays(computeStreak((data ?? []).map((r) => String(r.created_at))));
         });
 
       // 公開Journeyは既に Timeline に表示済み → シェア導線（祝祭）を表示。

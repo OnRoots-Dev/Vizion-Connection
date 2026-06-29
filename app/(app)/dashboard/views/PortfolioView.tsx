@@ -8,6 +8,7 @@ import type { ProfileData } from "@/features/profile/types";
 import type { JourneyEntry } from "@/features/journey/types";
 import { getConditionMeta } from "@/components/DailyLog/journey";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
+import { computeStreak, computeLongestStreak } from "@/lib/pulse-stats";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function diffJstDays(fromKey: string, toKey: string): number {
@@ -33,32 +34,6 @@ function monthLabel(dateIso: string): string {
 // コンディション(1-5)を色で表現
 const CONDITION_COLOR: Record<number, string> = { 1: "#FF5050", 2: "#FF8A3C", 3: "#FFC81E", 4: "#7FD15B", 5: "#32D278" };
 
-function computeStreaks(dateKeys: Set<string>): { current: number; longest: number } {
-  if (dateKeys.size === 0) return { current: 0, longest: 0 };
-  const todayKey = getJstDateKey(new Date());
-  const yesterdayKey = getJstDateKey(addDays(new Date(), -1));
-
-  let current = 0;
-  if (dateKeys.has(todayKey) || dateKeys.has(yesterdayKey)) {
-    let cursor = dateKeys.has(todayKey) ? new Date() : addDays(new Date(), -1);
-    while (dateKeys.has(getJstDateKey(cursor))) {
-      current += 1;
-      cursor = addDays(cursor, -1);
-    }
-  }
-
-  const sorted = [...dateKeys].sort();
-  let longest = 0;
-  let run = 0;
-  let prev: string | null = null;
-  for (const key of sorted) {
-    if (prev && diffJstDays(prev, key) === 1) run += 1;
-    else run = 1;
-    longest = Math.max(longest, run);
-    prev = key;
-  }
-  return { current, longest };
-}
 
 // ─── component ────────────────────────────────────────────────────────────────
 export function PortfolioView({
@@ -106,8 +81,11 @@ export function PortfolioView({
 
   const dayCount = useMemo(() => calcDayCount(profile.day0Date, oldestIso), [profile.day0Date, oldestIso]);
 
-  const dateKeys = useMemo(() => new Set((journeys ?? []).map((j) => getJstDateKey(new Date(j.created_at)))), [journeys]);
-  const streaks = useMemo(() => computeStreaks(dateKeys), [dateKeys]);
+  const journeyDateStrings = useMemo(() => (journeys ?? []).map((j) => j.created_at), [journeys]);
+  const streaks = useMemo(() => ({
+    current: computeStreak(journeyDateStrings),
+    longest: computeLongestStreak(journeyDateStrings),
+  }), [journeyDateStrings]);
 
   const stats = useMemo(() => {
     const list = journeys ?? [];

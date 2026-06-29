@@ -23,6 +23,7 @@ import PublicProfileRealtime from "./PublicProfileRealtime";
 import PublicProfileTabs from "./PublicProfileTabs";
 import BondAudience from "./BondAudience";
 import { supabaseServer } from "@/lib/supabase/server";
+import { computeStreak } from "@/lib/pulse-stats";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import PublicProfileCountValue from "./PublicProfileCountValue";
 import Image from "next/image";
@@ -30,22 +31,6 @@ import Link from "next/link";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
 import { ProfilePortfolioNav } from "./ProfilePortfolioNav";
 
-function _jstKey(d: Date): string {
-    return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
-}
-function _shiftDate(d: Date, n: number): Date {
-    const r = new Date(d); r.setDate(r.getDate() + n); return r;
-}
-function computePublicStreak(rows: Array<{ created_at: string }>): number {
-    const days = new Set(rows.map(r => _jstKey(new Date(r.created_at))));
-    const today = _jstKey(new Date());
-    const yesterday = _jstKey(_shiftDate(new Date(), -1));
-    if (!days.has(today) && !days.has(yesterday)) return 0;
-    let count = 0;
-    let cursor = days.has(today) ? new Date() : _shiftDate(new Date(), -1);
-    while (days.has(_jstKey(cursor))) { count++; cursor = _shiftDate(cursor, -1); }
-    return count;
-}
 
 const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#B8860B", Business: "#1B3A8C",
@@ -144,7 +129,7 @@ export default async function UserProfilePage({ params }: Props) {
             .gte("created_at", since365)
             .then(({ data }) => (data ?? []) as Array<{ created_at: string }>),
     ]);
-    const streakDays = computePublicStreak(journeyDates);
+    const streakDays = computeStreak(journeyDates.map(r => r.created_at));
     // 閲覧者がこのプロフィールを Bond（観客席入り）しているか
     let isBonded = false;
     if (viewerSlug && !isOwn) {
