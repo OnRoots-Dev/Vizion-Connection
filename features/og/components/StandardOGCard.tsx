@@ -1,6 +1,8 @@
 import { createElement as h } from "react";
 import type { OgProfileData } from "@/features/og/server/og-data-service";
 
+const ACCENT = "#C8E800";
+
 export function StandardOGCard(profile: OgProfileData): React.ReactElement {
     const displayName = profile.displayName;
     const bio = profile.bio;
@@ -15,25 +17,31 @@ export function StandardOGCard(profile: OgProfileData): React.ReactElement {
     const bgData = profile.bgData;
     const roleLabel = profile.roleLabel;
 
-    // ── OG 1200×630 ── DEMOカードのフロント面を忠実再現
-    const nameFz = displayName.length > 16 ? (displayName.length > 22 ? "36px" : "46px") : "58px";
+    // ── OG 1200×630 ── シャープ版：黒背景・アクセント・ロールバッジ
+    const nameFz = displayName.length > 16 ? (displayName.length > 22 ? "42px" : "54px") : "68px";
 
     return h("div", {
         style: {
             width: "1200px", height: "630px",
             display: "flex", position: "relative",
-            overflow: "hidden", fontFamily: "sans-serif",
-            background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 50%, #000) 55%, #060606 100%)`,
+            overflow: "hidden", fontFamily: "monospace, sans-serif",
+            background: "#050508",
         }
     },
-        // ── ベース背景グラデーション
-        h("div", { style: { position: "absolute", inset: 0, background: `linear-gradient(145deg, ${bg1} 0%, color-mix(in srgb, ${bg1} 50%, #000) 55%, #060606 100%)`, display: "flex" } }),
+        // ── ロールカラーグラデーション（左側）
+        h("div", { style: { position: "absolute", inset: 0, background: `linear-gradient(115deg, ${bg1} 0%, rgba(5,5,8,0.85) 45%, #050508 100%)`, display: "flex" } }),
+
+        // ── グリッドライン
+        h("div", { style: { position: "absolute", inset: 0, backgroundImage: `repeating-linear-gradient(0deg, ${ACCENT}05 0px, ${ACCENT}05 1px, transparent 1px, transparent 80px), repeating-linear-gradient(90deg, ${ACCENT}05 0px, ${ACCENT}05 1px, transparent 1px, transparent 80px)`, display: "flex" } }),
 
         // ── Sheen（光沢）
-        h("div", { style: { position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.02) 30%,transparent 55%)", display: "flex" } }),
+        h("div", { style: { position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.01) 30%,transparent 55%)", display: "flex" } }),
 
-        // ── グロー（右上）
-        h("div", { style: { position: "absolute", right: "-10%", top: "-10%", width: "360px", height: "360px", background: `radial-gradient(circle at center, ${rl}30, transparent 70%)`, display: "flex" } }),
+        // ── ロールカラーグロー（右上）
+        h("div", { style: { position: "absolute", right: "-8%", top: "-15%", width: "420px", height: "420px", background: `radial-gradient(circle at center, ${rl}28, transparent 68%)`, display: "flex" } }),
+
+        // ── ACCENT グロー（左下）
+        h("div", { style: { position: "absolute", left: "-5%", bottom: "-20%", width: "300px", height: "300px", background: `radial-gradient(circle at center, ${ACCENT}10, transparent 65%)`, display: "flex" } }),
 
         // ── 写真（右側、maskでフェード）
         bgData
@@ -41,73 +49,92 @@ export function StandardOGCard(profile: OgProfileData): React.ReactElement {
                 src: bgData,
                 style: {
                     position: "absolute", bottom: 0, right: "-8px",
-                    width: "65%", height: "105%",
+                    width: "60%", height: "105%",
                     objectFit: "cover", objectPosition: "center top",
-                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
-                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 16%,black 38%)",
+                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 16%,black 38%)",
                 }
             })
             : h("div", {
                 style: {
                     position: "absolute", bottom: 0, right: "-8px",
-                    width: "65%", height: "116%",
+                    width: "60%", height: "116%",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "148px", fontWeight: 900, color: `${rl}08`,
+                    fontSize: "180px", fontWeight: 900, color: `${rl}06`,
                     fontFamily: "monospace",
-                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
-                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 18%,black 42%)",
+                    WebkitMaskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 16%,black 38%)",
+                    maskImage: "linear-gradient(to right,transparent 0%,rgba(0,0,0,0.35) 16%,black 38%)",
                 }
             }, initials),
 
-        // ── Watermark
-        h("div", { style: { position: "absolute", bottom: "10px", right: "14px", fontFamily: "monospace", fontSize: "6px", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.06)", display: "flex" } },
-            "VIZION CONNECTION · PROOF OF EXISTENCE"
-        ),
-
-        // ── 左テキストエリア（40%幅）
+        // ── 左テキストエリア（44%幅）
         h("div", {
             style: {
                 position: "absolute", inset: 0,
                 display: "flex", flexDirection: "column", justifyContent: "space-between",
-                padding: "28px 0 24px 28px",
-                width: "42%",
+                padding: "32px 0 28px 36px",
+                width: "46%",
             }
         },
-            // 上部：Founding badge + location
-            h("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } },
-                // Founding Member Badge
-                h("div", { style: { display: "flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "4px", background: `${rl}22`, border: `1px solid ${rl}55`, alignSelf: "flex-start" } },
-                    h("span", { style: { fontSize: "10px", fontWeight: 900, color: rl, letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "monospace" } }, isFounding ? "FOUNDING MEMBER" : "EARLY MEMBER")
+            // 上部：ロールバッジ + founding + location
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "10px" } },
+                // ロールバッジ（シャープ）
+                h("div", { style: { display: "flex", alignItems: "center", gap: "8px" } },
+                    h("div", {
+                        style: {
+                            display: "flex", alignItems: "center", gap: "6px",
+                            padding: "5px 12px", borderRadius: "3px",
+                            background: rl, alignSelf: "flex-start",
+                        }
+                    },
+                        h("span", { style: { fontSize: "11px", fontWeight: 900, color: "#000000", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "monospace" } }, roleLabel)
+                    ),
+                    isFounding && h("div", {
+                        style: {
+                            display: "flex", alignItems: "center",
+                            padding: "5px 10px", borderRadius: "3px",
+                            background: `${ACCENT}18`, border: `1px solid ${ACCENT}55`,
+                        }
+                    },
+                        h("span", { style: { fontSize: "9px", fontWeight: 900, color: ACCENT, letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "monospace" } }, "FOUNDING")
+                    )
                 ),
                 // location
-                location && h("span", { style: { fontSize: "13px", fontFamily: "monospace", letterSpacing: "0.06em", color: "rgba(255,255,255,0.55)" } }, location)
+                location && h("span", { style: { fontSize: "12px", fontFamily: "monospace", letterSpacing: "0.08em", color: "rgba(255,255,255,0.45)" } }, location)
             ),
 
-            // 中部：Role → 名前 → sport → Cheer
-            h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-                h("span", { style: { fontSize: "12px", fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", fontFamily: "monospace" } }, roleLabel),
-                h("div", { style: { fontSize: nameFz, fontWeight: 900, color: "#ffffff", lineHeight: 1.05, letterSpacing: "-0.01em", display: "flex", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55)" } }, displayName),
-                (sport || bio) && h("span", { style: { fontSize: "15px", fontFamily: "monospace", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)" } }, sport || bio),
-                h("div", { style: { display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" } },
-                    h("span", { style: { fontSize: "12px", color: "#FFD600" } }, "*"),
-                    h("span", { style: { fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)", fontFamily: "monospace" } }, "Cheer"),
-                    h("span", { style: { fontSize: "20px", fontWeight: 700, lineHeight: 1, color: "#FFD600", fontFamily: "monospace" } }, cheerCount.toLocaleString())
+            // 中部：名前 → sport → Cheer
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+                h("div", {
+                    style: {
+                        fontSize: nameFz, fontWeight: 900, color: "#ffffff",
+                        lineHeight: 1.0, letterSpacing: "-0.02em", display: "flex",
+                        textShadow: `0 0 40px ${rl}30, 0 2px 8px rgba(0,0,0,0.8)`,
+                    }
+                }, displayName),
+                (sport || bio) && h("span", { style: { fontSize: "14px", fontFamily: "monospace", letterSpacing: "0.06em", color: "rgba(255,255,255,0.45)", marginTop: "2px" } }, sport || bio),
+                h("div", { style: { display: "flex", alignItems: "center", gap: "8px", marginTop: "8px" } },
+                    h("div", { style: { width: "3px", height: "28px", background: "#FFD600", borderRadius: "2px", display: "flex" } }),
+                    h("div", { style: { display: "flex", flexDirection: "column", gap: "1px" } },
+                        h("span", { style: { fontSize: "8px", letterSpacing: "0.22em", color: "rgba(255,255,255,0.3)", fontFamily: "monospace", textTransform: "uppercase" } }, "Cheer"),
+                        h("span", { style: { fontSize: "26px", fontWeight: 900, lineHeight: 1, color: "#FFD600", fontFamily: "monospace" } }, cheerCount.toLocaleString())
+                    )
                 )
             ),
 
-            // 下部：serial ID
-            h("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } },
-                h("span", { style: { fontSize: "15px", fontWeight: 700, letterSpacing: "0.13em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", fontFamily: "monospace", textShadow: "0 1px 0 rgba(255,255,255,0.38), 0 -1px 0 rgba(0,0,0,0.65)" } }, serialId),
-                h("div", { style: { display: "flex", alignItems: "center", gap: "5px" } },
-                    h("div", { style: { width: "18px", height: "1px", background: "rgba(255,255,255,0.2)", display: "flex" } }),
-                    h("span", { style: { fontSize: "8px", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)", fontFamily: "monospace" } }, "TAP TO SEE PROFILE")
+            // 下部：serial ID + CTA
+            h("div", { style: { display: "flex", flexDirection: "column", gap: "6px" } },
+                h("span", { style: { fontSize: "14px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)", fontFamily: "monospace" } }, serialId),
+                h("div", { style: { display: "flex", alignItems: "center", gap: "8px" } },
+                    h("div", { style: { width: "20px", height: "1px", background: `${ACCENT}60`, display: "flex" } }),
+                    h("span", { style: { fontSize: "8px", letterSpacing: "0.18em", textTransform: "uppercase", color: `${ACCENT}70`, fontFamily: "monospace" } }, "VIZION CONNECTION")
                 )
             )
         ),
 
-        // ── ロゴ（右下）
-        h("div", { style: { position: "absolute", bottom: "14px", right: "14px", display: "flex" } },
-            h("span", { style: { fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.15)", letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "monospace" } }, "VIZION CONNECTION")
+        // ── Watermark（右下）
+        h("div", { style: { position: "absolute", bottom: "12px", right: "16px", fontFamily: "monospace", fontSize: "7px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.07)", display: "flex" } },
+            "PROOF OF EXISTENCE"
         )
     );
 }

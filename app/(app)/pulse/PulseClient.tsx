@@ -289,7 +289,60 @@ export default function PulseClient() {
         >
           最長継続 {stats.longestStreak}日 &nbsp;/&nbsp; 今週 {stats.weeklyCount}/7 &nbsp;/&nbsp; 総Journey {stats.totalJourneys}
         </motion.p>
+
+        {/* ─── シェアボタン ─── */}
+        {pulseScore && slug ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="mt-6 flex justify-center"
+          >
+            <PulseShareButton slug={slug} pulseScore={pulseScore} />
+          </motion.div>
+        ) : null}
       </div>
     </main>
+  );
+}
+
+function PulseShareButton({ slug, pulseScore }: { slug: string; pulseScore: { score: number; streak: number; cheerCount: number; bondCount: number } }) {
+  const [shared, setShared] = useState<"idle" | "done" | "copied">("idle");
+
+  async function handleShare() {
+    const url = `${window.location.origin}/u/${slug}`;
+    const title = `${slug}のPulse Score — ${pulseScore.score}`;
+    const text = `継続${pulseScore.streak}日 / Cheer${pulseScore.cheerCount} / Bond${pulseScore.bondCount}`;
+    if (typeof navigator.share !== "undefined") {
+      try {
+        await navigator.share({ title, text, url });
+        setShared("done");
+        setTimeout(() => setShared("idle"), 2000);
+      } catch { /* キャンセル無視 */ }
+    } else {
+      try { await navigator.clipboard.writeText(`${title}\n${text}\n${url}`); } catch { /* ignore */ }
+      setShared("copied");
+      setTimeout(() => setShared("idle"), 2000);
+    }
+  }
+
+  return (
+    <button
+      onClick={() => void handleShare()}
+      className="flex items-center gap-2 rounded-lg border border-[var(--electric)] bg-[var(--pulse-dim)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--electric)] transition-opacity hover:opacity-80"
+    >
+      {shared === "done" ? (
+        "シェアしました ✓"
+      ) : shared === "copied" ? (
+        "コピーしました ✓"
+      ) : (
+        <>
+          <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+          </svg>
+          Pulseをシェアする
+        </>
+      )}
+    </button>
   );
 }
