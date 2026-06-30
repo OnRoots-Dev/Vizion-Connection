@@ -303,7 +303,7 @@ export default function UnifiedProfileModal({
             >
               <div
                 className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
-                style={{ background: "#ffffff" }}
+                style={{ background: "#C8E800" }}
               />
 
               <button
@@ -335,7 +335,7 @@ export default function UnifiedProfileModal({
                 <div className="h-[2px] rounded-full overflow-hidden mb-4" style={{ background: "rgba(255,255,255,0.06)" }}>
                   <motion.div
                     className="h-full rounded-full"
-                    style={{ background: "linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.35))" }}
+                    style={{ background: "linear-gradient(90deg, #C8E800, rgba(200,232,0,0.4))" }}
                     animate={{ width: `${progressPct}%` }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   />

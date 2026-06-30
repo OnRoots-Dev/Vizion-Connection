@@ -246,9 +246,9 @@ export function NotificationsView({
             onClick={markAllRead}
             disabled={submitting || unreadInList === 0}
             style={{
-              border: "1px solid rgba(167,139,250,0.3)",
+              border: "1px solid rgba(200,232,0,0.3)",
               background: "transparent",
-              color: unreadInList === 0 ? "rgba(255,255,255,0.28)" : "#a78bfa",
+              color: unreadInList === 0 ? "rgba(255,255,255,0.28)" : "#C8E800",
               opacity: unreadInList === 0 ? 0.5 : 1,
               borderRadius: 8,
               padding: "10px 20px",
@@ -287,7 +287,7 @@ export function NotificationsView({
       ) : (
         <div style={{ display: "grid", gap: 8 }}>
           {items.map((item) => (
-            <SectionCard key={item.id} t={t} accentColor={item.isRead ? undefined : "#a78bfa"}>
+            <SectionCard key={item.id} t={t} accentColor={item.isRead ? undefined : "#C8E800"}>
               <div style={{ display: "grid", gap: 8, padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -304,8 +304,8 @@ export function NotificationsView({
                       <span style={{
                         fontSize: 10,
                         fontWeight: 900,
-                        color: "#a78bfa",
-                        border: "1px solid rgba(167,139,250,0.3)",
+                        color: "#C8E800",
+                        border: "1px solid rgba(200,232,0,0.3)",
                         borderRadius: 999,
                         padding: "1px 6px",
                       }}>
@@ -329,7 +329,7 @@ export function NotificationsView({
                   {item.linkUrl && (
                     <a
                       href={item.linkUrl}
-                      style={{ fontSize: 11, color: "#a78bfa", textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ fontSize: 11, color: "#C8E800", textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       開く
                     </a>

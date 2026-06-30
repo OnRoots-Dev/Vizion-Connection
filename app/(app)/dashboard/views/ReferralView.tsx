@@ -102,12 +102,13 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
                             width: "100%",
                             padding: "12px 14px",
                             borderRadius: 12,
-                            background: copied ? "rgba(255,214,0,0.18)" : "rgba(255,214,0,0.12)",
-                            border: `1px solid ${copied ? "rgba(255,214,0,0.5)" : "rgba(255,214,0,0.28)"}`,
-                            color: "#FFD600",
+                            background: copied ? "rgba(200,232,0,0.85)" : "#C8E800",
+                            border: "1px solid rgba(200,232,0,0.55)",
+                            color: "#000",
                             fontSize: 12,
                             fontWeight: 900,
                             cursor: "pointer",
+                            boxShadow: "0 0 20px rgba(200,232,0,0.25)",
                         }}
                     >
                         {copied ? "✓ リンクをコピーしました" : "リンクをコピー"}
