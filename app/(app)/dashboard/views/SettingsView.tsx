@@ -188,7 +188,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                 ))}
             </SectionCard>
 
-            <SectionCard t={t} accentColor="#a78bfa">
+            <SectionCard t={t} accentColor="#C8E800">
                 <SLabel text="サポート" />
                 <button
                     type="button"
@@ -236,7 +236,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                 */}
             </SectionCard>
 
-            <SectionCard t={t} accentColor="#a78bfa">
+            <SectionCard t={t} accentColor="#C8E800">
                 <SLabel text="メールアドレス変更" />
                 <div style={{ display: "grid", gap: 8 }}>
                     <input
@@ -250,7 +250,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                         type="button"
                         onClick={() => void handleEmailChange()}
                         disabled={emailLoading || !newEmail.trim()}
-                        style={{ width: "100%", padding: "11px 0", borderRadius: 8, background: "#a78bfa", border: "none", color: "#000", fontSize: 13, fontWeight: 700, cursor: emailLoading ? "wait" : "pointer", opacity: emailLoading || !newEmail.trim() ? 0.6 : 1, boxShadow: "0 0 20px rgba(167,139,250,0.3)" }}
+                        style={{ width: "100%", padding: "11px 0", borderRadius: 8, background: "#C8E800", border: "none", color: "#000", fontSize: 13, fontWeight: 700, cursor: emailLoading ? "wait" : "pointer", opacity: emailLoading || !newEmail.trim() ? 0.6 : 1, boxShadow: "0 0 20px rgba(200,232,0,0.3)" }}
                     >
                         {emailLoading ? "送信中..." : "確認メールを送信"}
                     </button>
@@ -283,7 +283,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                         type="button"
                         onClick={() => void handlePasswordChange()}
                         disabled={passwordLoading || !currentPassword || !newPassword}
-                        style={{ width: "100%", padding: "11px 0", borderRadius: 8, background: "#a78bfa", border: "none", color: "#000", fontSize: 13, fontWeight: 700, cursor: passwordLoading ? "wait" : "pointer", opacity: passwordLoading || !currentPassword || !newPassword ? 0.6 : 1, boxShadow: "0 0 20px rgba(167,139,250,0.3)" }}
+                        style={{ width: "100%", padding: "11px 0", borderRadius: 8, background: "#C8E800", border: "none", color: "#000", fontSize: 13, fontWeight: 700, cursor: passwordLoading ? "wait" : "pointer", opacity: passwordLoading || !currentPassword || !newPassword ? 0.6 : 1, boxShadow: "0 0 20px rgba(200,232,0,0.3)" }}
                     >
                         {passwordLoading ? "変更中..." : "パスワードを変更"}
                     </button>
@@ -294,7 +294,7 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                     ) : null}
                 </div>
             </SectionCard>
-            <SectionCard t={t} accentColor="#a78bfa">
+            <SectionCard t={t} accentColor="#C8E800">
                 <SLabel text="アカウント公開設定" />
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -308,12 +308,12 @@ export function SettingsView({ profile, t, roleColor, onBack, setView, onProfile
                         onClick={() => void handleVisibilityToggle()}
                         disabled={savingVisibility}
                         aria-label="アカウント公開設定"
-                        style={{ position: "relative", width: 52, height: 30, borderRadius: 999, background: isPublic ? "#a78bfa" : "rgba(255,255,255,0.08)", border: "none", cursor: savingVisibility ? "wait" : "pointer", transition: "background 0.2s", flexShrink: 0, padding: 0, opacity: savingVisibility ? 0.7 : 1 }}
+                        style={{ position: "relative", width: 52, height: 30, borderRadius: 999, background: isPublic ? "#C8E800" : "rgba(255,255,255,0.08)", border: "none", cursor: savingVisibility ? "wait" : "pointer", transition: "background 0.2s", flexShrink: 0, padding: 0, opacity: savingVisibility ? 0.7 : 1 }}
                     >
                         <span style={{ position: "absolute", top: 3, left: isPublic ? 25 : 3, width: 24, height: 24, borderRadius: "50%", background: "#f0f0f5", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.25)" }} />
                     </button>
                 </div>
-                <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: isPublic ? "rgba(167,139,250,0.08)" : "rgba(255,160,80,0.08)", border: `1px solid ${isPublic ? "rgba(167,139,250,0.2)" : "rgba(255,160,80,0.2)"}`, fontSize: 11, color: isPublic ? "rgba(255,255,255,0.55)" : "#ffb07a", lineHeight: 1.7 }}>
+                <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 12, background: isPublic ? "rgba(200,232,0,0.08)" : "rgba(255,160,80,0.08)", border: `1px solid ${isPublic ? "rgba(200,232,0,0.2)" : "rgba(255,160,80,0.2)"}`, fontSize: 11, color: isPublic ? "rgba(255,255,255,0.55)" : "#ffb07a", lineHeight: 1.7 }}>
                     非公開中は公開プロフィール、カードページ、紹介リンクの閲覧導線が停止します。
                 </div>
                 {visibilityMessage ? (

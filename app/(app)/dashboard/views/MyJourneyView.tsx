@@ -541,9 +541,14 @@ export function MyJourneyView({
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 8px", textAlign: "center" }}>
-                <p style={{ margin: 0, fontFamily: "var(--font-bebas)", fontSize: 26, letterSpacing: "0.06em", color: "var(--electric)" }}>
+                <motion.p
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                  style={{ margin: 0, fontFamily: "var(--font-bebas)", fontSize: 26, letterSpacing: "0.06em", color: "var(--electric)" }}
+                >
                   今日のPulseを刻みました
-                </p>
+                </motion.p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 360 }}>
                   <button
                     type="button"
