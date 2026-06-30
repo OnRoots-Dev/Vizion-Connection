@@ -277,7 +277,7 @@ export default function BusinessCheckoutClient({
                     {state === "loading" ? "処理中..." : `${selectedPlan.priceLabel} で申し込む →`}
                   </button>
                 </div>
-                {(selectedPlan.id === "presence" || selectedPlan.id === "legacy") && (
+                {(selectedPlan.id === "signal" || selectedPlan.id === "presence" || selectedPlan.id === "legacy") && (
                   <p className="text-center font-mono text-[.68rem] tracking-[.06em] text-[#3a3f50]">
                     請求書払い・振込をご希望の方は{" "}
                     <a

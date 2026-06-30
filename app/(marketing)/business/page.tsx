@@ -17,7 +17,7 @@ const WHY_ITEMS = [
 const FAQS = [
   { q: "Q. 地方プランはどのブロックを選べますか？", a: "北海道・東北 / 関東 / 中部 / 近畿 / 中国・四国 / 九州・沖縄の6ブロックから選択できます。申し込み後の確認メールにてご希望ブロックをお知らせください。" },
   { q: "Q. 複数ブロックに出稿できますか？", a: "可能です。ブロックごとに1プランとしてお申し込みください。" },
-  { q: "Q. 決済方法は？", a: "Square決済（クレジットカード）または銀行振込に対応しています。法人請求書が必要な場合は銀行振込をお選びください。" },
+  { q: "Q. 決済方法は？", a: "Square決済（クレジットカード）は全プランでご利用いただけます。銀行振込・請求書払いは Signal / Presence / Legacy が対象です。法人請求書が必要な場合は銀行振込をお選びください。" },
   { q: "Q. 特典の詳細は？", a: "全プランで正式版3ヶ月間を月額料金のまま利用できます。" },
   { q: "Q. キャンセルはできますか？", a: "決済後の扱いはプランや決済方法によって異なります。詳細はお問い合わせください。" },
   { q: "Q. 紹介制度はありますか？", a: "紹介いただいた企業が成約した場合、決済額の15%相当のVizion Pointを付与します。" },
@@ -258,11 +258,11 @@ export default function BusinessPage() {
                   body: <>
                     <strong className="font-semibold text-[#c8cdd8]">Square決済</strong>（クレジットカード）→ 即時確定・今すぐ申込可能
                     <br /><br />
-                    <strong className="font-semibold text-[#c8cdd8]">銀行振込</strong>（請求書発行可能）→ 法人経費での処理に対応
+                    <strong className="font-semibold text-[#c8cdd8]">銀行振込</strong>（請求書発行可能）→ 法人経費での処理に対応（Signal / Presence / Legacy が対象）
                     <br /><br />
                     <span className="font-semibold text-[#c8cdd8]">銀行振込先</span>
                     <br />
-                    ・口座情報はお申し込み完了後の自動返信メールに記載されます
+                    ・お問い合わせ後、運営より口座情報を記載した案内メールをお送りします（Signal / Presence / Legacy が対象）
                     <br />
                     ・振込名義は「申込企業名」でお願いいたします
                     <br />
