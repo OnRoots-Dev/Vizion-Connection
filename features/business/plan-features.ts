@@ -12,19 +12,6 @@ export const PLAN_FEATURES = {
     abTest: false,
     cheerLogo: false,
   },
-  roots_plus: {
-    adSize: "medium",
-    adScope: "regional",
-    discoveryPriority: 1,
-    discoveryFixed: false,
-    badgeColor: "#BA7517",
-    badgeLabel: "Roots+ Partner",
-    simpleReport: true,
-    fullReport: false,
-    businessHub: false,
-    abTest: false,
-    cheerLogo: false,
-  },
   signal: {
     adSize: "medium",
     adScope: "national",
@@ -78,6 +65,5 @@ export const PLAN_PRIORITY: Record<string, number> = {
   legacy: 4,
   presence: 3,
   signal: 2,
-  roots_plus: 1,
   roots: 0,
 };

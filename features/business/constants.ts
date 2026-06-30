@@ -3,14 +3,12 @@ import type { BusinessPlan, PlanId } from "./types";
 
 export const PLAN_LINKS = {
     roots: process.env.NEXT_PUBLIC_SQUARE_LINK_ROOTS ?? "",
-    rootsPlus: process.env.NEXT_PUBLIC_SQUARE_LINK_ROOTS_PLUS ?? "",
     signal: process.env.NEXT_PUBLIC_SQUARE_LINK_SIGNAL ?? "",
     presence: process.env.NEXT_PUBLIC_SQUARE_LINK_PRESENCE ?? "",
     legacy: process.env.NEXT_PUBLIC_SQUARE_LINK_LEGACY ?? "", // Calendlyリンクを設定
 } as const;
 
 export function getPlanLinkById(planId: PlanId): string {
-    if (planId === "roots-plus") return PLAN_LINKS.rootsPlus;
     if (planId === "roots") return PLAN_LINKS.roots;
     if (planId === "signal") return PLAN_LINKS.signal;
     if (planId === "presence") return PLAN_LINKS.presence;
@@ -32,23 +30,6 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "コンテンツカード形式（PRバッジ付き）",
             "β版価格が正式版以降も継続（価格保護）",
             "全国120枠限定",
-        ],
-    },
-    {
-        id: "roots-plus",
-        name: "🌿 Roots+",
-        tagline: "地域で、際立つ存在になる。",
-        priceLabel: "¥50,000",
-        amount: 50_000,
-        seats: 60,
-        highlight: false,
-        benefits: [
-            "都道府県・市区町村単位でターゲット表示",
-            "Roots より掲載順が上位",
-            "同エリアのユーザーのDiscovery・Profileに掲載",
-            "コンテンツカード形式（PRバッジ付き）",
-            "β版価格が正式版以降も継続（価格保護）",
-            "全国60枠限定",
         ],
     },
     {

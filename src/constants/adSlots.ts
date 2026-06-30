@@ -8,22 +8,20 @@ export const AD_CONFIG = {
   // 枠B: Signal のみ。FEED_AD_INTERVAL ごとにインライン挿入
   SLOT_B_TIERS: ["signal"] as const,
 
-  // 地方枠: Roots+ と Roots を同一スロットでランダム共有（ウェイト付き）
-  LOCAL_SLOT_TIERS: ["roots_plus", "roots"] as const,
+  // 地方枠: Roots のみ
+  LOCAL_SLOT_TIERS: ["roots"] as const,
 
-  // 表示ウェイト（単価比に基づく）: roots_plus は roots の2倍表示
+  // 表示ウェイト（地方枠は Roots に一本化）
   LOCAL_SLOT_WEIGHTS: {
-    roots_plus: 2,
     roots: 1,
   } as const,
 
-  // 枠数上限
+  // 枠数上限（旧 Roots+ の 60 枠を Roots に統合: 120 + 60 = 180）
   SLOT_LIMITS: {
     legacy: 5,
     presence: 20,
     signal: 30,
-    roots_plus: 60,
-    roots: 120,
+    roots: 180,
   } as const,
 
   // 単価（円）
@@ -31,7 +29,6 @@ export const AD_CONFIG = {
     legacy: 1_000_000,
     presence: 500_000,
     signal: 100_000,
-    roots_plus: 50_000,
     roots: 30_000,
   } as const,
 
@@ -39,5 +36,5 @@ export const AD_CONFIG = {
   ABOVE_FOLD_RESERVED: true,
 } as const;
 
-export type AdTier = "legacy" | "presence" | "signal" | "roots_plus" | "roots";
+export type AdTier = "legacy" | "presence" | "signal" | "roots";
 export type SlotType = "slot_a" | "slot_b" | "local_slot";

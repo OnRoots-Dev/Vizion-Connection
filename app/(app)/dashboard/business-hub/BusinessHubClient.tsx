@@ -6,7 +6,7 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getPlanFeatures } from "@/features/business/plan-features";
 import type { BusinessHubAnalytics } from "@/lib/supabase/business-hub";
 
-type SponsorPlan = "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+type SponsorPlan = "roots" | "signal" | "presence" | "legacy" | null;
 
 type BusinessHubMetrics = {
   impressions: number;

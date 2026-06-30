@@ -14,7 +14,7 @@ type DiscoveryUserRow = {
     prefecture: string | null;
     sport: string | null;
     created_at: string;
-    sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+    sponsor_plan: "roots" | "signal" | "presence" | "legacy" | null;
 };
 
 type RankedUser = {
@@ -30,7 +30,7 @@ type RankedUser = {
     prefecture: string | null;
     sport: string | null;
     created_at: string;
-    sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+    sponsor_plan: "roots" | "signal" | "presence" | "legacy" | null;
     plan_priority: number;
     discovery_fixed: boolean;
 };

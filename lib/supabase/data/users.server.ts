@@ -32,7 +32,6 @@ type UserRow = {
     instagram: string | null;
     x_url: string | null;
     tiktok: string | null;
-    proof_url: string | null;
     ambassador_code: string | null;
     founding_number: number | null;
     from_slug: string | null;
@@ -41,7 +40,7 @@ type UserRow = {
     points: number;
     mission_bonus_given: boolean;
     has_shared: boolean;
-    sponsor_plan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+    sponsor_plan: "roots" | "signal" | "presence" | "legacy" | null;
     reset_token: string | null;
     reset_token_expires: string | null;
     is_deleted: boolean;
@@ -85,7 +84,6 @@ function toProfile(row: UserRow) {
         instagram: row.instagram,
         xUrl: row.x_url,
         tiktok: row.tiktok,
-        proofUrl: row.proof_url,
         ambassadorCode: row.ambassador_code,
         foundingNumber: row.founding_number,
         fromSlug: row.from_slug,
@@ -223,7 +221,7 @@ const CAMEL_TO_SNAKE: Record<string, string> = {
     instagram: "instagram", xUrl: "x_url", tiktok: "tiktok",
     avatarUrl: "avatar_url", profileImageUrl: "profile_image_url",
     bannerUrl: "banner_url",
-    proofUrl: "proof_url", isPublic: "is_public", hasShared: "has_shared",
+    isPublic: "is_public", hasShared: "has_shared",
 };
 
 export async function updateUserProfile(slug: string, fields: Record<string, unknown>): Promise<boolean> {
@@ -288,7 +286,7 @@ export async function setUserPlan(slug: string, plan: "free" | "paid"): Promise<
 
 export async function setUserSponsorPlanByEmail(
     email: string,
-    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy",
+    sponsorPlan: "roots" | "signal" | "presence" | "legacy",
 ): Promise<boolean> {
     const { error } = await supabase
         .from("users")
