@@ -8,8 +8,8 @@ import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
 const PHASES_DATA = [
     {
         id: "early", num: "01", label: "先行登録フェーズ", status: "current" as const,
-        period: "2026年 3月 –", tagline: "役割を名乗れ。信頼を刻め。",
-        desc: "すべての始まり。プロフィールカードを手に入れた者が、最初の歴史を作る。",
+        period: "2026年 6月30日 –", tagline: "役割を名乗れ。信頼を刻め。",
+        desc: "すべての始まり。プロフィールカードを手に入れた者が、最初の歴史を作る。47都道府県の代表枠は先着順。",
         progress: 100,
         items: [
             { name: "ダッシュボード", done: true },
@@ -39,7 +39,7 @@ const PHASES_DATA = [
     },
     {
         id: "beta", num: "02", label: "β版", status: "upcoming" as const,
-        period: "2026年 5月 公開予定", tagline: "つながりに、深さを。",
+        period: "近日中・順次公開", tagline: "つながりに、深さを。毎日、進化していく。",
         desc: "Discoveryが進化し、人と人の間に意味ある接続が生まれ始める。",
         progress: 0,
         items: [
