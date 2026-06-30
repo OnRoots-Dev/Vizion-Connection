@@ -96,7 +96,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                         先行ユーザー特典が付与されます
                     </p>
                     <a
-                        href="/roadmap"
+                        href="/dashboard?view=roadmap"
                         style={{
                             display: "inline-block",
                             marginBottom: 28,
