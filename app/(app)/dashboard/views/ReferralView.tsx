@@ -1,7 +1,7 @@
 "use client";
 
 // dashboard/views/ReferralView.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
@@ -16,6 +16,16 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
 }) {
     const progress = Math.min((referralCount / REFERRAL_LIMIT) * 100, 100);
     const [copied, setCopied] = useState(false);
+    const [clicks, setClicks] = useState<number | null>(null);
+
+    useEffect(() => {
+        let active = true;
+        fetch("/api/referral/clicks", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((d) => { if (active) setClicks(Number(d?.clicks) || 0); })
+            .catch(() => { if (active) setClicks(0); });
+        return () => { active = false; };
+    }, []);
 
     const shareText = `Vizion Connectionに登録しました\n#VizionConnection\n${referralUrl}`;
     const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
@@ -61,6 +71,9 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
                             <span style={{ fontSize: 14, color: t.sub }}>/ {REFERRAL_LIMIT} 人</span>
                         </div>
                         <p style={{ fontSize: 11, color: t.sub, margin: "4px 0 0", opacity: 0.55 }}>招待済みメンバー</p>
+                        <p style={{ fontSize: 11, color: t.sub, margin: "6px 0 0" }}>
+                            リンク訪問数 <span style={{ color: t.text, fontWeight: 800 }}>{clicks === null ? "…" : clicks.toLocaleString()}</span>
+                        </p>
                     </div>
                     <div style={{ textAlign: "right", paddingBottom: 6 }}>
                         <p style={{ fontSize: 8, fontFamily: "monospace", color: t.sub, opacity: 0.4, margin: "0 0 2px" }}>獲得ポイント</p>
