@@ -788,9 +788,20 @@ export function MyJourneyView({
         </SectionCard>
       </div>
 
-      <SectionCard t={t}>
-        <SLabel text="AD SLOT" color="#FFD600" />
-        <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>スポンサー広告枠（空き枠）</p>
+      <SectionCard t={t} accentColor="#C8E800">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: t.text }}>Vizion Connection を広めよう</p>
+            <p style={{ margin: "4px 0 0", fontSize: 11, color: t.sub }}>友達を招待すると、双方に +500pt</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setView("referral")}
+            style={{ border: "none", borderRadius: 10, padding: "10px 16px", background: "#C8E800", color: "#000", fontWeight: 800, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap" }}
+          >
+            友達を招待する →
+          </button>
+        </div>
       </SectionCard>
 
       {toastMessage ? (
