@@ -17,6 +17,7 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
     const progress = Math.min((referralCount / REFERRAL_LIMIT) * 100, 100);
     const [copied, setCopied] = useState(false);
     const [clicks, setClicks] = useState<number | null>(null);
+    const [igHint, setIgHint] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -31,8 +32,52 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
     const shareXUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     const shareLineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(referralUrl)}`;
 
+    async function copyToClipboard(text: string): Promise<boolean> {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch {
+            // フォールバックへ
+        }
+        try {
+            const el = document.createElement("textarea");
+            el.value = text;
+            el.style.position = "fixed";
+            el.style.opacity = "0";
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async function handleInstagramShare() {
+        const ok = await copyToClipboard(referralUrl);
+        void markShared();
+        // モバイルではネイティブ共有シート（Instagram を選択可能）を優先
+        if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+            try {
+                await navigator.share({ text: shareText, url: referralUrl });
+                return;
+            } catch {
+                // キャンセル・非対応時は Instagram を開くフォールバックへ
+            }
+        }
+        // フォールバック: Instagram を開き、コピー済みリンクを貼り付けてもらう
+        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+        if (ok) {
+            setIgHint(true);
+            setTimeout(() => setIgHint(false), 4000);
+        }
+    }
+
     async function handleCopy() {
-        try { await navigator.clipboard.writeText(referralUrl); } catch { }
+        await copyToClipboard(referralUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
         try {
@@ -121,14 +166,14 @@ export function ReferralView({ profile, referralUrl, referralCount, t, roleColor
                 <SLabel text="SNSでシェアする" />
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {/* Instagram */}
-                    <a href="#" onClick={async e => { e.preventDefault(); await navigator.clipboard.writeText(referralUrl); await markShared(); alert("紹介リンクをコピーしました。Instagramのストーリーやプロフィールに貼り付けてください。"); }}
-                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(225,48,108,0.07)", border: "1px solid rgba(225,48,108,0.28)", textDecoration: "none", color: t.text }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <button type="button" onClick={() => { void handleInstagramShare(); }}
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(225,48,108,0.07)", border: "1px solid rgba(225,48,108,0.28)", textDecoration: "none", color: t.text, cursor: "pointer", textAlign: "left", width: "100%" }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                             <svg viewBox="0 0 24 24" width={16} height={16} fill="#fff"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm8.25 2h-8a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-8a4 4 0 0 0-4-4zm-4 3.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5zm4.75-2.38a1.12 1.12 0 1 1-1.12 1.12 1.12 1.12 0 0 1 1.12-1.12z" /></svg>
                         </div>
-                        <div><p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>Instagram</p><p style={{ fontSize: 10, color: t.sub, margin: "1px 0 0", opacity: 0.55 }}>ストーリーでシェアする</p></div>
-                        <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={2} style={{ marginLeft: "auto" }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                    </a>
+                        <div style={{ minWidth: 0 }}><p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>Instagram</p><p style={{ fontSize: 10, color: t.sub, margin: "1px 0 0", opacity: 0.55 }}>{igHint ? "リンクをコピーしました。ストーリーやプロフィールに貼り付けてください" : "ストーリーでシェアする"}</p></div>
+                        <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke={t.sub} strokeWidth={2} style={{ marginLeft: "auto", flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </button>
                     {/* X */}
                     <a href={shareXUrl} target="_blank" rel="noopener noreferrer" onClick={() => { void markShared(); }}
                         style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(0,0,0,0.55)", border: `1px solid ${t.border}`, textDecoration: "none", color: t.text }}>

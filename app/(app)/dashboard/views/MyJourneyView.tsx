@@ -76,8 +76,35 @@ export function MyJourneyView({
   roleColor: string;
   setView: (view: DashboardView) => void;
 }) {
-  // Log history placeholder — will migrate to journeys table
-  const logs = useMemo((): DailyLog[] => [], []);
+  // 本人の Journey 記録を journeys テーブルから取得（公開/非公開すべて）
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+
+  const loadLogs = useCallback(async () => {
+    try {
+      const res = await fetch("/api/journey/list", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        journeys?: Array<{ id: string | number; content?: string; condition_score?: number | null; created_at: string }>;
+      };
+      const rows = data.journeys ?? [];
+      setLogs(
+        rows.map((j) => ({
+          id: String(j.id),
+          user_id: 0,
+          log_date: formatDateKeyJst(new Date(j.created_at)),
+          content: String(j.content ?? ""),
+          condition_score: typeof j.condition_score === "number" ? j.condition_score : null,
+          created_at: String(j.created_at),
+        })),
+      );
+    } catch {
+      /* 取得失敗時は既存の状態を維持 */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadLogs();
+  }, [loadLogs]);
 
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
@@ -300,6 +327,9 @@ export function MyJourneyView({
       setTags([]);
       setIsPublic(true);
       setTodayJourneyId(result?.journey?.id ?? null);
+
+      // 今日の記録を履歴・グラフへ即時反映
+      void loadLogs();
 
       // PULSE 継続日数を journeys から算出してモーダルへ反映
       void supabaseBrowser

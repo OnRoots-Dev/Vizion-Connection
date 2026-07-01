@@ -795,6 +795,10 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </div>
 
+                <div className="u3" style={{ padding: "18px 20px 0", display: "flex", justifyContent: "flex-end" }}>
+                    <ShareButtonClient profileUrl={profileUrl} referralUrl={referralUrl} displayName={profile.displayName} roleColor={rl} slug={slug} />
+                </div>
+
                 <div style={{ padding: "24px 20px 0", display: "flex", flexDirection: "column", gap: 14 }}>
                     <PublicProfileTabs
                         roleColor={rl}
