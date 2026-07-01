@@ -24,7 +24,7 @@ const FAQS = [
 ];
 
 const TABLE_ROWS = [
-  ["単価", "3万円", "10万円", "50万円", "100万円"],
+  ["単価", "¥30,000", "¥100,000", "¥300,000", "個別見積"],
   ["枠数", "120枠", "30枠", "10枠", "5枠"],
   ["表示エリア", "地方ブロック", "全国", "全国", "全国"],
   ["表示サイズ", "small", "medium", "large", "hero"],
@@ -74,8 +74,8 @@ export default function BusinessPage() {
         .grid-bg::before {
           content:''; position:fixed; inset:0;
           background-image:
-            linear-gradient(rgba(0,210,255,.022) 1px,transparent 1px),
-            linear-gradient(90deg,rgba(0,210,255,.022) 1px,transparent 1px);
+            linear-gradient(rgba(200,232,0,.022) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(200,232,0,.022) 1px,transparent 1px);
           background-size:60px 60px;
           pointer-events:none; z-index:0;
         }
@@ -89,15 +89,15 @@ export default function BusinessPage() {
 
             {/* ── Hero ── */}
             <section className="space-y-6 pt-8">
-              <div className="anim-fade-up inline-flex items-center gap-2 rounded-full border border-[#00d2ff]/20 bg-[#00d2ff]/6 px-4 py-1.5">
-                <span className="anim-blink h-1.5 w-1.5 rounded-full bg-[#00d2ff]" />
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-[#00d2ff]">
+              <div className="anim-fade-up inline-flex items-center gap-2 rounded-full border border-[#C8E800]/20 bg-[#C8E800]/6 px-4 py-1.5">
+                <span className="anim-blink h-1.5 w-1.5 rounded-full bg-[#C8E800]" />
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[.18em] text-[#C8E800]">
                   Business Partner Program
                 </span>
               </div>
               <h1 className="anim-fade-up text-[clamp(2.8rem,7vw,5.5rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-white [animation-delay:.1s]">
                 スポーツ業界の<br />
-                <span className="bg-gradient-to-r from-[#00d2ff] to-[#7c82ff] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#C8E800] to-[#C8E800] bg-clip-text text-transparent">
                   最初期パートナー
                 </span>へ。
               </h1>
@@ -108,7 +108,7 @@ export default function BusinessPage() {
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)] [animation-delay:.3s]"
+                className="anim-fade-up inline-flex items-center gap-2.5 rounded-md bg-[#C8E800] px-7 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(200,232,0,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(200,232,0,0.5)] [animation-delay:.3s]"
               >
                 プランを選ぶ
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -118,7 +118,7 @@ export default function BusinessPage() {
             </section>
 
             {/* separator */}
-            <div className="h-px bg-gradient-to-r from-transparent via-[#00d2ff]/12 to-transparent" />
+            <div className="h-px bg-gradient-to-r from-transparent via-[#C8E800]/12 to-transparent" />
 
             {/* ── Why Vizion ── */}
             <section className="space-y-5">
@@ -132,7 +132,7 @@ export default function BusinessPage() {
               <div className="grid grid-cols-1 gap-px bg-white/6 overflow-hidden rounded-xl border border-white/6 sm:grid-cols-2">
                 {WHY_ITEMS.map((item) => (
                   <article key={item.num} className="bg-[#0e1018] p-7 transition-colors hover:bg-[#13151f]">
-                    <p className="mb-2.5 font-mono text-[11px] tracking-[.1em] text-[#00d2ff]/70">{item.num}</p>
+                    <p className="mb-2.5 font-mono text-[11px] tracking-[.1em] text-[#C8E800]/70">{item.num}</p>
                     <h3 className="mb-2 text-[1rem] font-bold text-white">{item.title}</h3>
                     <p className="text-[.82rem] font-light leading-[1.85] text-[#5a6070]">{item.desc}</p>
                   </article>
@@ -141,10 +141,10 @@ export default function BusinessPage() {
             </section>
 
             {/* ── Early Benefit ── */}
-            <section className="relative overflow-hidden rounded-xl border border-[#00d2ff]/14 bg-gradient-to-br from-[#00d2ff]/7 to-[#7c82ff]/4 p-9 md:p-11">
+            <section className="relative overflow-hidden rounded-xl border border-[#C8E800]/14 bg-gradient-to-br from-[#C8E800]/7 to-[#C8E800]/4 p-9 md:p-11">
               {/* glow blob */}
-              <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#00d2ff]/7 blur-3xl" />
-              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#00d2ff]">Plan Benefit</p>
+              <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#C8E800]/7 blur-3xl" />
+              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#C8E800]">Plan Benefit</p>
               <h2 className="text-[clamp(1.4rem,3.5vw,2.2rem)] font-extrabold leading-[1.2] tracking-[-0.01em] text-white">
                 正式版3ヶ月間を<br />月額料金で利用可能。
               </h2>
@@ -165,7 +165,7 @@ export default function BusinessPage() {
                 {BUSINESS_PLANS.map((plan) => (
                   <article
                     key={plan.id}
-                    className="overflow-hidden rounded-xl border border-white/6 bg-[#0e1018] transition-all hover:border-[#00d2ff]/20 hover:shadow-[0_0_30px_rgba(0,210,255,0.05)]"
+                    className="overflow-hidden rounded-xl border border-white/6 bg-[#0e1018] transition-all hover:border-[#C8E800]/20 hover:shadow-[0_0_30px_rgba(200,232,0,0.05)]"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4 px-8 pt-6 pb-5">
                       <div>
@@ -174,14 +174,14 @@ export default function BusinessPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-[1.5rem] font-extrabold text-white">{plan.priceLabel}</p>
-                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#00d2ff]/70">全国{plan.seats}枠限定</p>
+                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#C8E800]/70">全国{plan.seats}枠限定</p>
                       </div>
                     </div>
                     <div className="mx-8 h-px bg-white/6" />
                     <div className="grid grid-cols-1 gap-x-6 gap-y-2 px-8 py-5 sm:grid-cols-2">
                       {plan.benefits.map((b) => (
                         <p key={b} className="flex items-start gap-2 text-[.78rem] font-light text-[#7a8494]">
-                          <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#00d2ff]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C8E800]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                           {b}
@@ -195,7 +195,7 @@ export default function BusinessPage() {
                           setSelectedPlan(plan.id);
                           setModalOpen(true);
                         }}
-                        className="inline-flex items-center gap-2 rounded-md bg-[#00d2ff] px-6 py-2.5 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white"
+                        className="inline-flex items-center gap-2 rounded-md bg-[#C8E800] px-6 py-2.5 text-[.82rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(200,232,0,0.25)] transition-all hover:bg-white"
                       >
                         {plan.amount === 0 ? "個別相談する" : "このプランで申し込む"}
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -218,7 +218,7 @@ export default function BusinessPage() {
 
             {/* ── Comparison table ── */}
             <section>
-              <p className="mb-4 font-mono text-[9px] uppercase tracking-[.22em] text-[#00d2ff]">Plan Comparison</p>
+              <p className="mb-4 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">Plan Comparison</p>
               <div className="overflow-x-auto rounded-xl border border-white/6 bg-[#0e1018]">
                 <table className="w-full min-w-[780px] border-collapse text-[.78rem]">
                   <thead>
@@ -236,7 +236,7 @@ export default function BusinessPage() {
                         {row.slice(1).map((col, ci) => (
                           <td key={ci} className={[
                             "px-5 py-2.5 font-mono text-[.72rem] tracking-[.02em]",
-                            isAccent(col) ? "text-[#00d2ff]" : "text-[#5a6070]",
+                            isAccent(col) ? "text-[#C8E800]" : "text-[#5a6070]",
                           ].join(" ")}>{col}</td>
                         ))}
                       </tr>
@@ -271,7 +271,7 @@ export default function BusinessPage() {
                 },
               ].map(({ tag, title, body }) => (
                 <div key={tag} className="rounded-xl border border-white/6 bg-[#0e1018] p-7">
-                  <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#00d2ff]">{tag}</p>
+                  <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#C8E800]">{tag}</p>
                   <h3 className="mb-3.5 text-[1.1rem] font-extrabold text-white">{title}</h3>
                   <p className="text-[.8rem] font-light leading-[1.95] text-[#5a6070]">{body}</p>
                 </div>
@@ -279,9 +279,9 @@ export default function BusinessPage() {
             </section>
 
             {/* ── CTA ── */}
-            <section className="relative overflow-hidden rounded-2xl border border-[#00d2ff]/12 bg-gradient-to-br from-[#00d2ff]/6 to-[#7c82ff]/4 py-12 px-8 text-center">
-              <div className="pointer-events-none absolute -bottom-12 left-1/2 h-32 w-72 -translate-x-1/2 rounded-full bg-[#00d2ff]/10 blur-3xl" />
-              <p className="mb-4 font-mono text-[10px] uppercase tracking-[.2em] text-[#00d2ff]">Limited Seats Available</p>
+            <section className="relative overflow-hidden rounded-2xl border border-[#C8E800]/12 bg-gradient-to-br from-[#C8E800]/6 to-[#C8E800]/4 py-12 px-8 text-center">
+              <div className="pointer-events-none absolute -bottom-12 left-1/2 h-32 w-72 -translate-x-1/2 rounded-full bg-[#C8E800]/10 blur-3xl" />
+              <p className="mb-4 font-mono text-[10px] uppercase tracking-[.2em] text-[#C8E800]">Limited Seats Available</p>
               <h2 className="mb-4 text-[clamp(1.6rem,4vw,2.4rem)] font-extrabold tracking-[-0.02em] text-white">
                 Businessプランを申し込む
               </h2>
@@ -289,7 +289,7 @@ export default function BusinessPage() {
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2.5 rounded-md bg-[#00d2ff] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(0,210,255,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(0,210,255,0.5)]"
+                className="inline-flex items-center gap-2.5 rounded-md bg-[#C8E800] px-8 py-3.5 text-[.85rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_28px_rgba(200,232,0,0.3)] transition-all hover:bg-white hover:shadow-[0_0_40px_rgba(200,232,0,0.5)]"
               >
                 プランを選ぶ
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -304,7 +304,7 @@ export default function BusinessPage() {
               <h2 className="text-[clamp(1.4rem,3.5vw,2rem)] font-extrabold tracking-[-0.02em] text-white">よくある質問</h2>
               <div className="flex flex-col gap-2">
                 {FAQS.map((item) => (
-                  <article key={item.q} className="rounded-xl border border-white/6 bg-[#0e1018] px-6 py-5 transition-colors hover:border-[#00d2ff]/12">
+                  <article key={item.q} className="rounded-xl border border-white/6 bg-[#0e1018] px-6 py-5 transition-colors hover:border-[#C8E800]/12">
                     <p className="mb-2 text-[.83rem] font-semibold text-[#d0d4de]">{item.q}</p>
                     <p className="text-[.78rem] font-light leading-[1.85] text-[#5a6070]">{item.a}</p>
                   </article>
@@ -349,7 +349,7 @@ export default function BusinessPage() {
                     fontSize: 10,
                     letterSpacing: "0.2em",
                     textTransform: "uppercase",
-                    color: "#00d2ff",
+                    color: "#C8E800",
                     marginBottom: 12,
                   }}
                 >
@@ -383,7 +383,7 @@ export default function BusinessPage() {
                       style={{
                         display: "block",
                         marginTop: 8,
-                        color: "#00d2ff",
+                        color: "#C8E800",
                         fontWeight: 700,
                       }}
                     >
@@ -398,7 +398,7 @@ export default function BusinessPage() {
                     style={{
                       display: "block",
                       padding: "14px 24px",
-                      background: "#00d2ff",
+                      background: "#C8E800",
                       color: "#07080f",
                       borderRadius: 10,
                       fontWeight: 700,
