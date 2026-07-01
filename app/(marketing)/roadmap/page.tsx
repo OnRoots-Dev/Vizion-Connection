@@ -11,12 +11,12 @@ const PHASES = [
     {
         id: "early",
         num: "01",
-        label: "先行登録フェーズ",
+        label: "IGNITION",
         status: "current" as const,
-        period: "2026年 3月 –",
+        period: "2026年 6月30日 –",
         tagline: "役割を名乗れ。信頼を刻め。",
-        desc: "すべての始まり。プロフィールカードを手に入れた者が、最初の歴史を作る。",
-        progress: 95,
+        desc: "すべての始まり。プロフィールカードを手に入れた者が、最初の歴史を作る。47都道府県の代表枠は先着順。",
+        progress: 100,
         items: [
             { name: "ダッシュボード", done: true },
             { name: "通知", done: true },
@@ -50,28 +50,17 @@ const PHASES = [
     {
         id: "beta",
         num: "02",
-        label: "β版",
+        label: "MOMENTUM",
         status: "upcoming" as const,
-        period: "2026年 5月 公開予定",
-        tagline: "つながりに、深さを。",
-        desc: "Discoveryが進化し、人と人の間に意味ある接続が生まれ始める。",
+        period: "近日中・順次公開",
+        tagline: "つながりに、深さを。毎日、進化していく。",
+        desc: "つながりが深まり、毎日が進化していく。発見と交流が、あなたの活動を加速させる。",
         progress: 0,
         items: [
-            { name: "Discovery拡張検索", done: false },
             { name: "フォロー / Synergy", done: false },
-            { name: "Signal投稿（活動発信）", done: false },
-            { name: "スキルタグ", done: false },
-            { name: "役割バッジ", done: false },
-            { name: "プロフィールコメント", done: false },
-            { name: "Cheer通知", done: false },
-            { name: "Businessページ拡張", done: false },
-            { name: "スポンサー企業表示", done: false },
-            { name: "メンタル・コンディションログ（アスリート）", done: false },
-            { name: "指導実績ポートフォリオ（トレーナー）", done: false },
-            { name: "Vizionサークル（クルー）", done: false },
-            { name: "バリュー・シミュレーター（ビジネス）", done: false },
-            { name: "V-Score（Vizion Score）β", done: false },
-            { name: "ユーザーランキング（活動量ベース）", done: false },
+            { name: "Discovery拡張検索", done: false },
+            { name: "スキルタグ・役割バッジ", done: false },
+            { name: "V-Score（スコア拡張）β", done: false },
         ],
         accent: "#3282FF",
         accentDim: "#3282FF20",
@@ -82,32 +71,17 @@ const PHASES = [
     {
         id: "v1",
         num: "03",
-        label: "正式版 v1.0",
+        label: "ASCENT",
         status: "future" as const,
-        period: "2026年 9月 リリース予定",
-        tagline: "信頼が、経済になる。",
-        desc: "スポーツに関わるすべての人が、信頼を資産として活用できるプラットフォームへ。",
+        period: "2026年 9月予定",
+        tagline: "広がりが、力になる。",
+        desc: "つながりが資産へと変わり、活動の輪が大きく広がっていく拡大のフェーズ。",
         progress: 0,
         items: [
-            { name: "Vc Map（Mapboxリアルマップ）", done: false },
-            { name: "Base（個人活動ダッシュボード）", done: false },
-            { name: "Synergy（コミュニティ・チームアップ）", done: false },
-            { name: "Arena（イベント作成・掲載）", done: false },
-            { name: "タイムライン投稿", done: false },
-            { name: "スポンサー案件マッチング", done: false },
-            { name: "オファー機能", done: false },
-            { name: "スポンサー・スマートコントラクト", done: false },
-            { name: "スポンサーシップ・ピッチデッキ自動生成", done: false },
-            { name: "スキル・マーケットプレイス（トレーナー）", done: false },
-            { name: "マルチデバイス・アナリティクス（トレーナー）", done: false },
-            { name: "Vizion Quest（クルー）", done: false },
-            { name: "スカウティング・フィルター", done: false },
-            { name: "コラボレーション・ハブ", done: false },
-            { name: "アスリート・リソース・インベントリ（ビジネス）", done: false },
-            { name: "VC Business Hub（広告効果測定）", done: false },
-            { name: "Trust Score（信頼スコア）正式版", done: false },
+            { name: "Synergy（コミュニティ）", done: false },
+            { name: "Arena（イベント）", done: false },
+            { name: "Trust Score（信頼スコア）", done: false },
             { name: "AI Discovery", done: false },
-            { name: "プロフィールAnalytics", done: false },
         ],
         accent: "#FF4646",
         accentDim: "#FF464620",
@@ -116,33 +90,43 @@ const PHASES = [
     },
 
     {
-        id: "extra",
+        id: "alliance",
         num: "04",
-        label: "追実装",
+        label: "ALLIANCE",
         status: "future" as const,
-        period: "2027年以降 順次展開",
-        tagline: "信頼が、世界をつなぐ。",
-        desc: "コミュニティの進化と共に、新しいスポーツ経済圏を広げていく。あなたと作っていく。",
+        period: "2027年 順次展開",
+        tagline: "信頼が、共創を生む。",
+        desc: "企業とアスリートが信頼でつながり、新しい協業のかたちが生まれていく。",
         progress: 0,
         items: [
-            { name: "FanTrise（ファンクラブ作成）", done: false },
-            { name: "ExElog（ヘルスケア管理）", done: false },
-            { name: "Rin（アパレルブランド＋トラッキングウェア）", done: false },
-            { name: "Buyout Skills（スキルマーケットプレイス）", done: false },
-            { name: "VC Insight（アンケート代行）", done: false },
-            { name: "VC DataHub（B2Bデータサービス）", done: false },
-            { name: "Formless : me（スポーツ医療支援）", done: false },
-            { name: "応援証明書（SBT / NFT）発行", done: false },
-            { name: "国別コミュニティ", done: false },
-            { name: "チーム / クラブページ", done: false },
+            { name: "スポンサー・マッチング", done: false },
+            { name: "企業コラボレーション", done: false },
             { name: "グローバルスポンサー接続", done: false },
-            { name: "AIキャリア支援", done: false },
-            { name: "Athlete Odyssey（YouTube / Podcast）", done: false },
         ],
         accent: "#28D26E",
-        accentDim: "#28D26E15",
-        accentBorder: "#28D26E35",
+        accentDim: "#28D26E20",
+        accentBorder: "#28D26E40",
         numColor: "#28D26E",
+    },
+
+    {
+        id: "extra",
+        num: "05",
+        label: "ORIGIN",
+        status: "future" as const,
+        period: "2027年以降 順次展開",
+        tagline: "信頼が、世界の原点になる。",
+        desc: "スポーツに関わるすべての人の信頼が、ひとつの経済圏になる。ここから、世界が変わる。",
+        progress: 0,
+        items: [
+            { name: "応援証明書（SBT / NFT）", done: false },
+            { name: "グローバル・コミュニティ", done: false },
+            { name: "AIキャリア支援", done: false },
+        ],
+        accent: "#A855F7",
+        accentDim: "#A855F720",
+        accentBorder: "#A855F740",
+        numColor: "#A855F7",
     },
 ] as const;
 
@@ -181,11 +165,11 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                 style={{
                     background: isCurrent
                         ? `linear-gradient(135deg, #0B0B0F 0%, #1a1500 100%)`
-                        : `#FAFAFA`,
-                    borderColor: isCurrent ? phase.accentBorder : "#E5E5E5",
+                        : `#0B0B0F`,
+                    borderColor: isCurrent ? phase.accentBorder : "rgba(255,255,255,0.1)",
                     boxShadow: isCurrent
                         ? `0 0 0 1px ${phase.accentBorder}, 0 24px 60px ${phase.accentDim}, 0 4px 20px rgba(0,0,0,0.4)`
-                        : `0 2px 16px rgba(0,0,0,0.06)`,
+                        : `0 2px 16px rgba(0,0,0,0.3)`,
                 }}
             >
                 {/* 背景グロー（currentのみ） */}
@@ -209,7 +193,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                 className="font-display block font-black leading-none tracking-tighter"
                                 style={{
                                     fontSize: "clamp(48px, 8vw, 96px)",
-                                    color: isCurrent ? phase.accent : "#E5E5E5",
+                                    color: isCurrent ? phase.accent : "rgba(255,255,255,0.15)",
                                     WebkitTextStroke: isCurrent ? "0" : `1px ${phase.accent}40`,
                                 }}
                             >
@@ -252,9 +236,9 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                 className="mb-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 font-mono font-bold"
                                 style={{
                                     fontSize: "clamp(12px, 1.6vw, 15px)",
-                                    background: isCurrent ? `${phase.accent}18` : isUpcoming ? "rgba(50,130,255,0.08)" : "rgba(0,0,0,0.04)",
-                                    border: `1.5px solid ${isCurrent ? phase.accentBorder : isUpcoming ? "rgba(50,130,255,0.3)" : "#DEDEDE"}`,
-                                    color: isCurrent ? phase.accent : isUpcoming ? "#3282FF" : "#999999",
+                                    background: isCurrent ? `${phase.accent}18` : isUpcoming ? "rgba(50,130,255,0.08)" : "rgba(255,255,255,0.04)",
+                                    border: `1.5px solid ${isCurrent ? phase.accentBorder : isUpcoming ? "rgba(50,130,255,0.3)" : "rgba(255,255,255,0.1)"}`,
+                                    color: isCurrent ? phase.accent : isUpcoming ? "#3282FF" : "rgba(255,255,255,0.4)",
                                 }}
                             >
                                 <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2}>
@@ -267,7 +251,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                 className="font-display font-black leading-tight tracking-tight"
                                 style={{
                                     fontSize: "clamp(18px, 3vw, 32px)",
-                                    color: isCurrent ? "#FFFFFF" : "#111111",
+                                    color: isCurrent ? "#FFFFFF" : "rgba(255,255,255,0.9)",
                                 }}
                             >
                                 {phase.label}
@@ -289,7 +273,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                         className="max-w-[320px] leading-relaxed"
                         style={{
                             fontSize: "clamp(12px, 1.2vw, 14px)",
-                            color: isCurrent ? "rgba(255,255,255,0.45)" : "#888888",
+                            color: isCurrent ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.5)",
                         }}
                     >
                         {phase.desc}
@@ -319,7 +303,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
 
                 <div
                     className="mx-6 mb-6 h-px md:mx-8 lg:mx-10"
-                    style={{ background: isCurrent ? `linear-gradient(90deg, ${phase.accentBorder}, transparent)` : "#EEEEEE" }}
+                    style={{ background: isCurrent ? `linear-gradient(90deg, ${phase.accentBorder}, transparent)` : "rgba(255,255,255,0.08)" }}
                 />
 
                 {/* ── 機能グリッド ── */}
@@ -337,15 +321,15 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                         ? `${phase.accent}12`
                                         : isCurrent
                                             ? "rgba(255,255,255,0.03)"
-                                            : "rgba(0,0,0,0.02)",
-                                    border: `1px solid ${item.done ? phase.accentBorder : isCurrent ? "rgba(255,255,255,0.06)" : "#EBEBEB"}`,
+                                            : "rgba(255,255,255,0.02)",
+                                    border: `1px solid ${item.done ? phase.accentBorder : isCurrent ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.08)"}`,
                                 }}
                             >
                                 {/* アイコン */}
                                 <div
                                     className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full"
                                     style={{
-                                        background: item.done ? phase.accent : isCurrent ? "rgba(255,255,255,0.08)" : "#EEEEEE",
+                                        background: item.done ? phase.accent : isCurrent ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.1)",
                                     }}
                                 >
                                     {item.done ? (
@@ -353,7 +337,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                             <path d="M2 6l3 3 5-5" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                     ) : (
-                                        <div className="h-1 w-1 rounded-full" style={{ background: isCurrent ? "rgba(255,255,255,0.3)" : "#CCCCCC" }} />
+                                        <div className="h-1 w-1 rounded-full" style={{ background: isCurrent ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.3)" }} />
                                     )}
                                 </div>
 
@@ -362,8 +346,8 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                     style={{
                                         fontSize: "11px",
                                         color: item.done
-                                            ? isCurrent ? "#FFFFFF" : "#111111"
-                                            : isCurrent ? "rgba(255,255,255,0.4)" : "#999999",
+                                            ? isCurrent ? "#FFFFFF" : "rgba(255,255,255,0.9)"
+                                            : isCurrent ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.4)",
                                         fontWeight: item.done ? 600 : 400,
                                     }}
                                 >
@@ -391,7 +375,7 @@ function PageHeader() {
                 aria-hidden
             >
                 <span
-                    className="font-display font-black uppercase tracking-tighter text-[#F0F0F0]"
+                    className="font-display font-black uppercase tracking-tighter text-[#1a1a1a]"
                     style={{ fontSize: "clamp(80px, 20vw, 220px)", lineHeight: 1 }}
                 >
                     ROAD
@@ -403,7 +387,7 @@ function PageHeader() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={inView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6 }}
-                    className="mb-3 font-mono text-[11px] uppercase tracking-[0.5em] text-black/30"
+                    className="mb-3 font-mono text-[11px] uppercase tracking-[0.5em] text-white/30"
                 >
                     Vizion Connection
                 </motion.p>
@@ -411,7 +395,7 @@ function PageHeader() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={inView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.7, delay: 0.1 }}
-                    className="font-display font-black uppercase tracking-tight text-[#0B0B0F]"
+                    className="font-display font-black uppercase tracking-tight text-white"
                     style={{ fontSize: "clamp(36px, 6vw, 72px)" }}
                 >
                     Roadmap
@@ -420,7 +404,7 @@ function PageHeader() {
                     initial={{ opacity: 0 }}
                     animate={inView ? { opacity: 1 } : {}}
                     transition={{ duration: 0.7, delay: 0.25 }}
-                    className="mt-3 font-body text-[clamp(13px,1.3vw,16px)] text-black/45"
+                    className="mt-3 font-body text-[clamp(13px,1.3vw,16px)] text-white/45"
                 >
                     スポーツの未来を、段階的に解放していく。
                 </motion.p>
@@ -435,7 +419,7 @@ function PageHeader() {
                     {PHASES.map((p) => (
                         <div key={p.id} className="flex flex-col items-center gap-1">
                             <div className="h-1.5 w-8 rounded-full" style={{ background: p.accent, opacity: p.status === "current" ? 1 : 0.25 }} />
-                            <span className="font-mono text-[8px] uppercase tracking-widest text-black/30">{p.num}</span>
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-white/30">{p.num}</span>
                         </div>
                     ))}
                 </motion.div>
@@ -457,7 +441,7 @@ export default function RoadmapPage() {
         html { scroll-behavior: smooth; }
       `}</style>
 
-            <div className="min-h-screen bg-white">
+            <div className="min-h-screen bg-[#0B0B0F]">
                 {/* ヘッダー分のオフセット（Header コンポーネントが fixed 想定） */}
                 <div className="pt-[70px]">
                     <div className="mx-auto max-w-[860px] px-4 sm:px-6 lg:px-8">
@@ -480,12 +464,12 @@ export default function RoadmapPage() {
                             transition={{ duration: 0.8 }}
                             className="mb-24 flex flex-col items-center gap-4 text-center"
                         >
-                            <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-black/25">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/25">
                                 最初の一歩を踏み出す
                             </p>
                             <Link
                                 href="/register"
-                                className="group inline-flex items-center gap-3 bg-[#eee417] px-8 py-4 font-display text-[14px] uppercase tracking-[0.2em] text-black transition-all hover:bg-[#d4c912] "
+                                className="group inline-flex items-center gap-3 bg-[#C8E800] px-8 py-4 font-display text-[14px] uppercase tracking-[0.2em] text-black transition-all hover:bg-[#b3d000] "
                                 style={{ borderRadius: "4px" }}
                             >
                                 先行登録する
@@ -493,7 +477,7 @@ export default function RoadmapPage() {
                                     <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
                                 </svg>
                             </Link>
-                            <p className="font-body py-3 text-[11px] text-black/25">Founding Member 枠 · 無料<br />随時、追加や変更がある可能性がございます。予めご了承ください。</p>
+                            <p className="font-body py-3 text-[11px] text-white/25">Founding Member 枠 · 無料<br />随時、追加や変更がある可能性がございます。予めご了承ください。</p>
                         </motion.div>
 
                     </div>
