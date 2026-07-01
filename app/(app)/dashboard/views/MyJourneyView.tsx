@@ -115,6 +115,8 @@ export function MyJourneyView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  // 同日重複ガード（409）発動時の案内表示
+  const [alreadyLogged, setAlreadyLogged] = useState(false);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>(() =>
     getRandomJourneyTemplateSuggestions(profile.role),
   );
@@ -133,7 +135,7 @@ export function MyJourneyView({
 
   const remaining = useMemo(() => JOURNEY_MAX_CHARS - content.length, [content.length]);
   const showForm = !submitted || isEditing;
-  const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !submitted;
+  const canSubmit = content.trim().length > 0 && conditionScore !== null && !isSubmitting && !submitted && !alreadyLogged;
   const hypeMessage = useMemo(() => getJourneyHype(null), []);
 
   useEffect(() => {
@@ -306,7 +308,10 @@ export function MyJourneyView({
       });
 
       if (res.status === 409) {
-        setError("今日のJourneyは既に記録済みです");
+        // 同日重複ガード: 生エラーではなく分かりやすい案内を表示し、送信ボタンを封じる
+        setError(null);
+        setAlreadyLogged(true);
+        void loadLogs();
         return;
       }
 
@@ -566,8 +571,30 @@ export function MyJourneyView({
                     opacity: isSubmitting ? 0.7 : 1,
                   }}
                 >
-                  {isSubmitting ? "Pulseを刻んでいます..." : submitted ? "今日は記録済みです" : "Journeyを刻む"}
+                  {isSubmitting ? "Pulseを刻んでいます..." : submitted || alreadyLogged ? "今日は記録済みです" : "Journeyを刻む"}
                 </button>
+
+                {alreadyLogged ? (
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: `1px solid ${roleColor}44`,
+                      background: `${roleColor}14`,
+                      color: t.text,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    今日はすでに記録済みです😊 また明日！
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "24px 8px", textAlign: "center" }}>
