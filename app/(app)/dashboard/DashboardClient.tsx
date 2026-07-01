@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardProfileView } from "./components/DashboardProfileView";
@@ -111,31 +111,8 @@ export default function DashboardClient({
         };
     }, []);
 
-    const getThemeSnapshot = (): Theme => {
-        const saved = localStorage.getItem("vz-theme") as Theme | null;
-        return saved && THEME_MAP[saved] ? saved : "light";
-    };
-
-    const getThemeServerSnapshot = (): Theme => "light";
-
-    const theme = useSyncExternalStore<Theme>(
-        (listener) => {
-            const onStorage = (event: StorageEvent) => {
-                if (event.key === "vz-theme") listener();
-            };
-            window.addEventListener("storage", onStorage);
-            return () => window.removeEventListener("storage", onStorage);
-        },
-        getThemeSnapshot,
-        getThemeServerSnapshot,
-    );
-
-    const setTheme = useCallback((next: Theme) => {
-        if (!THEME_MAP[next]) return;
-        localStorage.setItem("vz-theme", next);
-        window.dispatchEvent(new StorageEvent("storage", { key: "vz-theme", newValue: next }));
-    }, []);
-
+    // テーマはダーク固定（UIからの切り替えは廃止）。light/dim の定義は将来の復活用に残置。
+    const theme: Theme = "dark";
     const t = THEME_MAP[theme];
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
 
@@ -393,7 +370,6 @@ export default function DashboardClient({
                                     setView={(v) => { handleMenuSetView(v); setSidebarOpen(false); }}
                                     notificationUnreadCount={notificationUnreadCount}
                                     theme={theme}
-                                    setTheme={setTheme}
                                     t={t}
                                     onLogout={handleLogout}
                                     onClose={() => setSidebarOpen(false)}
@@ -408,7 +384,7 @@ export default function DashboardClient({
                                 <button type="button" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
-                                <Image src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"} alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
+                                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
                                 <div style={{ width: 20 }} />
                             </div>
                         )}

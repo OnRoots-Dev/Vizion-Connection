@@ -76,19 +76,17 @@ interface Props {
     setView: (v: DashboardView) => void;
     notificationUnreadCount: number;
     theme: Theme;
-    setTheme: (t: Theme) => void;
     t: ThemeColors;
     onLogout: () => void;
     onClose: () => void;
 }
 
-export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, setTheme, t, onLogout, onClose }: Props) {
+export function Sidebar({ profile, view, setView, notificationUnreadCount, theme, t, onLogout, onClose }: Props) {
     const pathname = usePathname();
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
     const hubMenuLabel = getHubMenuLabel(profile.role);
     const nestedSurface = theme === "light" ? "rgba(17,17,17,0.03)" : "rgba(255,255,255,0.02)";
-    const themeChipSurface = theme === "light" ? "rgba(17,17,17,0.04)" : "rgba(255,255,255,0.04)";
 
     const isPaidPlan = Boolean(profile.sponsorPlan);
     const planLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
@@ -425,23 +423,6 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     </motion.div>
                 ))}
             </nav>
-
-            <div className="sticky bottom-0 p-[10px]" style={{ background: "#09090f", borderTop: "1px solid rgba(255,255,255,0.08)", paddingBottom: "calc(10px + env(safe-area-inset-bottom) + 72px)" }}>
-                <p style={{ marginBottom: 6, padding: "0 8px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>Theme</p>
-                <div className="mb-[10px] flex gap-1">
-                    {([ ["dark", "🌑", "Dark"], ["dim", "🌒", "Dim"], ["light", "☀️", "Light"] ] as const).map(([val, emoji, lbl]) => (
-                        <button
-                            key={val} onClick={() => setTheme(val)} title={lbl}
-                            className="flex-1 cursor-pointer rounded-[8px] border-none px-1 py-[6px] text-[12px] transition-all duration-200"
-                            style={{ background: theme === val ? `${roleColor}20` : themeChipSurface, color: theme === val ? roleColor : t.sub, fontWeight: theme === val ? 700 : 400, outline: theme === val ? `1px solid ${roleColor}40` : "none" }}
-                        >
-                            {emoji}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mx-0.5 mb-2 h-px" style={{ background: t.border }} />
-            </div>
         </div>
     );
 }
