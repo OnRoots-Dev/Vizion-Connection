@@ -226,7 +226,7 @@ function PhaseCard({ phase, index }: { phase: (typeof PHASES)[number]; index: nu
                                 )}
                                 {isUpcoming && (
                                     <span className="rounded-full border border-[#3282FF]/40 bg-[#3282FF]/15 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#3282FF]/90">
-                                        🔜 Coming Next — 5月公開
+                                        🔜 Coming Soon
                                     </span>
                                 )}
                             </div>
