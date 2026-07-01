@@ -36,4 +36,11 @@ export const env = {
   // Upstash Redis（rate limiting）
   UPSTASH_REDIS_REST_URL: requireEnv("UPSTASH_REDIS_REST_URL"),
   UPSTASH_REDIS_REST_TOKEN: requireEnv("UPSTASH_REDIS_REST_TOKEN"),
+
+  // 銀行振込案内メールの口座情報（ダミー初期値。実値は環境変数で上書きする）
+  BANK_NAME: process.env.BANK_NAME ?? "○○銀行",
+  BANK_BRANCH: process.env.BANK_BRANCH ?? "○○支店",
+  BANK_ACCOUNT_TYPE: process.env.BANK_ACCOUNT_TYPE ?? "普通",
+  BANK_ACCOUNT_NUMBER: process.env.BANK_ACCOUNT_NUMBER ?? "0000000",
+  BANK_ACCOUNT_HOLDER: process.env.BANK_ACCOUNT_HOLDER ?? "カ）ビジョンコネクション",
 };

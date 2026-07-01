@@ -11,6 +11,8 @@ const schema = z.object({
   email: z.string().email("有効なメールアドレスを入力してください"),
   phone: z.string().max(30).optional().or(z.literal("")),
   message: z.string().min(10, "10文字以上入力してください").max(2000),
+  // 振込・請求書払い導線から渡されるプラン識別子（任意）
+  plan: z.string().max(20).optional(),
 });
 
 export async function POST(req: Request) {
@@ -40,8 +42,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message }, { status: 400 });
     }
 
-    const { category, name, email, phone, message } = parsed.data;
-    await submitContact({ category, name, email, phone: phone || undefined, message });
+    const { category, name, email, phone, message, plan } = parsed.data;
+    await submitContact({ category, name, email, phone: phone || undefined, message, plan });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

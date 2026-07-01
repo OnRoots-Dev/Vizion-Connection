@@ -13,7 +13,7 @@ type Category = typeof CATEGORIES[number];
 const PLAN_LABELS: Record<string, string> = {
     roots: "Roots（¥30,000）",
     signal: "Signal（¥100,000）",
-    presence: "Presence（¥500,000）",
+    presence: "Presence（¥300,000）",
     legacy: "Legacy（¥1,000,000）",
     // Backward-compatible alias for older shared links.
     root: "Roots（¥30,000）",
@@ -56,7 +56,7 @@ export default function ContactSection() {
             const res = await fetch("/api/contact", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: JSON.stringify({ ...form, plan: planParam ?? undefined }),
             });
             const data = await res.json();
             if (data.ok) {
