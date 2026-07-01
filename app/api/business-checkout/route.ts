@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
-import { BUSINESS_PLANS, getBusinessPlansWithUrls } from "@/features/business/constants";
-import { createBusinessOrder, countOrdersByPlanId, getAllPlanOrderCounts } from "@/lib/supabase/business-orders";
+import { BUSINESS_PLANS, getBusinessPlansWithUrls, isBusinessRegionId, ROOTS_SEATS_PER_REGION } from "@/features/business/constants";
+import { createBusinessOrder, countOrdersByPlanId, getAllPlanOrderCounts, getRootsOrderCountsByRegion } from "@/lib/supabase/business-orders";
 import { setUserPlan } from "@/lib/supabase/data/users.server";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
         }
 
-        let body: { planId?: PlanId };
+        let body: { planId?: PlanId; region?: string };
         try {
             body = await readLimitedJson(req);
         } catch (e) {
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: "Bad request" }, { status: 400 });
         }
 
-        const { planId } = body;
+        const { planId, region } = body;
         if (!planId) {
             return NextResponse.json({ success: false, error: "プランIDが指定されていません" }, { status: 400 });
         }
@@ -74,9 +74,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ success: false, error: "プランが見つかりません" }, { status: 400 });
         }
 
-        const soldCount = await countOrdersByPlanId(planId);
-        if (soldCount >= plan.seats) {
-            return NextResponse.json({ success: false, error: "このプランは満席です" }, { status: 409 });
+        // Roots は地方ブロック商品。region 必須＋ブロック別の残枠チェック。
+        const isRoots = plan.id === "roots";
+        const orderRegion = isRoots ? region : null;
+        if (isRoots) {
+            if (!isBusinessRegionId(region)) {
+                return NextResponse.json({ success: false, error: "地方ブロックを選択してください" }, { status: 400 });
+            }
+            const regionCounts = await getRootsOrderCountsByRegion();
+            if ((regionCounts[region] ?? 0) >= ROOTS_SEATS_PER_REGION) {
+                return NextResponse.json({ success: false, error: "この地方ブロックは満席です" }, { status: 409 });
+            }
+        } else {
+            const soldCount = await countOrdersByPlanId(planId);
+            if (soldCount >= plan.seats) {
+                return NextResponse.json({ success: false, error: "このプランは満席です" }, { status: 409 });
+            }
         }
 
         if (plan.amount === 0) {
@@ -88,6 +101,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 amount: 0,
                 status: "completed",
                 squareLink: "",
+                region: orderRegion,
             });
             await setUserPlan(profile.slug, "paid");
             return NextResponse.json({ success: true, squareUrl: "" });
@@ -105,6 +119,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             amount: plan.amount,
             status: "pending",
             squareLink: plan.squareUrl,
+            region: orderRegion,
         });
         await notifyBusinessCheckoutSubmitted({
             slug: profile.slug,

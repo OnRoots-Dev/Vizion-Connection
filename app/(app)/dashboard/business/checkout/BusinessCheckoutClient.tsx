@@ -2,23 +2,35 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { BusinessPlanWithAvailability, PlanId } from "@/features/business/types";
+import type { BusinessPlanWithAvailability, PlanId, RootsRegionAvailability } from "@/features/business/types";
 
 type CheckoutState = "idle" | "loading" | "error";
 
 export default function BusinessCheckoutClient({
   plans,
   initialPlanId,
+  rootsRegionAvailability = [],
 }: {
   plans: BusinessPlanWithAvailability[];
   initialPlanId: string | null;
+  rootsRegionAvailability?: RootsRegionAvailability[];
 }) {
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(
     (initialPlanId as PlanId) ?? null
   );
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [state, setState] = useState<CheckoutState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [authRequired, setAuthRequired] = useState(false);
+
+  const isRootsSelected = selectedPlanId === "roots";
+  // Roots は地方ブロック必須。選択されるまで申込不可。
+  const regionRequiredButMissing = isRootsSelected && !selectedRegion;
+
+  function selectPlan(planId: PlanId) {
+    setSelectedPlanId(planId);
+    if (planId !== "roots") setSelectedRegion(null);
+  }
 
   const checkoutRedirect = useMemo(
     () =>
@@ -34,6 +46,11 @@ export default function BusinessCheckoutClient({
 
   async function handleCheckout() {
     if (!selectedPlanId) return;
+    if (regionRequiredButMissing) {
+      setState("error");
+      setErrorMessage("地方ブロックを選択してください。");
+      return;
+    }
     setState("loading");
     setErrorMessage("");
     setAuthRequired(false);
@@ -41,7 +58,10 @@ export default function BusinessCheckoutClient({
       const res = await fetch("/api/business-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: selectedPlanId }),
+        body: JSON.stringify({
+          planId: selectedPlanId,
+          ...(isRootsSelected && selectedRegion ? { region: selectedRegion } : {}),
+        }),
       });
 
       if (res.status === 401) {
@@ -131,7 +151,7 @@ export default function BusinessCheckoutClient({
                   <button
                     type="button"
                     key={plan.id}
-                    onClick={() => !plan.soldOut && setSelectedPlanId(plan.id as PlanId)}
+                    onClick={() => !plan.soldOut && selectPlan(plan.id as PlanId)}
                     disabled={plan.soldOut}
                     aria-pressed={isSelected}
                     aria-label={`${plan.name} ${plan.priceLabel}`}
@@ -247,6 +267,50 @@ export default function BusinessCheckoutClient({
                     </div>
                   ))}
                 </div>
+
+                {isRootsSelected && (
+                  <div className="mt-6 border-t border-white/8 pt-5">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="font-mono text-[10px] uppercase tracking-[.12em] text-[#00d2ff]">Select Region · 地方ブロック</p>
+                      <p className="font-mono text-[10px] text-[#3a3f50]">各ブロック20枠</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                      {rootsRegionAvailability.map((region) => {
+                        const active = selectedRegion === region.id;
+                        return (
+                          <button
+                            type="button"
+                            key={region.id}
+                            onClick={() => !region.soldOut && setSelectedRegion(region.id)}
+                            disabled={region.soldOut}
+                            aria-pressed={active}
+                            className={[
+                              "flex flex-col items-start gap-1 rounded-xl border px-3.5 py-3 text-left transition-all duration-150",
+                              active
+                                ? "border-[#00d2ff] bg-[#00d2ff]/8 shadow-[0_0_0_1px_rgba(0,210,255,0.2)]"
+                                : region.soldOut
+                                  ? "cursor-not-allowed border-white/6 bg-white/[0.02] opacity-45"
+                                  : "cursor-pointer border-white/8 bg-[#0e1018] hover:border-[#00d2ff]/30",
+                            ].join(" ")}
+                          >
+                            <span className="text-[.8rem] font-bold text-white">{region.label}</span>
+                            <span className={[
+                              "font-mono text-[.68rem] tracking-[.04em]",
+                              region.soldOut ? "text-[#ff6b5b]" : region.remaining <= 3 ? "text-[#ff6b5b]" : "text-[#5a6070]",
+                            ].join(" ")}>
+                              {region.soldOut ? "満席" : `残り ${region.remaining} 枠`}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {regionRequiredButMissing && (
+                      <p className="mt-3 font-mono text-[.68rem] tracking-[.05em] text-[#3a3f50]">
+                        ※ Roots は地方ブロックを選択してからお申し込みください
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -265,16 +329,17 @@ export default function BusinessCheckoutClient({
                     ].join(" ")}>
                       {selectedPlan.priceLabel} · 残り {selectedPlan.remaining} 枠
                       {selectedPlan.remaining <= 3 && " — 残りわずか"}
+                      {isRootsSelected && selectedRegion && ` · ${rootsRegionAvailability.find((r) => r.id === selectedRegion)?.label ?? ""}`}
                     </p>
                     {errorMessage && <p className="mt-0.5 text-[.72rem] text-[#ff6b5b]">{errorMessage}</p>}
                   </div>
                   <button
                     type="button"
                     onClick={handleCheckout}
-                    disabled={state === "loading"}
+                    disabled={state === "loading" || regionRequiredButMissing}
                     className="shrink-0 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.8rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white hover:shadow-[0_0_32px_rgba(0,210,255,0.45)] disabled:cursor-not-allowed disabled:opacity-45"
                   >
-                    {state === "loading" ? "処理中..." : `${selectedPlan.priceLabel} で申し込む →`}
+                    {state === "loading" ? "処理中..." : regionRequiredButMissing ? "地方ブロックを選択" : `${selectedPlan.priceLabel} で申し込む →`}
                   </button>
                 </div>
                 {(selectedPlan.id === "signal" || selectedPlan.id === "presence" || selectedPlan.id === "legacy") && (

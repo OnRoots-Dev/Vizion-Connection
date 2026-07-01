@@ -10,6 +10,7 @@ export async function createBusinessOrder(params: {
     amount: number;
     status: string;
     squareLink?: string;
+    region?: string | null;
 }): Promise<boolean> {
     const { error } = await supabase
         .from("business_orders")
@@ -21,9 +22,28 @@ export async function createBusinessOrder(params: {
             amount: params.amount,
             status: params.status,
             square_link: params.squareLink ?? null,
+            region: params.region ?? null,
         });
     if (error) { console.error("[createBusinessOrder]", error); return false; }
     return true;
+}
+
+// Rootsプランの地方ブロック別 完了注文数
+export async function getRootsOrderCountsByRegion(): Promise<Record<string, number>> {
+    const { data, error } = await supabase
+        .from("business_orders")
+        .select("region")
+        .eq("plan_id", "roots")
+        .eq("status", "completed");
+    if (error) { console.error("[getRootsOrderCountsByRegion]", error); return {}; }
+
+    const counts: Record<string, number> = {};
+    for (const row of data ?? []) {
+        const region = row.region;
+        if (!region) continue;
+        counts[region] = (counts[region] ?? 0) + 1;
+    }
+    return counts;
 }
 
 // プランごとの注文数

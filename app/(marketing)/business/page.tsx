@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BUSINESS_PLANS } from "@/features/business/constants";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -56,9 +56,21 @@ const REGION_LEGEND = [
   { key: "kyushuOkinawa", label: "九州・沖縄" },
 ] as const;
 
+type RootsRegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
+
 export default function BusinessPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [rootsRegions, setRootsRegions] = useState<RootsRegionAvail[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/business/region-availability", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => { if (active && Array.isArray(d?.regions)) setRootsRegions(d.regions as RootsRegionAvail[]); })
+      .catch(() => { /* 取得失敗時は非表示 */ });
+    return () => { active = false; };
+  }, []);
 
   return (
     <>
@@ -214,6 +226,32 @@ export default function BusinessPage() {
                 地方別プラン対象エリア
               </h2>
               <JapanMap />
+
+              {rootsRegions.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-3 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">
+                    Roots · 地方ブロック残枠（各20枠）
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {rootsRegions.map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0e1018] px-4 py-3"
+                      >
+                        <span className="text-[.82rem] font-bold text-white">{r.label}</span>
+                        <span
+                          className={[
+                            "font-mono text-[.72rem] tracking-[.03em]",
+                            r.soldOut ? "text-[#ff6b5b]" : r.remaining <= 3 ? "text-[#ff6b5b]" : "text-[#C8E800]",
+                          ].join(" ")}
+                        >
+                          {r.soldOut ? "満席" : `残り${r.remaining}枠`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* ── Comparison table ── */}

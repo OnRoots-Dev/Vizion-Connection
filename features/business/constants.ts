@@ -1,6 +1,30 @@
 // features/business/constants.ts
 import type { BusinessPlan, PlanId } from "./types";
 
+// 地方ブロック（Business用の6区分）。LP の JapanMap / FAQ と一致。
+// ※ ユーザー登録の region（北海道と東北が別の7区分）とは別物。
+export const BUSINESS_REGIONS = [
+    { id: "hokkaido_tohoku", label: "北海道・東北" },
+    { id: "kanto", label: "関東" },
+    { id: "chubu", label: "中部" },
+    { id: "kinki", label: "近畿" },
+    { id: "chugoku_shikoku", label: "中国・四国" },
+    { id: "kyushu_okinawa", label: "九州・沖縄" },
+] as const;
+
+export type BusinessRegionId = (typeof BUSINESS_REGIONS)[number]["id"];
+
+// Roots は全国120枠 ÷ 6ブロック = 各ブロック20枠。
+export const ROOTS_SEATS_PER_REGION = 20;
+
+export function isBusinessRegionId(value: unknown): value is BusinessRegionId {
+    return typeof value === "string" && BUSINESS_REGIONS.some((r) => r.id === value);
+}
+
+export function getBusinessRegionLabel(id: string): string {
+    return BUSINESS_REGIONS.find((r) => r.id === id)?.label ?? id;
+}
+
 export const PLAN_LINKS = {
     roots: process.env.NEXT_PUBLIC_SQUARE_LINK_ROOTS ?? "",
     signal: process.env.NEXT_PUBLIC_SQUARE_LINK_SIGNAL ?? "",

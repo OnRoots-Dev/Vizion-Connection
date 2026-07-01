@@ -1,6 +1,6 @@
 // features/business/server/create-checkout.ts
 
-import { getBusinessPlansWithUrls } from "@/features/business/constants";
+import { getBusinessPlansWithUrls, isBusinessRegionId } from "@/features/business/constants";
 import { saveBusinessOrder } from "@/features/business/server/save-order";
 import type { PlanId, CreateCheckoutResult } from "@/features/business/types";
 
@@ -8,12 +8,13 @@ interface CreateCheckoutInput {
     planId: PlanId;
     email: string;
     slug: string;
+    region?: string | null;
 }
 
 export async function createCheckout(
     input: CreateCheckoutInput
 ): Promise<CreateCheckoutResult> {
-    const { planId, email, slug } = input;
+    const { planId, email, slug, region } = input;
 
     // getBusinessPlansWithUrls() でsquareUrlを含むプラン一覧を取得
     const plans = getBusinessPlansWithUrls();
@@ -21,6 +22,11 @@ export async function createCheckout(
 
     if (!plan) {
         return { success: false, error: "プランが見つかりません" };
+    }
+
+    // Roots は地方ブロック商品のため region 必須。全国プランは region を持たない。
+    if (plan.id === "roots" && !isBusinessRegionId(region)) {
+        return { success: false, error: "地方ブロックを選択してください" };
     }
 
     if (!plan.squareUrl || plan.squareUrl === "#") {
@@ -39,6 +45,7 @@ export async function createCheckout(
             planName: plan.name,
             amount: plan.amount,
             squareLink: plan.squareUrl,
+            region: plan.id === "roots" ? region : null,
         },
         "pending"
     );

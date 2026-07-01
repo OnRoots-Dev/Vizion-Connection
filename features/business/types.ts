@@ -24,6 +24,15 @@ export interface BusinessPlanWithAvailability extends BusinessPlan {
     soldOut: boolean;
 }
 
+// Rootsプランの地方ブロック別 残枠
+export interface RootsRegionAvailability {
+    id: string;
+    label: string;
+    seats: number;
+    remaining: number;
+    soldOut: boolean;
+}
+
 export interface BusinessOrderInput {
     email: string;
     slug: string;
@@ -31,6 +40,7 @@ export interface BusinessOrderInput {
     planName: string;
     amount: number;
     squareLink: string;
+    region?: string | null;
 }
 
 export interface BusinessOrderRecord {
