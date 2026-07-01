@@ -24,7 +24,7 @@ export interface CollectedCard {
     region: string | null;
     prefecture: string | null;
     sport: string | null;
-    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+    sponsorPlan: "roots" | "signal" | "presence" | "legacy" | null;
     serialId: string | null;
     cheerCount: number;
     isFoundingMember: boolean;

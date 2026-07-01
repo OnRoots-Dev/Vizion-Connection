@@ -49,7 +49,6 @@ export interface UserRecord {
     instagram: string | null;
     xUrl: string | null;
     tiktok: string | null;
-    proofUrl: string | null;
     ambassadorCode: string | null;
     foundingNumber: number | null;
     fromSlug: string | null;
@@ -58,7 +57,7 @@ export interface UserRecord {
     points: number;
     missionBonusGiven: boolean;
     hasShared: boolean;
-    sponsorPlan: "roots" | "roots_plus" | "signal" | "presence" | "legacy" | null;
+    sponsorPlan: "roots" | "signal" | "presence" | "legacy" | null;
     resetToken: string | null;
     resetTokenExpires: string | null;
     isDeleted: boolean;

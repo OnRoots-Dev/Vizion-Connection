@@ -24,15 +24,15 @@ const FAQS = [
 ];
 
 const TABLE_ROWS = [
-  ["単価", "3万円", "5万円", "10万円", "50万円", "100万円"],
-  ["枠数", "120枠", "60枠", "30枠", "10枠", "5枠"],
-  ["表示エリア", "地方ブロック", "地方ブロック", "全国", "全国", "全国"],
-  ["表示サイズ", "small", "medium", "medium", "large", "hero"],
-  ["Discovery表示", "—", "優先", "表示", "優先", "最優先"],
-  ["地域広告枠", "—", "—", "—", "1ブロック", "全ブロック"],
-  ["月次レポート", "—", "—", "—", "✓", "✓"],
-  ["戦略MTG", "—", "—", "—", "—", "✓"],
-  ["正式版3ヶ月間 月額料金で利用可能", "✓", "✓", "✓", "✓", "✓"],
+  ["単価", "3万円", "10万円", "50万円", "100万円"],
+  ["枠数", "120枠", "30枠", "10枠", "5枠"],
+  ["表示エリア", "地方ブロック", "全国", "全国", "全国"],
+  ["表示サイズ", "small", "medium", "large", "hero"],
+  ["Discovery表示", "—", "表示", "優先", "最優先"],
+  ["地域広告枠", "—", "—", "1ブロック", "全ブロック"],
+  ["月次レポート", "—", "—", "✓", "✓"],
+  ["戦略MTG", "—", "—", "—", "✓"],
+  ["正式版3ヶ月間 月額料金で利用可能", "✓", "✓", "✓", "✓"],
 ];
 
 // セルの強調判定
@@ -103,7 +103,7 @@ export default function BusinessPage() {
               </h1>
               <p className="anim-fade-up max-w-xl text-[.9rem] font-light leading-[1.9] text-[#5a6070] [animation-delay:.2s]">
                 Vizion Connection は、アスリート・トレーナー・クルーの信頼ネットワークインフラです。
-                Roots / Roots+ は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
+                Roots は地域密着型、Signal以上は全国展開向け。広告掲載、Discovery露出、Business Hub、効果測定まで実装済みの範囲から利用できます。
               </p>
               <button
                 type="button"
@@ -224,7 +224,7 @@ export default function BusinessPage() {
                   <thead>
                     <tr className="border-b border-white/6">
                       <th className="px-5 py-3.5 text-left font-mono text-[.72rem] font-normal tracking-[.05em] text-[#3a3f50]">項目</th>
-                      {["Roots", "Roots+", "Signal", "Presence", "Legacy"].map((h) => (
+                      {["Roots", "Signal", "Presence", "Legacy"].map((h) => (
                         <th key={h} className="px-5 py-3.5 text-left font-extrabold text-white">{h}</th>
                       ))}
                     </tr>

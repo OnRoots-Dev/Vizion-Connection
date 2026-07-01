@@ -12,13 +12,11 @@ type Category = typeof CATEGORIES[number];
 
 const PLAN_LABELS: Record<string, string> = {
     roots: "Roots（¥30,000）",
-    "roots-plus": "Roots+（¥50,000）",
     signal: "Signal（¥100,000）",
     presence: "Presence（¥500,000）",
     legacy: "Legacy（¥1,000,000）",
-    // Backward-compatible aliases for older shared links.
+    // Backward-compatible alias for older shared links.
     root: "Roots（¥30,000）",
-    "roots+": "Roots+（¥50,000）",
 };
 
 export default function ContactSection() {

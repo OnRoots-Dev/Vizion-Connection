@@ -2,7 +2,6 @@
 
 export type PlanId =
     | "roots"
-    | "roots-plus"
     | "signal"
     | "presence"
     | "legacy";

@@ -20,7 +20,7 @@ export interface AdItem {
 }
 
 export function isLocalPlan(plan: string): boolean {
-    return plan === "regional" || plan === "roots" || plan === "roots_plus" || plan === "local" || plan === "local_premium";
+    return plan === "regional" || plan === "roots" || plan === "local" || plan === "local_premium";
 }
 
 export function isNationalPlan(plan: string): boolean {

@@ -44,9 +44,8 @@ function verifySquareSignature(signature: string | null, body: string): boolean 
 function resolvePlanByAmount(amount: number) {
   const normalizedAmount = amount >= 100_000 ? Math.round(amount / 100) : amount;
   // 金額(円)→プランの対応表。Legacy は個別見積のため固定金額の決済対象外。
-  const mapping: Record<number, { plan_id: "roots" | "roots_plus" | "signal" | "presence" | "legacy"; plan_name: string }> = {
+  const mapping: Record<number, { plan_id: "roots" | "signal" | "presence" | "legacy"; plan_name: string }> = {
     30000: { plan_id: "roots", plan_name: "Roots" },
-    50000: { plan_id: "roots_plus", plan_name: "Roots+" },
     100000: { plan_id: "signal", plan_name: "Signal" },
     300000: { plan_id: "presence", plan_name: "Presence" },
   };
