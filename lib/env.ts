@@ -39,7 +39,9 @@ export const env = {
 
   // 銀行振込案内メールの口座情報（ダミー初期値。実値は環境変数で上書きする）
   BANK_NAME: process.env.BANK_NAME ?? "○○銀行",
+  BANK_CODE: process.env.BANK_CODE ?? "0000",
   BANK_BRANCH: process.env.BANK_BRANCH ?? "○○支店",
+  BANK_BRANCH_CODE: process.env.BANK_BRANCH_CODE ?? "000",
   BANK_ACCOUNT_TYPE: process.env.BANK_ACCOUNT_TYPE ?? "普通",
   BANK_ACCOUNT_NUMBER: process.env.BANK_ACCOUNT_NUMBER ?? "0000000",
   BANK_ACCOUNT_HOLDER: process.env.BANK_ACCOUNT_HOLDER ?? "カ）ビジョンコネクション",

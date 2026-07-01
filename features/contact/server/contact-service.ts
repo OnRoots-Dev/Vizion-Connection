@@ -143,8 +143,10 @@ function buildBankTransferHtml({ name, planName, amountLabel, dueDate }: BankTra
     <div style="background:#f6f6f8;border:1px solid #e5e5ea;padding:14px;border-radius:10px;margin:0 0 16px;">
       <p style="margin:0 0 8px;font-weight:bold;">■ お振込先</p>
       <p style="margin:0 0 4px;">銀行名：${escapeHtml(env.BANK_NAME)}</p>
+      <p style="margin:0 0 4px;">銀行コード：${escapeHtml(env.BANK_CODE)}</p>
       <p style="margin:0 0 4px;">支店名：${escapeHtml(env.BANK_BRANCH)}</p>
       <p style="margin:0 0 4px;">口座種別：${escapeHtml(env.BANK_ACCOUNT_TYPE)}</p>
+      <p style="margin:0 0 4px;">店番号：${escapeHtml(env.BANK_BRANCH_CODE)}</p>
       <p style="margin:0 0 4px;">口座番号：${escapeHtml(env.BANK_ACCOUNT_NUMBER)}</p>
       <p style="margin:0;">口座名義：${escapeHtml(env.BANK_ACCOUNT_HOLDER)}</p>
     </div>
@@ -184,8 +186,10 @@ function buildBankTransferText({ name, planName, amountLabel, dueDate }: BankTra
     "",
     "■ お振込先",
     `　銀行名　：${env.BANK_NAME}`,
+    `　銀行コード：${env.BANK_CODE}`,
     `　支店名　：${env.BANK_BRANCH}`,
     `　口座種別：${env.BANK_ACCOUNT_TYPE}`,
+    `　店番号　：${env.BANK_BRANCH_CODE}`,
     `　口座番号：${env.BANK_ACCOUNT_NUMBER}`,
     `　口座名義：${env.BANK_ACCOUNT_HOLDER}`,
     "",
