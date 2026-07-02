@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { validateCSRF } from "@/lib/security/csrf";
 import { journeyLimiter, getIp } from "@/lib/ratelimit";
 import { recordMissionAction } from "@/lib/missions";
+import { checkJourneyMilestones } from "@/lib/supabase/portfolio-milestones";
 
 const schema = z.object({
     content: z.string().min(1, "内容は必須です").max(500, "500文字以内で入力してください"),
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "投稿に失敗しました" }, { status: 500 });
     }
 
-    // Mission進捗・Daily Circuit連動（サイレント失敗）
+    // Mission進捗・Daily Circuit連動・マイルストーン判定（サイレント失敗）
     const userId = String(user.id);
     void Promise.all([
         recordMissionAction({ userId, slug: user.slug, requiredAction: "journey" }).catch(() => {}),
@@ -90,6 +91,9 @@ export async function POST(req: NextRequest) {
                     { onConflict: "user_id,circuit_date" }
                 )
         ).catch(() => {}),
+        checkJourneyMilestones(user.slug).catch((err) => {
+            console.error("[checkJourneyMilestones]", err);
+        }),
     ]);
 
     return NextResponse.json({ journey: data }, { status: 201 });

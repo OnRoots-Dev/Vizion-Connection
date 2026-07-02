@@ -17,6 +17,16 @@ export type BusinessRegionId = (typeof BUSINESS_REGIONS)[number]["id"];
 // Roots は全国120枠 ÷ 6ブロック = 各ブロック20枠。
 export const ROOTS_SEATS_PER_REGION = 20;
 
+// 1社（1プラン）あたりに支援対象として指定できるアスリート等の人数上限。
+// ※ BUSINESS_PLANS の seats（プランを購入できる企業の総枠数、全社合計）とは別概念。
+// 初期値は BUSINESS_PLANS.seats の数字をそのまま流用している（指示に基づく仮値）。
+export const SPONSOR_SLOTS_PER_PLAN: Record<PlanId, number> = {
+    roots: 120,
+    signal: 30,
+    presence: 10,
+    legacy: 5,
+};
+
 export function isBusinessRegionId(value: unknown): value is BusinessRegionId {
     return typeof value === "string" && BUSINESS_REGIONS.some((r) => r.id === value);
 }

@@ -22,6 +22,7 @@ import SponsorBadge from "@/components/SponsorBadge";
 import PublicProfileRealtime from "./PublicProfileRealtime";
 import PublicProfileTabs from "./PublicProfileTabs";
 import BondAudience from "./BondAudience";
+import BondButtonClient from "./BondButtonClient";
 import { supabaseServer } from "@/lib/supabase/server";
 import { computeStreak } from "@/lib/pulse-stats";
 import { CATEGORY_CONFIG } from "@/types/schedule";
@@ -543,6 +544,9 @@ export default async function UserProfilePage({ params }: Props) {
 
                 <div className="a-section" id="bond" style={{ scrollMarginTop: 60 }}>
                     <h2>Bond</h2>
+                    <div className="a-panel" style={{ marginBottom: 12 }}>
+                        <BondButtonClient slug={profile.slug} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} initialBonded={isBonded} fullWidth />
+                    </div>
                     <BondAudience bondCount={bondCount} isBonded={isBonded} />
                 </div>
 
@@ -834,6 +838,7 @@ export default async function UserProfilePage({ params }: Props) {
                                 <div className="cheerb">
                                     <CheerButtonClient slug={profile.slug} initialCheerCount={profile.cheerCount ?? 0} roleColor={rl} isOwn={isOwn} />
                                 </div>
+                                <BondButtonClient slug={profile.slug} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} initialBonded={isBonded} fullWidth />
                                 <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={rl} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
                                 <div id="card" style={{ scrollMarginTop: 80 }}>
                                     <ProfileCardSection

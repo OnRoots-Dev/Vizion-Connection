@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
@@ -63,13 +64,31 @@ type BusinessOffer = {
     updatedAt: string;
 };
 
-type BusinessFeature = "analytics" | "ads" | "offers" | "discovery";
+type BusinessFeature = "analytics" | "ads" | "offers" | "discovery" | "sponsorships";
 
 const businessFeatureMeta: Record<BusinessFeature, { title: string; summary: string }> = {
     analytics: { title: "分析", summary: "広告効果と売上の流れを確認" },
     ads: { title: "広告管理", summary: "出稿状況を更新して成果を改善" },
     offers: { title: "オファー", summary: "案件送信と進捗管理を一元化" },
     discovery: { title: "検索", summary: "Athlete・Trainer を検索して候補保存" },
+    sponsorships: { title: "支援先", summary: "支援するアスリート等を管理" },
+};
+
+type SponsorshipTarget = {
+    id: string;
+    slug: string;
+    displayName: string;
+    role: string;
+    avatarUrl: string | null;
+    startedAt: string;
+};
+
+type DiscoverySearchUser = {
+    slug: string;
+    display_name: string;
+    role: string;
+    avatar_url: string | null;
+    profile_image_url: string | null;
 };
 
 const emptyAnalytics: BusinessAnalytics = {
@@ -379,6 +398,81 @@ export function BusinessHubView({
     const [adForm, setAdForm] = useState(defaultAdForm);
     const [offerForm, setOfferForm] = useState(defaultOfferForm);
 
+    const [sponsorships, setSponsorships] = useState<SponsorshipTarget[]>([]);
+    const [slotsUsed, setSlotsUsed] = useState(0);
+    const [slotsTotal, setSlotsTotal] = useState(0);
+    const [sponsorshipError, setSponsorshipError] = useState<string | null>(null);
+    const [sponsorSearchQuery, setSponsorSearchQuery] = useState("");
+    const [sponsorSearchResults, setSponsorSearchResults] = useState<DiscoverySearchUser[]>([]);
+    const [searchingSponsors, setSearchingSponsors] = useState(false);
+    const [addingSponsorSlug, setAddingSponsorSlug] = useState<string | null>(null);
+    const [removingSponsorId, setRemovingSponsorId] = useState<string | null>(null);
+
+    const loadSponsorships = async () => {
+        try {
+            const res = await fetch("/api/business-hub/sponsorships", { cache: "no-store" });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.success) throw new Error(json.error ?? "支援先の取得に失敗しました");
+            setSponsorships(json.targets ?? []);
+            setSlotsUsed(json.slotsUsed ?? 0);
+            setSlotsTotal(json.slotsTotal ?? 0);
+        } catch (err) {
+            setSponsorshipError(err instanceof Error ? err.message : "支援先の取得に失敗しました");
+        }
+    };
+
+    const searchSponsorCandidates = async (query: string) => {
+        setSearchingSponsors(true);
+        try {
+            const res = await fetch(`/api/discovery?role=Athlete&q=${encodeURIComponent(query)}`, { cache: "no-store" });
+            const json = await res.json().catch(() => ({}));
+            setSponsorSearchResults((json.users ?? []) as DiscoverySearchUser[]);
+        } catch {
+            setSponsorSearchResults([]);
+        } finally {
+            setSearchingSponsors(false);
+        }
+    };
+
+    const addSponsor = async (slug: string) => {
+        setAddingSponsorSlug(slug);
+        setSponsorshipError(null);
+        try {
+            const response = await fetch("/api/business-hub/sponsorships", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sponsoredUserSlug: slug }),
+            });
+            const json = await response.json().catch(() => ({}));
+            if (!response.ok || !json.success) throw new Error(json.error ?? "支援先の追加に失敗しました");
+            await loadSponsorships();
+        } catch (err) {
+            setSponsorshipError(err instanceof Error ? err.message : "支援先の追加に失敗しました");
+        } finally {
+            setAddingSponsorSlug(null);
+        }
+    };
+
+    const removeSponsor = async (id: string) => {
+        setRemovingSponsorId(id);
+        setSponsorshipError(null);
+        try {
+            const response = await fetch(`/api/business-hub/sponsorships/${id}`, { method: "DELETE" });
+            const json = await response.json().catch(() => ({}));
+            if (!response.ok || !json.success) throw new Error(json.error ?? "支援の終了に失敗しました");
+            setSponsorships((current) => current.filter((item) => item.id !== id));
+            setSlotsUsed((current) => Math.max(0, current - 1));
+        } catch (err) {
+            setSponsorshipError(err instanceof Error ? err.message : "支援の終了に失敗しました");
+        } finally {
+            setRemovingSponsorId(null);
+        }
+    };
+
+    useEffect(() => {
+        void loadSponsorships();
+    }, []);
+
     const load = async () => {
         setLoading(true);
         setError(null);
@@ -652,6 +746,96 @@ export function BusinessHubView({
                                     >
                                         Discoveryを開く
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : selectedFeature === "sponsorships" ? (
+                        <div style={{ display: "grid", gap: 16 }}>
+                            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                                <div>
+                                    <h3 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 900, color: t.text }}>支援先</h3>
+                                    <p style={{ margin: 0, fontSize: 11, color: t.sub }}>支援するアスリート等を検索して追加すると、公開プロフィールに「支援企業」として表示されます。</p>
+                                </div>
+                                <div style={{ padding: "10px 14px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", textAlign: "center" }}>
+                                    <div style={{ fontSize: 10, color: t.sub }}>支援枠</div>
+                                    <div style={{ marginTop: 2, fontSize: 16, fontWeight: 900, color: t.text }}>{slotsUsed}/{slotsTotal || 0}</div>
+                                </div>
+                            </div>
+
+                            {!profile.sponsorPlan ? (
+                                <div style={{ padding: 20, borderRadius: 16, border: `1px dashed ${t.border}`, color: t.sub, fontSize: 12 }}>
+                                    有効なスポンサープランがありません。プランに申し込むと支援先を追加できます。
+                                </div>
+                            ) : null}
+
+                            {sponsorshipError ? <div style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid rgba(255,80,80,0.35)", background: "rgba(255,80,80,0.10)", color: "#ffb6b6", fontSize: 12 }}>{sponsorshipError}</div> : null}
+
+                            <div style={{ display: "grid", gap: 10 }}>
+                                {sponsorships.length === 0 ? (
+                                    <div style={{ padding: 20, borderRadius: 16, border: `1px dashed ${t.border}`, color: t.sub, fontSize: 12 }}>まだ支援先がありません。下の検索から追加してください。</div>
+                                ) : sponsorships.map((target) => (
+                                    <div key={target.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                                            {target.avatarUrl ? <Image src={target.avatarUrl} alt="" width={40} height={40} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 13, fontWeight: 800, color: t.text }}>{target.displayName}</div>
+                                            <div style={{ marginTop: 2, fontSize: 11, color: t.sub }}>@{target.slug} · {target.role} · 支援開始 {formatDate(target.startedAt)}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => void removeSponsor(target.id)}
+                                            disabled={removingSponsorId === target.id}
+                                            style={{ padding: "8px 12px", borderRadius: 10, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.04)", color: t.sub, fontSize: 11, fontWeight: 700, cursor: removingSponsorId === target.id ? "wait" : "pointer" }}
+                                        >
+                                            {removingSponsorId === target.id ? "..." : "支援を終了"}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ padding: 16, borderRadius: 18, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)" }}>
+                                <SLabel text="Athleteを検索して追加" color={accent} />
+                                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                                    <input
+                                        value={sponsorSearchQuery}
+                                        onChange={(e) => setSponsorSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === "Enter") void searchSponsorCandidates(sponsorSearchQuery); }}
+                                        style={inputStyle(t)}
+                                        placeholder="表示名・slugで検索"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => void searchSponsorCandidates(sponsorSearchQuery)}
+                                        disabled={searchingSponsors}
+                                        style={{ padding: "10px 16px", borderRadius: 12, border: "none", background: accent, color: "#07131d", fontWeight: 800, cursor: searchingSponsors ? "wait" : "pointer", flexShrink: 0 }}
+                                    >
+                                        検索
+                                    </button>
+                                </div>
+                                <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+                                    {sponsorSearchResults.length === 0 ? (
+                                        <p style={{ margin: 0, fontSize: 11, color: t.sub }}>{searchingSponsors ? "検索中..." : "検索結果はここに表示されます。"}</p>
+                                    ) : sponsorSearchResults.map((user) => {
+                                        const alreadyAdded = sponsorships.some((s) => s.slug === user.slug);
+                                        const slotsFull = slotsTotal > 0 && slotsUsed >= slotsTotal;
+                                        return (
+                                            <div key={user.slug} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+                                                    {(user.avatar_url || user.profile_image_url) ? <Image src={(user.avatar_url || user.profile_image_url)!} alt="" width={32} height={32} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0, fontSize: 12, color: t.text, fontWeight: 700 }}>{user.display_name} <span style={{ color: t.sub, fontWeight: 400 }}>@{user.slug}</span></div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => void addSponsor(user.slug)}
+                                                    disabled={alreadyAdded || slotsFull || addingSponsorSlug === user.slug}
+                                                    style={{ padding: "7px 12px", borderRadius: 10, border: `1px solid ${accent}45`, background: alreadyAdded ? "rgba(255,255,255,0.04)" : `${accent}14`, color: alreadyAdded ? t.sub : accent, fontSize: 11, fontWeight: 800, cursor: alreadyAdded || slotsFull ? "not-allowed" : "pointer", opacity: alreadyAdded || slotsFull ? 0.6 : 1 }}
+                                                >
+                                                    {alreadyAdded ? "追加済み" : addingSponsorSlug === user.slug ? "..." : slotsFull ? "枠なし" : "追加"}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

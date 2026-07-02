@@ -2,6 +2,7 @@
 import { supabaseServer as supabase } from "./server";
 import type { LatestCheerItem } from "@/features/profile/types";
 import { notifyCheerReceived } from "@/lib/notifications/create-notification";
+import { checkCheersReceivedMilestone } from "@/lib/supabase/portfolio-milestones";
 
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
@@ -110,7 +111,12 @@ export async function createCheer(toSlug: string, fromSlug: string | null, comme
     if (error) { console.error("[createCheer]", error); return false; }
 
     // cheer_count をインクリメント
-    await supabase.rpc("increment_cheer_count", { target_slug: toSlug });
+    const { data: newCheerCount } = await supabase.rpc("increment_cheer_count", { target_slug: toSlug });
+    if (typeof newCheerCount === "number") {
+        await checkCheersReceivedMilestone(toSlug, newCheerCount).catch((err) => {
+            console.error("[checkCheersReceivedMilestone]", err);
+        });
+    }
     await notifyCheerReceived({ toSlug, fromSlug, comment: cleanedComment }).catch((err) => {
         console.error("[notifyCheerReceived]", err);
     });
