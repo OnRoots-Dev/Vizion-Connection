@@ -12,6 +12,7 @@ import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourne
 import { computeStreak } from "@/lib/pulse-stats";
 import { calcDayCount } from "@/lib/day-count";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { IconStreak } from "@/lib/design/icons";
 
 // 連続記録（PULSE）日数を JST 基準で算出（journeys から）
 
@@ -442,8 +443,9 @@ export function MyJourneyView({
           meta={(
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>一言と気分を残して、日々の積み上がりを見える化します。</p>
-              <span style={{ fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.12)", color: "#FF5050", whiteSpace: "nowrap" }}>
-                {dayCount !== null ? `DAY ${dayCount}🔥` : `連続${streak}日🔥`}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 900, borderRadius: 999, padding: "5px 10px", border: "1px solid rgba(255,80,80,0.25)", background: "rgba(255,80,80,0.12)", color: "#FF5050", whiteSpace: "nowrap" }}>
+                {dayCount !== null ? `DAY ${dayCount}` : `連続${streak}日`}
+                <IconStreak size={11} aria-hidden />
               </span>
             </div>
           )}

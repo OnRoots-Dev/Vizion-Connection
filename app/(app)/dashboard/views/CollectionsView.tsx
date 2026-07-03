@@ -6,6 +6,7 @@ import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/component
 import { CollectionCarousel, type CollectionCardItem } from "@/components/collections/CollectionCarousel";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 import Image from "next/image";
+import { IconCheer } from "@/lib/design/icons";
 
 type InlineAd = {
   id: string;
@@ -312,7 +313,7 @@ export function CollectionsView({
                         </div>
                         {sport ? <div style={{ fontFamily: "monospace", fontSize: 10.5, letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sport}</div> : null}
                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
-                          <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                          <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={9} /></span>
                           <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
                           <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 700, lineHeight: 1, color: "#FFD600" }}>{card.cheerCount ?? 0}</span>
                         </div>

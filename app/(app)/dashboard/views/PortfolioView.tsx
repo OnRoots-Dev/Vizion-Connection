@@ -9,6 +9,7 @@ import type { JourneyEntry } from "@/features/journey/types";
 import { getConditionMeta } from "@/components/DailyLog/journey";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
 import { computeStreak, computeLongestStreak } from "@/lib/pulse-stats";
+import { IconCheer, IconJourney, IconStreak, IconTrophy } from "@/lib/design/icons";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function diffJstDays(fromKey: string, toKey: string): number {
@@ -184,10 +185,10 @@ export function PortfolioView({
             )}
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-              <Chip icon="🔥" label="継続" value={`${streaks.current}日`} roleColor={roleColor} t={t} />
-              <Chip icon="🏆" label="最長" value={`${streaks.longest}日`} roleColor={roleColor} t={t} />
-              <Chip icon="📝" label="記録" value={`${stats.total}`} roleColor={roleColor} t={t} />
-              {stats.totalCheer > 0 ? <Chip icon="⭐" label="Cheer" value={`${stats.totalCheer}`} roleColor={roleColor} t={t} /> : null}
+              <Chip icon={<IconStreak size={12} />} label="継続" value={`${streaks.current}日`} roleColor={roleColor} t={t} />
+              <Chip icon={<IconTrophy size={12} />} label="最長" value={`${streaks.longest}日`} roleColor={roleColor} t={t} />
+              <Chip icon={<IconJourney size={12} />} label="記録" value={`${stats.total}`} roleColor={roleColor} t={t} />
+              {stats.totalCheer > 0 ? <Chip icon={<IconCheer size={12} style={{ color: "#FFD600" }} />} label="Cheer" value={`${stats.totalCheer}`} roleColor={roleColor} t={t} /> : null}
             </div>
           </div>
 
@@ -310,10 +311,10 @@ export function PortfolioView({
 }
 
 // ─── sub components ──────────────────────────────────────────────────────────
-function Chip({ icon, label, value, roleColor, t }: { icon: string; label: string; value: string; roleColor: string; t: ThemeColors }) {
+function Chip({ icon, label, value, roleColor, t }: { icon: React.ReactNode; label: string; value: string; roleColor: string; t: ThemeColors }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)" }}>
-      <span style={{ fontSize: 12 }}>{icon}</span>
+      <span style={{ display: "inline-flex", color: roleColor }} aria-hidden>{icon}</span>
       <span style={{ fontSize: 10, color: t.sub }}>{label}</span>
       <span style={{ fontSize: 12, fontWeight: 900, color: roleColor }}>{value}</span>
     </span>

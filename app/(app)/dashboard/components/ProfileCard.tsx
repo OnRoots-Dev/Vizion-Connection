@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, type MouseEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
+import { IconCheer } from "@/lib/design/icons";
 import QRCode from "qrcode";
 import NextImage from "next/image";
 import type { ProfileData, LatestCheerItem } from "@/features/profile/types";
@@ -590,7 +591,7 @@ export function ProfileCardSection({
                                         <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
                                         {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(9px, 2.8vw, 10.5px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
-                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                            <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={9} /></span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", color: "#FFD600" }}>{cheerCount}</span>
                                         </div>

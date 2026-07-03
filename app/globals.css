@@ -9,11 +9,20 @@
   --vc-bg-elevated:   #1a1a24;
   --vc-border:        rgba(255,255,255,0.08);
   --vc-border-active: rgba(255,255,255,0.16);
+  /* text-secondary/tertiary は WCAG AA（4.5:1 on bg-base）を担保する値。
+     これ未満のコントラストが必要な場合は --vc-decorative を装飾専用で使う。 */
   --vc-text-primary:   #f0f0f5;
-  --vc-text-secondary: rgba(255,255,255,0.55);
-  --vc-text-tertiary:  rgba(255,255,255,0.28);
+  --vc-text-secondary: rgba(255,255,255,0.62);
+  --vc-text-tertiary:  rgba(255,255,255,0.55);
+  --vc-decorative:     rgba(255,255,255,0.38);
   --vc-accent:        #C8E800;
-  --vc-accent-dim:    rgba(200,232,0,0.12);
+  --vc-accent-soft:   #DDF24E;
+  --vc-accent-dim:    rgba(200,232,0,0.14);
+  --vc-accent-border: rgba(200,232,0,0.38);
+  --vc-accent-faint:  rgba(200,232,0,0.07);
+  --vc-glow-soft:   0 0 24px rgba(200,232,0,0.35);
+  --vc-glow-strong: 0 0 12px rgba(200,232,0,0.55), 0 0 40px rgba(200,232,0,0.25);
+  --vc-glow-text:   0 0 18px rgba(200,232,0,0.45);
   --on-accent:        #000000;
   --vc-radius:        12px;
 
@@ -22,8 +31,8 @@
   --vc-surface:  #111118;
   --vc-elevated: #1a1a24;
   --vc-text1:    #f0f0f5;
-  --vc-text2:    rgba(255,255,255,0.55);
-  --vc-text3:    rgba(255,255,255,0.28);
+  --vc-text2:    rgba(255,255,255,0.62);
+  --vc-text3:    rgba(255,255,255,0.55);
 
   /* Role colors (badge / accent line only) */
   --vc-athlete:  #FF5050;

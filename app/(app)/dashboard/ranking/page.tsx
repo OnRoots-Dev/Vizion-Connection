@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
 import Image from "next/image";
+import { IconCheer } from "@/lib/design/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -135,7 +136,7 @@ export default async function RankingPage({
                                         <p style={{ fontSize: 12, fontWeight: 800, color: "#fff", margin: "0 0 2px", textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{user.display_name}</p>
                                         <p style={{ fontSize: 9, fontFamily: "monospace", color: rl, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.1em" }}>{ROLE_LABEL[user.role]}</p>
                                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                            <span style={{ fontSize: 10, color: "#FFD600" }}>★</span>
+                                            <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={10} /></span>
                                             <span style={{ fontSize: 18, fontWeight: 900, color: "#FFD600", fontFamily: "monospace", lineHeight: 1 }}>{user.weekly_cheer_count}</span>
                                         </div>
                                         {/* 台座 */}
@@ -189,7 +190,7 @@ export default async function RankingPage({
                                     {/* Cheer数 */}
                                     <div style={{ textAlign: "right", flexShrink: 0 }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-                                            <span style={{ fontSize: 9, color: "#FFD600" }}>★</span>
+                                            <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={9} /></span>
                                             <span style={{ fontSize: 16, fontWeight: 900, fontFamily: "monospace", color: "#FFD600" }}>{user.weekly_cheer_count}</span>
                                         </div>
                                         <p style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", margin: 0, fontFamily: "monospace" }}>THIS WEEK</p>

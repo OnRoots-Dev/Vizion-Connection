@@ -18,12 +18,15 @@ export function ProfilePortfolioNav({
             href={href}
             aria-current={isActive ? "page" : undefined}
             style={{
-                padding: "6px 14px",
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 44,
+                padding: "10px 16px",
                 borderRadius: 999,
                 fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: "0.08em",
-                color: isActive ? "#fff" : "rgba(255,255,255,0.55)",
+                color: isActive ? "#fff" : "rgba(255,255,255,0.62)",
                 border: `1px solid ${isActive ? `${accent}66` : "rgba(255,255,255,0.10)"}`,
                 background: isActive ? `${accent}1f` : "rgba(255,255,255,0.03)",
                 whiteSpace: "nowrap",

@@ -5,6 +5,7 @@
 // 脈動の演出に Lottie（pulse-line）を組み込む。
 
 import { LottieAnim } from "@/components/ui/LottieAnim";
+import { IconBond } from "@/lib/design/icons";
 
 const BOND_ACCENT = "#a78bfa";
 const SEAT_TOTAL = 50;
@@ -45,7 +46,7 @@ export default function BondAudience({
                         gap: 8,
                     }}
                 >
-                    <span aria-hidden>⊹</span>
+                    <span aria-hidden style={{ display: "inline-flex", color: accent }}><IconBond size={13} /></span>
                     <span>Bond済み · 詳細Portfolioを閲覧できます</span>
                 </div>
             )}
@@ -66,7 +67,7 @@ export default function BondAudience({
                         letterSpacing: "0.18em",
                         textTransform: "uppercase",
                         fontFamily: "'Space Mono', monospace",
-                        color: "rgba(255,255,255,0.28)",
+                        color: "rgba(255,255,255,0.55)",
                     }}
                 >
                     Bond · 観客席
@@ -113,7 +114,7 @@ export default function BondAudience({
                     alignItems: "baseline",
                 }}
             >
-                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
                     席が埋まるほど関係が深まる
                 </span>
                 <span

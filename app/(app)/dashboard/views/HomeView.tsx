@@ -10,6 +10,7 @@ import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { SkeletonCard } from "@/components/ui/skeleton/SkeletonCard";
 import { computeStreak } from "@/lib/pulse-stats";
+import { IconBond } from "@/lib/design/icons";
 import { getJstDateKey } from "@/lib/day-count";
 import Link from "next/link";
 
@@ -109,8 +110,15 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     <CardHeader
                         title="Daily Circuit"
                         meta={
-                            <span style={{ fontSize: 11, color: circuitComplete ? "#32D278" : "var(--vc-text3)", fontFamily: "'Space Mono', monospace" }}>
-                                {circuitComplete ? "⊹ 本日のサーキット完了 — PULSE +1" : `${circuitTasks.filter((task) => task.done).length} / 3 完了`}
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: circuitComplete ? "#32D278" : "var(--vc-text3)", fontFamily: "'Space Mono', monospace" }}>
+                                {circuitComplete ? (
+                                    <>
+                                        <IconBond size={11} aria-hidden />
+                                        本日のサーキット完了 — PULSE +1
+                                    </>
+                                ) : (
+                                    `${circuitTasks.filter((task) => task.done).length} / 3 完了`
+                                )}
                             </span>
                         }
                     />

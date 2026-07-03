@@ -1,6 +1,7 @@
 // app/u/[slug]/portfolio/page.tsx
 // 公開Portfolio = 過去から現在までの活動証明（is_public=true のJourneyのみ）。
 // /u/[slug] は公開Profile（現在の自分）。本ページはその Portfolio 面を担う独立ルート。
+// 世界観はプロフィールと共通（profile-theme.ts）— ネオン #C8E800 × ダーク × スプリング。
 
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -13,20 +14,23 @@ import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import { ProfilePortfolioNav } from "../ProfilePortfolioNav";
 import { PortfolioShareButton } from "./PortfolioShareButton";
 import { env } from "@/lib/env";
-import type { UserRole } from "@/features/auth/types";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
 import { computeStreak, computeLongestStreak } from "@/lib/pulse-stats";
-import { getConditionMeta } from "@/components/DailyLog/journey";
+import { getMilestonesForUser } from "@/lib/supabase/portfolio-milestones";
+import NeonCountUp from "../components/NeonCountUp";
+import MilestoneBadgeRow from "../components/MilestoneBadgeRow";
+import TimelineStack, { type TimelineEntry } from "../components/TimelineStack";
+import { IconArrowRight, IconCheer, IconJourney, IconStreak, IconTrophy } from "@/lib/design/icons";
+import {
+    VP,
+    VP_BODY_FONT,
+    VP_DISPLAY_FONT,
+    VP_MONO_FONT,
+    VP_ROLE_COLOR,
+    VP_ROLE_LABEL,
+} from "../profile-theme";
 
 export const dynamic = "force-dynamic";
-
-const ROLE_COLOR: Record<UserRole, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "#7C3AED",
-};
-const ROLE_LABEL: Record<UserRole, string> = {
-    Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
-};
-const CONDITION_COLOR: Record<number, string> = { 1: "#FF5050", 2: "#FF8A3C", 3: "#FFC81E", 4: "#7FD15B", 5: "#32D278" };
 
 interface PublicJourney {
     id: string;
@@ -39,22 +43,10 @@ interface PublicJourney {
     created_at: string;
 }
 
-// ─── 日付ユーティリティ（JST） ────────────────────────────────────────────────
 function diffJstDays(fromKey: string, toKey: string): number {
     const from = new Date(`${fromKey}T00:00:00+09:00`).getTime();
     const to = new Date(`${toKey}T00:00:00+09:00`).getTime();
     return Math.round((to - from) / 86400000);
-}
-function shiftDate(d: Date, n: number): Date {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
-}
-function formatJa(iso: string): string {
-    return new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit" }).format(new Date(iso));
-}
-function monthLabel(iso: string): string {
-    return new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long" }).format(new Date(iso));
 }
 function fullDate(iso: string): string {
     return new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "long", day: "numeric" }).format(new Date(iso));
@@ -83,6 +75,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
+// SVGアイコン付き統計チップ（絵文字は使わない）
+function StatChip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+    return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", minHeight: 32, borderRadius: 999, border: `1px solid ${VP.border}`, background: "rgba(255,255,255,0.03)" }}>
+            <span style={{ display: "inline-flex", color: VP.neon }} aria-hidden>{icon}</span>
+            <span style={{ fontSize: 10, color: VP.sub }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: VP.neonSoft, fontFamily: VP_MONO_FONT, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+        </span>
+    );
+}
+
+
 export default async function PublicPortfolioPage({ params }: Props) {
     const { slug } = await params;
     const session = await getSupabaseProfile();
@@ -99,10 +103,10 @@ export default async function PublicPortfolioPage({ params }: Props) {
     }
 
     const profile = result.data;
-    const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
+    const roleColor = VP_ROLE_COLOR[profile.role] ?? VP.neon;
 
-    // 公開Journey + day0 を並列取得（is_public=true のみ。非公開はサーバ外へ出さない）
-    const [journeysRes, userMetaRes] = await Promise.all([
+    // 公開Journey + day0 + マイルストーン + Bond数を並列取得（非公開はサーバ外へ出さない）
+    const [journeysRes, userMetaRes, milestones, bondCount] = await Promise.all([
         supabaseServer
             .from("journeys")
             .select("id, content, condition_score, image_url, video_url, tags, cheer_count, created_at")
@@ -115,6 +119,12 @@ export default async function PublicPortfolioPage({ params }: Props) {
             .select("day0_date, day0_declaration")
             .eq("slug", slug)
             .single(),
+        getMilestonesForUser(slug),
+        supabaseServer
+            .from("user_follows")
+            .select("*", { count: "exact", head: true })
+            .eq("target_slug", slug)
+            .then(({ count }) => count ?? 0),
     ]);
 
     const journeys = (journeysRes.data ?? []) as PublicJourney[];
@@ -142,6 +152,18 @@ export default async function PublicPortfolioPage({ params }: Props) {
     ];
     const completion = Math.round((completionItems.filter(Boolean).length / completionItems.length) * 100);
 
+    const timelineEntries: TimelineEntry[] = journeys.map((j) => ({
+        id: j.id,
+        content: j.content,
+        conditionScore: j.condition_score,
+        imageUrl: j.image_url,
+        videoUrl: j.video_url,
+        tags: j.tags,
+        cheerCount: j.cheer_count ?? 0,
+        createdAt: j.created_at,
+        dayNo: basisKey ? Math.max(0, diffJstDays(basisKey, getJstDateKey(new Date(j.created_at)))) : null,
+    }));
+
     const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
     const referralUrl = `${env.NEXT_PUBLIC_BASE_URL}/register?ref=${slug}`;
     const gaugeR = 30;
@@ -149,76 +171,88 @@ export default async function PublicPortfolioPage({ params }: Props) {
     const gaugeOffset = gaugeC - (completion / 100) * gaugeC;
 
     return (
-        <div style={{ minHeight: "100vh", background: "#07070e", color: "#fff", overflowX: "hidden", fontFamily: "var(--font-noto), 'Hiragino Sans', sans-serif" }}>
+        <div style={{ minHeight: "100vh", background: VP.bg, color: VP.text, overflowX: "hidden", fontFamily: VP_BODY_FONT }}>
             <style>{`
                 *,*::before,*::after{box-sizing:border-box;}
                 a{text-decoration:none;color:inherit;}
-                @keyframes _fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-                .pf-up{animation:_fadeUp .6s cubic-bezier(.16,1,.3,1) both;}
+                a,button{touch-action:manipulation;}
+                a:focus-visible,button:focus-visible{outline:2px solid ${VP.neon};outline-offset:3px;border-radius:6px;}
+                .vp-grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+                    background-image:linear-gradient(rgba(200,232,0,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(200,232,0,0.025) 1px,transparent 1px);
+                    background-size:56px 56px;}
+                @media (prefers-reduced-motion: reduce){
+                    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+                }
             `}</style>
 
+            <div className="vp-grid-bg" aria-hidden />
+
             {/* Header */}
-            <header style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(7,7,14,0.82)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+            <header style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: `1px solid ${VP.border}`, background: "rgba(5,6,8,0.84)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
                 <div style={{ maxWidth: 620, margin: "0 auto", padding: "0 18px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <Link href="/">
+                    <Link href="/" aria-label="Vizion Connection トップへ">
                         <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={200} height={40} priority style={{ height: 34, width: "auto", opacity: 0.95 }} />
                     </Link>
                     {/* Profile / Portfolio 切替 */}
-                    <ProfilePortfolioNav slug={slug} active="portfolio" accent={rl} />
+                    <ProfilePortfolioNav slug={slug} active="portfolio" accent={VP.neon} />
                 </div>
             </header>
 
-            <main style={{ maxWidth: 620, margin: "0 auto", padding: "18px 16px 80px" }}>
+            <main style={{ maxWidth: 620, margin: "0 auto", padding: "18px 16px 80px", position: "relative", zIndex: 1 }}>
                 {/* ── HERO ── */}
-                <section className="pf-up" style={{ position: "relative", borderRadius: 20, border: `1px solid ${rl}33`, background: `linear-gradient(160deg, ${rl}14, rgba(13,13,26,0.9))`, padding: 20, overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 240, height: 240, background: `radial-gradient(circle, ${rl}22, transparent 68%)`, pointerEvents: "none" }} />
+                <section style={{ position: "relative", borderRadius: 20, border: `1px solid ${VP.neonBorder}`, background: `linear-gradient(160deg, ${VP.neonFaint}, rgba(11,14,18,0.92))`, padding: 20, overflow: "hidden", boxShadow: VP.glow }}>
+                    <div aria-hidden style={{ position: "absolute", top: "-30%", right: "-10%", width: 240, height: 240, background: "radial-gradient(circle, rgba(200,232,0,0.14), transparent 68%)", pointerEvents: "none" }} />
 
                     <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                        <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${rl}`, background: "#111", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 18px ${rl}40` }}>
+                        <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${VP.neon}`, background: VP.surface2, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: VP.glowStrong }}>
                             {profile.avatarUrl ? (
                                 <Image src={profile.avatarUrl} alt={profile.displayName} width={52} height={52} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             ) : (
-                                <span style={{ fontSize: 18, fontWeight: 900, color: `${rl}dd`, fontFamily: "monospace" }}>{initials}</span>
+                                <span style={{ fontSize: 18, fontWeight: 900, color: VP.neonSoft, fontFamily: VP_MONO_FONT }}>{initials}</span>
                             )}
                         </div>
                         <div style={{ minWidth: 0 }}>
-                            <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.22em", color: `${rl}dd` }}>{ROLE_LABEL[profile.role]}</p>
-                            <h1 style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</h1>
-                            <p style={{ margin: "2px 0 0", fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.4)" }}>@{slug}</p>
+                            <p style={{ margin: 0, fontSize: 9, fontFamily: VP_MONO_FONT, letterSpacing: "0.22em", color: roleColor }}>{VP_ROLE_LABEL[profile.role]}</p>
+                            <h1 style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 900, color: VP.text, lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.displayName}</h1>
+                            <p style={{ margin: "2px 0 0", fontSize: 11, fontFamily: VP_MONO_FONT, color: VP.faint }}>@{slug}</p>
                         </div>
                     </div>
 
                     <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                         <div>
-                            <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.22em", textTransform: "uppercase", color: rl }}>Growth Trajectory</p>
+                            <p style={{ margin: 0, fontSize: 9, fontFamily: VP_MONO_FONT, letterSpacing: "0.22em", textTransform: "uppercase", color: VP.neon }}>Growth Trajectory</p>
                             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 2 }}>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.5)" }}>DAY</span>
-                                <span style={{ fontFamily: "var(--font-bebas), sans-serif", fontSize: 52, lineHeight: 1, color: "#fff" }}>{dayCount}</span>
+                                <span style={{ fontSize: 13, fontWeight: 800, color: VP.sub }}>DAY</span>
+                                <span style={{ fontFamily: VP_DISPLAY_FONT, fontSize: 56, lineHeight: 1, color: VP.neon, textShadow: VP.textGlow }}>
+                                    <NeonCountUp value={dayCount} />
+                                </span>
                             </div>
                             {since ? (
-                                <p style={{ margin: "4px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Since <span style={{ color: "#fff", fontWeight: 700 }}>{fullDate(since)}</span></p>
+                                <p style={{ margin: "4px 0 0", fontSize: 11, color: VP.sub }}>Since <span style={{ color: VP.text, fontWeight: 700 }}>{fullDate(since)}</span></p>
                             ) : null}
                         </div>
 
                         {/* 完成度ゲージ */}
                         <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
-                            <svg width={80} height={80} viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
+                            <svg width={80} height={80} viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }} role="img" aria-label={`Portfolio完成度 ${completion}%`}>
                                 <circle cx={40} cy={40} r={gaugeR} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={6} />
-                                <circle cx={40} cy={40} r={gaugeR} fill="none" stroke={rl} strokeWidth={6} strokeLinecap="round" strokeDasharray={gaugeC} strokeDashoffset={gaugeOffset} />
+                                <circle cx={40} cy={40} r={gaugeR} fill="none" stroke={VP.neon} strokeWidth={6} strokeLinecap="round" strokeDasharray={gaugeC} strokeDashoffset={gaugeOffset} style={{ filter: "drop-shadow(0 0 6px rgba(200,232,0,0.5))" }} />
                             </svg>
                             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                                <span style={{ fontFamily: "var(--font-bebas), sans-serif", fontSize: 22, lineHeight: 1, color: "#fff" }}>{completion}%</span>
-                                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", fontFamily: "monospace" }}>COMPLETE</span>
+                                <span style={{ fontFamily: VP_DISPLAY_FONT, fontSize: 22, lineHeight: 1, color: VP.text }}>{completion}%</span>
+                                <span style={{ fontSize: 7, color: VP.faint, letterSpacing: "0.08em", fontFamily: VP_MONO_FONT }}>COMPLETE</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* 継続日数チップ */}
+                    {/* 継続日数チップ（アイコン辞書に統一: Streak=炎 / 最長=トロフィー / 記録=レイヤー / Cheer=星） */}
                     <div style={{ position: "relative", display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-                        <HeroChip icon="🔥" label="継続" value={`${currentStreak}日`} rl={rl} />
-                        <HeroChip icon="🏆" label="最長" value={`${longestStreak}日`} rl={rl} />
-                        <HeroChip icon="📝" label="記録" value={`${journeys.length}`} rl={rl} />
-                        {totalCheer > 0 ? <HeroChip icon="⭐" label="Cheer" value={`${totalCheer}`} rl={rl} /> : null}
+                        <StatChip icon={<IconStreak size={12} />} label="継続" value={`${currentStreak}日`} />
+                        <StatChip icon={<IconTrophy size={12} />} label="最長" value={`${longestStreak}日`} />
+                        <StatChip icon={<IconJourney size={12} />} label="記録" value={`${journeys.length}`} />
+                        {totalCheer > 0 ? (
+                            <StatChip icon={<IconCheer size={12} style={{ color: "#FFD600" }} />} label="Cheer" value={`${totalCheer}`} />
+                        ) : null}
                     </div>
 
                     {/* 共有 */}
@@ -227,117 +261,48 @@ export default async function PublicPortfolioPage({ params }: Props) {
                             url={`${env.NEXT_PUBLIC_BASE_URL}/u/${slug}/portfolio`}
                             title={`${profile.displayName} の歩み | Vizion Portfolio`}
                             text={`${profile.displayName} の歩み 🔥\nDAY ${dayCount} ・ 継続 ${currentStreak}日 ・ Journey ${journeys.length}件\nPortfolio完成度 ${completion}%`}
-                            accent={rl}
+                            accent={VP.neon}
                             storiesUrl={`/api/og/${slug}/portfolio?format=stories`}
                         />
                     </div>
                 </section>
 
-                {/* ── STORY ── */}
-                <section style={{ marginTop: 20 }}>
-                    <h2 style={{ margin: "0 0 12px", fontSize: 11, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: `${rl}dd` }}>Story</h2>
+                {/* ── MILESTONES ── */}
+                <section style={{ marginTop: 24 }}>
+                    <MilestoneBadgeRow
+                        milestones={milestones}
+                        progress={{
+                            cheerCount: profile.cheerCount ?? 0,
+                            streakDays: currentStreak,
+                            journeyCount: journeys.length,
+                            bondCount,
+                        }}
+                    />
+                </section>
 
-                    {journeys.length === 0 ? (
-                        <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", padding: "28px 16px", textAlign: "center" }}>
-                            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>まだ公開された活動記録がありません。</p>
-                        </div>
-                    ) : (
-                        <div style={{ position: "relative" }}>
-                            <div style={{ position: "absolute", left: 11, top: 8, bottom: 8, width: 2, background: `linear-gradient(${rl}66, ${rl}22 70%, rgba(255,255,255,0.08))` }} />
-
-                            {journeys.map((entry, idx) => {
-                                const prevIso = idx > 0 ? journeys[idx - 1].created_at : null;
-                                const showMonth = !prevIso || monthLabel(prevIso) !== monthLabel(entry.created_at);
-                                const dayKey = getJstDateKey(new Date(entry.created_at));
-                                const dayNo = basisKey ? Math.max(0, diffJstDays(basisKey, dayKey)) : null;
-                                const meta = getConditionMeta(entry.condition_score);
-                                const condColor = entry.condition_score ? CONDITION_COLOR[entry.condition_score] ?? rl : "rgba(255,255,255,0.2)";
-                                return (
-                                    <div key={entry.id}>
-                                        {showMonth ? (
-                                            <div style={{ paddingLeft: 34, margin: "6px 0 10px" }}>
-                                                <span style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 900, letterSpacing: "0.1em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{monthLabel(entry.created_at)}</span>
-                                            </div>
-                                        ) : null}
-
-                                        <div style={{ position: "relative", paddingLeft: 34, paddingBottom: 16 }}>
-                                            <div style={{ position: "absolute", left: 4, top: 6, width: 16, height: 16, borderRadius: "50%", background: condColor, boxShadow: `0 0 0 4px ${condColor}22`, border: "2px solid #07070e" }} />
-
-                                            <div style={{ position: "relative", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", padding: 14, overflow: "hidden" }}>
-                                                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: condColor, opacity: 0.85 }} />
-
-                                                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                                                    {dayNo !== null ? <span style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 900, color: rl, letterSpacing: "0.06em" }}>DAY {dayNo}</span> : null}
-                                                    <span style={{ fontFamily: "monospace", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{formatJa(entry.created_at)}</span>
-                                                    {meta ? <span style={{ fontSize: 12 }}>{meta.emoji}</span> : null}
-                                                    {entry.cheer_count > 0 ? <span style={{ fontSize: 11, color: "#FFD600", fontWeight: 800 }}>★{entry.cheer_count}</span> : null}
-                                                </div>
-
-                                                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{entry.content}</p>
-
-                                                {entry.image_url ? (
-                                                    // eslint-disable-next-line @next/next/no-img-element
-                                                    <img src={entry.image_url} alt="活動画像" style={{ marginTop: 10, width: "100%", maxWidth: 360, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }} />
-                                                ) : null}
-                                                {entry.video_url ? (
-                                                    <video src={entry.video_url} controls style={{ marginTop: 10, width: "100%", maxWidth: 360, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }} />
-                                                ) : null}
-
-                                                {entry.tags?.length ? (
-                                                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-                                                        {entry.tags.map((tag) => (
-                                                            <span key={tag} style={{ padding: "3px 8px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 700 }}>{tag}</span>
-                                                        ))}
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-
-                            {/* DAY 0 起点ノード */}
-                            <div style={{ position: "relative", paddingLeft: 34, paddingTop: 4 }}>
-                                <div style={{ position: "absolute", left: 2, top: 6, width: 20, height: 20, borderRadius: "50%", background: `radial-gradient(circle, var(--pulse), ${rl})`, boxShadow: `0 0 0 4px ${rl}22, 0 0 16px var(--pulse-glow)`, border: "2px solid #07070e" }} />
-                                <div style={{ borderRadius: 14, border: `1px solid ${rl}44`, background: `linear-gradient(160deg, ${rl}14, rgba(255,255,255,0.02))`, padding: 14 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: since ? 6 : 0, flexWrap: "wrap" }}>
-                                        <span style={{ fontFamily: "var(--font-bebas), sans-serif", fontSize: 20, letterSpacing: "0.04em", color: rl }}>DAY 0</span>
-                                        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff" }}>はじまりの記録</span>
-                                        {since ? <span style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{fullDate(since)}</span> : null}
-                                    </div>
-                                    {day0Declaration ? (
-                                        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>「{day0Declaration}」</p>
-                                    ) : (
-                                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>挑戦の原点。ここから全ての軌跡が始まります。</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                {/* ── STORY（積み重ねタイムライン） ── */}
+                <section style={{ marginTop: 24 }}>
+                    <TimelineStack
+                        entries={timelineEntries}
+                        mode="full"
+                        title="Story"
+                        day0={{ date: since, declaration: day0Declaration }}
+                    />
                 </section>
 
                 {/* ── CTA ── */}
-                <section style={{ marginTop: 24, position: "relative", borderRadius: 18, padding: "26px 20px", background: `linear-gradient(135deg, ${rl}1a, rgba(8,8,15,0.6))`, border: `1px solid ${rl}33`, textAlign: "center", overflow: "hidden" }}>
-                    <p style={{ margin: "0 0 10px", fontSize: 9, fontFamily: "monospace", letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>INVITE</p>
-                    <p style={{ margin: "0 0 18px", fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
-                        <span style={{ color: "#fff", fontWeight: 800 }}>{profile.displayName}</span> の歩みに共感したら<br />Vizion Connection で自分の軌跡を始めよう
+                <section style={{ marginTop: 24, position: "relative", borderRadius: 18, padding: "26px 20px", background: `linear-gradient(135deg, ${VP.neonFaint}, rgba(5,6,8,0.6))`, border: `1px solid ${VP.neonBorder}`, textAlign: "center", overflow: "hidden" }}>
+                    <span aria-hidden style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, ${VP.neon}88, transparent)` }} />
+                    <p style={{ margin: "0 0 10px", fontSize: 9, fontFamily: VP_MONO_FONT, letterSpacing: "0.28em", textTransform: "uppercase", color: VP.faint }}>INVITE</p>
+                    <p style={{ margin: "0 0 18px", fontSize: 14, color: VP.sub, lineHeight: 1.7 }}>
+                        <span style={{ color: VP.text, fontWeight: 800 }}>{profile.displayName}</span> の歩みに共感したら<br />Vizion Connection で自分の軌跡を始めよう
                     </p>
-                    <a href={referralUrl} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 28px", borderRadius: 14, background: rl, color: "#000", fontSize: 13, fontWeight: 800 }}>
+                    <a href={referralUrl} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 28px", minHeight: 48, borderRadius: 12, background: VP.neon, color: "#0A0C10", fontSize: 13, fontWeight: 800, boxShadow: VP.glow }}>
                         先行登録する（無料）
-                        <svg width={13} height={13} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                        <IconArrowRight size={13} />
                     </a>
                 </section>
             </main>
         </div>
-    );
-}
-
-function HeroChip({ icon, label, value, rl }: { icon: string; label: string; value: string; rl: string }) {
-    return (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)" }}>
-            <span style={{ fontSize: 12 }}>{icon}</span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{label}</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: rl }}>{value}</span>
-        </span>
     );
 }

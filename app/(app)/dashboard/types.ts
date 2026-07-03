@@ -43,7 +43,8 @@ export interface ThemeColors {
 }
 
 export const THEME_MAP: Record<Theme, ThemeColors> = {
-    dark: { bg: "#0B0B0F", surface: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.10)", text: "#FFFFFF", sub: "rgba(255,255,255,0.68)" },
+    // dark は globals.css の --vc-* トークンと同値（lib/design/tokens.ts 参照）
+    dark: { bg: "#09090f", surface: "#111118", border: "rgba(255,255,255,0.08)", text: "#f0f0f5", sub: "rgba(255,255,255,0.62)" },
     dim: { bg: "#13131A", surface: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.12)", text: "#F7F7FC", sub: "rgba(255,255,255,0.72)" },
     light: { bg: "#F5F5F7", surface: "rgba(255,255,255,0.82)", border: "rgba(17,17,17,0.12)", text: "#111111", sub: "rgba(17,17,17,0.68)" },
 };

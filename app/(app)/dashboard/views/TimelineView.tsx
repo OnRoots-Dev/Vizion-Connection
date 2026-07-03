@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import type { DashboardView } from "../types";
 import { SectionHeader } from "../components/ui";
+import { IconBond } from "@/lib/design/icons";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050",
@@ -433,7 +434,7 @@ export function TimelineView({
                 </div>
             ) : filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--vc-text3)" }}>
-                    <div style={{ fontSize: 32, marginBottom: 12 }}>⊹</div>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }} aria-hidden><IconBond size={32} /></div>
                     <div style={{ fontSize: 14, lineHeight: 1.8 }}>
                         まだ投稿がありません。
                         <br />
