@@ -14,13 +14,7 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import type { DashboardView } from "../types";
 import { SectionHeader } from "../components/ui";
 import { IconBond } from "@/lib/design/icons";
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050",
-    Trainer: "#32D278",
-    Crew: "#FFC81E",
-    Business: "#3C8CFF",
-};
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 const CONDITION_EMOJI: Record<number, string> = { 1: "😵", 2: "😕", 3: "🙂", 4: "🔥", 5: "🚀" };
 
@@ -77,7 +71,8 @@ function timeAgo(iso: string): string {
 }
 
 function PostCard({ journey, currentUserSlug }: { journey: Journey; currentUserSlug: string }) {
-    const roleColor = ROLE_COLOR[journey.user?.role ?? ""] ?? "var(--vc-accent)";
+    const roleKey = journey.user?.role as keyof typeof ROLE_COLOR | undefined;
+    const roleColor = roleKey ? ROLE_COLOR[roleKey] : "var(--vc-accent)";
     const displayName = journey.user?.display_name ?? journey.user_slug;
     const isOwn = currentUserSlug === journey.user_slug;
 

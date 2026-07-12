@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import SponsorBadge from "@/components/SponsorBadge";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 import Image from "next/image";
 
 export type CollectionCardItem = {
@@ -20,13 +21,6 @@ export type CollectionCardItem = {
   serialId: string | null;
   cheerCount: number;
   isFoundingMember: boolean;
-};
-
-const ROLE_COLOR: Record<string, string> = {
-  Athlete: "#C1272D",
-  Trainer: "#1A7A4A",
-  Crew: "#B8860B",
-  Business: "#1B3A8C",
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -80,7 +74,7 @@ export function CollectionCarousel({
             const visible = orderedCards.slice(0, Math.min(3, orderedCards.length));
             return visible.slice().reverse().map((card, indexFromBack) => {
               const displayIndex = (visible.length - 1) - indexFromBack;
-            const cardRoleColor = ROLE_COLOR[card.role] ?? roleColor;
+            const cardRoleColor = ROLE_COLOR[card.role as keyof typeof ROLE_COLOR] ?? roleColor;
             const scale = compact ? 1 - displayIndex * 0.06 : 1 - displayIndex * 0.055;
             const y = compact ? displayIndex * 18 : displayIndex * 18;
             const x = compact ? displayIndex * 12 : displayIndex * 9;

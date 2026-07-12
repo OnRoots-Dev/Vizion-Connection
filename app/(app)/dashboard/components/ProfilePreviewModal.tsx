@@ -6,19 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import type { PublicProfileData } from "@/features/profile/types";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 type PreviewPayload = {
   profile: PublicProfileData;
   careerProfile?: CareerProfileRow | null;
   collectorCount?: number;
-};
-
-const ROLE_COLOR: Record<string, string> = {
-  Athlete: "#FF5050",
-  Trainer: "#32D278",
-  Crew: "#FFC81E",
-  Business: "#3C8CFF",
-  Admin: "#7C3AED",
 };
 
 export function ProfilePreviewModal({
@@ -67,7 +60,7 @@ export function ProfilePreviewModal({
   const profile = payload?.profile ?? null;
   const careerProfile = payload?.careerProfile ?? null;
   const collectorCount = liveCollectorCount ?? payload?.collectorCount ?? 0;
-  const roleColor = ROLE_COLOR[profile?.role ?? ""] ?? "#a78bfa";
+  const roleColor = profile?.role ? ROLE_COLOR[profile.role as keyof typeof ROLE_COLOR] ?? "#a78bfa" : "#a78bfa";
   const highlightStats = useMemo(() => (careerProfile?.stats ?? []).filter((item) => item?.label || item?.value).slice(0, 3), [careerProfile]);
 
   async function handleCheer(comment?: string) {
