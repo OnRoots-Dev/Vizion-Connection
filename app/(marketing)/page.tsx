@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import ShinyText from "@/components/ShinyText";
 
 const ACCENT = "#C8E800";
 const ACCENT_DIM = "rgba(200,232,0,0.18)";
@@ -162,7 +163,17 @@ export default function Page() {
               <motion.h1 variants={fadeUp} transition={{ duration: 0.7 }}
                 style={{ fontFamily: HEAD, fontWeight: 700, fontSize: "clamp(56px, 9vw, 96px)", lineHeight: 0.98, letterSpacing: "-0.02em", margin: "0 0 28px" }}>
                 活動が、<br />
-                <span style={{ color: ACCENT }}>信用</span>になる。
+                <ShinyText
+                  text="信用"
+                  className="!inline-block"
+                  color={ACCENT}
+                  shineColor="#ffffff"
+                  speed={2.5}
+                  spread={120}
+                  pauseOnHover={false}
+                  direction="left"
+                />
+                になる。
               </motion.h1>
               <motion.p variants={fadeUp} transition={{ duration: 0.7 }}
                 style={{ fontSize: 17, lineHeight: 1.9, color: SUB, maxWidth: 460, margin: "0 0 40px" }}>
