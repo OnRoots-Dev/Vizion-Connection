@@ -1,9 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 interface Position {
   x: number;
   y: number;
 }
+
+const normalizeSpotlightColor = (color: string) => {
+  const match = color.match(/rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)/i);
+  if (!match) return color;
+
+  const [, r, g, b, a] = match;
+  const adjustedAlpha = Math.max(0, Math.min(1, Number(a) * 0.95));
+  return `rgba(${r}, ${g}, ${b}, ${adjustedAlpha.toFixed(2)})`;
+};
 
 interface SpotlightCardProps extends React.PropsWithChildren {
   className?: string;
@@ -49,6 +58,8 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
     setOpacity(0);
   };
 
+  const effectiveSpotlightColor = useMemo(() => normalizeSpotlightColor(spotlightColor), [spotlightColor]);
+
   return (
     <div
       ref={divRef}
@@ -64,7 +75,7 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
           className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out"
           style={{
             opacity,
-            background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`
+            background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${effectiveSpotlightColor} 0%, rgba(255, 255, 255, 0.02) 35%, transparent 75%)`
           }}
         />
       )}
