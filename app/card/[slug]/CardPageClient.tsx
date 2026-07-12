@@ -4,13 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
 import ShareButton from "./ShareButton";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 import type { PublicProfileData } from "@/features/profile/types";
 import type { ProfileData } from "@/features/profile/types";
+import type { UserRole } from "@/features/auth/types";
 import Image from "next/image";
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
-};
 
 const theme = {
     bg: "#07070e", surface: "#0d0d1a",
@@ -26,7 +24,8 @@ export default function CardPageClient({
 }) {
     const [copied, setCopied] = useState(false);
     const [shareOpen, setShareOpen] = useState(false);
-    const rl = ROLE_COLOR[profile.role] ?? "#a78bfa";
+    const roleKey = profile.role as UserRole;
+    const rl = ROLE_COLOR[roleKey] ?? "#a78bfa";
     const profileUrl = `https://vizion-connection.jp/u/${profile.slug}`;
 
     const roleGlowClass =
@@ -182,7 +181,7 @@ export default function CardPageClient({
 
                 {/* ── プロフィールカード ── */}
                 <div id="profile-card-share">
-                    <ProfileCardSection profile={profile as unknown as ProfileData} t={theme} />
+                    <ProfileCardSection profile={profile as unknown as ProfileData} t={theme} roleColor={rl} />
                 </div>
 
                 {/* ── Share URL ── */}

@@ -1,20 +1,20 @@
 "use client";
 
 import { useRef, useState, useEffect, type MouseEvent } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
+import SpotlightCard from "@/components/SpotlightCard";
 import { IconCheer } from "@/lib/design/icons";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 import QRCode from "qrcode";
 import NextImage from "next/image";
 import type { ProfileData, LatestCheerItem } from "@/features/profile/types";
+import type { UserRole } from "@/features/auth/types";
 import type { DashboardView, ThemeColors } from "../types";
 import { CardHeader } from "./ui";
 import SponsorBadge from "@/components/SponsorBadge";
 import { calcDayCount } from "@/lib/day-count";
 
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
-};
 const ROLE_GRADIENT: Record<string, string> = {
     Athlete: "#2D0000", Trainer: "#001A0A", Crew: "#1A0F00", Business: "#000A24",
 };
@@ -25,6 +25,17 @@ const ROLE_LABEL: Record<string, string> = {
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 const IG_PATH = "M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10A5 5 0 0112 7zm0 2a3 3 0 100 6 3 3 0 000-6z";
 const TK_PATH = "M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.3 6.3 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z";
+
+function hexToRgba(hex: string, alpha: number): `rgba(${number}, ${number}, ${number}, ${number})` {
+    const normalized = hex.replace("#", "");
+    const value = normalized.length === 3
+        ? normalized.split("").map((char) => char + char).join("")
+        : normalized;
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 function SnsIconBtn({ label, href, color, path }: {
     label: string; href?: string; color: string; path: string;
@@ -332,8 +343,19 @@ export function ProfileCardSection({
 }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const reduceMotion = useReducedMotion();
+    const [supportsPointerSpotlight, setSupportsPointerSpotlight] = useState(false);
     const [qrDataUrl, setQrDataUrl] = useState<string>("");
     const [referralCopied, setReferralCopied] = useState(false);
+
+    useEffect(() => {
+        const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+        const update = () => setSupportsPointerSpotlight(mq.matches);
+        update();
+        mq.addEventListener("change", update);
+        return () => mq.removeEventListener("change", update);
+    }, []);
+
     useEffect(() => {
         if (!preloadQr && !isFlipped) return;
         let active = true;
@@ -379,8 +401,11 @@ export function ProfileCardSection({
     }
     function onLeave() { setIsHovered(false); mx.set(0); my.set(0); }
 
-    const rl = roleColor ?? (ROLE_COLOR[profile.role] ?? "var(--electric)");
+    const roleKey = profile.role as UserRole;
+    const rl = roleColor ?? (ROLE_COLOR[roleKey] ?? "var(--electric)");
     const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
+    const spotlightDisabled = Boolean(reduceMotion) || !supportsPointerSpotlight;
+    const spotlightColor = hexToRgba(ROLE_COLOR[roleKey] ?? rl, 0.28);
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ-2026-000001";
     const cheerCount = profile.cheerCount ?? 0;
@@ -454,6 +479,11 @@ export function ProfileCardSection({
                 </div>
             )}
 
+            <SpotlightCard
+                className="border-0 bg-transparent p-0"
+                spotlightColor={spotlightColor}
+                disabled={spotlightDisabled}
+            >
             <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
                     <div
@@ -716,6 +746,7 @@ export function ProfileCardSection({
                     )}
                 </div>
             </div>
+            </SpotlightCard>
 
             {referralUrl ? (
                 <div
