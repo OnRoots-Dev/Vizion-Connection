@@ -8,11 +8,10 @@ import { calcDayCount, getJstDateKey } from "@/lib/day-count";
 import { computeStreak } from "@/lib/pulse-stats";
 import { env } from "@/lib/env";
 import { fetchBase64 } from "./og-data-service";
+import { ROLE_COLOR as TOKENS_ROLE_COLOR } from "@/lib/design/tokens";
 
 // Portfolio は実体験の配色（明色）を使用し、公開ページと一致させる
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "#7C3AED",
-};
+const ROLE_COLOR = TOKENS_ROLE_COLOR;
 const ROLE_GRADIENT: Record<string, string> = {
     Athlete: "#2D0000", Trainer: "#001A0A", Crew: "#1A0F00", Business: "#000A24", Admin: "#1F0F2E",
 };

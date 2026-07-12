@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# personal local settings (Claude Code settings.local.json etc.)
+*.local.*
+
 # vercel
 .vercel
 
@@ -46,4 +49,7 @@ next-env.d.ts
 /tools/lottie-player/
 
 # local Claude Code skills / tooling (not part of the app)
-.claude/skills/
+# — ただしプロジェクト専用スキル (db-migration, deploy) は Git 管理する
+.claude/skills/*
+!.claude/skills/db-migration/
+!.claude/skills/deploy/

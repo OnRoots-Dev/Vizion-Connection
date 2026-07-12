@@ -28,7 +28,7 @@ export function AppShell({ role, children }: { role: string | null; children: Re
 
     // /dashboard は自前 nav・未ログイン(role=null)・デスクトップでは出さない
     const showNav = Boolean(role) && isMobile && pathname !== "/dashboard";
-    const roleColor = (role && ROLE_COLOR[role]) || "#a78bfa";
+    const roleColor = role ? ROLE_COLOR[role as keyof typeof ROLE_COLOR] ?? "#a78bfa" : "#a78bfa";
 
     return (
         <>

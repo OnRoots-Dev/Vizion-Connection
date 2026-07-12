@@ -1,0 +1,4 @@
+# Hook scripts must stay LF — CRLF breaks bash/node execution of .claude/hooks/*
+*.sh text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf

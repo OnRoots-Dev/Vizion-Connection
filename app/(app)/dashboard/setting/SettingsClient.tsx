@@ -4,12 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { UserRecord } from "@/features/auth/types";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",
-};
 
 const t = {
     bg: "#07070e", surface: "#0d0d1a",
@@ -18,7 +15,7 @@ const t = {
 
 export default function SettingsClient({ user, onBack }: { user: UserRecord; onBack?: () => void }) {
     const router = useRouter();
-    const rl = ROLE_COLOR[user.role] ?? "#a78bfa";
+    const rl = ROLE_COLOR[user.role as keyof typeof ROLE_COLOR] ?? "#a78bfa";
 
     // メール変更
     const [newEmail, setNewEmail] = useState("");

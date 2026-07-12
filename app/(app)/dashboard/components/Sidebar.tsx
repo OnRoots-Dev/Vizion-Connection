@@ -11,11 +11,8 @@ import { PulseIndicator } from "./ui";
 import { computeStreak } from "@/lib/pulse-stats";
 import Image from "next/image";
 import Link from "next/link";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF",
-};
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
 };
