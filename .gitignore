@@ -53,3 +53,12 @@ next-env.d.ts
 .claude/skills/*
 !.claude/skills/db-migration/
 !.claude/skills/deploy/
+
+# temporary screenshot artifacts for visual checks
+/spotlight-before.png
+/spotlight-after.png
+/spotlight-before-hover.png
+/spotlight-after-hover.png
+/spotlight-final-hover.png
+/lp-shinytext.png
+/tmp-spotlight-check.png
