@@ -3,19 +3,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Cheerランキング | Vizion Connection",
   description: "Vizion Connectionの公開Cheerランキング",
-};
-
-const ROLE_COLOR: Record<string, string> = {
-  Athlete: "#C1272D",
-  Trainer: "#1A7A4A",
-  Crew: "#B8860B",
-  Business: "#1B3A8C",
 };
 
 function getRankIcon(rank: number) {
@@ -110,7 +104,7 @@ export default async function RankingPage({
                     <>#{rank}</>
                   )}
                 </span>
-                <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ background: `${ROLE_COLOR[user.role] ?? "#999"}22`, color: ROLE_COLOR[user.role] ?? "#999" }}>
+                <span className="rounded-full px-3 py-1 text-[11px] font-bold" style={{ background: `${ROLE_COLOR[user.role as keyof typeof ROLE_COLOR] ?? "#999"}22`, color: ROLE_COLOR[user.role as keyof typeof ROLE_COLOR] ?? "#999" }}>
                   {user.role}
                 </span>
               </div>

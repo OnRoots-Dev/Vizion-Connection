@@ -6,16 +6,13 @@ import type { Metadata } from "next";
 import { getWeeklyCheerCounts } from "@/lib/supabase/cheers";
 import Image from "next/image";
 import { IconCheer } from "@/lib/design/icons";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
     title: "Cheerランキング | Vizion Connection",
     description: "Vizion Connectionのアスリート・トレーナー・クルーCheerランキング",
-};
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D", Trainer: "#1A7A4A", Crew: "#B8860B", Business: "#1B3A8C",
 };
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS",
@@ -111,7 +108,7 @@ export default async function RankingPage({
                         {[users[1], users[0], users[2]].map((user, i) => {
                             if (!user) return <div key={i} />;
                             const rank = i === 1 ? 1 : i === 0 ? 2 : 3;
-                            const rl = ROLE_COLOR[user.role] ?? "#aaa";
+                            const rl = ROLE_COLOR[user.role as keyof typeof ROLE_COLOR] ?? "#aaa";
                             const podiumH = rank === 1 ? 80 : rank === 2 ? 60 : 44;
                             return (
                                 <Link key={user.slug} href={`/u/${user.slug}`} style={{ textDecoration: "none" }}>
@@ -154,7 +151,7 @@ export default async function RankingPage({
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {users.slice(3).map((user, i) => {
                         const rank = i + 4;
-                        const rl = ROLE_COLOR[user.role] ?? "#aaa";
+                        const rl = ROLE_COLOR[user.role as keyof typeof ROLE_COLOR] ?? "#aaa";
                         return (
                             <Link key={user.slug} href={`/u/${user.slug}`} style={{ textDecoration: "none" }}>
                                 <div style={{

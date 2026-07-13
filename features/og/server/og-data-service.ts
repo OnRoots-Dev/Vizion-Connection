@@ -1,4 +1,5 @@
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
+import { ROLE_COLOR } from "@/lib/design/tokens";
 
 export type OgProfileData = {
     slug: string;
@@ -19,13 +20,6 @@ export type OgProfileData = {
     location: string;
     avatarData: string | null;
     bgData: string | null;
-};
-
-const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#C1272D",
-    Trainer: "#1A7A4A",
-    Crew: "#B8860B",
-    Business: "#1B3A8C",
 };
 
 const ROLE_GRADIENT: Record<string, string> = {
@@ -97,7 +91,7 @@ export async function getOgProfileData(
     const serialId = p.serialId ?? "";
     const isFounding = p.isFoundingMember ?? false;
 
-    const roleColor = ROLE_COLOR[role] ?? "#a78bfa";
+    const roleColor = ROLE_COLOR[role as keyof typeof ROLE_COLOR] ?? "#a78bfa";
     const roleGradient = ROLE_GRADIENT[role] ?? "#1a1a2e";
     const roleLabel = ROLE_LABEL[role] ?? String(role).toUpperCase();
 
