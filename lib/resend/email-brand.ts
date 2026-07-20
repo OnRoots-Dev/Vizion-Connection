@@ -192,15 +192,16 @@ export function buildVerifiedWelcomeHtml(input: {
     eyebrow: "WELCOME TO PULSE",
     paragraphs: [
       `${escapeHtml(name)} さん、メール認証へのご協力ありがとうございます。`,
-      "アカウントの本登録が完了しました。ログインして、挑戦の記録をはじめましょう。",
+      "アカウントの本登録が完了しました。アプリを開くときは、下のボタンからログインしてください。",
       "紹介リンクから友人が登録すると、双方に 500 ポイントが付与されます。",
     ],
     accentHtml,
     cta: {
-      label: "ログイン画面へ",
+      label: "ログインする",
       url: input.loginUrl,
     },
-    footerNote: "このメールは認証完了時に自動送信されています。",
+    footerNote:
+      "このメールは認証完了時に自動送信されています。セキュリティのため、このメールからのアクセスはログインが必要です。",
     ctaColor: EMAIL_BRAND.electric,
   });
 }

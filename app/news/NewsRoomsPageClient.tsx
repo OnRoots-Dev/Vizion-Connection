@@ -9,8 +9,7 @@ import type { NewsPost, NewsTopic } from "@/lib/news";
 import { NEWS_TOPIC_LABEL } from "@/lib/news";
 import AdCard from "@/components/AdCard";
 import { injectAdsIntoFeed, isAdSlot } from "@/src/utils/adSlotUtils";
-import { AdSlot } from "@/src/components/AdSlot";
-import { AD_CONFIG, type AdTier, type SlotType } from "@/src/constants/adSlots";
+import type { AdTier, SlotType } from "@/src/constants/adSlots";
 
 type RecommendedUser = {
   slug: string;
@@ -251,6 +250,8 @@ export function NewsRoomsPageClient({
           <div className="divide-y divide-slate-200">
             {feedWithAds.map((item) => {
               if (isAdSlot(item)) {
+                // 枠位置は injectAdsIntoFeed（配置ルール）。中身は ads テーブル由来の AdItem。
+                // ad_slots（在庫 total/sold）とは別系統。在庫は Business 申込で参照。
                 const slotType = item.__adSlot as SlotType;
                 const tier = (item.tier ??
                   (slotType === "slot_b" ? "signal" : "signal")) as AdTier;
@@ -260,21 +261,11 @@ export function NewsRoomsPageClient({
                 return (
                   <div
                     key={`ad-${slotType}-${tier}-${ad.id}`}
-                    className="p-4 sm:p-6"
+                    className="border-b border-slate-200 bg-white p-2 sm:p-3"
                   >
-                    <AdSlot
-                      slotType={slotType}
-                      tier={tier}
-                      aboveFold={
-                        slotType === "slot_a" && AD_CONFIG.ABOVE_FOLD_RESERVED
-                      }
-                      ad={{
-                        id: ad.id,
-                        headline: ad.headline,
-                        bodyText: ad.bodyText,
-                        imageUrl: ad.imageUrl,
-                        linkUrl: ad.linkUrl,
-                      }}
+                    <AdCard
+                      ad={ad}
+                      size={slotType === "slot_a" ? "large" : "medium"}
                     />
                   </div>
                 );

@@ -147,15 +147,16 @@ export async function middleware(req: NextRequest) {
         return applyCors(req, NextResponse.redirect(url));
     }
 
-    // ログイン済みで/login・/registerへのアクセス → アプリのトップへ
-    const isAuthPath = AUTH_PATHS.some(p => pathname.startsWith(p));
+    // ログイン済みで /login・/register へ来た場合:
+    // ダッシュボード直送はしない（メール認証直後の新規が dashboard に落ちるのを防ぐ）。
+    // → /onboarding へ。完了済みユーザーは onboarding layout が /dashboard へ送る。
+    // ※ 認証完了画面以外（完了メールの「ログイン」等）は未ログイン想定＝再ログイン必須。
+    const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
     if (isAuthPath && session) {
-        return applyCors(
-            req,
-            NextResponse.redirect(
-                new URL("https://app.vizion-connection.jp/dashboard")
-            )
-        );
+        const onboardingUrl = req.nextUrl.clone();
+        onboardingUrl.pathname = "/onboarding";
+        onboardingUrl.search = "";
+        return applyCors(req, NextResponse.redirect(onboardingUrl));
     }
 
     return applyCors(req, getResponse());

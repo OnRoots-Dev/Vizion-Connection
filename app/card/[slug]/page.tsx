@@ -78,7 +78,7 @@ export default async function CardPage({ params }: Props) {
                         />
                     </Link>
                     <a href="/register" style={{ padding: "6px 14px", borderRadius: "20px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: 700, textDecoration: "none" }}>
-                        先行登録
+                        無料登録
                     </a>
                 </div>
             </header>

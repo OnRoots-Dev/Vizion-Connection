@@ -2,7 +2,7 @@ import { addPointsToUser } from "@/lib/supabase/data/users.server";
 import { supabaseServer as supabase } from "@/lib/supabase/server";
 
 export const ONETIME_MISSION_DEFINITIONS = {
-  register_complete: { label: "先行登録完了", points: 1000 },
+  register_complete: { label: "登録完了", points: 1000 },
   email_verified: { label: "メール認証完了", points: 200 },
   profile_shared: { label: "SNSで共有", points: 300 },
   invite_three: { label: "3人招待する", points: 1500 },

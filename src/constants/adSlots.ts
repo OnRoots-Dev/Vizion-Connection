@@ -16,7 +16,8 @@ export const AD_CONFIG = {
     roots: 1,
   } as const,
 
-  // 枠数上限（旧 Roots+ の 60 枠を Roots に統合: 120 + 60 = 180）
+  // フィード内「同時表示」上限（UI 配置ルール）。
+  // Business 在庫（ad_slots.total/sold）とは別。在庫は checkout / region-availability を参照。
   SLOT_LIMITS: {
     legacy: 5,
     presence: 20,

@@ -39,7 +39,7 @@ export default function CalendarSidebar({
       />
 
       <div className="rounded-2xl border border-border bg-card/60 p-3 text-sm text-muted-foreground">
-        マイカレンダー（準備中）
+        マイカレンダー
       </div>
     </aside>
   );

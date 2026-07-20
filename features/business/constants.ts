@@ -33,12 +33,16 @@ export const PREFECTURES_BY_BUSINESS_REGION: Record<BusinessRegionId, string[]> 
     kyushu_okinawa: ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"],
 };
 
-// Roots は全国120枠 ÷ 6ブロック = 各ブロック20枠。
+/**
+ * シード / ドキュメント用の Roots 1ブロック目安（6ブロック × 20 = 120）。
+ * 実行時の残枠表示・販売可否は必ず ad_slots の total/sold を使うこと。
+ */
 export const ROOTS_SEATS_PER_REGION = 20;
 
-// 1社（1プラン）あたりに支援対象として指定できるアスリート等の人数上限。
-// ※ BUSINESS_PLANS の seats（プランを購入できる企業の総枠数、全社合計）とは別概念。
-// 初期値は BUSINESS_PLANS.seats の数字をそのまま流用している（指示に基づく仮値）。
+/**
+ * 1社が支援対象にできるアスリート等の人数上限（Business Hub のスポンサー枠）。
+ * ※ ad_slots の在庫（掲載枠 total/sold）とは無関係。プロダクト仕様の定数。
+ */
 export const SPONSOR_SLOTS_PER_PLAN: Record<PlanId, number> = {
     roots: 120,
     signal: 30,
@@ -77,6 +81,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         // 通常価格 = 月額 × 4ヶ月分
         regularPriceLabel: "¥120,000",
         amount: 30_000,
+        // seats: カタログ上の定員（マーケ文案用）。画面の残枠・販売可否は ad_slots を正とする。
         seats: 120,
         highlight: false,
         benefits: [
@@ -84,7 +89,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "同エリアのユーザーのDiscovery・Profileに掲載",
             "コンテンツカード形式（PRバッジ付き）",
             BUSINESS_CAMPAIGN.periodLabel,
-            "全国120枠限定",
+            "掲載枠は在庫（ad_slots）に連動",
         ],
     },
     {
@@ -101,7 +106,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "該当地方ユーザーのHub・Discoveryに掲載",
             "コンテンツカード形式（キャッチコピー付き）",
             BUSINESS_CAMPAIGN.periodLabel,
-            "全国30枠限定",
+            "掲載枠は在庫（ad_slots）に連動",
         ],
     },
     {
@@ -119,7 +124,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "PEAK MOMENT・MILESTONE通知での露出",
             "効果測定ダッシュボード（日次更新）",
             BUSINESS_CAMPAIGN.periodLabel,
-            "全国10枠限定",
+            "掲載枠は在庫（ad_slots）に連動",
         ],
     },
     {
@@ -139,7 +144,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "専任担当者による月次戦略MTG",
             "Legacyパートナー認定バッジ",
             BUSINESS_CAMPAIGN.periodLabel,
-            "全国5枠限定",
+            "掲載枠は在庫（ad_slots）に連動",
         ],
     },
 ];

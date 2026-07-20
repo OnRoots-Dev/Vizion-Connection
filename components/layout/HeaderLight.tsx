@@ -57,7 +57,7 @@ export function HeaderLight() {
                     </Link>
                     <Link href="/register" onClick={() => setOpen(false)}
                         className="mt-2 rounded-lg bg-[#1d1d1f] px-5 py-3 text-center text-[13px] font-black uppercase tracking-[0.1em] text-white">
-                        先行登録する
+                        無料で登録
                     </Link>
                 </div>
             )}

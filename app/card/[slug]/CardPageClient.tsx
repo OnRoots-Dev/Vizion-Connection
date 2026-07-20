@@ -249,7 +249,7 @@ export default function CardPageClient({
                         Vizion Connection に参加しませんか？
                     </p>
                     <a href={referralUrl} className={`${roleSolidBgClass} inline-flex items-center gap-[7px] rounded-xl px-7 py-3 text-[13px] font-extrabold text-black transition-colors hover:brightness-110`}>
-                        先行登録する（無料）
+                        無料で登録する
                         <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>

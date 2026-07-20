@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
 import { BUSINESS_PLANS } from "@/features/business/constants";
 import { createCheckout } from "@/features/business/server/create-checkout";
+import { getPlansWithAdSlotAvailability } from "@/features/business/server/plan-availability";
 import type { PlanId } from "@/features/business/types";
 import { businessLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
@@ -12,61 +13,16 @@ import { notifyBusinessCheckoutSubmitted } from "@/lib/notifications/create-noti
 import {
   getNationalTierAvailabilityFromAdSlots,
   getRootsRegionAvailabilityFromAdSlots,
-  listAdSlots,
 } from "@/lib/supabase/ad-slots";
 import { isSquareConfigured } from "@/lib/square/payment-links";
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const [slots, regions, national] = await Promise.all([
-      listAdSlots(),
+    const [plans, regions, national] = await Promise.all([
+      getPlansWithAdSlotAvailability(),
       getRootsRegionAvailabilityFromAdSlots(),
       getNationalTierAvailabilityFromAdSlots(),
     ]);
-
-    const rootsAgg = slots
-      .filter((s) => s.tier === "roots")
-      .reduce(
-        (acc, s) => {
-          acc.total += s.total;
-          acc.sold += s.sold;
-          return acc;
-        },
-        { total: 0, sold: 0 },
-      );
-    const nationalByTier = new Map(national.map((n) => [n.tier, n]));
-
-    const plans = BUSINESS_PLANS.map((plan) => {
-      if (plan.id === "roots") {
-        const remaining = Math.max(0, rootsAgg.total - rootsAgg.sold);
-        return {
-          ...plan,
-          squareUrl: "",
-          seats: rootsAgg.total || plan.seats,
-          soldCount: rootsAgg.sold,
-          remaining,
-          soldOut: remaining <= 0,
-        };
-      }
-      const nat = nationalByTier.get(plan.id);
-      if (nat) {
-        return {
-          ...plan,
-          squareUrl: "",
-          seats: nat.seats || plan.seats,
-          soldCount: nat.seats - nat.remaining,
-          remaining: nat.remaining,
-          soldOut: nat.soldOut,
-        };
-      }
-      return {
-        ...plan,
-        squareUrl: "",
-        soldCount: 0,
-        remaining: plan.seats,
-        soldOut: false,
-      };
-    });
 
     return NextResponse.json({
       plans,

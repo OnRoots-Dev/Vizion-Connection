@@ -93,7 +93,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     </h1>
                     <p style={{ margin: "0 0 12px", fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.9 }}>
                         あなたの紹介で参加した人には<br />
-                        先行ユーザー特典が付与されます
+                        初期メンバー特典が付与されます
                     </p>
                     <a
                         href="/dashboard?view=roadmap"

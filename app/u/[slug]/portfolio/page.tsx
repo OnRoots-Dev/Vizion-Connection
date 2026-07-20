@@ -298,7 +298,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
                         <span style={{ color: VP.text, fontWeight: 800 }}>{profile.displayName}</span> の歩みに共感したら<br />Vizion Connection で自分の軌跡を始めよう
                     </p>
                     <a href={referralUrl} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 28px", minHeight: 48, borderRadius: 12, background: VP.neon, color: "#0A0C10", fontSize: 13, fontWeight: 800, boxShadow: VP.glow }}>
-                        先行登録する（無料）
+                        無料で登録する
                         <IconArrowRight size={13} />
                     </a>
                 </section>

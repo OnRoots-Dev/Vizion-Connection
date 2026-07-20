@@ -62,22 +62,33 @@ const REGION_LEGEND = [
 
 type RootsRegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
 type NationalTierAvail = { tier: string; prefecture: string; seats: number; remaining: number; soldOut: boolean };
+type PlanAvail = { id: string; seats: number; remaining: number; soldOut: boolean };
 
 export default function BusinessPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [rootsRegions, setRootsRegions] = useState<RootsRegionAvail[]>([]);
   const [nationalTiers, setNationalTiers] = useState<NationalTierAvail[]>([]);
+  const [planAvail, setPlanAvail] = useState<Record<string, PlanAvail>>({});
 
   useEffect(() => {
     let active = true;
     // ad_slots テーブル由来の残枠（ハードコード禁止）
-    fetch("/api/business/region-availability", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
+    Promise.all([
+      fetch("/api/business/region-availability", { cache: "no-store" }).then((r) => r.json()),
+      fetch("/api/business-checkout", { cache: "no-store" }).then((r) => r.json()),
+    ])
+      .then(([regionData, checkoutData]) => {
         if (!active) return;
-        if (Array.isArray(d?.regions)) setRootsRegions(d.regions as RootsRegionAvail[]);
-        if (Array.isArray(d?.national)) setNationalTiers(d.national as NationalTierAvail[]);
+        if (Array.isArray(regionData?.regions)) setRootsRegions(regionData.regions as RootsRegionAvail[]);
+        if (Array.isArray(regionData?.national)) setNationalTiers(regionData.national as NationalTierAvail[]);
+        if (Array.isArray(checkoutData?.plans)) {
+          const map: Record<string, PlanAvail> = {};
+          for (const p of checkoutData.plans as PlanAvail[]) {
+            map[p.id] = p;
+          }
+          setPlanAvail(map);
+        }
       })
       .catch(() => { /* 取得失敗時は非表示 */ });
     return () => { active = false; };
@@ -196,7 +207,14 @@ export default function BusinessPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-3">
-                {BUSINESS_PLANS.map((plan) => (
+                {BUSINESS_PLANS.map((plan) => {
+                  const avail = planAvail[plan.id];
+                  const seatsLabel = avail
+                    ? avail.soldOut
+                      ? "満席"
+                      : `残り${avail.remaining}/${avail.seats}枠`
+                    : "在庫確認中…";
+                  return (
                   <article
                     key={plan.id}
                     className="overflow-hidden rounded-xl border border-white/6 bg-[#0e1018] transition-all hover:border-[#C8E800]/20 hover:shadow-[0_0_30px_rgba(200,232,0,0.05)]"
@@ -216,7 +234,9 @@ export default function BusinessPage() {
                         <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#C8E800]/70">
                           {plan.amount === 0 ? "個別見積" : "1ヶ月分の料金（4ヶ月利用）"}
                         </p>
-                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#3a3f50]">全国{plan.seats}枠限定</p>
+                        <p className={`mt-0.5 font-mono text-[.7rem] tracking-[.05em] ${avail?.soldOut ? "text-[#ff6b5b]" : "text-[#3a3f50]"}`}>
+                          {seatsLabel}
+                        </p>
                       </div>
                     </div>
                     <div className="mx-8 h-px bg-white/6" />
@@ -246,7 +266,8 @@ export default function BusinessPage() {
                       </button>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
               <p className="text-[.72rem] font-light leading-[1.8] text-[#5a6070]">
                 ※ {BUSINESS_CAMPAIGN.periodLabel}

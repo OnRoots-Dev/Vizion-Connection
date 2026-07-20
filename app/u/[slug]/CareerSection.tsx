@@ -336,7 +336,7 @@ function CareerTab({ role, rl, slug, careerProfile }: {
             <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}20` }}>
                 <p style={{ fontSize: 12, fontWeight: 800, color: rl, margin: "0 0 6px" }}>応援ページ</p>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.7 }}>
-                    推し選手のカードコレクションは β版（4/1〜）で表示されます。<br />先にランキングでアスリートを見つけてコレクトしておこう！
+                    推し選手のカードはランキングや Discovery からコレクトできます。<br />まずはアスリートを見つけて応援してみよう！
                 </p>
             </div>
             <Link href="/ranking" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 0", borderRadius: 12, background: `${rl}12`, border: `1px solid ${rl}28`, color: rl, textDecoration: "none", fontSize: 13, fontWeight: 700 }}>
@@ -354,8 +354,8 @@ function CareerTab({ role, rl, slug, careerProfile }: {
                     </svg>
                 </div>
                 <div>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: rl, margin: "0 0 2px" }}>準備中</p>
-                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>β版（4/1〜）でプロフィール編集から追加できます</p>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: rl, margin: "0 0 2px" }}>Career 詳細</p>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>ダッシュボードの Career から編集・公開できます</p>
                 </div>
             </div>
             <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>

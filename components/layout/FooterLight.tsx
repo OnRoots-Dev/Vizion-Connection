@@ -19,7 +19,7 @@ export function FooterLight() {
                             </p>
                             <div className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
                                 {[
-                                    { href: "/register", label: "先行登録" },
+                                    { href: "/register", label: "無料登録" },
                                     // { href: "/business", label: "Business登録" },
                                 ].map(({ href, label }) => (
                                     <Link key={href} href={href} className="vc-light-link">
@@ -76,7 +76,7 @@ export function FooterLight() {
                     <div className="flex flex-col gap-3">
                         <Link href="/register"
                             className="inline-block rounded-[4px] bg-[#1d1d1f] px-6 py-3 text-center text-[12px] font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-80">
-                            今すぐ先行登録する
+                            今すぐ無料で登録する
                         </Link>
                         {/* <Link href="/business"
                             className="inline-block rounded-[4px] border border-[#007aff] px-6 py-3 text-center text-[12px] font-black uppercase tracking-[0.15em] text-[#007aff] transition-all hover:bg-[#007aff] hover:text-white">

@@ -269,32 +269,15 @@ export default function LpHomeClient() {
       .then((r) => r.json())
       .then((d) => {
         if (!active) return;
+        // ad_slots 由来のみ。失敗時は空（仮の seats:20 は出さない）
         if (Array.isArray(d?.regions) && d.regions.length) {
           setRegions(d.regions as RegionAvail[]);
         } else {
-          setRegions(
-            REGIONS.map((r) => ({
-              id: r.id,
-              label: r.label,
-              seats: 20,
-              remaining: 20,
-              soldOut: false,
-            })),
-          );
+          setRegions([]);
         }
       })
       .catch(() => {
-        if (active) {
-          setRegions(
-            REGIONS.map((r) => ({
-              id: r.id,
-              label: r.label,
-              seats: 20,
-              remaining: 20,
-              soldOut: false,
-            })),
-          );
-        }
+        if (active) setRegions([]);
       });
     return () => {
       active = false;
@@ -363,7 +346,10 @@ export default function LpHomeClient() {
 
         <div className="hero-inner">
           <p className="hero-badge boot" style={{ ["--d" as string]: ".05s" }}>
-            Ignition Phase 進行中 — 初期メンバー番号 発行中
+            本日よりコア機能を提供開始 — 7/21 9:00 全国向け正式リリース発表
+          </p>
+          <p className="boot" style={{ ["--d" as string]: ".08s", margin: "8px 0 0", fontSize: 12, color: "rgba(255,255,255,0.45)", letterSpacing: "0.04em" }}>
+            ※ 7/21 は機能解禁ではなく、全国に向けた正式リリース発表の日です。アプリは本日19:00より利用可能です。
           </p>
           <p className="hero-en boot" style={{ ["--d" as string]: ".12s" }} aria-hidden>
             Every Effort, Visible.
@@ -491,7 +477,7 @@ export default function LpHomeClient() {
               <p className="mom-label"><i className="tick" />現在フェーズ</p>
               <p className="mom-value"><span className="num" style={{ fontSize: "clamp(30px,3vw,42px)" }}>IGNITION</span></p>
               <div className="mom-bar" style={{ ["--w" as string]: "100%" }}><i /></div>
-              <p className="mom-sub">Phase 01 のコア機能は<strong>すべて稼働中</strong>。次のフェーズが、もう見えている。</p>
+              <p className="mom-sub">Phase 01 のコア機能は<strong>本日19:00よりすべて利用可能</strong>。次のフェーズが、もう見えている。</p>
             </div>
             <div className="mom-tile reveal" style={{ ["--d" as string]: ".3s" }}>
               <p className="mom-label"><i className="tick" />初期メンバー番号</p>
@@ -547,8 +533,8 @@ export default function LpHomeClient() {
         </div>
         <ol className="phase-track">
           {[
-            { status: "Now", statusCls: "now", num: "01", label: "Ignition", period: "2026.6.30 –", tag: "役割を名乗れ。信頼を刻め。", desc: "プロフィールカード、Cheer、Journey、Discovery（簡易）——コア機能が稼働中。", pc: "#FFD600", current: true },
-            { status: "Coming Soon", statusCls: "soon", num: "02", label: "Momentum", period: "近日中・順次公開", tag: "つながりに、深さを。", desc: "フォロー / Synergy、Discovery拡張検索、スキルタグ、V-Score β。", pc: "#3282FF" },
+            { status: "Now", statusCls: "now", num: "01", label: "Ignition", period: "2026.6.30 –", tag: "役割を名乗れ。信頼を刻め。", desc: "プロフィールカード、Cheer、Journey、Discovery——コア機能は本日よりすべて利用可能。", pc: "#FFD600", current: true },
+            { status: "Coming Soon", statusCls: "soon", num: "02", label: "Momentum", period: "今後・順次拡張", tag: "つながりに、深さを。", desc: "Synergy 拡張、Discovery 地図・高度検索、スキルタグ、V-Score など。", pc: "#3282FF" },
             { status: "2026.9 予定", statusCls: "", num: "03", label: "Ascent", period: "2026年 9月予定", tag: "広がりが、力になる。", desc: "Synergy（コミュニティ）、Arena（イベント）、Trust Score、AI Discovery。", pc: "#FF4646" },
             { status: "2027 –", statusCls: "", num: "04", label: "Alliance", period: "2027年 順次展開", tag: "信頼が、共創を生む。", desc: "スポンサー・マッチング、企業コラボ、グローバルスポンサー接続。", pc: "#28D26E" },
             { status: "2027 –", statusCls: "", num: "05", label: "Origin", period: "2027年以降 順次展開", tag: "信頼が、世界の原点になる。", desc: "応援証明書（SBT / NFT）、グローバル・コミュニティ、AIキャリア支援。", pc: "#A855F7" },

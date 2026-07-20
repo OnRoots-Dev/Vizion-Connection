@@ -45,7 +45,7 @@ export default async function PublicDiscoveryPage({
             <p className="text-[11px] font-black tracking-[0.22em] text-white/35">PUBLIC DISCOVERY</p>
             <h1 className="mt-2 text-4xl font-black">Discovery</h1>
             <p className="mt-2 text-sm text-white/45">
-              公開プロフィールを検索・リスト表示できます（地図は近日公開）。
+              公開プロフィールを検索・リスト表示できます。地図ピン表示のみ近日公開です。
             </p>
           </div>
           <Link href="/" className="text-sm text-white/55 underline-offset-4 hover:underline">
@@ -53,7 +53,7 @@ export default async function PublicDiscoveryPage({
           </Link>
         </div>
 
-        {/* Map モック + 近日公開バッジ */}
+        {/* Map プレースホルダ（意図的未実装：Mapbox） */}
         <section
           className="relative overflow-hidden rounded-2xl border border-white/10"
           style={{
@@ -73,10 +73,10 @@ export default async function PublicDiscoveryPage({
           />
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/45 px-4 text-center backdrop-blur-[2px]">
             <span className="inline-flex items-center rounded-full border border-[#C8E800]/45 bg-[#C8E800]/12 px-4 py-1.5 text-[11px] font-black tracking-[0.14em] text-[#C8E800]">
-              Map機能は近日公開
+              Map 機能は近日公開
             </span>
             <p className="max-w-md text-sm leading-relaxed text-white/70">
-              地図ピン表示は準備中です。下のフィルターとリストで、今すぐユーザーを探せます。
+              地図ピン表示のみ今後公開予定です。下のフィルターとリストは<strong className="font-bold text-white/90">本日より利用可能</strong>です。
             </p>
           </div>
         </section>

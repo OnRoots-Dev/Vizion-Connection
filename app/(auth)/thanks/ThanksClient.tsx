@@ -19,10 +19,12 @@ interface Content {
   iconType: "verify" | "verified" | "business";
   eyebrow: string;
   title: string;
-  desc: string;
+  /** 段落配列で余白を制御しやすくする */
+  paragraphs: string[];
   showMailHelp: boolean;
   /** 認証完了ページでウェルカムメール送信をトリガ */
   triggerWelcomeEmail: boolean;
+  notice?: string;
   cta: { href: string; label: string } | null;
 }
 
@@ -32,7 +34,10 @@ function resolveContent(type: string | undefined): Content {
       iconType: "verify",
       eyebrow: "CHECK YOUR INBOX",
       title: "メールを確認してください",
-      desc: "ご登録のメールアドレスに認証リンクを送りました。リンクを開くと本登録が完了し、Pulse を始められます。",
+      paragraphs: [
+        "ご登録のメールアドレスに認証リンクを送りました。",
+        "リンクを開くと本登録が完了し、Pulse を始められます。",
+      ],
       showMailHelp: true,
       triggerWelcomeEmail: false,
       cta: null,
@@ -41,16 +46,24 @@ function resolveContent(type: string | undefined): Content {
       iconType: "verified",
       eyebrow: "VERIFIED",
       title: "認証が完了しました",
-      desc: "メール認証へのご協力ありがとうございます。アカウントの本登録が完了しました。ログインして、挑戦の記録をはじめましょう。",
+      paragraphs: [
+        "メール認証へのご協力ありがとうございます。",
+        "アカウントの本登録が完了しました。つづいてプロフィールを整え、最初の一歩を記録しましょう。",
+      ],
       showMailHelp: false,
       triggerWelcomeEmail: true,
-      cta: { href: "/login", label: "ログイン画面へ" },
+      notice: "認証完了の確認メールを自動送信しています。届くまで少しお待ちください。",
+      // メール確認直後のみセッション継続 → オンボーディングへ（他経路は再ログイン）
+      cta: { href: "/onboarding", label: "オンボーディングへ進む" },
     },
     email_changed: {
       iconType: "verified",
       eyebrow: "EMAIL UPDATED",
       title: "メールアドレスを更新しました",
-      desc: "新しいメールアドレスでのログインが有効になりました。必要ならログイン画面から続けてください。",
+      paragraphs: [
+        "新しいメールアドレスでのログインが有効になりました。",
+        "必要ならログイン画面から続けてください。",
+      ],
       showMailHelp: false,
       triggerWelcomeEmail: false,
       cta: { href: "/login", label: "ログインする" },
@@ -59,7 +72,10 @@ function resolveContent(type: string | undefined): Content {
       iconType: "business",
       eyebrow: "BUSINESS",
       title: "お申し込みありがとうございます",
-      desc: "Business ポジションへのお申し込みを受け付けました。決済完了後、ご案内をお送りします。",
+      paragraphs: [
+        "Business ポジションへのお申し込みを受け付けました。",
+        "決済完了後、ご案内をお送りします。",
+      ],
       showMailHelp: false,
       triggerWelcomeEmail: false,
       cta: { href: "/dashboard", label: "ダッシュボードへ" },
@@ -108,7 +124,7 @@ export default function ThanksClient({
       <a
         href={MARKETING_HOME_URL}
         title="Vizion Connection"
-        className="relative z-10 mb-8 inline-block active:scale-[0.97] transition-transform duration-100"
+        className="relative z-10 mb-7 inline-block active:scale-[0.97] transition-transform duration-100"
       >
         <Image
           src="/images/Vizion_Connection_logo-wt.png"
@@ -116,12 +132,12 @@ export default function ThanksClient({
           width={320}
           height={86}
           priority
-          className="inline-block h-[4.5rem] w-auto sm:h-20"
+          className="inline-block h-[4.25rem] w-auto sm:h-[4.75rem]"
         />
       </a>
 
       <motion.div
-        className="relative z-10 w-full max-w-md rounded-[28px] border border-white/[0.08] px-6 py-8 sm:px-8 sm:py-9"
+        className="relative z-10 w-full max-w-[420px] rounded-[28px] border border-white/[0.08] px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9"
         style={{
           background: "rgba(10,10,10,0.72)",
           backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
@@ -132,98 +148,113 @@ export default function ThanksClient({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={reduce ? fadeReduced : springSnap}
       >
-        <div className="space-y-6 text-center">
+        {/* アイコン */}
+        <div className="mb-6 flex justify-center">
           <AuthIconBadge kind={content.iconType} />
-
-          <motion.div
-            className="space-y-2.5"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={reduce ? fadeReduced : { ...enter, delay: 0.06 }}
-          >
-            <p
-              className="m-0 text-[10px] font-bold uppercase tracking-[0.2em]"
-              style={{ color: "var(--electric)", fontFamily: "monospace" }}
-            >
-              {content.eyebrow}
-            </p>
-            <h1 className="m-0 text-[1.35rem] font-bold tracking-[-0.02em] text-white sm:text-2xl">
-              {content.title}
-            </h1>
-            <p className="m-0 text-sm leading-relaxed text-white/50">{content.desc}</p>
-          </motion.div>
-
-          {content.showMailHelp && (
-            <motion.div
-              className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduce ? fadeReduced : { ...enter, delay: 0.1 }}
-            >
-              <p className="m-0 text-[11px] leading-relaxed text-white/40">
-                メールが届かない場合は、迷惑メールフォルダやプロモーションタブをご確認ください。
-              </p>
-              <div>
-                <p className="m-0 mb-1.5 text-[10px] uppercase tracking-[0.16em] text-white/25">
-                  From
-                </p>
-                <p className="m-0 inline-block rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[12px] tracking-[0.02em] text-white/70">
-                  {fromEmail}
-                </p>
-                <p className="m-0 mt-2 text-[11px] leading-relaxed text-white/35">
-                  上記アドレスを受信できるよう、メール設定をご確認ください。
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {type === "verified" && (
-            <motion.p
-              className="m-0 rounded-2xl border border-[rgba(200,232,0,0.18)] bg-[rgba(200,232,0,0.06)] px-4 py-3 text-[12px] leading-relaxed text-white/55"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduce ? fadeReduced : { ...enter, delay: 0.1 }}
-            >
-              認証完了の確認メールを自動送信しています。届くまで少しお待ちください。
-            </motion.p>
-          )}
-
-          {content.cta && (
-            <motion.div
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={reduce ? fadeReduced : { ...enter, delay: 0.12 }}
-            >
-              <Link href={content.cta.href} className="block">
-                <motion.span
-                  whileTap={press}
-                  transition={springDefault}
-                  className="inline-flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-black text-black"
-                  style={{
-                    background: "var(--electric)",
-                    boxShadow: "0 0 24px var(--electric-glow)",
-                  }}
-                >
-                  {content.cta.label}
-                </motion.span>
-              </Link>
-            </motion.div>
-          )}
-
-          <motion.p
-            className="pt-1"
-            initial={reduce ? { opacity: 0 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={reduce ? fadeReduced : { ...enter, delay: 0.16 }}
-          >
-            <a
-              href={MARKETING_HOME_URL}
-              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-5 py-2.5 text-xs font-medium text-white/45 no-underline transition-colors hover:border-white/20 hover:bg-white/[0.07] hover:text-white/70 active:scale-[0.97]"
-            >
-              トップに戻る
-            </a>
-          </motion.p>
         </div>
+
+        {/* 見出しブロック — タイトル周辺は詰めて読みやすく */}
+        <motion.div
+          className="text-center"
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reduce ? fadeReduced : { ...enter, delay: 0.06 }}
+        >
+          <p
+            className="m-0 mb-3 text-[10px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: "var(--electric)", fontFamily: "monospace" }}
+          >
+            {content.eyebrow}
+          </p>
+          <h1 className="m-0 text-[1.375rem] font-bold leading-snug tracking-[-0.02em] text-white sm:text-[1.5rem]">
+            {content.title}
+          </h1>
+          <div className="mx-auto mt-4 max-w-[34ch] space-y-2.5">
+            {content.paragraphs.map((p) => (
+              <p
+                key={p}
+                className="m-0 text-[13.5px] leading-[1.75] text-white/50 sm:text-sm"
+              >
+                {p}
+              </p>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* メール未達ヘルプ */}
+        {content.showMailHelp && (
+          <motion.div
+            className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? fadeReduced : { ...enter, delay: 0.1 }}
+          >
+            <p className="m-0 text-[11px] leading-relaxed text-white/40">
+              メールが届かない場合は、迷惑メールフォルダやプロモーションタブをご確認ください。
+            </p>
+            <div>
+              <p className="m-0 mb-1.5 text-[10px] uppercase tracking-[0.16em] text-white/25">
+                From
+              </p>
+              <p className="m-0 inline-block rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[12px] tracking-[0.02em] text-white/70">
+                {fromEmail}
+              </p>
+              <p className="m-0 mt-2 text-[11px] leading-relaxed text-white/35">
+                上記アドレスを受信できるよう、メール設定をご確認ください。
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 補足 notice — 本文より一段下げる */}
+        {content.notice && (
+          <motion.p
+            className="m-0 mt-5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3 text-center text-[11.5px] leading-relaxed text-white/40"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? fadeReduced : { ...enter, delay: 0.1 }}
+          >
+            {content.notice}
+          </motion.p>
+        )}
+
+        {/* CTA — 本文から十分離し、セカンダリとの間も確保 */}
+        {content.cta && (
+          <motion.div
+            className="mt-7"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? fadeReduced : { ...enter, delay: 0.12 }}
+          >
+            <Link href={content.cta.href} className="block">
+              <motion.span
+                whileTap={press}
+                transition={springDefault}
+                className="inline-flex w-full items-center justify-center rounded-xl py-3.5 text-sm font-black text-black"
+                style={{
+                  background: "var(--electric)",
+                  boxShadow: "0 0 24px var(--electric-glow)",
+                }}
+              >
+                {content.cta.label}
+              </motion.span>
+            </Link>
+          </motion.div>
+        )}
+
+        <motion.div
+          className={content.cta ? "mt-4" : "mt-7"}
+          initial={reduce ? { opacity: 0 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={reduce ? fadeReduced : { ...enter, delay: 0.16 }}
+        >
+          <a
+            href={MARKETING_HOME_URL}
+            className="inline-flex w-full items-center justify-center rounded-xl border border-white/10 bg-transparent px-5 py-2.5 text-xs font-medium text-white/40 no-underline transition-colors hover:border-white/18 hover:bg-white/[0.04] hover:text-white/65 active:scale-[0.97]"
+          >
+            トップに戻る
+          </a>
+        </motion.div>
       </motion.div>
     </div>
   );

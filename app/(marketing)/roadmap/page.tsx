@@ -52,15 +52,15 @@ const PHASES = [
         num: "02",
         label: "MOMENTUM",
         status: "upcoming" as const,
-        period: "近日中・順次公開",
+        period: "今後・順次拡張",
         tagline: "つながりに、深さを。毎日、進化していく。",
         desc: "つながりが深まり、毎日が進化していく。発見と交流が、あなたの活動を加速させる。",
         progress: 0,
         items: [
-            { name: "フォロー / Synergy", done: false },
-            { name: "Discovery拡張検索", done: false },
+            { name: "フォロー / Synergy 拡張", done: false },
+            { name: "Discovery 地図・高度検索", done: false },
             { name: "スキルタグ・役割バッジ", done: false },
-            { name: "V-Score（スコア拡張）β", done: false },
+            { name: "V-Score（スコア拡張）", done: false },
         ],
         accent: "#3282FF",
         accentDim: "#3282FF20",
@@ -472,7 +472,7 @@ export default function RoadmapPage() {
                                 className="group inline-flex items-center gap-3 bg-[#C8E800] px-8 py-4 font-display text-[14px] uppercase tracking-[0.2em] text-black transition-all hover:bg-[#b3d000] "
                                 style={{ borderRadius: "4px" }}
                             >
-                                先行登録する
+                                無料で登録する
                                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current transition-transform group-hover:translate-x-1">
                                     <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
                                 </svg>

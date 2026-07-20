@@ -39,14 +39,14 @@ const PHASES_DATA = [
     },
     {
         id: "beta", num: "02", label: "MOMENTUM", status: "upcoming" as const,
-        period: "近日中・順次公開", tagline: "つながりに、深さを。毎日、進化していく。",
+        period: "今後・順次拡張", tagline: "つながりに、深さを。毎日、進化していく。",
         desc: "つながりが深まり、毎日が進化していく。発見と交流が、あなたの活動を加速させる。",
         progress: 0,
         items: [
-            { name: "フォロー / Synergy", done: false },
-            { name: "Discovery拡張検索", done: false },
+            { name: "フォロー / Synergy 拡張", done: false },
+            { name: "Discovery 地図・高度検索", done: false },
             { name: "スキルタグ・役割バッジ", done: false },
-            { name: "V-Score（スコア拡張）β", done: false },
+            { name: "V-Score（スコア拡張）", done: false },
         ],
         accent: "#3282FF", accentDim: "#3282FF20", accentBorder: "#3282FF40",
     },

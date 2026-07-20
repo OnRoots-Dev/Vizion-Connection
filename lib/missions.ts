@@ -70,7 +70,7 @@ export function buildOnetimeMissions(params: {
   hasProfileDetails: boolean;
 }): OnetimeMission[] {
   return [
-    { label: "先行登録完了", done: true, reward: "+1000pt", desc: "Vizion Connectionへの登録" },
+    { label: "登録完了", done: true, reward: "+1000pt", desc: "Vizion Connectionへの登録" },
     { label: "メール認証完了", done: params.verified, reward: "+200pt", desc: "メールアドレスを認証する" },
     { label: "SNSで共有", done: params.hasShared, reward: "+300pt", desc: "プロフィールをSNSでシェア" },
     { label: "3人招待する", done: params.referralCount >= 3, reward: "+1500pt", desc: "招待リンクから3人を招待" },

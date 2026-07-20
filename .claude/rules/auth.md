@@ -29,6 +29,12 @@ paths:
 5. リダイレクト先やslugをユーザー入力から組み立てる時は `registerSchema` のslug規則（`^[a-z0-9_.]+$`）を通す。
 6. セッションcookieの読み取りはServer Componentなら `lib/supabase/server.ts` の `createClient()`、ミドルウェアなら `middleware-client.ts`。service role（`supabaseServer`）をセッション判定に使わない。
 
+## メール認証後の導線
+1. 認証メール → `/auth/confirm` → `/thanks?type=verified`（セッション継続）
+2. **認証完了画面の CTA のみ** `/onboarding` へ（セッションを保ったまま本登録フローへ）
+3. **それ以外**（完了メールの CTA・通常の再訪など）は **再ログイン必須**（`/login`）。完了メールから dashboard / onboarding に直リンクしない
+4. middleware: ログイン済みで `/login`・`/register` に来た場合は **dashboard 直送禁止** → `/onboarding` へ（完了済みは onboarding layout が `/dashboard` へ）
+
 ## バリデーション仕様（現状）
 - `registerSchema`: email必須 / password 8〜100字（英数記号）/ role は Athlete|Trainer|Crew|Business / **region（活動エリア・地方）は必須** / **prefecture（活動エリア・都道府県）は任意** / slug 3〜30字 `^[a-z0-9_.]+$` / 利用規約同意必須
 - 変更時は register UI・onboarding・DB制約の三者を同期させること

@@ -589,7 +589,7 @@ export default async function UserProfilePage({ params }: Props) {
                         <span style={{ color: VP.text, fontWeight: 800 }}>{profile.displayName}</span> の紹介で<br />Vizion Connection に参加しませんか？
                     </p>
                     <a href={referralUrl} className="vp-cta vp-cta-primary" style={{ position: "relative", zIndex: 1 }}>
-                        先行登録する（無料）
+                        無料で登録する
                         <IconArrowRight size={13} />
                     </a>
                     <p style={{ position: "relative", zIndex: 1, fontSize: 10, color: VP.faint, margin: "14px 0 0" }}>完全無料 · いつでも退会可</p>

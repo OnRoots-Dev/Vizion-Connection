@@ -134,7 +134,7 @@ export function VoiceLabView({
             ) : (
                 <SectionCard t={t}>
                     <SLabel text="AD SLOT" color="#FFD600" />
-                    <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（準備中）</p>
+                    <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>全国スポンサー広告枠（空き枠）</p>
                 </SectionCard>
             )}
 
@@ -181,7 +181,7 @@ export function VoiceLabView({
             ) : (
                 <SectionCard t={t}>
                     <SLabel text="LOCAL AD SLOT" color="#FFD600" />
-                    <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>地域スポンサー広告枠（準備中）</p>
+                    <p style={{ margin: 0, fontSize: 11, color: t.sub, opacity: 0.5 }}>地域スポンサー広告枠（空き枠）</p>
                 </SectionCard>
             )}
 

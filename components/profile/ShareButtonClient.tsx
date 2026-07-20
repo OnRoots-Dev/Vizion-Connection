@@ -206,7 +206,7 @@ export default function ShareButtonClient({ profileUrl, referralUrl, displayName
 
                             <button
                                 type="button"
-                                onClick={() => handleCopy("referral", `${displayName} さんの紹介でVizion Connectionに先行登録できます！\n${referralUrl}`)}
+                                onClick={() => handleCopy("referral", `${displayName} さんの紹介でVizion Connectionに登録できます！\n${referralUrl}`)}
                                 className="mb-1 flex w-full items-center gap-[10px] rounded-[9px] px-3 py-[10px] text-left transition-[filter] duration-150"
                                 style={{
                                     background: copied === "referral" ? "rgba(50,210,120,0.08)" : `${roleColor}10`,

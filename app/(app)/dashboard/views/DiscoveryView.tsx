@@ -556,10 +556,10 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
                 padding: "8px 14px",
               }}
             >
-              Map機能は近日公開
+              Map 機能は近日公開
             </span>
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.72)", maxWidth: 320, lineHeight: 1.6 }}>
-              地図ピン表示は準備中です。都道府県・競技での検索とリスト表示は今すぐ使えます。
+              地図ピン表示のみ今後公開予定です。都道府県・競技での検索とリスト表示は<strong style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>本日より利用可能</strong>です。
             </p>
           </div>
         </div>

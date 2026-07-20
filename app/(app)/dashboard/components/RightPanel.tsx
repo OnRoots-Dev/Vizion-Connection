@@ -17,7 +17,7 @@ export function RightPanel({ profile, referralCount, t, roleColor, setView }: {
     const ptPct = Math.min((profile.points / maxPoints) * 100, 100);
 
     const MISSIONS = [
-        { label: "先行登録完了", done: true },
+        { label: "登録完了", done: true },
         { label: "メール認証完了", done: profile.verified },
         { label: "SNSで共有", done: profile.hasShared ?? false },
         { label: "3人招待する", done: referralCount >= 3 },
