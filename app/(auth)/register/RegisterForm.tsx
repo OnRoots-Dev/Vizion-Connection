@@ -8,7 +8,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { registerSchema, VALID_REGIONS, PREFECTURES_BY_REGION } from "@/features/auth/validation/register-schema";
-import { LottieAnim } from "@/components/ui/LottieAnim";
+import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
+import { AuthPulseLoader, AuthSuccessMark } from "@/components/auth/AuthStatusMotion";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 
@@ -297,7 +298,12 @@ export default function RegisterForm() {
 
     return (
         <div className="vc-auth-shell">
-            <a href={MARKETING_HOME_URL} className="mb-5 inline-block active:scale-[0.97] transition-transform duration-100">
+            <AuthAmbientBg />
+
+            <a
+                href={MARKETING_HOME_URL}
+                className="relative z-10 mb-5 inline-block active:scale-[0.97] transition-transform duration-100"
+            >
                 <Image
                     src="/images/Vizion_Connection_logo-wt.png"
                     alt="Vizion Connection"
@@ -309,7 +315,7 @@ export default function RegisterForm() {
             </a>
 
             <div
-                className="w-full max-w-md rounded-[28px] border border-white/[0.08] px-5 py-7 sm:px-7 sm:py-8"
+                className="relative z-10 w-full max-w-md rounded-[28px] border border-white/[0.08] px-5 py-7 sm:px-7 sm:py-8"
                 style={{
                     background: "rgba(10,10,10,0.72)",
                     backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
@@ -645,18 +651,14 @@ export default function RegisterForm() {
                             transition={stepTr}
                         >
                             {submitting && (
-                                <div className="flex flex-col items-center gap-4 py-10">
-                                    <LottieAnim src="/lottie/loading-pulse.json" loop className="h-24 w-24" />
-                                    <p className="text-sm font-bold text-white/60">登録しています...</p>
-                                </div>
+                                <AuthPulseLoader label="Pulse を準備しています…" />
                             )}
 
                             {!submitting && succeeded && (
-                                <div className="flex flex-col items-center gap-4 py-10">
-                                    <LottieAnim src="/lottie/success-check.json" className="h-28 w-28" />
-                                    <p className="text-lg font-black text-white">登録を受け付けました</p>
-                                    <p className="text-sm text-white/50">認証メールをご確認ください。移動します...</p>
-                                </div>
+                                <AuthSuccessMark
+                                    title="登録を受け付けました"
+                                    subtitle="認証メールをご確認ください。移動します…"
+                                />
                             )}
 
                             {!submitting && !succeeded && registerState?.kind === "pending_verification" && (
@@ -692,7 +694,12 @@ export default function RegisterForm() {
                                         className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-60"
                                         style={{ background: "var(--electric)", boxShadow: resendLoading ? "none" : "0 0 24px var(--electric-glow)" }}
                                     >
-                                        {resendLoading && <LottieAnim src="/lottie/loading-pulse.json" loop className="h-5 w-5" />}
+                                        {resendLoading && (
+                                            <span
+                                                className="inline-block h-4 w-4 rounded-full border-2 border-black/25 border-t-black animate-spin"
+                                                aria-hidden
+                                            />
+                                        )}
                                         {resendLoading ? "再送中..." : "認証メールを再送する"}
                                     </motion.button>
 

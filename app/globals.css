@@ -507,11 +507,82 @@ html {
 @layer components {
   .vc-auth-shell {
     /* Apple material: slightly deeper canvas behind glass card */
-    @apply min-h-screen flex flex-col items-center justify-center px-4 py-16 bg-[#07070e] text-white;
+    @apply relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 py-16 text-white;
+    background: #07070e;
   }
 
   .vc-auth-fallback {
     @apply min-h-screen bg-[#07070e];
+  }
+
+  /* Auth ambient orbs — long period, low amplitude (not ~0.2Hz) */
+  .vc-auth-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+    will-change: transform, opacity;
+  }
+
+  .vc-auth-orb--static {
+    animation: none !important;
+    opacity: 0.7;
+  }
+
+  .vc-auth-orb-a {
+    animation: vc-auth-orb-float-a 18s ease-in-out infinite;
+  }
+
+  .vc-auth-orb-b {
+    animation: vc-auth-orb-float-b 22s ease-in-out infinite;
+  }
+
+  .vc-auth-orb-c {
+    animation: vc-auth-orb-float-c 26s ease-in-out infinite;
+  }
+
+  @keyframes vc-auth-orb-float-a {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: translate3d(0, 18px, 0) scale(1.06);
+      opacity: 1;
+    }
+  }
+
+  @keyframes vc-auth-orb-float-b {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translate3d(-14px, -12px, 0) scale(1.08);
+      opacity: 0.95;
+    }
+  }
+
+  @keyframes vc-auth-orb-float-c {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translate3d(10px, 14px, 0) scale(1.05);
+      opacity: 0.8;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vc-auth-orb-a,
+    .vc-auth-orb-b,
+    .vc-auth-orb-c {
+      animation: none;
+      opacity: 0.65;
+    }
   }
 
   .vc-auth-input {
