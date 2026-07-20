@@ -1412,6 +1412,31 @@ a.btn-primary {
 .lp-proto .lp-app-logo {
   display: block;
   width: auto;
-  max-width: min(220px, 52vw);
+  max-width: min(300px, 70vw);
   object-fit: contain;
+}
+
+/* Live Feed: 常に5枠分の固定高（更新で下要素がズレないように） */
+/* 5 items × 58px + 4 gaps × 10px = 330px（常に固定） */
+.lp-proto .feed-list {
+  height: 330px;
+  min-height: 330px;
+  max-height: 330px;
+  overflow: hidden;
+}
+.lp-proto .feed-item {
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  flex: 0 0 58px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.lp-proto .feed-item > span:not(.ft) {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
 }

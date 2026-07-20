@@ -77,8 +77,16 @@ export default function LpHomeClient() {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroGlowRef = useRef<HTMLDivElement>(null);
-  const feedRef = useRef<HTMLUListElement>(null);
-  const feedIdx = useRef(0);
+  const feedIdx = useRef(5);
+  const [feedItems, setFeedItems] = useState(() =>
+    FEED_EVENTS.slice(0, 5).map((ev, i) => ({
+      id: `seed-${i}`,
+      c: ev.c,
+      t: ev.t,
+      fresh: false,
+      show: true,
+    })),
+  );
   const [regions, setRegions] = useState<RegionAvail[]>([]);
 
   // boot + scroll reveal
@@ -229,37 +237,27 @@ export default function LpHomeClient() {
     return () => hero.removeEventListener("pointermove", onMove);
   }, []);
 
-  // live feed demo
+  // live feed demo — 常にちょうど 5 件（高さ固定、下要素のズレ防止）
   useEffect(() => {
-    const list = feedRef.current;
-    if (!list) return;
-    const MAX = 5;
-    const make = (ev: (typeof FEED_EVENTS)[0], fresh: boolean) => {
-      const li = document.createElement("li");
-      li.className = "feed-item" + (fresh ? " fresh" : "");
-      li.style.setProperty("--fc", ev.c);
-      li.innerHTML = `<i class="fd"></i><span></span><span class="ft">${fresh ? "たった今" : ""}</span>`;
-      li.querySelector("span")!.textContent = ev.t;
-      return li;
-    };
-    for (let i = 0; i < 4; i++) {
-      const li = make(FEED_EVENTS[feedIdx.current++ % FEED_EVENTS.length], false);
-      list.appendChild(li);
-      requestAnimationFrame(() => requestAnimationFrame(() => li.classList.add("show")));
-    }
     const timer = window.setInterval(() => {
       if (document.hidden) return;
-      const li = make(FEED_EVENTS[feedIdx.current++ % FEED_EVENTS.length], true);
-      list.prepend(li);
-      requestAnimationFrame(() => requestAnimationFrame(() => li.classList.add("show")));
-      list.querySelectorAll(".feed-item").forEach((el, i) => {
-        if (i > 0) {
-          el.classList.remove("fresh");
-          const ft = el.querySelector(".ft");
-          if (ft) ft.textContent = "";
-        }
+      const ev = FEED_EVENTS[feedIdx.current++ % FEED_EVENTS.length];
+      const id = `f-${Date.now()}`;
+      setFeedItems((prev) => {
+        const next = [
+          { id, c: ev.c, t: ev.t, fresh: true, show: false },
+          ...prev.map((p) => ({ ...p, fresh: false })).slice(0, 4),
+        ];
+        return next;
       });
-      while (list.children.length > MAX) list.removeChild(list.lastChild!);
+      // 次フレームで .show を付与（入場アニメ）
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setFeedItems((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, show: true } : p)),
+          );
+        });
+      });
     }, 2800);
     return () => clearInterval(timer);
   }, []);
@@ -345,7 +343,7 @@ export default function LpHomeClient() {
       {/* NAV */}
       <nav className="nav">
         <Link href="/" className="logo" aria-label="Vizion Connection">
-          <AppLogo height={44} priority />
+          <AppLogo height={64} priority />
         </Link>
         <Link href="/register" className="nav-cta">
           今すぐ登録する
@@ -465,7 +463,19 @@ export default function LpHomeClient() {
               <p className="feed-live">Live Feed</p>
               <p className="feed-note">※ 演出イメージ（デモデータ）</p>
             </div>
-            <ul className="feed-list" ref={feedRef} aria-live="off" />
+            <ul className="feed-list" aria-live="off">
+              {feedItems.map((item) => (
+                <li
+                  key={item.id}
+                  className={`feed-item${item.fresh ? " fresh" : ""}${item.show ? " show" : ""}`}
+                  style={{ ["--fc" as string]: item.c }}
+                >
+                  <i className="fd" />
+                  <span>{item.t}</span>
+                  <span className="ft">{item.fresh ? "たった今" : ""}</span>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="mom-stack">
             <div className="mom-tile reveal" style={{ ["--d" as string]: ".1s" }}>
@@ -697,7 +707,7 @@ export default function LpHomeClient() {
         <div className="footer-top">
           <div>
             <Link href="/" className="logo" aria-label="Vizion Connection">
-              <AppLogo height={40} />
+              <AppLogo height={56} />
             </Link>
             <p className="footer-tag">スポーツ × 信頼プラットフォーム</p>
           </div>

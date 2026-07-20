@@ -506,6 +506,7 @@ html {
 
 @layer components {
   .vc-auth-shell {
+    /* Apple material: slightly deeper canvas behind glass card */
     @apply min-h-screen flex flex-col items-center justify-center px-4 py-16 bg-[#07070e] text-white;
   }
 
@@ -514,12 +515,19 @@ html {
   }
 
   .vc-auth-input {
-    @apply w-full rounded-xl border-[1.5px] border-[#1e1e2a] bg-[#111118] px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-all;
+    @apply w-full rounded-xl border-[1.5px] border-[#1e1e2a] bg-[#111118] px-4 py-3 text-sm text-white placeholder-white/20 outline-none;
+    transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.15s ease;
   }
 
   .vc-auth-input:focus {
     border-color: var(--vc-focus-color, var(--electric));
-    box-shadow: 0 0 0 1px var(--vc-focus-color, var(--electric)), 0 0 16px var(--electric-glow);
+    box-shadow: 0 0 0 1px var(--vc-focus-color, var(--electric)), 0 0 18px var(--electric-glow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vc-auth-input {
+      transition: none;
+    }
   }
 
   /* Chromeオートフィル時に黒文字・白背景になるのを防ぐ */

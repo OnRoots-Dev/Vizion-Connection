@@ -6,9 +6,11 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { registerSchema, VALID_REGIONS } from "@/features/auth/validation/register-schema";
 import { LottieAnim } from "@/components/ui/LottieAnim";
+import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
+import { PRESS_SCALE } from "@/components/ui/Pressable";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 const TERMS_URL = "https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link";
@@ -79,8 +81,9 @@ function ErrorBox({ message }: { message: string }) {
     );
 }
 
-// ステップインジケーター
+// ステップインジケーター — spring で現在値から次へ（中断可能な見た目の遷移）
 function StepBar({ current }: { current: number }) {
+    const reduce = useReducedMotion();
     return (
         <div className="mb-8 flex items-center justify-center gap-2">
             {STEP_LABELS.map((label, i) => {
@@ -90,22 +93,33 @@ function StepBar({ current }: { current: number }) {
                 return (
                     <div key={label} className="flex items-center gap-2">
                         <div className="flex flex-col items-center gap-1">
-                            <div
-                                className="flex h-7 w-7 items-center justify-center rounded-full font-display text-[11px] font-black transition-all"
-                                style={{
-                                    background: active || done ? "var(--electric)" : "rgba(255,255,255,0.06)",
+                            <motion.div
+                                layout
+                                animate={{
+                                    scale: active ? 1.08 : 1,
+                                    backgroundColor: active || done ? "var(--electric)" : "rgba(255,255,255,0.06)",
                                     color: active || done ? "#000" : "rgba(255,255,255,0.3)",
-                                    boxShadow: active ? "0 0 14px var(--electric-glow)" : "none",
+                                    boxShadow: active ? "0 0 14px var(--electric-glow)" : "0 0 0 transparent",
                                 }}
+                                transition={reduce ? fadeReduced : springSnap}
+                                className="flex h-7 w-7 items-center justify-center rounded-full font-display text-[11px] font-black"
                             >
                                 {done ? "✓" : step}
-                            </div>
-                            <span className="text-[9px] tracking-wider" style={{ color: active ? "var(--electric)" : "rgba(255,255,255,0.25)" }}>
+                            </motion.div>
+                            <motion.span
+                                animate={{ color: active ? "var(--electric)" : "rgba(255,255,255,0.25)" }}
+                                transition={reduce ? fadeReduced : springDefault}
+                                className="text-[9px] tracking-wider"
+                            >
                                 {label}
-                            </span>
+                            </motion.span>
                         </div>
                         {step < STEP_LABELS.length && (
-                            <div className="mb-4 h-px w-6 sm:w-10" style={{ background: done ? "var(--electric)" : "rgba(255,255,255,0.1)" }} />
+                            <motion.div
+                                animate={{ backgroundColor: done ? "var(--electric)" : "rgba(255,255,255,0.1)" }}
+                                transition={reduce ? fadeReduced : springDefault}
+                                className="mb-4 h-px w-6 sm:w-10"
+                            />
                         )}
                     </div>
                 );
@@ -114,21 +128,32 @@ function StepBar({ current }: { current: number }) {
     );
 }
 
+/** ステップ間: spring ベース（CSS duration 固定ではなく中断可能） */
 const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 48 : -48, opacity: 0 }),
+    enter: (dir: number) => ({ x: dir > 0 ? 36 : -36, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -48 : 48, opacity: 0 }),
+    exit: (dir: number) => ({ x: dir > 0 ? -28 : 28, opacity: 0 }),
+};
+
+const stepTransition = {
+    type: "spring" as const,
+    stiffness: 380,
+    damping: 34,
+    mass: 0.85,
 };
 
 export default function RegisterForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const reduce = useReducedMotion();
     const refSlug = searchParams.get("ref") ?? "";
     const redirectTo = searchParams.get("redirect") ?? "";
     const roleFromQuery = searchParams.get("role");
 
     const [step, setStep] = useState(1);
     const [direction, setDirection] = useState(1);
+    const press = reduce ? undefined : { scale: PRESS_SCALE };
+    const stepTr = reduce ? fadeReduced : stepTransition;
 
     const [role, setRole] = useState<Role>(() => {
         if (roleFromQuery && ROLES.some((r) => r.value === roleFromQuery)) {
@@ -267,19 +292,34 @@ export default function RegisterForm() {
 
     return (
         <div className="vc-auth-shell">
-            <a href={MARKETING_HOME_URL} className="mb-4 tracking-[0.2em]">
-                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={300} height={80} priority className="inline-block w-auto h-20" />
+            <a href={MARKETING_HOME_URL} className="mb-5 inline-block active:scale-[0.97] transition-transform duration-100">
+                <Image
+                    src="/images/Vizion_Connection_logo-wt.png"
+                    alt="Vizion Connection"
+                    width={320}
+                    height={86}
+                    priority
+                    className="inline-block h-[4.5rem] w-auto sm:h-20"
+                />
             </a>
 
-            <div className="w-full max-w-md">
-                <div className="mb-6 text-center space-y-1">
+            <div
+                className="w-full max-w-md rounded-[28px] border border-white/[0.08] px-5 py-7 sm:px-7 sm:py-8"
+                style={{
+                    background: "rgba(10,10,10,0.72)",
+                    backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
+                    WebkitBackdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
+                    boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
+                }}
+            >
+                <div className="mb-6 space-y-1 text-center">
                     <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
                         VIZION CONNECTION
                     </p>
-                    <h1 className="text-2xl font-bold text-white">Pulseをはじめる</h1>
-                    <p className="text-sm text-white/45">挑戦の記録が、信頼になる。</p>
+                    <h1 className="text-2xl font-bold tracking-[-0.02em] text-white">Pulseをはじめる</h1>
+                    <p className="text-sm leading-relaxed text-white/45">挑戦の記録が、信頼になる。</p>
                     {refSlug && (
-                        <p className="mt-2 text-xs font-mono" style={{ color: "var(--electric)" }}>
+                        <p className="mt-2 font-mono text-xs" style={{ color: "var(--electric)" }}>
                             紹介コード: {refSlug}
                         </p>
                     )}
@@ -297,7 +337,7 @@ export default function RegisterForm() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                            transition={stepTr}
                             className="space-y-4"
                         >
                             <p className="text-center text-sm font-bold text-white/70">あなたの役割を選んでください</p>
@@ -305,41 +345,55 @@ export default function RegisterForm() {
                                 {ROLES.map((r) => {
                                     const isSelected = role === r.value;
                                     return (
-                                        <button
+                                        <motion.button
                                             key={r.value}
                                             type="button"
                                             onClick={() => setRole(r.value)}
-                                            className="rounded-2xl px-4 py-5 text-center transition-all active:scale-[0.97]"
+                                            whileTap={press}
+                                            transition={springSnap}
+                                            layout
+                                            className="rounded-2xl px-4 py-5 text-center"
                                             style={{
-                                                background: isSelected ? `${r.color}16` : "#111118",
-                                                border: `1.5px solid ${isSelected ? r.color : "#1e1e2a"}`,
+                                                background: isSelected ? `${r.color}16` : "rgba(17,17,24,0.9)",
+                                                border: `1.5px solid ${isSelected ? r.color : "rgba(30,30,42,1)"}`,
                                                 boxShadow: isSelected ? `0 0 20px ${r.color}30` : "none",
                                             }}
                                         >
-                                            <div className="font-display text-[14px] font-black" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
+                                            <div className="font-display text-[14px] font-black tracking-wide" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
                                             <div className="mt-1 text-[11px] font-bold" style={{ color: isSelected ? "rgba(255,255,255,0.75)" : "#444" }}>{r.displayName}</div>
-                                        </button>
+                                        </motion.button>
                                     );
                                 })}
                             </div>
 
-                            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4">
-                                <p className="text-xs font-bold tracking-wide" style={{ color: selectedRole.color }}>
-                                    {selectedRole.label}（{selectedRole.displayName}）
-                                </p>
-                                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
-                                    {selectedRole.detail}
-                                </p>
-                            </div>
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={selectedRole.value}
+                                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                                    transition={reduce ? fadeReduced : springDefault}
+                                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4"
+                                >
+                                    <p className="text-xs font-bold tracking-wide" style={{ color: selectedRole.color }}>
+                                        {selectedRole.label}（{selectedRole.displayName}）
+                                    </p>
+                                    <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                                        {selectedRole.detail}
+                                    </p>
+                                </motion.div>
+                            </AnimatePresence>
 
-                            <button
+                            <motion.button
                                 type="button"
                                 onClick={() => goTo(2)}
-                                className="w-full rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
+                                whileTap={press}
+                                transition={springDefault}
+                                className="w-full rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
                                 style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                             >
                                 次へ進む
-                            </button>
+                            </motion.button>
                         </motion.div>
                     )}
 
@@ -352,13 +406,13 @@ export default function RegisterForm() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                            transition={stepTr}
                             className="space-y-4"
                         >
                             <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5">
                                 <span className="h-2 w-2 rounded-full" style={{ background: selectedRole.color }} />
                                 <span className="text-xs font-bold text-white/70">{selectedRole.displayName}として登録</span>
-                                <button type="button" onClick={() => goTo(1)} className="ml-auto text-[11px] text-white/40 underline underline-offset-2 hover:text-white/70">
+                                <button type="button" onClick={() => goTo(1)} className="ml-auto text-[11px] text-white/40 underline underline-offset-2 hover:text-white/70 active:scale-[0.97]">
                                     変更する
                                 </button>
                             </div>
@@ -461,21 +515,25 @@ export default function RegisterForm() {
                             {error && <ErrorBox message={error} />}
 
                             <div className="flex gap-3">
-                                <button
+                                <motion.button
                                     type="button"
                                     onClick={() => goTo(1)}
-                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 transition-all hover:border-white/30 hover:text-white"
+                                    whileTap={press}
+                                    transition={springDefault}
+                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
                                 >
                                     戻る
-                                </button>
-                                <button
+                                </motion.button>
+                                <motion.button
                                     type="button"
                                     onClick={handleStep2Next}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
+                                    whileTap={press}
+                                    transition={springDefault}
+                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     確認画面へ
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     )}
@@ -489,7 +547,7 @@ export default function RegisterForm() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                            transition={stepTr}
                             className="space-y-4"
                         >
                             <p className="text-center text-sm font-bold text-white/70">入力内容をご確認ください</p>
@@ -520,21 +578,25 @@ export default function RegisterForm() {
                             {error && <ErrorBox message={error} />}
 
                             <div className="flex gap-3">
-                                <button
+                                <motion.button
                                     type="button"
                                     onClick={() => goTo(2)}
-                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 transition-all hover:border-white/30 hover:text-white"
+                                    whileTap={press}
+                                    transition={springDefault}
+                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
                                 >
                                     修正する
-                                </button>
-                                <button
+                                </motion.button>
+                                <motion.button
                                     type="button"
                                     onClick={() => void handleSubmit()}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black transition-all hover:opacity-90 active:scale-[0.99]"
+                                    whileTap={press}
+                                    transition={springDefault}
+                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     登録してPulseをはじめる
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     )}
@@ -548,7 +610,7 @@ export default function RegisterForm() {
                             initial="enter"
                             animate="center"
                             exit="exit"
-                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                            transition={stepTr}
                         >
                             {submitting && (
                                 <div className="flex flex-col items-center gap-4 py-10">
@@ -589,16 +651,18 @@ export default function RegisterForm() {
 
                                     {error && <ErrorBox message={error} />}
 
-                                    <button
+                                    <motion.button
                                         type="button"
                                         onClick={() => void handleResend()}
                                         disabled={resendLoading}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                                        whileTap={resendLoading ? undefined : press}
+                                        transition={springDefault}
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-60"
                                         style={{ background: "var(--electric)", boxShadow: resendLoading ? "none" : "0 0 24px var(--electric-glow)" }}
                                     >
                                         {resendLoading && <LottieAnim src="/lottie/loading-pulse.json" loop className="h-5 w-5" />}
                                         {resendLoading ? "再送中..." : "認証メールを再送する"}
-                                    </button>
+                                    </motion.button>
 
                                     <div className="space-y-1 text-center text-xs text-white/35">
                                         <p>メールが届かない場合</p>
@@ -636,7 +700,7 @@ export default function RegisterForm() {
 
                                     <Link
                                         href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
-                                        className="block w-full rounded-xl py-3.5 text-center text-sm font-black text-black transition-all"
+                                        className="block w-full rounded-xl py-3.5 text-center text-sm font-black text-black active:scale-[0.97] transition-transform duration-100"
                                         style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                     >
                                         ログインへ進む
