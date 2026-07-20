@@ -1402,3 +1402,16 @@ a.btn-primary {
   font-weight: 700;
   font-family: var(--font-body);
 }
+
+/* App logo image (matches Header / auth screens) */
+.lp-proto .logo {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+}
+.lp-proto .lp-app-logo {
+  display: block;
+  width: auto;
+  max-width: min(220px, 52vw);
+  object-fit: contain;
+}

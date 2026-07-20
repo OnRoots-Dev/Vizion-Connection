@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import "./lp-prototype.css";
 
 const REGIONS = [
@@ -32,20 +33,20 @@ const FEED_EVENTS = [
 
 type RegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
 
-function Logo({ size = 34 }: { size?: number }) {
+/** アプリ共通ロゴ（Header / Login 等と同じアセット） */
+function AppLogo({ height = 48, priority = false }: { height?: number; priority?: boolean }) {
+  // 元画像の横長比率に合わせて width を推定（表示は h / w-auto）
+  const width = Math.round(height * (180 / 48));
   return (
-    <span className="logo" aria-hidden>
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-        <path d="M 78 26 A 36 36 0 1 0 86 50" stroke="#C8E800" strokeWidth="7" strokeLinecap="round" />
-        <circle cx="80" cy="24" r="9" fill="#C8E800" />
-        <path d="M 30 78 H 96" stroke="#C8E800" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 24 88 H 88" stroke="#C8E800" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
-        <path d="M 20 97 H 78" stroke="#C8E800" strokeWidth="2" strokeLinecap="round" opacity="0.4" />
-      </svg>
-      <span className="logo-type">
-        <span className="v">V</span>izion Connection
-      </span>
-    </span>
+    <Image
+      src="/images/Vizion_Connection_logo-wt.png"
+      alt="Vizion Connection"
+      width={width}
+      height={height}
+      priority={priority}
+      className="lp-app-logo"
+      style={{ height, width: "auto" }}
+    />
   );
 }
 
@@ -344,7 +345,7 @@ export default function LpHomeClient() {
       {/* NAV */}
       <nav className="nav">
         <Link href="/" className="logo" aria-label="Vizion Connection">
-          <Logo />
+          <AppLogo height={44} priority />
         </Link>
         <Link href="/register" className="nav-cta">
           今すぐ登録する
@@ -696,7 +697,7 @@ export default function LpHomeClient() {
         <div className="footer-top">
           <div>
             <Link href="/" className="logo" aria-label="Vizion Connection">
-              <Logo size={30} />
+              <AppLogo height={40} />
             </Link>
             <p className="footer-tag">スポーツ × 信頼プラットフォーム</p>
           </div>
