@@ -104,6 +104,8 @@ export async function getDiscoveryUsers(params: {
 
     const newcomerSince = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
+    // プロフィール本体は public.users（アプリ内の「profiles」相当）。
+    // 都道府県・競技はドロップダウンの確定値を .eq で絞る（部分一致のブレを防ぐ）。
     let query = supabaseServer
         .from("users")
         .select("slug,display_name,role,avatar_url,profile_image_url,cheer_count,region,prefecture,sport,created_at,sponsor_plan")
@@ -113,10 +115,16 @@ export async function getDiscoveryUsers(params: {
         .limit(1000);
 
     if (role) query = query.eq("role", role);
-    if (region) query = query.ilike("region", `%${region}%`);
-    if (prefecture) query = query.ilike("prefecture", `%${prefecture}%`);
-    if (sport) query = query.ilike("sport", `%${sport}%`);
-    if (q) query = query.or(`slug.ilike.%${q}%,display_name.ilike.%${q}%`);
+    if (region) query = query.eq("region", region);
+    if (prefecture) query = query.eq("prefecture", prefecture);
+    if (sport) query = query.eq("sport", sport);
+    if (q) {
+        // ユーザー入力の free-text のみ ilike。filter 確定値は eq のまま。
+        const escaped = q.replace(/[%_,]/g, "");
+        if (escaped) {
+            query = query.or(`slug.ilike.%${escaped}%,display_name.ilike.%${escaped}%`);
+        }
+    }
 
     if (sort === "newcomer") {
         query = query.gte("created_at", newcomerSince);

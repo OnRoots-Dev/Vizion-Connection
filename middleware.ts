@@ -3,7 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
 
 // 認証が必要なパス
-const PROTECTED_PATHS = ["/dashboard", "/dashboard/business/checkout", "/news-rooms", "/onboarding"];
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/dashboard/business/checkout",
+  "/business/complete",
+  "/news-rooms",
+  "/onboarding",
+];
 
 // 認証済みユーザーがアクセスできないパス（ログイン済みならアプリのトップへ）
 const AUTH_PATHS = ["/login", "/register"];
@@ -13,6 +19,7 @@ const MARKETING_PATHS = ["/"]; // LPの実際のパスに合わせて調整済�
 const APP_PATHS = [
   "/dashboard",
   "/news-rooms",
+  "/business",
 ];
 
 const CORS_ALLOWED_ORIGINS = new Set([
@@ -88,16 +95,22 @@ export async function middleware(req: NextRequest) {
         return applyCors(req, new NextResponse(null, { status: 204 }));
     }
 
+    // Cookie Domain=.vizion-connection.jp / SameSite=None; Secure は
+    // createMiddlewareClient → cookie-options.ts で付与される。
+    // getUser() 呼び出し時にセッション Cookie が再発行され、両サブドメインで共有される。
     const { supabase, getResponse } = createMiddlewareClient(req);
 
     // Avoid cross-origin redirects for App Router internals such as RSC and prefetch.
     if (isInternalRequest) {
+        // 内部リクエストでもセッション更新は行う（Cookie 属性の再適用のため）
+        await supabase.auth.getUser();
         return applyCors(req, getResponse());
     }
 
     // Local development should stay on the same host.
     // Otherwise it becomes impossible to test login flows locally.
     if (process.env.NODE_ENV !== "production" || isLocalDevHost) {
+        await supabase.auth.getUser();
         return applyCors(req, getResponse());
     }
 
@@ -152,6 +165,7 @@ export const config = {
     matcher: [
         "/",
         "/dashboard/:path*",
+        "/business/:path*",
         "/news-rooms/:path*",
         "/onboarding/:path*",
         "/onboarding",

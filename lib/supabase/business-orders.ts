@@ -118,10 +118,15 @@ export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
     email: string;
     slug: string;
     status: string;
+    planId: string;
+    planName: string;
+    amount: number;
+    /** roots: 都道府県名 / 全国プラン: 全国 */
+    region: string | null;
 } | null> {
     const { data, error } = await supabase
         .from("business_orders")
-        .select("id, email, slug, status")
+        .select("id, email, slug, status, plan_id, plan_name, amount, region")
         .eq("email", email)
         .neq("status", "completed")
         .order("created_at", { ascending: false })
@@ -129,7 +134,7 @@ export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
         .maybeSingle();
 
     if (error) {
-        console.error("[findLatestIncompleteOrderByEmail]", error);
+        console.error("[findLatestIncompleteOrderByEmail]", error.code);
         return null;
     }
 
@@ -138,6 +143,10 @@ export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
         email: String(data.email),
         slug: String(data.slug),
         status: String(data.status),
+        planId: String(data.plan_id),
+        planName: String(data.plan_name),
+        amount: Number(data.amount) || 0,
+        region: data.region != null ? String(data.region) : null,
     } : null;
 }
 

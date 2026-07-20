@@ -41,6 +41,40 @@
   --vc-business: #3C8CFF;
 }
 
+/* ── Apple Design: unified press feedback (pointer-down) ── */
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active,
+a[data-pressable]:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  a[data-pressable]:active {
+    transform: none;
+  }
+}
+
+/* ── Glass material tokens (nav / sheets) ── */
+.vc-glass {
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+}
+.vc-glass-heavy {
+  background: rgba(10, 10, 10, 0.78);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .vc-glass,
+  .vc-glass-heavy {
+    background: #0A0A0A;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* ── Vizion Design System keyframes ── */
 @keyframes vcPulse {
   0%, 100% { transform: scale(1); opacity: 0.6; }

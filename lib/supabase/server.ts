@@ -1,6 +1,7 @@
 // Server-only Supabase clients
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getAuthCookieOptions, mergeAuthCookieOptions } from "@/lib/supabase/cookie-options";
 
 const url = process.env.SUPABASE_URL!;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -25,19 +26,16 @@ export const createClient = async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: {
-        domain: process.env.NODE_ENV === 'production' ? '.vizion-connection.jp' : undefined,
-        path: '/',
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      },
+      cookieOptions: getAuthCookieOptions(),
       cookies: {
         getAll: () => cookieStore.getAll(),
         setAll: (values) => {
           // Server Component から呼ばれた場合、cookie の書き込みは不可（middleware が
           // セッション更新を担うため無視してよい）。Route Handler / Server Action では成功する。
           try {
-            values.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+            values.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, mergeAuthCookieOptions(options));
+            });
           } catch {
             /* called from a Server Component — safe to ignore */
           }

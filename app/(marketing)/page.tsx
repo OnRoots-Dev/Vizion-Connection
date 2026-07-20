@@ -114,18 +114,26 @@ export default function Page() {
             position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "16px clamp(20px, 5vw, 56px)",
-            background: "rgba(0,0,0,0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+            background: "rgba(10,10,10,0.55)",
+            backdropFilter: "blur(22px) saturate(180%)",
+            WebkitBackdropFilter: "blur(22px) saturate(180%)",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
           }}
         >
-          <Link href="/" style={{ fontFamily: HEAD, fontWeight: 700, letterSpacing: "0.18em", fontSize: 15, color: TEXT, textDecoration: "none", textTransform: "uppercase" }}>
+          <div aria-hidden style={{
+            position: "absolute", insetInline: 0, top: 0, height: 1,
+            background: "linear-gradient(90deg, transparent, rgba(244,193,10,0.25), transparent)",
+            pointerEvents: "none",
+          }} />
+          <Link href="/" style={{ fontFamily: HEAD, fontWeight: 700, letterSpacing: "0.18em", fontSize: 15, color: TEXT, textDecoration: "none", textTransform: "uppercase", transition: "transform 100ms ease-out" }} className="active:scale-[0.97]">
             Vizion<span style={{ color: ACCENT }}>.</span>
           </Link>
           <nav style={{ display: "flex", alignItems: "center", gap: 22 }}>
-            <Link href="/login" style={{ fontFamily: HEAD, fontWeight: 500, letterSpacing: "0.12em", fontSize: 13, color: SUB, textDecoration: "none", textTransform: "uppercase" }}>
+            <Link href="/login" style={{ fontFamily: HEAD, fontWeight: 500, letterSpacing: "0.12em", fontSize: 13, color: SUB, textDecoration: "none", textTransform: "uppercase", transition: "transform 100ms ease-out" }} className="active:scale-[0.97]">
               Login
             </Link>
-            <Link href="/register" style={{ fontFamily: HEAD, fontWeight: 600, letterSpacing: "0.06em", fontSize: 13, color: "#000", background: ACCENT, padding: "9px 18px", borderRadius: 9, textDecoration: "none", textTransform: "uppercase" }}>
+            <Link href="/register" data-pressable style={{ fontFamily: HEAD, fontWeight: 600, letterSpacing: "0.06em", fontSize: 13, color: "#000", background: ACCENT, padding: "9px 18px", borderRadius: 9, textDecoration: "none", textTransform: "uppercase", transition: "transform 100ms ease-out", boxShadow: "0 0 24px rgba(244,193,10,0.25)" }} className="active:scale-[0.97]">
               無料で始める
             </Link>
           </nav>

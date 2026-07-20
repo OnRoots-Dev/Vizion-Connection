@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { OnboardingPageTransition } from "../OnboardingPageTransition";
 import OnboardingProfileForm from "./OnboardingProfileForm";
 import type { UserRole } from "@/features/auth/types";
 
@@ -26,16 +26,15 @@ type UserInit = {
 
 export default function ProfileOnboardingClient({ userInit: _ }: { userInit: UserInit }) {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            style={{ height: "100dvh", background: "#0B0B0F", display: "flex", flexDirection: "column", overflow: "hidden" }}
+        <div
+            style={{ height: "100dvh", background: "#0A0A0A", display: "flex", flexDirection: "column", overflow: "hidden" }}
         >
             <div style={{ flexShrink: 0, padding: "16px 24px 0" }}>
                 <OnboardingStepBar current={1} />
             </div>
-            <OnboardingProfileForm />
-        </motion.div>
+            <OnboardingPageTransition stepKey="profile">
+                <OnboardingProfileForm />
+            </OnboardingPageTransition>
+        </div>
     );
 }

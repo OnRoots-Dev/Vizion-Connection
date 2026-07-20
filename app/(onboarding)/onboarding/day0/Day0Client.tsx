@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { OnboardingPageTransition } from "../OnboardingPageTransition";
 import { LottieAnim } from "@/components/ui/LottieAnim";
+import { springDefault } from "@/lib/motion/apple-springs";
 
 const ROLE_COLOR: Record<string, string> = {
     Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "var(--electric)",
@@ -52,10 +54,8 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
+        <OnboardingPageTransition stepKey="day0">
+        <div
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <AnimatePresence>
@@ -204,6 +204,7 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                     </div>
                 </motion.div>
             </div>
-        </motion.div>
+        </div>
+        </OnboardingPageTransition>
     );
 }

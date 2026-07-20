@@ -10,11 +10,16 @@ paths:
 # 決済（Square）規則
 
 ## 構成
-- `app/api/business-checkout/route.ts` — チェックアウト開始（Square Payment Link）
-- `app/api/webhooks/square/route.ts` — Square webhook 受信
+- `app/api/business-checkout/route.ts` — チェックアウト開始（Square Payment Links API で動的生成）
+- `lib/square/payment-links.ts` — `POST /v2/online-checkout/payment-links`（quick_pay）
+- `app/api/webhooks/square/route.ts` — Square webhook（`payment.updated` → COMPLETED）
 - `features/business/server/create-checkout.ts` / `save-order.ts` — 注文作成・保存
 - `lib/supabase/business-orders.ts` — `business_orders` テーブル操作（email + amount = PII/取引情報）
-- 環境変数: `SQUARE_LINK_*`（プランごとの支払いリンク）, `SQUARE_WEBHOOK_SIGNATURE_KEY`
+- `lib/supabase/ad-slots.ts` — 決済完了時に `sold` を +1
+- 完了リダイレクト: `https://app.vizion-connection.jp/business/complete`
+- 環境変数:
+  - `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID` / `SQUARE_ENVIRONMENT`（sandbox|production）
+  - `SQUARE_WEBHOOK_SIGNATURE_KEY` / `SQUARE_WEBHOOK_NOTIFICATION_URL`（署名検証用 URL と一致必須）
 
 ## 鉄則
 1. **webhook は署名検証が最優先**。`SQUARE_WEBHOOK_SIGNATURE_KEY` による検証より前にペイロードを信用する処理を書かない。検証失敗は 4xx で即return。

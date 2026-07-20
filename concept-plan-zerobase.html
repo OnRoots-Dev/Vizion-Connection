@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vizion Connection ゼロベース構想企画書 — 海図は、航海のあとに描かれる</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #C8E800;
+    --athlete: #FF5A5A;
+    --trainer: #35D98A;
+    --crew: #FFC933;
+    --business: #4D9AFF;
+    --bg: #08090B;
+    --panel: #101216;
+    --panel2: #171A20;
+    --border: rgba(255,255,255,0.09);
+    --text: #F1F2F4;
+    --sub: #969CA8;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Noto Sans JP', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); line-height: 1.8; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 120px; }
+
+  /* ===== Hero ===== */
+  .hero { padding: 72px 0 44px; position: relative; overflow: hidden; }
+  .hero::after {
+    content: ""; position: absolute; inset: auto -140px -180px auto;
+    width: 380px; height: 380px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(200,232,0,0.10), transparent 65%);
+    pointer-events: none;
+  }
+  .kicker { color: var(--brand); font-size: 12px; font-weight: 700; letter-spacing: .3em; margin-bottom: 14px; }
+  .hero h1 { font-family: var(--display); font-size: clamp(38px, 7.5vw, 68px); line-height: 1.05; letter-spacing: .03em; }
+  .hero h1 em { font-style: normal; color: var(--brand); }
+  .hero .tagline {
+    margin-top: 22px; padding: 18px 22px;
+    border-left: 3px solid var(--brand);
+    background: rgba(200,232,0,0.05);
+    border-radius: 0 12px 12px 0;
+    font-size: 16px; font-weight: 700;
+  }
+  .hero .tagline small { display: block; font-weight: 400; color: var(--sub); font-size: 13px; margin-top: 6px; }
+
+  /* ===== Section accordion ===== */
+  details.sec {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--panel);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  details.sec > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 22px;
+  }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary .idx {
+    font-family: var(--display); font-size: 22px;
+    color: var(--bg); background: var(--brand);
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  details.sec > summary .st { flex: 1; min-width: 0; }
+  details.sec > summary .st h2 { font-family: var(--display); font-size: 26px; letter-spacing: .05em; line-height: 1.15; }
+  details.sec > summary .st p { font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+  details.sec > summary .chev { color: var(--sub); font-size: 22px; transition: transform .25s; flex-shrink: 0; }
+  details.sec[open] > summary .chev { transform: rotate(90deg); color: var(--brand); }
+  details.sec[open] { background: var(--panel2); border-color: rgba(200,232,0,0.25); }
+  .sec-body { padding: 4px 22px 26px; }
+  @media (max-width: 640px) { .sec-body { padding: 0 14px 20px; } }
+
+  /* ===== Summary ===== */
+  .concept-box {
+    background: linear-gradient(140deg, rgba(200,232,0,0.10), rgba(200,232,0,0.02));
+    border: 1px solid rgba(200,232,0,0.35);
+    border-radius: 14px; padding: 24px; margin-bottom: 20px;
+  }
+  .concept-box h3 { font-family: var(--display); color: var(--brand); font-size: 20px; letter-spacing: .1em; margin-bottom: 8px; }
+  .concept-box strong { color: var(--brand); }
+  .ship-model {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px; margin: 18px 0 20px;
+  }
+  .ship-role {
+    border: 1px solid var(--border); border-top: 3px solid var(--rc);
+    border-radius: 12px; background: var(--panel); padding: 14px 16px;
+  }
+  .ship-role .rn { font-weight: 900; font-size: 14px; color: var(--rc); }
+  .ship-role .rm { font-size: 12px; color: var(--sub); }
+  .ship-role .rr { font-size: 12.5px; margin-top: 6px; }
+  .sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+  .sum-item { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .sum-item .n { font-family: var(--display); color: var(--brand); font-size: 22px; line-height: 1; }
+  .sum-item h4 { font-size: 14px; margin: 6px 0 4px; }
+  .sum-item p { font-size: 12.5px; color: var(--sub); }
+
+  /* ===== PNS tables ===== */
+  details.role {
+    border: 1px solid var(--border); border-left: 4px solid var(--rc);
+    border-radius: 12px; background: var(--panel); margin-bottom: 12px; overflow: hidden;
+  }
+  details.role > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    padding: 14px 18px; font-weight: 700; font-size: 14.5px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  details.role > summary::-webkit-details-marker { display: none; }
+  details.role > summary .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rc); flex-shrink: 0; }
+  details.role > summary .plus { margin-left: auto; color: var(--sub); font-size: 18px; transition: transform .2s; }
+  details.role[open] > summary .plus { transform: rotate(45deg); }
+  .role-body { padding: 0 16px 16px; }
+  .tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.pns { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 13px; }
+  table.pns th {
+    text-align: left; padding: 9px 12px; font-size: 11px; letter-spacing: .12em;
+    border-bottom: 2px solid var(--rc); white-space: nowrap;
+  }
+  th.h-pain { color: #FF8A8A; } th.h-need { color: #8AB8FF; } th.h-sol { color: var(--brand); }
+  table.pns td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.7; }
+  table.pns tr:last-child td { border-bottom: none; }
+  td.c-sol { color: #EAF6C4; }
+  .w { color: var(--brand); font-weight: 700; }
+  .worldfirst {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    color: var(--brand); border: 1px solid rgba(200,232,0,.5); border-radius: 999px;
+    padding: 0 8px; margin-left: 6px; vertical-align: middle; white-space: nowrap;
+  }
+
+  /* ===== JTBD ===== */
+  .job { border: 1px solid var(--border); border-left: 4px solid var(--rc); border-radius: 12px; background: var(--panel); padding: 20px; margin-bottom: 14px; }
+  .job .jr { display: flex; align-items: center; gap: 10px; font-weight: 900; margin-bottom: 10px; }
+  .job .jr .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rc); }
+  .job .stmt {
+    background: rgba(255,255,255,0.04); border-left: 3px solid var(--rc);
+    border-radius: 8px; padding: 13px 15px; font-size: 14px; margin-bottom: 12px;
+  }
+  .job .stmt .lbl { display: block; font-size: 10.5px; letter-spacing: .12em; color: var(--sub); margin-bottom: 4px; }
+  .job ul { list-style: none; }
+  .job li { padding: 7px 0 7px 22px; position: relative; font-size: 13px; border-bottom: 1px dashed var(--border); }
+  .job li:last-child { border-bottom: none; }
+  .job li::before { content: "⚓"; position: absolute; left: 0; font-size: 11px; color: var(--brand); top: 9px; }
+  .job li b { color: var(--text); }
+  .job li span { color: var(--sub); }
+
+  /* ===== Prep ===== */
+  .prep { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 14px; }
+  .prep .ph { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .prep .ph h3 { font-family: var(--display); font-size: 24px; letter-spacing: .06em; color: var(--brand); }
+  .prep .ph .ja { font-size: 13px; font-weight: 700; }
+  .prep p, .prep ul { font-size: 13.5px; color: #C7CBD4; }
+  .prep ul { padding-left: 20px; margin-top: 8px; }
+  .prep li { margin-bottom: 4px; }
+  .bridge {
+    margin-top: 12px; padding: 11px 15px; font-size: 12.5px;
+    background: rgba(77,154,255,0.08); border: 1px solid rgba(77,154,255,0.3); border-radius: 10px;
+  }
+  .bridge b { display: block; color: var(--business); font-size: 10.5px; letter-spacing: .12em; margin-bottom: 3px; }
+
+  /* ===== Glossary ===== */
+  .gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .term { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .term .tn { font-family: var(--display); font-size: 24px; letter-spacing: .06em; color: var(--brand); line-height: 1; }
+  .term .tj { font-size: 12px; color: var(--sub); margin: 4px 0 8px; }
+  .term p { font-size: 12.5px; color: #C7CBD4; }
+  .statement {
+    margin-top: 18px; padding: 22px; border-radius: 12px;
+    background: var(--panel2); border: 1px solid rgba(200,232,0,0.3);
+    font-size: 14px; line-height: 2.1;
+  }
+  .statement b { color: var(--brand); }
+
+  /* ===== Priority ===== */
+  .phase { display: flex; gap: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 10px; }
+  .phase .pn { font-family: var(--display); font-size: 28px; color: var(--brand); width: 48px; flex-shrink: 0; line-height: 1.1; }
+  .phase .pn small { display: block; font-family: var(--body); font-size: 9.5px; letter-spacing: .12em; color: var(--sub); }
+  .phase h3 { font-size: 14.5px; margin-bottom: 4px; }
+  .phase p { font-size: 12.5px; color: var(--sub); }
+  .fx { font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 2px 9px; margin-left: 6px; vertical-align: middle; }
+  .fx.s { background: rgba(53,217,138,.15); color: var(--trainer); }
+  .fx.m { background: rgba(255,201,51,.15); color: var(--crew); }
+  .fx.l { background: rgba(255,90,90,.15); color: var(--athlete); }
+  .note { margin-top: 16px; padding: 15px 18px; background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; font-size: 13px; color: #C7CBD4; }
+  .note b { color: var(--brand); }
+  @media (max-width: 640px) { .phase { flex-direction: column; gap: 6px; } .phase .pn { display: flex; gap: 8px; align-items: baseline; width: auto; } }
+
+  footer { border-top: 1px solid var(--border); margin-top: 40px; padding-top: 26px; text-align: center; font-size: 12px; color: var(--sub); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">VIZION CONNECTION — ZERO-BASE CONCEPT</div>
+  <h1>THE CHART IS DRAWN<br><em>AFTER THE VOYAGE</em></h1>
+  <div class="tagline">
+    海図は、航海のあとに描かれる。
+    <small>大航海時代、海図は探検家が「持って出た」ものではなく、無数の航海日誌から「あとで編まれた」ものだった。Vizion Connectionのマップも同じ順序で作る——まず全員が航海を記録し、その蓄積が一枚の地図になる。これがマップ実装前「準備期間」の設計思想。</small>
+  </div>
+</div>
+
+<!-- ============ 0. SUMMARY ============ -->
+<details class="sec" open>
+  <summary>
+    <span class="idx">0</span>
+    <span class="st"><h2>SUMMARY — 全体構造</h2><p>この企画の結論。詳細は下の各セクションへ</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <div class="concept-box">
+      <h3>CORE CONCEPT — 「一隻の船」モデル</h3>
+      <p>Vizion Connectionの共創の最小単位は、フォローでもコミュニティでもなく<strong>「一隻の船」</strong>と定義する。アスリートの競技人生を一隻の船(=航海)と見立て、そこに他の3ロールがそれぞれの役割で乗り込む。4つのロールは「同じアプリのユーザー同士」ではなく<strong>「同じ航海の当事者」</strong>になる——これが既存SNS・ファンクラブ・マッチングサービスのどれとも違う関係構造。</p>
+      <div class="ship-model">
+        <div class="ship-role" style="--rc: var(--athlete)">
+          <div class="rn">ATHLETE</div><div class="rm">船そのもの・航海の主体</div>
+          <div class="rr">航海日誌を刻み、目的地(目標)へ進む</div>
+        </div>
+        <div class="ship-role" style="--rc: var(--trainer)">
+          <div class="rn">TRAINER</div><div class="rm">航海士(ナビゲーター)</div>
+          <div class="rr">針路を導き、その導きが公式記録に残る</div>
+        </div>
+        <div class="ship-role" style="--rc: var(--crew)">
+          <div class="rn">CREW</div><div class="rm">乗組員</div>
+          <div class="rr">船に乗り込み、帆に追い風を送る</div>
+        </div>
+        <div class="ship-role" style="--rc: var(--business)">
+          <div class="rn">BUSINESS</div><div class="rm">商会・パトロン</div>
+          <div class="rr">航海に出資し、船と共に名を上げる</div>
+        </div>
+      </div>
+      <p style="font-size:13px; color:var(--sub)">大航海時代の探検は、探検家一人では成立しなかった。航海士がいて、乗組員がいて、出資する商会がいた。そして成功した航海は、関わった全員の名を歴史に残した。この構造をそのままプラットフォームにする。</p>
+    </div>
+
+    <div class="sum-grid">
+      <div class="sum-item"><div class="n">01</div><h4>Pain / Need / Solution</h4>
+        <p>4ロールに共通する根本Painは「関わりが記録されず、証明できない」。努力も、指導も、応援も、協賛も、いま世の中に"公式記録"が存在しない。解決軸=すべての関わりを記録し、資産に変える。</p></div>
+      <div class="sum-item"><div class="n">02</div><h4>Jobs-to-be-Done</h4>
+        <p>アスリート「競技に集中したまま支援が集まる状態がほしい」/ トレーナー「実績を証明したい」/ クルー「観客席から船上に移りたい」/ ビジネス「広告ではなく応援で選ばれたい」。</p></div>
+      <div class="sum-item"><div class="n">03</div><h4>準備期間の機能設計</h4>
+        <p>母港(拠点登録)→ 航海日誌(場所付き活動記録)→ 港(地域コミュニティ)→ 寄港(地域イベント)→ 航海録(物語ページ)。全機能が将来マップのレイヤーに1:1で変換される。</p></div>
+      <div class="sum-item"><div class="n">04</div><h4>独自用語・世界観</h4>
+        <p>「海図は、航海のあとに描かれる」。航海メタファーで全用語を統一——クルー(乗組員)というロール名が最初から航海の言葉である点に乗る。</p></div>
+      <div class="sum-item"><div class="n">05</div><h4>実装優先度</h4>
+        <p>P0: 母港(最小工数で全員に位置の種) → P1: 航海日誌 → P2: 港 → P3: 航海録 → P4: 寄港 → P5: 海図ティザー。</p></div>
+    </div>
+  </div>
+</details>
+
+<!-- ============ 1. PNS ============ -->
+<details class="sec">
+  <summary>
+    <span class="idx">1</span>
+    <span class="st"><h2>ロール別 PAIN / NEED / SOLUTION</h2><p>各ロールをタップして展開。Solutionの<span style="color:var(--brand)">緑字</span>=本企画の提案機能</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <details class="role" style="--rc: var(--athlete)" open>
+      <summary><span class="dot"></span>ATHLETE — アスリート<span class="plus">＋</span></summary>
+      <div class="role-body"><div class="tscroll">
+        <table class="pns">
+          <thead><tr><th class="h-pain">PAIN — 不満・課題</th><th class="h-need">NEED — ニーズ</th><th class="h-sol">SOLUTION — 解決策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>競技力と収入が比例しない。実業団・プロ契約に届かない大多数の選手は、競技を「続けるための資金」を自力で工面している。</td>
+              <td>競技活動そのものが、支援を呼び込む営業活動を兼ねてほしい。</td>
+              <td class="c-sol"><span class="w">航海日誌(LOG)</span>——日々の練習・遠征・試合を場所付きで記録すると、それが自動的に「支援者向けの活動証明」に編纂される。<span class="worldfirst">世にない点</span>活動記録と資金調達資料が同一物になる設計。</td>
+            </tr>
+            <tr>
+              <td>SNSでの発信は義務化しているが、投稿はすぐ流れ、競技の積み重ねが何も蓄積されない。発信労力が資産にならない。</td>
+              <td>一度記録したことが消えず、キャリアの証明として積み上がってほしい。</td>
+              <td class="c-sol"><span class="w">航海録(VOYAGE)</span>——航海日誌が時系列×寄港地で自動的に一本の物語ページになる。書き溜めるのではなく「勝手に編まれる」ポートフォリオ。</td>
+            </tr>
+            <tr>
+              <td>支援・指導・応援との出会いがすべて偶然(知人の紹介・バズ)頼み。地方選手・マイナー競技ほど機会がない。</td>
+              <td>自分の活動圏の中で、必要な相手に必然的に発見されたい。</td>
+              <td class="c-sol"><span class="w">母港(HOME PORT)</span>の宣言と<span class="w">港(HARBOR)</span>での露出——「どこで活動しているか」を軸に、同じ地域のトレーナー・クルー・企業と構造的に出会う。</td>
+            </tr>
+            <tr>
+              <td>引退後に「何を成し遂げてきたか」を語る材料が戦績しかない。競技人生のプロセスが証明できない。</td>
+              <td>結果だけでなく、歩んできた過程が公式な記録として残ってほしい。</td>
+              <td class="c-sol">航海録は引退後も残る<span class="w">「競技人生の公式記録」</span>。関わったトレーナー・クルー・企業の名と共に、キャリアの全行程が証明可能になる。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </details>
+
+    <details class="role" style="--rc: var(--trainer)">
+      <summary><span class="dot"></span>TRAINER — トレーナー<span class="plus">＋</span></summary>
+      <div class="role-body"><div class="tscroll">
+        <table class="pns">
+          <thead><tr><th class="h-pain">PAIN — 不満・課題</th><th class="h-need">NEED — ニーズ</th><th class="h-sol">SOLUTION — 解決策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>「あの選手を育てたのは自分」を証明する手段が世の中に存在しない。指導実績は自己申告でしかなく、信用されない。</td>
+              <td>担当選手の成長に自分が関与した事実が、第三者に検証可能な形で残ってほしい。</td>
+              <td class="c-sol"><span class="w">航海士記録(NAVIGATOR CREDIT)</span>——選手の航海日誌・目標達成に、関与したトレーナーが選手の承認つきでクレジットされる。<span class="worldfirst">世にない点</span>指導実績の"公証インフラ"。履歴書でも口コミでもない第三の証明。</td>
+            </tr>
+            <tr>
+              <td>集客がSNS運用と口コミに依存。広告を出しても、競技・レベル・地域がバラバラの相手にしか届かない。</td>
+              <td>「この地域で・この競技の・このレベルの選手を見ている専門家」として発見されたい。</td>
+              <td class="c-sol">母港×専門タグによる<span class="w">港(HARBOR)内の専門家名簿</span>。地域と専門性の二軸で、探している選手側から必然的に見つかる。</td>
+            </tr>
+            <tr>
+              <td>セッションが終わると関係も終わる。継続関係を作る仕組みがなく、常に新規集客に追われる。</td>
+              <td>指導後も選手の航海に関わり続け、その関わり自体が次の仕事を呼んでほしい。</td>
+              <td class="c-sol">担当選手の航海日誌への<span class="w">添え書き(NAVIGATOR'S NOTE)</span>——専門的視点のコメントが選手のページ上に残り、知見の発信がそのまま実績展示と営業を兼ねる。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </details>
+
+    <details class="role" style="--rc: var(--crew)">
+      <summary><span class="dot"></span>CREW — クルー(ファン)<span class="plus">＋</span></summary>
+      <div class="role-body"><div class="tscroll">
+        <table class="pns">
+          <thead><tr><th class="h-pain">PAIN — 不満・課題</th><th class="h-need">NEED — ニーズ</th><th class="h-sol">SOLUTION — 解決策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>応援は「いいね」「投げ銭」「チケット購入」——どれも一方向の消費で終わり、自分が何かに関わった実感も証拠も残らない。</td>
+              <td>応援が選手の物語の一部として組み込まれ、あとから「共に歩んだ」と言える形になってほしい。</td>
+              <td class="c-sol"><span class="w">乗船(BOARDING)</span>——選手を応援する行為を「船に乗り込む」と定義。乗船日・送った追い風・見届けた達成がすべて<span class="w">乗船記録</span>として残る。<span class="worldfirst">世にない点</span>ファン活動の履歴が本人の資産になる。「無名時代からの乗組員」は証明できる称号になる。</td>
+            </tr>
+            <tr>
+              <td>応援したい気持ちはあっても、知る手段がテレビ・大手SNSしかなく、有名選手しか視界に入らない。地元で頑張る選手の存在を知らない。</td>
+              <td>自分の生活圏で戦っている選手と出会いたい。</td>
+              <td class="c-sol"><span class="w">港(HARBOR)</span>——自分の地域の港に入ると、そこを母港とする選手たちの航海日誌が流れてくる。「地元の子を応援する」という日本的応援文化の受け皿。</td>
+            </tr>
+            <tr>
+              <td>オンラインの応援と現実の行動がつながらない。「近くで試合があるなら行ったのに」が常に起きている。</td>
+              <td>応援している選手・地域の「現地に行ける機会」を逃したくない。</td>
+              <td class="c-sol"><span class="w">寄港(PORT CALL)</span>——港ごとの試合・公開練習・交流会の一覧。参加すれば乗船記録に「現地で見届けた」が刻まれる。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </details>
+
+    <details class="role" style="--rc: var(--business)">
+      <summary><span class="dot"></span>BUSINESS — ビジネス(法人・個人)<span class="plus">＋</span></summary>
+      <div class="role-body"><div class="tscroll">
+        <table class="pns">
+          <thead><tr><th class="h-pain">PAIN — 不満・課題</th><th class="h-need">NEED — ニーズ</th><th class="h-sol">SOLUTION — 解決策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>スポーツ協賛は「大企業がトップ選手に」の世界。中小企業・個人事業主には、金額の壁と「出した金が何になったのか分からない」壁がある。</td>
+              <td>身の丈の金額で始められ、支援の成果が具体的に見える協賛がしたい。</td>
+              <td class="c-sol"><span class="w">出資(PATRONAGE)</span>——一隻の船への少額出資。出資先の航海日誌・成長・乗組員の熱が<span class="w">航海報告(VOYAGE REPORT)</span>として定期的に届く。<span class="worldfirst">世にない点</span>協賛のリターンを「露出量」ではなく「物語の当事者になれること」で設計する。</td>
+            </tr>
+            <tr>
+              <td>地域密着を謳っても伝える場がない。地元向けの広告は嫌われ、CSR活動は誰にも知られない。</td>
+              <td>「地元の挑戦を支える企業」という立ち位置を、押し付けがましくなく獲得したい。</td>
+              <td class="c-sol"><span class="w">港のパトロン(HARBOR PATRON)</span>——地域の港ページに「この港を支える商会」として常時掲出。広告ではなく、地域スポーツ振興の担い手として住民(クルー)の目に入る。</td>
+            </tr>
+            <tr>
+              <td>協賛先を選ぶ判断材料がない。知名度以外に「この選手を支援すべき理由」を測る指標が存在しない。</td>
+              <td>成長性・継続性・応援の熱量をデータで見て、投資判断のように協賛先を選びたい。</td>
+              <td class="c-sol">航海録と<span class="w">潮流(TIDE)</span>指標が協賛先選定の<span class="w">デューデリジェンス資料</span>になる——活動頻度、記録の継続性、乗組員数の伸び、地域での熱。知名度に頼らない「原石発見」の道具。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div></div>
+    </details>
+  </div>
+</details>
+
+<!-- ============ 2. JTBD ============ -->
+<details class="sec">
+  <summary>
+    <span class="idx">2</span>
+    <span class="st"><h2>JOBS-TO-BE-DONE — 雇われる理由</h2><p>「〇〇したい時、△△なので、Vizion Connectionを雇う」</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <div class="job" style="--rc: var(--athlete)">
+      <div class="jr"><span class="dot"></span>ATHLETE</div>
+      <div class="stmt"><span class="lbl">JOB STATEMENT</span>
+      「競技に集中し続けたい時、営業・発信・資金繰りが練習時間を奪っていくので、<b>記録するだけで支援が集まる状態を作るため</b>にVizion Connectionを雇う」</div>
+      <ul>
+        <li><b>航海日誌(LOG):</b> <span>1分で書ける場所付き活動記録。これが発信・証明・営業資料のすべての原料になる。</span></li>
+        <li><b>航海録(VOYAGE):</b> <span>日誌が自動編纂された競技人生の公式記録。支援依頼に添える「資料」が常に最新で存在する。</span></li>
+        <li><b>母港(HOME PORT):</b> <span>活動拠点の宣言。地域の港での露出と、近隣の専門家・企業との構造的な出会いの起点。</span></li>
+      </ul>
+    </div>
+
+    <div class="job" style="--rc: var(--trainer)">
+      <div class="jr"><span class="dot"></span>TRAINER</div>
+      <div class="stmt"><span class="lbl">JOB STATEMENT</span>
+      「選ばれる理由を作りたい時、指導の腕を客観的に証明する場がどこにもないので、<b>導いた航海の記録を公式な実績に変えるため</b>にVizion Connectionを雇う」</div>
+      <ul>
+        <li><b>航海士記録(NAVIGATOR CREDIT):</b> <span>選手の成長・達成への関与が、選手の承認つきで実績として蓄積される。</span></li>
+        <li><b>添え書き(NAVIGATOR'S NOTE):</b> <span>担当選手の日誌への専門コメント。知見の発信=実績の展示=次の集客。</span></li>
+        <li><b>港の専門家名簿:</b> <span>地域×専門性で「近くの信頼できる専門家」として発見される。</span></li>
+      </ul>
+    </div>
+
+    <div class="job" style="--rc: var(--crew)">
+      <div class="jr"><span class="dot"></span>CREW</div>
+      <div class="stmt"><span class="lbl">JOB STATEMENT</span>
+      「誰かの挑戦を本気で応援したい時、観客席からでは物語に触れられないので、<b>観客をやめて乗組員になるため</b>にVizion Connectionを雇う」</div>
+      <ul>
+        <li><b>乗船(BOARDING)と乗船記録:</b> <span>いつから・誰の船で・何を見届けたかが自分の資産として残る。</span></li>
+        <li><b>追い風(WIND):</b> <span>日誌への応援アクション。声援が船の速度(選手のモチベーションと露出)に変わる。</span></li>
+        <li><b>港と寄港(HARBOR / PORT CALL):</b> <span>地元の選手との出会いと、現地に行く機会。</span></li>
+      </ul>
+    </div>
+
+    <div class="job" style="--rc: var(--business)">
+      <div class="jr"><span class="dot"></span>BUSINESS</div>
+      <div class="stmt"><span class="lbl">JOB STATEMENT</span>
+      「地域や顧客からの信頼を得たい時、広告はもう信じてもらえないので、<b>挑戦を支える側に立って選ばれる理由を作るため</b>にVizion Connectionを雇う」</div>
+      <ul>
+        <li><b>出資(PATRONAGE)と航海報告:</b> <span>少額から始まる協賛と、支援が物語として返ってくるレポート。</span></li>
+        <li><b>港のパトロン:</b> <span>「この地域のスポーツを支える商会」という、広告では買えない立ち位置。</span></li>
+        <li><b>潮流(TIDE)データ:</b> <span>知名度に頼らず協賛先を選べる、成長性と熱量の指標。</span></li>
+      </ul>
+    </div>
+
+    <div class="note">
+      <b>4つのJobがひとつの航海で完結する:</b> アスリートが日誌を刻む → クルーの追い風が船を進める → トレーナーの導きが記録に残る → ビジネスの出資が航海を支え、航海の成功が全員の名を残す。各ロールのJobの成果物が、他ロールのJobの材料になっている。この循環を「一隻の船」の上で起こすことが、フォロー/フォロワー型SNSとの決定的な違い。
+    </div>
+  </div>
+</details>
+
+<!-- ============ 3. PREP ============ -->
+<details class="sec">
+  <summary>
+    <span class="idx">3</span>
+    <span class="st"><h2>準備期間の機能設計</h2><p>海図(マップ)の前に、航海日誌を。全機能に将来マップへの変換経路を明記</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <div class="note" style="margin: 0 0 16px">
+      <b>設計原則:</b> 位置情報は初日から構造化データ(都道府県コード+市区町村+施設名テキスト、緯度経度は任意カラム)で保存する。GPSの常時共有は求めない——「どこで活動したか」を選手自身が申告する粒度から始め、位置を共有する心理的ハードルを段階的に下げる。マップ実装は「データを集め直す工事」ではなく<b>「溜まった日誌に海図という表示を与えるだけ」</b>にする。
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>HOME PORT</h3><span class="ja">母港 — 活動拠点の宣言</span></div>
+      <p>全ロールがプロフィールに「母港」(活動拠点の市区町村)を宣言する。アスリートは練習拠点、トレーナーは指導エリア、クルーは応援拠点(地元)、ビジネスは商圏。プロフィール項目1つの追加で、全ユーザーに位置の種が入る——最小工数・最大効果の第一歩。</p>
+      <ul>
+        <li>登録体験は「設定」ではなく「錨を下ろす」儀式としてデザインし、世界観の入口にする</li>
+        <li>新規登録フローに組み込み、以降のユーザーは全員が母港を持つ状態にする</li>
+      </ul>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップ公開日、全ユーザーの母港ピンが最初から立っている。ユーザーレイヤーの初期データそのもの。</div>
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>LOG</h3><span class="ja">航海日誌 — 場所付き活動記録</span></div>
+      <p>「今日、どこで、何をしたか」を1分で記録する準備期間の心臓部。場所は施設名フリー入力+市区町村タグで、必須にはしない——ただし場所を付けた日誌だけが港のタイムラインに流れ、航海録に寄港地として刻まれる、というインセンティブ設計で自然に位置付き投稿へ誘導する。</p>
+      <ul>
+        <li>施設マスタは事前に作り込まず、頻出した施設名を後から正規化する(運用で育てるDB)</li>
+        <li>クルーの追い風(WIND)が日誌単位で集まり、「場所×応援熱」のデータが蓄積されていく</li>
+      </ul>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップのアクティビティレイヤー。過去の全日誌が、公開日に活動ピン・ヒートマップとして一斉描画される。</div>
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>HARBOR</h3><span class="ja">港 — 地域コミュニティ</span></div>
+      <p>地域単位のコミュニティハブ。その港を母港とするメンバーの一覧(ロール別)、港のタイムライン(地域の航海日誌)、港のパトロン枠、潮流(TIDE)指標を持つ。まず全国を少数の大きな港(地方ブロック単位)で始め、活動密度が上がった地域から都道府県単位の港に分割する——「過疎の港」を絶対に作らないための段階設計。</p>
+      <ul>
+        <li>「自分の港の潮流を上げる」という共通目標が、ロールを越えた協力の動機になる</li>
+        <li>港のパトロン枠がビジネスロールの収益接点として機能する</li>
+      </ul>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップのエリアビュー。港はそのまま地図上の海域・区画として描画され、コミュニティごと海図の上に引っ越す。</div>
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>VOYAGE</h3><span class="ja">航海録 — 自動編纂される物語ページ</span></div>
+      <p>航海日誌・目標達成・乗船者数・出資・航海士記録が時系列に編まれる、各ユーザーの公式記録ページ。アスリートには支援獲得資料、トレーナーには実績証明、クルーには応援の証、ビジネスには支援の記録——同じ仕組みが4ロールで別々の価値を持つ。プラットフォーム外に共有できる公開URLとし、外部流入の獲得チャネルを兼ねる。</p>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップの「航跡再生」——一人の航海録を地図上でアニメーション再生する体験は、海図公開時の目玉機能になる。</div>
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>PORT CALL</h3><span class="ja">寄港 — 地域イベント</span></div>
+      <p>港で開催される試合・公開練習・交流会・体験会のイベントページ。開催場所(構造化)+日時+参加登録。アスリート・トレーナーが主催し、クルーが集まり、ビジネスが冠パトロンにつく——4ロールが物理的に同じ場所に集まる唯一の機能であり、オンラインの関係を現実の関係に変える装置。</p>
+      <ul>
+        <li>初期は運営主導で各港に定期開催を仕込み、「寄港がある港」の文化を先に作る</li>
+        <li>参加履歴は航海録・乗船記録に「現地で会った」として刻まれる</li>
+      </ul>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップのイベントピン。開催地データが溜まっているため、公開日から過去の寄港の足跡も描ける。</div>
+    </div>
+
+    <div class="prep">
+      <div class="ph"><h3>CHART TEASER</h3><span class="ja">海図の予告 — 熱の見える日本地図</span></div>
+      <p>準備期間の終盤、日本地図のシルエットに港ごとの潮流(TIDE)が光る静的ビジュアルを公開する。個人の位置は一切出さず、地域の熱だけを見せる。「あなたの日誌が、この光の一部になっている」という実感が、本物の海図(マップ機能)への期待と、位置を共有する文化の最終確認になる。</p>
+      <div class="bridge"><b>CHART BRIDGE — 海図への変換</b>マップ本体のティザー広告そのもの。ここまでのデータが揃っていれば、実装は「表示」だけで済む。</div>
+    </div>
+  </div>
+</details>
+
+<!-- ============ 4. GLOSSARY ============ -->
+<details class="sec">
+  <summary>
+    <span class="idx">4</span>
+    <span class="st"><h2>独自用語・世界観</h2><p>航海メタファーによる語彙体系——「クルー」というロール名が最初から航海の言葉であることに乗る</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <div class="gloss">
+      <div class="term"><div class="tn">VOYAGE</div><div class="tj">航海 / 航海録</div>
+        <p>一人のユーザー、特にアスリートの活動の全体を指す最上位概念。「キャリア」でも「活動」でもなく「航海」と呼ぶことで、支援者は傍観者ではなく同船者になる。</p></div>
+      <div class="term"><div class="tn">LOG</div><div class="tj">航海日誌 — 場所付き活動記録</div>
+        <p>最小の記録単位。「投稿」ではなく「日誌を刻む」。スポーツ界で日常語の「練習ログ」とも自然につながる。</p></div>
+      <div class="term"><div class="tn">HOME PORT</div><div class="tj">母港 — 活動拠点</div>
+        <p>自分の錨を下ろす場所。位置登録を「設定作業」ではなく「母港を定める」という物語上の行為に変える。</p></div>
+      <div class="term"><div class="tn">HARBOR</div><div class="tj">港 — 地域コミュニティ</div>
+        <p>同じ地域を母港とする4ロールが行き交う場。港は船が出会い、物資が動き、情報が交わる場所——地域コミュニティの機能そのもの。</p></div>
+      <div class="term"><div class="tn">BOARDING</div><div class="tj">乗船 — 応援関係の開始</div>
+        <p>「フォロー」の代替語。クルー(乗組員)が船に乗り込む行為。乗船日が記録され、「無名時代からの乗組員」が証明できる称号になる。</p></div>
+      <div class="term"><div class="tn">WIND</div><div class="tj">追い風 — 応援アクション</div>
+        <p>「いいね」の代替語。帆に風を送る。集まった追い風は船の速度=選手の露出と潮流に反映される。</p></div>
+      <div class="term"><div class="tn">NAVIGATOR</div><div class="tj">航海士 — トレーナーの世界観上の役割</div>
+        <p>船の針路を導く専門家。NAVIGATOR CREDIT(航海士記録)は「あの船を導いたのは自分だ」の公的証明。</p></div>
+      <div class="term"><div class="tn">PATRONAGE</div><div class="tj">出資 / 商会 — ビジネスの支援</div>
+        <p>大航海時代、航海は商会の出資で成立し、成功は出資者の名も歴史に残した。協賛を「広告出稿」ではなく「航海への出資」として再定義する。</p></div>
+      <div class="term"><div class="tn">PORT CALL</div><div class="tj">寄港 — 地域イベント</div>
+        <p>船が港に立ち寄り、人と物が交わる日。オンラインの関係が現実で交差する接点。</p></div>
+      <div class="term"><div class="tn">TIDE</div><div class="tj">潮流 — 地域の熱量指標</div>
+        <p>港ごとの日誌数×追い風数から算出される勢いの指標。「自分の港の潮を起こす」という集団的なゲーム性の核。</p></div>
+      <div class="term"><div class="tn">VIZION CHART</div><div class="tj">海図 — 最終形態(マップ機能)</div>
+        <p>全員の航海日誌・母港・潮流が一枚の地図に描かれる日。名称は準備期間の初日から予告して使い、すべての機能を「海図への伏線」として意味づける。</p></div>
+    </div>
+
+    <div class="statement">
+      <b>世界観ステートメント(案)</b><br>
+      きみの航海は、まだどの地図にも載っていない。<br>
+      だから、日誌を刻め。錨を下ろせ。風を受けろ。<br>
+      航海士と針路を描き、商会と帆を張り、乗組員と海へ出ろ。<br>
+      ——海図は、航海のあとに描かれる。<b>VIZION CHART。</b>
+    </div>
+  </div>
+</details>
+
+<!-- ============ 5. PRIORITY ============ -->
+<details class="sec">
+  <summary>
+    <span class="idx">5</span>
+    <span class="st"><h2>実装優先度</h2><p>判断基準:位置データの種まき効果 × 単体で価値が完結するか × 前段機能への依存</p></span>
+    <span class="chev">›</span>
+  </summary>
+  <div class="sec-body">
+
+    <div class="phase">
+      <div class="pn">P0<small>PHASE</small></div>
+      <div><h3>HOME PORT — 母港 <span class="fx s">工数 S</span></h3>
+      <p>プロフィール項目の追加+登録フローへの組込み+既存ユーザー向け登録キャンペーン。最小工数で「全ユーザーが位置の種を持つ」状態を作り、位置データの構造化スキーマ(都道府県+市区町村+施設任意)をここで確定させる。以降の全機能がこのスキーマに乗る。</p></div>
+    </div>
+    <div class="phase">
+      <div class="pn">P1<small>PHASE</small></div>
+      <div><h3>LOG — 航海日誌 <span class="fx m">工数 M</span></h3>
+      <p>場所タグ付き活動記録。準備期間の心臓部であり、位置付きコンテンツの蓄積がここから始まる。追い風(WIND)アクションも同時に導入し、記録→反応の最小ループを最速で回す。</p></div>
+    </div>
+    <div class="phase">
+      <div class="pn">P2<small>PHASE</small></div>
+      <div><h3>HARBOR — 港 <span class="fx m">工数 M</span></h3>
+      <p>地域コミュニティ。実体はP1のデータの地域別ビュー+メンバー名簿+パトロン枠であり、日誌が溜まってから出すことで「開いたら賑わっている港」を保証する。TIDE指標もここで導入。</p></div>
+    </div>
+    <div class="phase">
+      <div class="pn">P3<small>PHASE</small></div>
+      <div><h3>VOYAGE — 航海録 <span class="fx m">工数 M</span></h3>
+      <p>日誌の自動編纂ページ+外部共有URL。ここで「記録が資産になる」という中核価値が完成し、外部流入チャネルが開通する。航海士記録(NAVIGATOR CREDIT)はこのフェーズのサブ機能として段階導入。</p></div>
+    </div>
+    <div class="phase">
+      <div class="pn">P4<small>PHASE</small></div>
+      <div><h3>PORT CALL — 寄港 <span class="fx l">工数 L</span></h3>
+      <p>イベント作成・参加登録・冠パトロン。港(P2)と航海録(P3)が揃ってから出すことで、集まる動機と記録の受け皿が両方ある状態で開始できる。初期は運営主導で各港に定期開催を仕込む。</p></div>
+    </div>
+    <div class="phase">
+      <div class="pn">P5<small>PHASE</small></div>
+      <div><h3>CHART TEASER — 海図の予告 <span class="fx s">工数 S</span></h3>
+      <p>日本地図×港ごとの潮流が光る静的ビジュアル。マップ本実装の直前に公開し、「あなたの日誌がこの光」という実感で期待を最大化する。データが揃っていれば表示だけの実装で済む。</p></div>
+    </div>
+
+    <div class="note">
+      <b>この順序の意味:</b> P0で種(位置)→ P1で幹(記録)→ P2で土壌(地域)→ P3で果実(資産化)→ P4で受粉(現実の出会い)→ P5で収穫の予告。どのフェーズも前段のデータが賑わいを保証してから公開するため、「空っぽの機能」をユーザーに見せる瞬間が一度も発生しない。そしてVIZION CHART公開日には、準備期間に刻まれた全日誌・全母港・全潮流が一斉に描画される——海図は、航海のあとに描かれる。
+    </div>
+  </div>
+</details>
+
+<footer>
+  VIZION CONNECTION — ZERO-BASE CONCEPT PLAN<br>
+  本書は与件(4ロールの定義・マップ最終形態)のみを前提としたゼロベース構想であり、既存実装を参照していません。
+</footer>
+
+</div>
+</body>
+</html>

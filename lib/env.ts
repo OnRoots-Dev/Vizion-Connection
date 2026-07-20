@@ -25,7 +25,15 @@ export const env = {
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL ?? "https://app.vizion-connection.jp",
   VOICELAB_ADMIN_EMAILS: optionalEnv("VOICELAB_ADMIN_EMAILS"),
 
-  // Square（決済リンク）- 遅延評価のためoptional
+  // Square（Payment Links / Webhook）- 遅延評価のため optional
+  // Sandbox: SQUARE_ENVIRONMENT=sandbox + Sandbox の ACCESS_TOKEN / LOCATION_ID
+  SQUARE_ACCESS_TOKEN: optionalEnv("SQUARE_ACCESS_TOKEN"),
+  SQUARE_LOCATION_ID: optionalEnv("SQUARE_LOCATION_ID"),
+  SQUARE_ENVIRONMENT: optionalEnv("SQUARE_ENVIRONMENT") || "sandbox",
+  /** Webhook 署名検証に使う通知 URL（Square Dashboard に登録した URL と完全一致させる） */
+  SQUARE_WEBHOOK_NOTIFICATION_URL:
+    optionalEnv("SQUARE_WEBHOOK_NOTIFICATION_URL") ||
+    "https://app.vizion-connection.jp/api/webhooks/square",
   SQUARE_LINK_ENTRY_SUPPORTER: optionalEnv("SQUARE_LINK_ENTRY_SUPPORTER"),
   SQUARE_LINK_STARTER_POSITION: optionalEnv("SQUARE_LINK_STARTER_POSITION"),
   SQUARE_LINK_IMPACT_PARTNER: optionalEnv("SQUARE_LINK_IMPACT_PARTNER"),

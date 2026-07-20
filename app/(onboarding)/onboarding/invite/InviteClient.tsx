@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { OnboardingPageTransition } from "../OnboardingPageTransition";
 import { LottieAnim } from "@/components/ui/LottieAnim";
+import { springDefault } from "@/lib/motion/apple-springs";
 
 const X_PATH = "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z";
 
@@ -66,10 +68,8 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
     const tweetHref = `https://twitter.com/intent/tweet?text=${tweetText}&url=${tweetUrl}&hashtags=VizionConnection`;
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
+        <OnboardingPageTransition stepKey="invite">
+        <div
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ padding: "16px 24px 0" }}>
@@ -78,9 +78,9 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "40px 20px 0", textAlign: "center" }}>
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    transition={springDefault}
                 >
                     <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
                         <LottieAnim src="/lottie/success-check.json" className="h-24 w-24" />
@@ -202,6 +202,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                     </p>
                 )}
             </div>
-        </motion.div>
+        </div>
+        </OnboardingPageTransition>
     );
 }

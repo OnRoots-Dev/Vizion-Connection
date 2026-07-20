@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vizion Connection 構想企画書 — MAPへの道</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #C8E800;
+    --athlete: #FF5050;
+    --trainer: #32D278;
+    --crew: #FFC81E;
+    --business: #3C8CFF;
+    --bg: #0A0A0C;
+    --card: #131318;
+    --card2: #1A1A22;
+    --border: rgba(255,255,255,0.09);
+    --text: #F2F2F5;
+    --sub: #9A9AA6;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'Noto Sans JP', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 120px; }
+
+  /* ===== Header ===== */
+  header {
+    padding: 64px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: "";
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(200,232,0,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    color: var(--brand);
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 8vw, 72px);
+    letter-spacing: 0.03em;
+    line-height: 1.05;
+  }
+  h1 .accent { color: var(--brand); }
+  .lede { color: var(--sub); margin-top: 16px; max-width: 640px; font-size: 15px; }
+
+  /* ===== Section ===== */
+  section { margin-bottom: 56px; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  h2 .num {
+    color: var(--bg);
+    background: var(--brand);
+    font-size: 18px;
+    width: 34px; height: 34px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .section-sub { color: var(--sub); font-size: 14px; margin-bottom: 24px; }
+
+  /* ===== Summary cards ===== */
+  .north-star {
+    background: linear-gradient(135deg, rgba(200,232,0,0.10), rgba(200,232,0,0.02));
+    border: 1px solid rgba(200,232,0,0.35);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .north-star .ns-label {
+    font-family: var(--font-display);
+    color: var(--brand);
+    font-size: 18px;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .north-star p strong { color: var(--brand); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .sum-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color .2s;
+  }
+  .sum-card:hover { border-color: rgba(200,232,0,0.4); }
+  .sum-card .sc-num {
+    font-family: var(--font-display);
+    color: var(--brand);
+    font-size: 26px;
+    line-height: 1;
+  }
+  .sum-card h3 { font-size: 15px; margin: 8px 0 6px; font-weight: 700; }
+  .sum-card p { font-size: 13px; color: var(--sub); }
+
+  /* ===== Tabs ===== */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 24px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(var(--bg) 85%, transparent);
+    padding-top: 12px;
+    z-index: 10;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-btn {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--sub);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    background: var(--brand);
+    color: #0A0A0C;
+    border-color: var(--brand);
+  }
+  .tab-panel { display: none; animation: fadeIn .3s ease; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ===== Role accordion & tables ===== */
+  details.role-acc {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--role, var(--brand));
+    border-radius: 12px;
+    background: var(--card);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  details.role-acc[open] { background: var(--card2); }
+  details.role-acc summary {
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    user-select: none;
+  }
+  details.role-acc summary::-webkit-details-marker { display: none; }
+  details.role-acc summary::after {
+    content: "+";
+    margin-left: auto;
+    color: var(--sub);
+    font-size: 20px;
+    transition: transform .2s;
+  }
+  details.role-acc[open] summary::after { transform: rotate(45deg); }
+  .role-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--role);
+    flex-shrink: 0;
+  }
+  .role-tag {
+    font-size: 11px;
+    color: var(--role);
+    border: 1px solid var(--role);
+    border-radius: 999px;
+    padding: 1px 10px;
+    font-weight: 700;
+  }
+  .acc-body { padding: 0 20px 20px; }
+
+  .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.pns {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 640px;
+  }
+  table.pns th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border-bottom: 2px solid var(--role, var(--border));
+    white-space: nowrap;
+  }
+  table.pns th.pain { color: #FF7B7B; }
+  table.pns th.need { color: #7BB8FF; }
+  table.pns th.sol { color: var(--brand); }
+  table.pns td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.65;
+  }
+  table.pns tr:last-child td { border-bottom: none; }
+  table.pns td.sol-cell { color: #E8F5C0; }
+  .sol-name { color: var(--brand); font-weight: 700; }
+
+  /* ===== JTBD ===== */
+  .jtbd-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    padding: 22px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--role, var(--brand));
+  }
+  .jtbd-role {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; margin-bottom: 10px;
+  }
+  .job-statement {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+    margin-bottom: 14px;
+    border-left: 3px solid var(--role);
+  }
+  .job-statement .q { color: var(--sub); font-size: 11px; letter-spacing: 0.1em; display: block; margin-bottom: 4px; }
+  .feat-list { list-style: none; }
+  .feat-list li {
+    padding: 8px 0 8px 24px;
+    position: relative;
+    font-size: 13.5px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .feat-list li:last-child { border-bottom: none; }
+  .feat-list li::before {
+    content: "▸";
+    position: absolute; left: 6px;
+    color: var(--brand);
+  }
+  .feat-list .fn { font-weight: 700; color: var(--text); }
+  .feat-list .fd { color: var(--sub); }
+
+  /* ===== Prep features ===== */
+  .prep-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .prep-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .prep-head h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    letter-spacing: 0.06em;
+    color: var(--brand);
+  }
+  .prep-head .ja { font-size: 13px; color: var(--text); font-weight: 700; }
+  .map-bridge {
+    margin-top: 14px;
+    background: rgba(60,140,255,0.08);
+    border: 1px solid rgba(60,140,255,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  .map-bridge .mb-label {
+    color: var(--business);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .prep-card p, .prep-card ul { font-size: 13.5px; color: #C9C9D2; }
+  .prep-card ul { padding-left: 20px; margin-top: 8px; }
+  .prep-card li { margin-bottom: 4px; }
+
+  /* ===== Glossary ===== */
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .term-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .term-card.existing { border-style: dashed; }
+  .term-name {
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 0.06em;
+    color: var(--brand);
+    line-height: 1;
+  }
+  .term-ja { font-size: 12px; color: var(--sub); margin: 4px 0 10px; }
+  .term-card p { font-size: 13px; color: #C9C9D2; }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .badge.new { background: rgba(200,232,0,0.15); color: var(--brand); border: 1px solid rgba(200,232,0,0.4); }
+  .badge.exist { background: rgba(255,255,255,0.06); color: var(--sub); border: 1px solid var(--border); }
+
+  /* ===== Priority ===== */
+  .phase-card {
+    display: flex;
+    gap: 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .phase-num {
+    font-family: var(--font-display);
+    font-size: 30px;
+    color: var(--brand);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 52px;
+  }
+  .phase-num .p-label { display: block; font-size: 10px; color: var(--sub); font-family: var(--font-body); letter-spacing: 0.1em; }
+  .phase-body h3 { font-size: 15px; margin-bottom: 6px; }
+  .phase-body p { font-size: 13px; color: var(--sub); }
+  .effort {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .effort.s { background: rgba(50,210,120,0.15); color: var(--trainer); }
+  .effort.m { background: rgba(255,200,30,0.15); color: var(--crew); }
+  .effort.l { background: rgba(255,80,80,0.15); color: var(--athlete); }
+
+  .principle {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #C9C9D2;
+  }
+  .principle strong { color: var(--brand); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    color: var(--sub);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 40px 0 28px; }
+    .acc-body { padding: 0 12px 16px; }
+    .phase-card { flex-direction: column; gap: 8px; }
+    .phase-num { display: flex; align-items: baseline; gap: 8px; width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">VIZION CONNECTION — CONCEPT PLAN</div>
+  <h1>ROAD TO <span class="accent">THE MAP</span></h1>
+  <p class="lede">マップ機能という最終形態に向けた「準備期間」の構想企画書。4つのロールが支え合う世界観を先に完成させ、マップが公開される日に、そこに既に物語が描かれている状態を作る。</p>
+</header>
+
+<!-- ================= SUMMARY ================= -->
+<section id="summary">
+  <h2><span class="num">0</span>SUMMARY — 全体構造</h2>
+  <p class="section-sub">この企画書の結論を先にまとめる。詳細は下のタブから。</p>
+
+  <div class="north-star">
+    <div class="ns-label">NORTH STAR — 準備期間の唯一のゴール</div>
+    <p><strong>「マップを開いた瞬間、すでに世界が描かれている」状態を作ること。</strong><br>
+    地図サービスの最大の死因は「開いたら空っぽ」のコールドスタート。準備期間の全機能は、①位置情報付きコンテンツの蓄積(データの種まき)、②地域単位のコミュニティ密度(人の種まき)、③位置を共有する文化(習慣の種まき)の3つに貢献するかどうかで判断する。</p>
+  </div>
+
+  <div class="summary-grid">
+    <div class="sum-card">
+      <div class="sc-num">01</div>
+      <h3>Pain / Need / Solution</h3>
+      <p>4ロール共通の根本Painは「活動が資産として残らない・届かない」。解決の軸は「活動の資産化」と「地域という文脈」。</p>
+    </div>
+    <div class="sum-card">
+      <div class="sc-num">02</div>
+      <h3>Jobs-to-be-Done</h3>
+      <p>アスリート=「日々の努力を、応援と支援を呼ぶ資産に変えたい」。トレーナー=「実績の証明」。クルー=「物語への参加」。ビジネス=「見える少額協賛」。</p>
+    </div>
+    <div class="sum-card">
+      <div class="sc-num">03</div>
+      <h3>準備期間の機能設計</h3>
+      <p>GROUND(拠点宣言)→ BEACON(場所付き活動記録)→ FIELD(地域コミュニティ)→ RALLY(地域イベント)→ TRAIL(軌跡の可視化)。すべて将来マップのレイヤーに1:1変換できる。</p>
+    </div>
+    <div class="sum-card">
+      <div class="sc-num">04</div>
+      <h3>独自用語・世界観</h3>
+      <p>「地図に載る前に、軌跡を刻め」。既存用語(Pulse / Bond / Journey / Cheer / Roots)と地続きの、地形・光のメタファーで統一した語彙体系。</p>
+    </div>
+    <div class="sum-card">
+      <div class="sc-num">05</div>
+      <h3>実装優先度</h3>
+      <p>P0: GROUND(最小工数で全員に位置の種を蒔く)→ P1: BEACON → P2: FIELD → P3: RALLY → P4: TRAIL &amp; マップティザー。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TABS ================= -->
+<div class="tabs" role="tablist">
+  <button class="tab-btn active" data-tab="t1">① Pain / Need / Solution</button>
+  <button class="tab-btn" data-tab="t2">② Jobs-to-be-Done</button>
+  <button class="tab-btn" data-tab="t3">③ 準備期間の機能設計</button>
+  <button class="tab-btn" data-tab="t4">④ 用語・世界観</button>
+  <button class="tab-btn" data-tab="t5">⑤ 実装優先度</button>
+</div>
+
+<!-- ===== TAB 1: Pain/Need/Solution ===== -->
+<div class="tab-panel active" id="t1">
+  <h2><span class="num">1</span>ロール別 PAIN / NEED / SOLUTION</h2>
+  <p class="section-sub">各ロールをタップして展開。Solutionのうち<span class="sol-name">緑字</span>は本企画で提案する新機能・新概念。</p>
+
+  <details class="role-acc" style="--role: var(--athlete)" open>
+    <summary><span class="role-dot"></span>ATHLETE — アスリート<span class="role-tag">#FF5050</span></summary>
+    <div class="acc-body"><div class="tbl-scroll">
+      <table class="pns" style="--role: var(--athlete)">
+        <thead><tr><th class="pain">PAIN — 不満・課題</th><th class="need">NEED — ニーズ</th><th class="sol">SOLUTION — 解決策</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>SNSで発信しても投稿が流れて消える。競技の実績・練習の積み重ねが「資産」として蓄積されない。</td>
+            <td>日々の活動が積み上がり、あとから第三者に見せられる「実績の証明書」になってほしい。</td>
+            <td class="sol-cell"><span class="sol-name">BEACON(場所付き活動記録)</span>と<span class="sol-name">TRAIL(軌跡ページ)</span>。活動が時系列×場所で自動整理され、プロフィールがそのままスポンサー向け提案資料になる。</td>
+          </tr>
+          <tr>
+            <td>スポンサーの探し方が分からない。大手選手以外は営業ルートがなく、支援は「知り合い頼み」。</td>
+            <td>自分の活動圏(地元・ホームタウン)の企業と、営業せずに出会いたい。</td>
+            <td class="sol-cell"><span class="sol-name">FIELD(地域コミュニティ)</span>内で企業と同じ場に立つ。既存のBond/スポンサープラン(Roots等)を「同じ地域」という文脈で接続し、マッチング精度を上げる。</td>
+          </tr>
+          <tr>
+            <td>ファンとの接点が試合当日だけ。日常の努力は誰にも見られていない。</td>
+            <td>プロセス(練習・遠征・回復)ごと応援してもらいたい。</td>
+            <td class="sol-cell">BEACONにクルーがCheerで反応 → 応援の熱量が<span class="sol-name">HEAT(地域ごとの盛り上がり指標)</span>として可視化され、日常の活動が応援の対象になる。</td>
+          </tr>
+          <tr>
+            <td>トレーナー探しが口コミ頼み。自分の競技・レベル・地域に合う人が見つからない。</td>
+            <td>近くで、自分の競技を分かってくれる専門家と繋がりたい。</td>
+            <td class="sol-cell">GROUND(活動拠点)を全ロールが登録することで、<span class="sol-name">同一FIELD内のトレーナー発見</span>が可能に。将来のマップ検索の前段。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+  </details>
+
+  <details class="role-acc" style="--role: var(--trainer)">
+    <summary><span class="role-dot"></span>TRAINER — トレーナー<span class="role-tag">#32D278</span></summary>
+    <div class="acc-body"><div class="tbl-scroll">
+      <table class="pns" style="--role: var(--trainer)">
+        <thead><tr><th class="pain">PAIN — 不満・課題</th><th class="need">NEED — ニーズ</th><th class="sol">SOLUTION — 解決策</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>指導実績を客観的に証明する手段がない。「担当選手が伸びた」ことを示す公的な記録が存在しない。</td>
+            <td>担当アスリートの成長が、自分の実績として第三者に見える形で紐づいてほしい。</td>
+            <td class="sol-cell"><span class="sol-name">共著TRAIL</span>。アスリートのマイルストーン達成に関与トレーナーがクレジットされ、成長物語の「共著者」として実績が蓄積する。世の中にない、指導実績の証明インフラ。</td>
+          </tr>
+          <tr>
+            <td>集客がSNSと口コミ頼み。広告費をかけても、届くのは競技もレベルもバラバラの相手。</td>
+            <td>自分の専門領域×活動エリアで、必要としている選手に発見されたい。</td>
+            <td class="sol-cell">GROUND+専門タグで<span class="sol-name">FIELD内プロフェッショナル一覧</span>に掲載。地域×専門性の検索は将来マップの「トレーナーレイヤー」に直結。</td>
+          </tr>
+          <tr>
+            <td>単発セッションで関係が切れる。継続的な関係を作る仕組みがない。</td>
+            <td>指導後も選手・ファン・企業と関係を継ぎ足していきたい。</td>
+            <td class="sol-cell">担当選手のBEACONに専門コメントを添える<span class="sol-name">ASSIST(伴走記録)</span>。指導の様子自体がコンテンツになり、クルー・企業への露出になる。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+  </details>
+
+  <details class="role-acc" style="--role: var(--crew)">
+    <summary><span class="role-dot"></span>CREW — クルー(ファン)<span class="role-tag">#FFC81E</span></summary>
+    <div class="acc-body"><div class="tbl-scroll">
+      <table class="pns" style="--role: var(--crew)">
+        <thead><tr><th class="pain">PAIN — 不満・課題</th><th class="need">NEED — ニーズ</th><th class="sol">SOLUTION — 解決策</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>応援が「いいね」や投げ銭で終わり、選手の物語に参加した実感がない。応援は消費で、何も残らない。</td>
+            <td>応援の履歴が「共に歩んだ証」として残ってほしい。</td>
+            <td class="sol-cell"><span class="sol-name">CREW TRAIL(応援の軌跡)</span>。いつから・どこで・どのマイルストーンを応援してきたかが記録され、「〇〇選手を無名時代から支えたクルー」という称号的資産になる。</td>
+          </tr>
+          <tr>
+            <td>身近な(地元の・マイナー競技の)選手と出会う場がない。知っている選手しか応援できない。</td>
+            <td>自分の生活圏で頑張っている選手を発見して応援したい。</td>
+            <td class="sol-cell"><span class="sol-name">FIELDタイムライン</span>。自分の地域のアスリートのBEACONが流れてくる。「地元の応援」という日本のスポーツ文化に最も合った発見体験。</td>
+          </tr>
+          <tr>
+            <td>現地観戦・現地応援のきっかけがない。オンラインの応援と現実の行動が繋がらない。</td>
+            <td>「近くでやってるなら行きたい」を叶える情報がほしい。</td>
+            <td class="sol-cell"><span class="sol-name">RALLY(地域イベント)</span>。FIELD内の試合・練習公開・交流会が一覧でき、参加がCREW TRAILに刻まれる。将来のマップ上イベントピンの前身。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+  </details>
+
+  <details class="role-acc" style="--role: var(--business)">
+    <summary><span class="role-dot"></span>BUSINESS — ビジネス(法人・個人)<span class="role-tag">#3C8CFF</span></summary>
+    <div class="acc-body"><div class="tbl-scroll">
+      <table class="pns" style="--role: var(--business)">
+        <thead><tr><th class="pain">PAIN — 不満・課題</th><th class="need">NEED — ニーズ</th><th class="sol">SOLUTION — 解決策</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>スポーツ協賛は大手企業×トップ選手のもの。中小企業には金額もROIの見えなさもハードルが高い。</td>
+            <td>少額から始められて、効果が「見える」協賛がしたい。</td>
+            <td class="sol-cell">既存のスポンサープラン(Roots / Signal / Presence / Legacy)を土台に、<span class="sol-name">支援先アスリートのBEACON・マイルストーン・Cheer数がダッシュボードで届く協賛レポート</span>を提供。「支援したから届く物語」がROIになる。</td>
+          </tr>
+          <tr>
+            <td>地域貢献・CSRの「見せ場」がない。地元で良いことをしても伝わらない。</td>
+            <td>地元での企業認知と好感度を、押し付けがましくなく高めたい。</td>
+            <td class="sol-cell"><span class="sol-name">FIELDスポンサー枠</span>(既存の地域6ブロック×Roots枠の発展形)。「この地域のスポーツを支える企業」としてFIELDページに常時掲出され、地域住民=クルーの目に自然に入る。</td>
+          </tr>
+          <tr>
+            <td>協賛先の選定基準がない。どの選手を支援すべきか判断材料がない。</td>
+            <td>成長性・地域との関わり・応援の熱を数字で見て選びたい。</td>
+            <td class="sol-cell">TRAILとHEATが<span class="sol-name">「協賛先を選ぶためのデューデリジェンス資料」</span>として機能。活動頻度・継続性・地域での応援熱が定量で見える。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+  </details>
+</div>
+
+<!-- ===== TAB 2: JTBD ===== -->
+<div class="tab-panel" id="t2">
+  <h2><span class="num">2</span>JOBS-TO-BE-DONE — 雇われる理由</h2>
+  <p class="section-sub">「〇〇したい時、△△なので、Vizion Connectionを雇う」。Jobは機能ではなく、進歩(Progress)で定義する。</p>
+
+  <div class="jtbd-card" style="--role: var(--athlete)">
+    <div class="jtbd-role"><span class="role-dot"></span>ATHLETE</div>
+    <div class="job-statement"><span class="q">JOB STATEMENT</span>
+    「競技を続けるための応援と資金がほしい時、SNSでは努力が流れて消えてしまうので、<strong>日々の活動を"支援を呼ぶ資産"に変えるため</strong>にVizion Connectionを雇う」</div>
+    <ul class="feat-list">
+      <li><span class="fn">BEACON:</span> <span class="fd">1分で書ける場所付き活動記録。「今日、どこで、何をしたか」が最小単位。</span></li>
+      <li><span class="fn">TRAIL:</span> <span class="fd">BEACONとマイルストーンが自動で編まれる軌跡ページ。スポンサー営業資料を「書く」のではなく「溜まる」。</span></li>
+      <li><span class="fn">GROUND:</span> <span class="fd">活動拠点の宣言。地元FIELDでの露出と、地域企業・トレーナーとの接続の起点。</span></li>
+    </ul>
+  </div>
+
+  <div class="jtbd-card" style="--role: var(--trainer)">
+    <div class="jtbd-role"><span class="role-dot"></span>TRAINER</div>
+    <div class="job-statement"><span class="q">JOB STATEMENT</span>
+    「新しいクライアントを獲得したい時、指導の腕を証明する客観的な記録がどこにもないので、<strong>担当選手の成長を"自分の実績"として証明するため</strong>にVizion Connectionを雇う」</div>
+    <ul class="feat-list">
+      <li><span class="fn">共著TRAIL:</span> <span class="fd">アスリートのマイルストーンに関与クレジット。指導実績が選手の成長と共に自動蓄積。</span></li>
+      <li><span class="fn">ASSIST:</span> <span class="fd">担当選手のBEACONへの専門コメント。知見の発信がそのまま営業になる。</span></li>
+      <li><span class="fn">FIELD掲載:</span> <span class="fd">地域×専門性で「近くの信頼できるプロ」として発見される。</span></li>
+    </ul>
+  </div>
+
+  <div class="jtbd-card" style="--role: var(--crew)">
+    <div class="jtbd-role"><span class="role-dot"></span>CREW</div>
+    <div class="job-statement"><span class="q">JOB STATEMENT</span>
+    「誰かを本気で応援したい時、既存SNSでは応援が消費で終わってしまうので、<strong>観客ではなく"物語の登場人物"になるため</strong>にVizion Connectionを雇う」</div>
+    <ul class="feat-list">
+      <li><span class="fn">CREW TRAIL:</span> <span class="fd">応援の軌跡。「無名時代から支えた」ことが証明できる、ファン側の資産。</span></li>
+      <li><span class="fn">FIELDタイムライン:</span> <span class="fd">生活圏の選手との出会い。「地元の子を応援する」文化のデジタル化。</span></li>
+      <li><span class="fn">RALLY参加:</span> <span class="fd">オンライン応援と現地行動の接続。参加履歴も軌跡に刻まれる。</span></li>
+    </ul>
+  </div>
+
+  <div class="jtbd-card" style="--role: var(--business)">
+    <div class="jtbd-role"><span class="role-dot"></span>BUSINESS</div>
+    <div class="job-statement"><span class="q">JOB STATEMENT</span>
+    「地域での認知と好感度を上げたい時、広告は嫌われ大型協賛は手が出ないので、<strong>身の丈の協賛を"見える地域貢献"に変えるため</strong>にVizion Connectionを雇う」</div>
+    <ul class="feat-list">
+      <li><span class="fn">協賛レポート:</span> <span class="fd">支援先の活動・成長・応援熱が定期的に届く。ROIが「物語」として可視化。</span></li>
+      <li><span class="fn">FIELDスポンサー枠:</span> <span class="fd">既存の地域6ブロック×Rootsプランの発展形。「この街のスポーツを支える企業」ポジションの獲得。</span></li>
+      <li><span class="fn">TRAIL閲覧:</span> <span class="fd">協賛先選定のための定量データ(活動頻度・継続性・HEAT)。</span></li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <strong>4つのJobを貫く構造:</strong> アスリートが「刻む」→ クルーが「灯す」→ トレーナーが「伴走を証明する」→ ビジネスが「支える理由を得る」。それぞれのJobの成果物(TRAIL / CREW TRAIL / 共著TRAIL / 協賛レポート)がすべて<strong>相手のJobの入力</strong>になっている。この循環がVizion Connectionの独自性であり、単なるSNS・マッチングサービスとの違い。
+  </div>
+</div>
+
+<!-- ===== TAB 3: Prep features ===== -->
+<div class="tab-panel" id="t3">
+  <h2><span class="num">3</span>準備期間の機能設計 — マップの土台</h2>
+  <p class="section-sub">各機能に「MAP BRIDGE」= 将来マップのどのレイヤーに変換されるかを明記。位置は最初から構造化データ(都道府県コード+市区町村+施設名、緯度経度は任意)で持ち、マップ移行を「データ移行」ではなく「表示の追加」にする。</p>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>GROUND</h3><span class="ja">拠点宣言 — ホームグラウンド登録</span></div>
+    <p>全ロールがプロフィールに「活動拠点」を宣言する。アスリートは練習拠点、トレーナーは施術・指導エリア、クルーは応援拠点(地元)、ビジネスは事業所エリア。都道府県+市区町村レベルの粒度で、GPSは使わない(心理的ハードルを上げない)。</p>
+    <ul>
+      <li>プロフィール項目1つの追加であり、実装最小・効果最大の「位置の種まき」</li>
+      <li>登録を促す世界観コピー:「地図に載る日のために、旗を立てよう」</li>
+      <li>オンボーディング(day0〜)に組み込み、新規ユーザーは全員GROUNDを持つ状態に</li>
+    </ul>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップ公開日、全ユーザーのピンが最初から立っている。ユーザーレイヤーの初期データそのもの。</div>
+  </div>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>BEACON</h3><span class="ja">場所付き活動記録</span></div>
+    <p>既存のPulse/タイムラインを拡張し、投稿に「場所」(施設名・市区町村の構造化タグ)を添えられるようにする。「〇〇陸上競技場で走り込み」「△△ジムでセッション」。場所は必須ではなく、付けると FIELD タイムラインに流れる+TRAILに刻まれるという設計でインセンティブを作る。</p>
+    <ul>
+      <li>施設マスタは最初から作り込まない。フリー入力+市区町村タグで始め、頻出施設を後から正規化</li>
+      <li>クルーのCheerがBEACON単位で集まり、場所×応援熱のデータが蓄積される</li>
+    </ul>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップの「アクティビティレイヤー」。過去のBEACON全件が公開日にヒートマップ・活動ピンとして描画される。</div>
+  </div>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>FIELD</h3><span class="ja">地域コミュニティ</span></div>
+    <p>既存の「地域6ブロック」(Roots協賛枠で導入済み)をコミュニティに昇格させる。各FIELDには、地域タイムライン(その地域のBEACON)、メンバー一覧(ロール別)、FIELDスポンサー枠、HEAT(地域の盛り上がり指標)を持たせる。</p>
+    <ul>
+      <li>6ブロックから始め、密度が上がった地域から都道府県FIELDに分割(過疎FIELDを作らない)</li>
+      <li>「自分の地域の熱を上げる」という共通目標が、ロールを越えた協力の動機になる</li>
+      <li>ビジネスの協賛枠と自然に接続 — 既存収益モデルの強化</li>
+    </ul>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップの「エリアビュー」。FIELDはマップ上の地域区画としてそのまま描画され、コミュニティごと引っ越しできる。</div>
+  </div>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>RALLY</h3><span class="ja">地域イベント</span></div>
+    <p>FIELD内で開催される試合・公開練習・交流会・体験会のイベントページ。開催場所(構造化)+日時+参加登録。アスリート・トレーナーが主催し、クルーが参加し、ビジネスが冠スポンサーになれる。</p>
+    <ul>
+      <li>参加履歴がTRAIL / CREW TRAILに刻まれ、「現地で会った」ことが資産になる</li>
+      <li>初期は運営主導で各FIELD月1本のRALLYを企画し、文化を作る</li>
+    </ul>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップの「イベントピン」。開催場所データが溜まっているため、公開日から過去イベントの足跡も見せられる。</div>
+  </div>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>TRAIL</h3><span class="ja">軌跡 — 活動の資産化ページ</span></div>
+    <p>BEACON・マイルストーン・Bond・RALLY参加が時系列に編まれる、プロフィール内の「軌跡」セクション。アスリートには実績証明、トレーナーには共著クレジット、クルーには応援の証、ビジネスには協賛の記録として、同じ仕組みがロールごとに違う価値を持つ。</p>
+    <ul>
+      <li>既存のマイルストーン機能・Bond作成フローを取り込む形で設計(作り直しではなく編集)</li>
+      <li>公開プロフィール(/p/[slug])に載せ、プラットフォーム外への共有=獲得チャネルにする</li>
+    </ul>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップの「軌跡再生」機能。TRAILを地図上でアニメーション再生する体験は、マップ公開時の目玉になる。</div>
+  </div>
+
+  <div class="prep-card">
+    <div class="prep-head"><h3>MAP TEASER</h3><span class="ja">来たるマップの予告体験</span></div>
+    <p>準備期間の終盤に、日本地図のシルエット上にFIELDごとのHEATが光る「静的な熱の地図」を公開する。個人の位置は出さず、地域の熱だけを見せる。「あなたのBEACONがこの光になっている」という実感が、マップ本実装への期待とデータ提供の動機を最大化する。</p>
+    <div class="map-bridge"><span class="mb-label">MAP BRIDGE</span>マップ本体のティザー。ユーザーの心理的準備と「位置を共有する文化」の最終確認装置。</div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: Glossary ===== -->
+<div class="tab-panel" id="t4">
+  <h2><span class="num">4</span>独自用語・世界観</h2>
+  <p class="section-sub">世界観の軸:<strong>「地図に載る前に、軌跡を刻め」</strong>。全用語を「地形と光」のメタファーで統一。既存用語(点線枠)と新用語(実線枠)は地続きに設計。</p>
+
+  <div class="glossary-grid">
+    <div class="term-card">
+      <div class="term-name">GROUND<span class="badge new">NEW</span></div>
+      <div class="term-ja">グラウンド — 拠点</div>
+      <p>自分が立つ場所の宣言。「ホームグラウンド」という全スポーツ共通の語感を借り、位置登録を"設定作業"ではなく"旗を立てる行為"にする。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">BEACON<span class="badge new">NEW</span></div>
+      <div class="term-ja">ビーコン — 場所付き活動記録</div>
+      <p>「今日ここで活動した」という光の点。BEACONが多い場所ほど、将来のマップで明るく光る。投稿ではなく「点灯」という体験。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">FIELD<span class="badge new">NEW</span></div>
+      <div class="term-ja">フィールド — 地域コミュニティ</div>
+      <p>同じ地域で活動する4ロールが集う区画。競技のフィールドと地理的エリアのダブルミーニング。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">TRAIL<span class="badge new">NEW</span></div>
+      <div class="term-ja">トレイル — 軌跡</div>
+      <p>BEACONの連なりが描く一人ひとりの道。アスリートの成長譚であり、クルーの応援史であり、トレーナーの実績書。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">RALLY<span class="badge new">NEW</span></div>
+      <div class="term-ja">ラリー — 地域イベント</div>
+      <p>FIELDに人が集まる日。モータースポーツのラリー(集結)とテニスのラリー(打ち合い=交流)のダブルミーニング。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">HEAT<span class="badge new">NEW</span></div>
+      <div class="term-ja">ヒート — 地域の熱量</div>
+      <p>FIELDごとのBEACON数×Cheer数から算出される盛り上がり指標。「自分の街の熱を上げる」という集団的ゲーム性の核。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">ASSIST<span class="badge new">NEW</span></div>
+      <div class="term-ja">アシスト — 伴走記録</div>
+      <p>トレーナーがアスリートのBEACON・マイルストーンに残す専門的関与の記録。得点ではなく「アシスト」に光を当てる。</p>
+    </div>
+    <div class="term-card existing">
+      <div class="term-name">PULSE<span class="badge exist">既存</span></div>
+      <div class="term-ja">パルス — 鼓動</div>
+      <p>既存機能。世界観上は「プラットフォーム全体の鼓動」。BEACONが場所の光なら、PULSEは時間の鼓動として再定義し共存。</p>
+    </div>
+    <div class="term-card existing">
+      <div class="term-name">BOND<span class="badge exist">既存</span></div>
+      <div class="term-ja">ボンド — 絆・支援関係</div>
+      <p>既存のスポンサーシップ機能。TRAILに刻まれる「絆の記録」として世界観に統合。</p>
+    </div>
+    <div class="term-card existing">
+      <div class="term-name">CHEER / JOURNEY<span class="badge exist">既存</span></div>
+      <div class="term-ja">チア / ジャーニー</div>
+      <p>既存のオンボーディング語彙。CheerはBEACONへの応援アクションとして拡張、JourneyはTRAILの物語的側面として継承。</p>
+    </div>
+    <div class="term-card existing">
+      <div class="term-name">ROOTS 〜 LEGACY<span class="badge exist">既存</span></div>
+      <div class="term-ja">スポンサープラン体系</div>
+      <p>Roots(根を張る)→ Signal(合図を送る)→ Presence(存在感)→ Legacy(遺産)。すでに「土地と光」のメタファーを内包しており、新用語群と完全に接続する。</p>
+    </div>
+    <div class="term-card">
+      <div class="term-name">VIZION MAP<span class="badge new">FUTURE</span></div>
+      <div class="term-ja">ヴィジョンマップ — 最終形態</div>
+      <p>全BEACONとTRAILとHEATが一枚の地図に描かれる日。準備期間のすべてはこの日のための伏線。名称は今から予告して使う。</p>
+    </div>
+  </div>
+
+  <div class="principle">
+    <strong>世界観ステートメント(案):</strong><br>
+    「あなたの一歩は、まだ地図に載っていない。<br>
+    でも、刻んだ軌跡は消えない。<br>
+    グラウンドに旗を立て、ビーコンを灯し、フィールドに熱を。<br>
+    ——すべての光が、やがて一枚の地図になる。VIZION MAP。」
+  </div>
+</div>
+
+<!-- ===== TAB 5: Priority ===== -->
+<div class="tab-panel" id="t5">
+  <h2><span class="num">5</span>実装優先度</h2>
+  <p class="section-sub">判断基準:①位置データの種まき効果、②既存機能(Pulse / Bond / 地域6ブロック / マイルストーン)の再利用度、③単体で価値が完結するか。工数バッジは相対感(S=小 / M=中 / L=大)。</p>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P0</div>
+    <div class="phase-body">
+      <h3>GROUND — 拠点宣言 <span class="effort s">工数 S</span></h3>
+      <p>プロフィール項目の追加+オンボーディングへの組み込み+既存ユーザーへの登録キャンペーン。最小工数で「全ユーザーが位置の種を持つ」状態を作る。都道府県・市区町村の構造化データ設計をここで固める(以降の全機能がこのスキーマに乗る)。</p>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P1</div>
+    <div class="phase-body">
+      <h3>BEACON — 場所付き活動記録 <span class="effort m">工数 M</span></h3>
+      <p>既存のPulse/タイムライン投稿に場所タグを追加する拡張。新規投稿システムを作らず、既存動線に「場所を添える」1ステップを足すだけに留める。ここから位置付きコンテンツの蓄積が始まる — 準備期間の心臓部。</p>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P2</div>
+    <div class="phase-body">
+      <h3>FIELD — 地域コミュニティ <span class="effort m">工数 M</span></h3>
+      <p>既存の地域6ブロック(Roots協賛枠)をコミュニティページに昇格。地域タイムライン(BEACONのフィルタビュー)+メンバー一覧+スポンサー枠。P1のデータが溜まってから出すことで「開いたら賑わっている」を保証する。HEAT指標もここで導入。</p>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P3</div>
+    <div class="phase-body">
+      <h3>TRAIL — 軌跡ページ <span class="effort m">工数 M</span></h3>
+      <p>BEACON・既存マイルストーン・Bondを時系列に編むプロフィールセクション。公開プロフィール(/p/[slug])に載せ、外部共有=新規獲得チャネルとして機能させる。トレーナーの共著クレジット(ASSIST)はここのサブ機能として段階導入。</p>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P4</div>
+    <div class="phase-body">
+      <h3>RALLY — 地域イベント <span class="effort l">工数 L</span></h3>
+      <p>イベント作成・参加登録・冠スポンサー。コミュニティ(P2)と軌跡(P3)が揃ってから出すことで、参加の動機と記録の受け皿が両方ある状態で開始できる。初期は運営主導で各FIELD月1本を企画。</p>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-num"><span class="p-label">PHASE</span>P5</div>
+    <div class="phase-body">
+      <h3>MAP TEASER — 熱の地図 <span class="effort s">工数 S</span></h3>
+      <p>日本地図シルエット×FIELDごとのHEATが光る静的ビジュアル。マップ本実装の直前に公開し、「あなたのビーコンがこの光」という実感で期待を最大化。ここまでのデータが揃っていれば表示だけの実装で済む。</p>
+    </div>
+  </div>
+
+  <div class="principle">
+    <strong>移行原則:</strong> すべての位置情報は最初から構造化(都道府県コード+市区町村+施設名テキスト+緯度経度は任意カラム)で保存する。これにより VIZION MAP 本実装は「新しいデータを集める作業」ではなく<strong>「溜まったデータに地図という表示を与える作業」</strong>になる。マップ公開日 = 準備期間に刻まれた全BEACON・全TRAIL・全HEATが一斉に描画される日。コールドスタートは起きない。
+  </div>
+</div>
+
+<footer>
+  VIZION CONNECTION — CONCEPT PLAN / ROAD TO THE MAP<br>
+  本書は構想企画であり、実装仕様ではありません。
+</footer>
+
+</div>
+
+<script>
+  const btns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

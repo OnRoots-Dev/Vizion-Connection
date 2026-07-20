@@ -1,16 +1,20 @@
 import React, { useEffect, useState, useMemo } from 'react';
 
 // ─────────────────────────────────────────────
-// エリア定義
+// エリア定義（枠数は ad_slots から注入。ここは地図色・都道府県番号のみ）
 // ─────────────────────────────────────────────
-const REGION_DATA: Record<string, { label: string; color: string; roots: number; plus: number; prefs: number[] }> = {
-  hokkaidoTohoku: { label: "北海道・東北", color: "#38BDF8", roots: 20, plus: 10, prefs: [1, 2, 3, 4, 5, 6, 7] },
-  kanto: { label: "関東", color: "#34D399", roots: 20, plus: 10, prefs: [8, 9, 10, 11, 12, 13, 14] },
-  chubu: { label: "中部", color: "#A78BFA", roots: 20, plus: 10, prefs: [15, 16, 17, 18, 19, 20, 21, 22, 23] },
-  kinki: { label: "近畿", color: "#FBBF24", roots: 20, plus: 10, prefs: [24, 25, 26, 27, 28, 29, 30] },
-  chugokuShikoku: { label: "中国・四国", color: "#F472B6", roots: 20, plus: 10, prefs: [31, 32, 33, 34, 35, 36, 37, 38, 39] },
-  kyushuOkinawa: { label: "九州・沖縄", color: "#FB923C", roots: 20, plus: 10, prefs: [40, 41, 42, 43, 44, 45, 46, 47] },
+type RegionMeta = { label: string; color: string; roots: number; remaining: number; prefs: number[] };
+
+const REGION_BASE: Record<string, { label: string; color: string; prefs: number[]; apiId: string }> = {
+  hokkaidoTohoku: { label: "北海道・東北", color: "#38BDF8", prefs: [1, 2, 3, 4, 5, 6, 7], apiId: "hokkaido_tohoku" },
+  kanto: { label: "関東", color: "#34D399", prefs: [8, 9, 10, 11, 12, 13, 14], apiId: "kanto" },
+  chubu: { label: "中部", color: "#A78BFA", prefs: [15, 16, 17, 18, 19, 20, 21, 22, 23], apiId: "chubu" },
+  kinki: { label: "近畿", color: "#FBBF24", prefs: [24, 25, 26, 27, 28, 29, 30], apiId: "kinki" },
+  chugokuShikoku: { label: "中国・四国", color: "#F472B6", prefs: [31, 32, 33, 34, 35, 36, 37, 38, 39], apiId: "chugoku_shikoku" },
+  kyushuOkinawa: { label: "九州・沖縄", color: "#FB923C", prefs: [40, 41, 42, 43, 44, 45, 46, 47], apiId: "kyushu_okinawa" },
 };
+
+type RegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
 
 // ─────────────────────────────────────────────
 // プロジェクション
@@ -63,6 +67,7 @@ function useWindowWidth() {
 // ─────────────────────────────────────────────
 const JapanMap: React.FC = () => {
   const [geoData, setGeoData] = useState<any>(null);
+  const [regionAvail, setRegionAvail] = useState<RegionAvail[]>([]);
   const [tooltip, setTooltip] = useState<{ name: string; x: number; y: number } | null>(null);
   const mapAreaRef = React.useRef<HTMLDivElement>(null);
   const windowWidth = useWindowWidth();
@@ -73,11 +78,38 @@ const JapanMap: React.FC = () => {
   const isLG = windowWidth >= 1024; // ラップトップ以上
   const isXL = windowWidth >= 1280; // デスクトップ大
 
+  const REGION_DATA = useMemo(() => {
+    const byId = new Map(regionAvail.map((r) => [r.id, r]));
+    const out: Record<string, RegionMeta> = {};
+    for (const [key, base] of Object.entries(REGION_BASE)) {
+      const live = byId.get(base.apiId);
+      out[key] = {
+        label: base.label,
+        color: base.color,
+        prefs: base.prefs,
+        roots: live?.seats ?? 0,
+        remaining: live?.remaining ?? 0,
+      };
+    }
+    return out;
+  }, [regionAvail]);
+
   useEffect(() => {
     fetch('/data/prefectures.json')
       .then(r => r.json())
       .then(setGeoData)
       .catch(() => setGeoData(null));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/business/region-availability', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (active && Array.isArray(d?.regions)) setRegionAvail(d.regions as RegionAvail[]);
+      })
+      .catch(() => { /* 取得失敗時は 0 表示 */ });
+    return () => { active = false; };
   }, []);
 
   // ── viewBox（地図の周りに余白を多めに確保）
@@ -314,12 +346,12 @@ const JapanMap: React.FC = () => {
                 <span style={{ fontSize: isSM ? 9 : 10, fontWeight: 600, color: '#CBD5E1', whiteSpace: 'nowrap' }}>
                   {region.label}
                 </span>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: isSM ? 10 : 11, fontWeight: 700, color: '#F1F5F9' }}>
-                    {region.roots}<small style={{ opacity: 0.5 }}> ROOT</small>
+                    残{region.remaining}<small style={{ opacity: 0.5 }}>/{region.roots}</small>
                   </span>
-                  <span style={{ fontSize: isSM ? 10 : 11, fontWeight: 700, color: '#34D399' }}>
-                    +{region.plus}<small style={{ opacity: 0.5 }}> PLUS</small>
+                  <span style={{ fontSize: isSM ? 9 : 10, fontWeight: 600, color: '#94A3B8' }}>
+                    ROOTS
                   </span>
                 </div>
               </div>

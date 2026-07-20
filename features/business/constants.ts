@@ -12,7 +12,26 @@ export const BUSINESS_REGIONS = [
     { id: "kyushu_okinawa", label: "九州・沖縄" },
 ] as const;
 
+/** キャンペーン: 1ヶ月分の料金で合計4ヶ月（1ヶ月＋ボーナス3ヶ月） */
+export const BUSINESS_CAMPAIGN = {
+    periodLabel: "1ヶ月分の料金で合計4ヶ月利用可能（1ヶ月＋ボーナス3ヶ月）",
+    periodShort: "4ヶ月利用（1ヶ月料金＋ボーナス3ヶ月）",
+    dateRange: "2026年7月19日〜7月31日",
+    autoRenewNote:
+        "4ヶ月の利用期間終了後は、解約の申し出がない限り同額で自動継続されます。",
+} as const;
+
 export type BusinessRegionId = (typeof BUSINESS_REGIONS)[number]["id"];
+
+/** Business 地方ブロック ↔ 都道府県（ad_slots / チェックアウト UI 共通） */
+export const PREFECTURES_BY_BUSINESS_REGION: Record<BusinessRegionId, string[]> = {
+    hokkaido_tohoku: ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
+    kanto: ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
+    chubu: ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"],
+    kinki: ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"],
+    chugoku_shikoku: ["鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県"],
+    kyushu_okinawa: ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"],
+};
 
 // Roots は全国120枠 ÷ 6ブロック = 各ブロック20枠。
 export const ROOTS_SEATS_PER_REGION = 20;
@@ -55,6 +74,8 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         name: "🌱 Roots",
         tagline: "地域に根ざす、最初の一歩。",
         priceLabel: "¥30,000",
+        // 通常価格 = 月額 × 4ヶ月分
+        regularPriceLabel: "¥120,000",
         amount: 30_000,
         seats: 120,
         highlight: false,
@@ -62,7 +83,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "都道府県・市区町村単位でターゲット表示",
             "同エリアのユーザーのDiscovery・Profileに掲載",
             "コンテンツカード形式（PRバッジ付き）",
-            "β版価格が正式版以降も継続（価格保護）",
+            BUSINESS_CAMPAIGN.periodLabel,
             "全国120枠限定",
         ],
     },
@@ -71,6 +92,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         name: "⚡ Signal",
         tagline: "存在を、発信する。",
         priceLabel: "¥100,000",
+        regularPriceLabel: "¥400,000",
         amount: 100_000,
         seats: 30,
         highlight: false,
@@ -78,7 +100,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "地方区分単位でターゲット表示（関西・東海など）",
             "該当地方ユーザーのHub・Discoveryに掲載",
             "コンテンツカード形式（キャッチコピー付き）",
-            "β版価格が正式版以降も継続（価格保護）",
+            BUSINESS_CAMPAIGN.periodLabel,
             "全国30枠限定",
         ],
     },
@@ -87,6 +109,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         name: "💠 Presence",
         tagline: "存在感を、確立する。",
         priceLabel: "¥300,000",
+        regularPriceLabel: "¥1,200,000",
         amount: 300_000,
         seats: 10,
         highlight: true,
@@ -95,7 +118,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "全ロールのHub・Discoveryに掲載",
             "PEAK MOMENT・MILESTONE通知での露出",
             "効果測定ダッシュボード（日次更新）",
-            "β版価格が正式版以降も継続（価格保護）",
+            BUSINESS_CAMPAIGN.periodLabel,
             "全国10枠限定",
         ],
     },
@@ -104,6 +127,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
         name: "🔥 Legacy",
         tagline: "歴史に、刻む。",
         priceLabel: "個別見積",
+        regularPriceLabel: null,
         amount: 0, // 問い合わせ必須のため決済フローに乗せない
         seats: 5,
         highlight: false,
@@ -114,7 +138,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "リアルタイム効果測定ダッシュボード",
             "専任担当者による月次戦略MTG",
             "Legacyパートナー認定バッジ",
-            "β版価格が正式版以降も継続（価格保護）",
+            BUSINESS_CAMPAIGN.periodLabel,
             "全国5枠限定",
         ],
     },

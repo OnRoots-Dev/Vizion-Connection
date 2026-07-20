@@ -2,34 +2,81 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  BUSINESS_CAMPAIGN,
+  PREFECTURES_BY_BUSINESS_REGION,
+  type BusinessRegionId,
+} from "@/features/business/constants";
 import type { BusinessPlanWithAvailability, PlanId, RootsRegionAvailability } from "@/features/business/types";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { motion } from "framer-motion";
+import { PRESS_SCALE } from "@/components/ui/Pressable";
+import { springDefault, springSnap } from "@/lib/motion/apple-springs";
 
 type CheckoutState = "idle" | "loading" | "error";
+
+type PrefSlot = {
+  prefecture: string;
+  remaining: number;
+  soldOut: boolean;
+  total: number;
+};
 
 export default function BusinessCheckoutClient({
   plans,
   initialPlanId,
   rootsRegionAvailability = [],
+  prefSlots = [],
 }: {
   plans: BusinessPlanWithAvailability[];
   initialPlanId: string | null;
   rootsRegionAvailability?: RootsRegionAvailability[];
+  /** roots の都道府県別残枠（ad_slots） */
+  prefSlots?: PrefSlot[];
 }) {
   const [selectedPlanId, setSelectedPlanId] = useState<PlanId | null>(
     (initialPlanId as PlanId) ?? null
   );
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string | null>(null);
   const [state, setState] = useState<CheckoutState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [authRequired, setAuthRequired] = useState(false);
 
   const isRootsSelected = selectedPlanId === "roots";
-  // Roots は地方ブロック必須。選択されるまで申込不可。
-  const regionRequiredButMissing = isRootsSelected && !selectedRegion;
+  // Roots は都道府県必須（ad_slots のキー）。
+  const prefectureRequiredButMissing = isRootsSelected && !selectedPrefecture;
+
+  const prefByName = useMemo(() => {
+    const map = new Map(prefSlots.map((p) => [p.prefecture, p]));
+    return map;
+  }, [prefSlots]);
+
+  const prefecturesInRegion = useMemo(() => {
+    if (!selectedRegion || !(selectedRegion in PREFECTURES_BY_BUSINESS_REGION)) return [];
+    const names = PREFECTURES_BY_BUSINESS_REGION[selectedRegion as BusinessRegionId] ?? [];
+    return names.map((name) => {
+      const slot = prefByName.get(name);
+      return {
+        name,
+        remaining: slot?.remaining ?? 0,
+        soldOut: slot?.soldOut ?? true,
+        total: slot?.total ?? 0,
+      };
+    });
+  }, [selectedRegion, prefByName]);
 
   function selectPlan(planId: PlanId) {
     setSelectedPlanId(planId);
-    if (planId !== "roots") setSelectedRegion(null);
+    if (planId !== "roots") {
+      setSelectedRegion(null);
+      setSelectedPrefecture(null);
+    }
+  }
+
+  function selectRegion(regionId: string) {
+    setSelectedRegion(regionId);
+    setSelectedPrefecture(null);
   }
 
   const checkoutRedirect = useMemo(
@@ -46,9 +93,9 @@ export default function BusinessCheckoutClient({
 
   async function handleCheckout() {
     if (!selectedPlanId) return;
-    if (regionRequiredButMissing) {
+    if (prefectureRequiredButMissing) {
       setState("error");
-      setErrorMessage("地方ブロックを選択してください。");
+      setErrorMessage("都道府県を選択してください。");
       return;
     }
     setState("loading");
@@ -60,7 +107,9 @@ export default function BusinessCheckoutClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId: selectedPlanId,
-          ...(isRootsSelected && selectedRegion ? { region: selectedRegion } : {}),
+          ...(isRootsSelected && selectedPrefecture
+            ? { prefecture: selectedPrefecture, region: selectedRegion }
+            : {}),
         }),
       });
 
@@ -79,10 +128,11 @@ export default function BusinessCheckoutClient({
 
       if (!data.squareUrl) {
         setState("error");
-        setErrorMessage("決済リンクが設定されていません。管理者にお問い合わせください。");
+        setErrorMessage("支払いリンクの生成に失敗しました。管理者にお問い合わせください。");
         return;
       }
 
+      // Square Checkout（Payment Link）へリダイレクト
       window.location.href = data.squareUrl;
     } catch {
       setState("error");
@@ -132,6 +182,13 @@ export default function BusinessCheckoutClient({
             </h1>
             <p className="text-[.84rem] font-light leading-relaxed text-[#5a6070]">
               プランを選んで申し込みボタンを押すと、Square の安全な決済ページへ移動します
+            </p>
+            <p className="mt-3 max-w-2xl text-[.75rem] font-light leading-[1.8] text-[#7a8494]">
+              {BUSINESS_CAMPAIGN.periodLabel}
+              <br />
+              キャンペーン期間：{BUSINESS_CAMPAIGN.dateRange}
+              <br />
+              {BUSINESS_CAMPAIGN.autoRenewNote}
             </p>
           </div>
 
@@ -205,8 +262,15 @@ export default function BusinessCheckoutClient({
                     </div>
 
                     <div className="px-5">
+                      {plan.regularPriceLabel && (
+                        <p className="mb-1 font-mono text-[10px] tracking-[.04em] text-[#5a6070] line-through">
+                          通常 {plan.regularPriceLabel}
+                        </p>
+                      )}
                       <p className="text-[1.45rem] font-extrabold leading-none text-white">{plan.priceLabel}</p>
-                      <p className="mt-1 font-mono text-[10px] tracking-[.08em] text-[#3a3f50]">ONE-TIME PAYMENT</p>
+                      <p className="mt-1 font-mono text-[10px] tracking-[.06em] text-[#3a3f50]">
+                        {plan.amount === 0 ? "CUSTOM QUOTE" : "1ヶ月料金で4ヶ月利用"}
+                      </p>
                     </div>
 
                     <div className="mx-5 mt-4 h-px bg-white/6" />
@@ -255,7 +319,46 @@ export default function BusinessCheckoutClient({
                     <p className="text-[1.1rem] font-extrabold text-white">{selectedPlan.name}</p>
                     <p className="mt-1 text-[.75rem] text-[#5a6070]">{selectedPlan.tagline}</p>
                   </div>
-                  <p className="text-[1.2rem] font-extrabold text-white">{selectedPlan.priceLabel}</p>
+                  <div className="text-right">
+                    {selectedPlan.regularPriceLabel && (
+                      <p className="font-mono text-[10px] text-[#5a6070] line-through">
+                        通常 {selectedPlan.regularPriceLabel}
+                      </p>
+                    )}
+                    <p className="text-[1.2rem] font-extrabold tracking-[-0.02em] text-white">
+                      {selectedPlan.amount > 0 ? (
+                        <>
+                          ¥
+                          <AnimatedNumber value={selectedPlan.amount} className="font-extrabold tabular-nums" />
+                        </>
+                      ) : (
+                        selectedPlan.priceLabel
+                      )}
+                    </p>
+                    {selectedPlan.amount > 0 && (
+                      <p className="mt-0.5 font-mono text-[10px] text-[#3a3f50]">1ヶ月料金で4ヶ月利用</p>
+                    )}
+                    <p className="mt-1 font-mono text-[10px] tracking-[0.04em] text-[#00d2ff]/80">
+                      残{" "}
+                      <AnimatedNumber
+                        value={
+                          selectedPrefecture
+                            ? (prefByName.get(selectedPrefecture)?.remaining ?? 0)
+                            : selectedPlan.remaining
+                        }
+                        className="tabular-nums font-bold"
+                      />
+                      {" / "}
+                      <AnimatedNumber
+                        value={
+                          selectedPrefecture
+                            ? (prefByName.get(selectedPrefecture)?.total ?? 0)
+                            : selectedPlan.seats
+                        }
+                        className="tabular-nums"
+                      />
+                    </p>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {selectedPlan.benefits.map((b) => (
@@ -271,21 +374,23 @@ export default function BusinessCheckoutClient({
                 {isRootsSelected && (
                   <div className="mt-6 border-t border-white/8 pt-5">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="font-mono text-[10px] uppercase tracking-[.12em] text-[#00d2ff]">Select Region · 地方ブロック</p>
-                      <p className="font-mono text-[10px] text-[#3a3f50]">各ブロック20枠</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[.12em] text-[#00d2ff]">1. 地方ブロック</p>
+                      <p className="font-mono text-[10px] text-[#3a3f50]">ad_slots 集計</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                       {rootsRegionAvailability.map((region) => {
                         const active = selectedRegion === region.id;
                         return (
-                          <button
+                          <motion.button
                             type="button"
                             key={region.id}
-                            onClick={() => !region.soldOut && setSelectedRegion(region.id)}
+                            onClick={() => !region.soldOut && selectRegion(region.id)}
                             disabled={region.soldOut}
                             aria-pressed={active}
+                            whileTap={region.soldOut ? undefined : { scale: PRESS_SCALE }}
+                            transition={springSnap}
                             className={[
-                              "flex flex-col items-start gap-1 rounded-xl border px-3.5 py-3 text-left transition-all duration-150",
+                              "flex flex-col items-start gap-1 rounded-xl border px-3.5 py-3 text-left",
                               active
                                 ? "border-[#00d2ff] bg-[#00d2ff]/8 shadow-[0_0_0_1px_rgba(0,210,255,0.2)]"
                                 : region.soldOut
@@ -295,18 +400,75 @@ export default function BusinessCheckoutClient({
                           >
                             <span className="text-[.8rem] font-bold text-white">{region.label}</span>
                             <span className={[
-                              "font-mono text-[.68rem] tracking-[.04em]",
+                              "font-mono text-[.68rem] tracking-[.04em] tabular-nums",
                               region.soldOut ? "text-[#ff6b5b]" : region.remaining <= 3 ? "text-[#ff6b5b]" : "text-[#5a6070]",
                             ].join(" ")}>
-                              {region.soldOut ? "満席" : `残り ${region.remaining} 枠`}
+                              {region.soldOut ? (
+                                "満席"
+                              ) : (
+                                <>
+                                  残り{" "}
+                                  <AnimatedNumber value={region.remaining} className="tabular-nums" />
+                                  /
+                                  <AnimatedNumber value={region.seats} className="tabular-nums" />
+                                </>
+                              )}
                             </span>
-                          </button>
+                          </motion.button>
                         );
                       })}
                     </div>
-                    {regionRequiredButMissing && (
+
+                    {selectedRegion && (
+                      <div className="mt-5">
+                        <p className="mb-3 font-mono text-[10px] uppercase tracking-[.12em] text-[#00d2ff]">
+                          2. 都道府県（必須）
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                          {prefecturesInRegion.map((pref) => {
+                            const active = selectedPrefecture === pref.name;
+                            return (
+                              <motion.button
+                                type="button"
+                                key={pref.name}
+                                onClick={() => !pref.soldOut && setSelectedPrefecture(pref.name)}
+                                disabled={pref.soldOut}
+                                aria-pressed={active}
+                                whileTap={pref.soldOut ? undefined : { scale: PRESS_SCALE }}
+                                transition={springSnap}
+                                layout
+                                className={[
+                                  "flex flex-col items-start gap-0.5 rounded-xl border px-3 py-2.5 text-left",
+                                  active
+                                    ? "border-[#00d2ff] bg-[#00d2ff]/10"
+                                    : pref.soldOut
+                                      ? "cursor-not-allowed border-white/6 opacity-40"
+                                      : "border-white/8 bg-[#0e1018] hover:border-[#00d2ff]/30",
+                                ].join(" ")}
+                              >
+                                <span className="text-[.78rem] font-bold text-white">{pref.name}</span>
+                                <span className="font-mono text-[.65rem] tabular-nums text-[#5a6070]">
+                                  {pref.soldOut ? (
+                                    "満席"
+                                  ) : (
+                                    <>
+                                      残{" "}
+                                      <AnimatedNumber value={pref.remaining} className="tabular-nums" />
+                                      /
+                                      <AnimatedNumber value={pref.total} className="tabular-nums" />
+                                    </>
+                                  )}
+                                </span>
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {prefectureRequiredButMissing && (
                       <p className="mt-3 font-mono text-[.68rem] tracking-[.05em] text-[#3a3f50]">
-                        ※ Roots は地方ブロックを選択してからお申し込みください
+                        ※ Roots は都道府県を選択してからお申し込みください（Square で決済します）
                       </p>
                     )}
                   </div>
@@ -329,18 +491,30 @@ export default function BusinessCheckoutClient({
                     ].join(" ")}>
                       {selectedPlan.priceLabel} · 残り {selectedPlan.remaining} 枠
                       {selectedPlan.remaining <= 3 && " — 残りわずか"}
-                      {isRootsSelected && selectedRegion && ` · ${rootsRegionAvailability.find((r) => r.id === selectedRegion)?.label ?? ""}`}
+                      {isRootsSelected && selectedPrefecture && ` · ${selectedPrefecture}`}
                     </p>
                     {errorMessage && <p className="mt-0.5 text-[.72rem] text-[#ff6b5b]">{errorMessage}</p>}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
                     onClick={handleCheckout}
-                    disabled={state === "loading" || regionRequiredButMissing}
-                    className="shrink-0 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.8rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all hover:bg-white hover:shadow-[0_0_32px_rgba(0,210,255,0.45)] disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={state === "loading" || prefectureRequiredButMissing || selectedPlan.amount === 0}
+                    whileTap={
+                      state === "loading" || prefectureRequiredButMissing || selectedPlan.amount === 0
+                        ? undefined
+                        : { scale: PRESS_SCALE }
+                    }
+                    transition={springDefault}
+                    className="shrink-0 rounded-lg bg-[#00d2ff] px-6 py-3 text-[.8rem] font-bold tracking-[.04em] text-[#07080f] shadow-[0_0_20px_rgba(0,210,255,0.25)] hover:bg-white hover:shadow-[0_0_32px_rgba(0,210,255,0.45)] disabled:cursor-not-allowed disabled:opacity-45"
                   >
-                    {state === "loading" ? "処理中..." : regionRequiredButMissing ? "地方ブロックを選択" : `${selectedPlan.priceLabel} で申し込む →`}
-                  </button>
+                    {state === "loading"
+                      ? "リンク生成中..."
+                      : selectedPlan.amount === 0
+                        ? "個別相談へ"
+                        : prefectureRequiredButMissing
+                          ? "都道府県を選択"
+                          : `${selectedPlan.priceLabel} で決済へ →`}
+                  </motion.button>
                 </div>
                 {(selectedPlan.id === "signal" || selectedPlan.id === "presence" || selectedPlan.id === "legacy") && (
                   <p className="text-center font-mono text-[.68rem] tracking-[.06em] text-[#3a3f50]">

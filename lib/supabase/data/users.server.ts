@@ -347,19 +347,25 @@ export async function setMissionBonusGiven(slug: string): Promise<boolean> {
 }
 
 export async function getPublicUsers(params: {
-    role?: string; region?: string; sport?: string;
-    limit?: number; offset?: number;
+    role?: string;
+    region?: string;
+    prefecture?: string;
+    sport?: string;
+    limit?: number;
+    offset?: number;
 }): Promise<ProfileRecord[]> {
+    // 公開プロフィール一覧（Discovery 等）。本体テーブルは users。
     let query = supabase.from("users").select("*")
         .eq("is_public", true).eq("is_deleted", false)
         .order("cheer_count", { ascending: false });
     if (params.role) query = query.eq("role", params.role);
     if (params.region) query = query.eq("region", params.region);
+    if (params.prefecture) query = query.eq("prefecture", params.prefecture);
     if (params.sport) query = query.eq("sport", params.sport);
     if (params.limit) query = query.limit(params.limit);
     if (params.offset) query = query.range(params.offset, params.offset + (params.limit ?? 20) - 1);
     const { data, error } = await query;
-    if (error) { console.error("[getPublicUsers]", error); return []; }
+    if (error) { console.error("[getPublicUsers]", error.code); return []; }
     return (data ?? []).map(toProfile);
 }
 

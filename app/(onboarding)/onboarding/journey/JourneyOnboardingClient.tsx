@@ -6,7 +6,9 @@ import { motion } from "framer-motion";
 import { ConditionScorePicker } from "@/components/DailyLog/ConditionScorePicker";
 import { JOURNEY_MAX_CHARS } from "@/components/DailyLog/journey";
 import { OnboardingStepBar } from "../OnboardingStepBar";
+import { OnboardingPageTransition } from "../OnboardingPageTransition";
 import { LottieAnim } from "@/components/ui/LottieAnim";
+import { springDefault } from "@/lib/motion/apple-springs";
 
 const T = {
     bg: "var(--surface-1)", surface: "var(--surface-2)", border: "var(--border)",
@@ -63,10 +65,8 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
+        <OnboardingPageTransition stepKey="journey">
+        <div
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px 0" }}>
@@ -84,7 +84,7 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
+                    transition={springDefault}
                     style={{ marginBottom: 24, textAlign: "center" }}
                 >
                     <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)", opacity: 0.8 }}>
@@ -169,6 +169,7 @@ export default function JourneyOnboardingClient({ role, roleColor }: { role: str
                     </motion.div>
                 )}
             </div>
-        </motion.div>
+        </div>
+        </OnboardingPageTransition>
     );
 }

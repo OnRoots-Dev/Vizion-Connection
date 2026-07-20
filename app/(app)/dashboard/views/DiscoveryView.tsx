@@ -489,6 +489,82 @@ export function DiscoveryView({ t, roleColor, setView, ads, onOpenProfile }: {
         </SectionCard>
       )}
 
+      {/* Map エリア（Mapbox 未実装）— 検索・リストは利用可能であることを明示 */}
+      <SectionCard t={t} accentColor="#3C8CFF">
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 14,
+            minHeight: isPc ? 200 : 160,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background:
+              "radial-gradient(ellipse at 30% 40%, rgba(60,140,255,0.18), transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(200,232,0,0.08), transparent 50%), #0a0e18",
+          }}
+        >
+          {/* モック地図グリッド */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+              opacity: 0.7,
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: "18% 22%",
+              borderRadius: "40% 45% 42% 38%",
+              border: "1px solid rgba(60,140,255,0.25)",
+              background: "rgba(60,140,255,0.06)",
+            }}
+          />
+          {/* 近日公開オーバーレイ */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              background: "rgba(7,10,18,0.55)",
+              backdropFilter: "blur(2px)",
+              zIndex: 2,
+              padding: 16,
+              textAlign: "center",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                borderRadius: 999,
+                border: "1px solid rgba(200,232,0,0.45)",
+                background: "rgba(200,232,0,0.12)",
+                color: "#C8E800",
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: "0.12em",
+                padding: "8px 14px",
+              }}
+            >
+              Map機能は近日公開
+            </span>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.72)", maxWidth: 320, lineHeight: 1.6 }}>
+              地図ピン表示は準備中です。都道府県・競技での検索とリスト表示は今すぐ使えます。
+            </p>
+          </div>
+        </div>
+      </SectionCard>
+
       <div style={{ margin: "8px 0" }}>
         <SLabel text="Vizion Radar" size={10} />
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${isPc ? 4 : 2}, minmax(0, 1fr))`, gap: 8, marginBottom: 8 }}>

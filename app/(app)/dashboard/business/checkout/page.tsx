@@ -1,7 +1,11 @@
 // app/(app)/dashboard/business/checkout/page.tsx
-import { getAllPlanOrderCounts, getRootsOrderCountsByRegion } from "@/lib/supabase/business-orders";
-import { getBusinessPlansWithUrls, BUSINESS_REGIONS, ROOTS_SEATS_PER_REGION } from "@/features/business/constants";
+import { getBusinessPlansWithUrls } from "@/features/business/constants";
 import type { BusinessPlanWithAvailability, RootsRegionAvailability } from "@/features/business/types";
+import {
+  getNationalTierAvailabilityFromAdSlots,
+  getRootsRegionAvailabilityFromAdSlots,
+  listAdSlots,
+} from "@/lib/supabase/ad-slots";
 import BusinessCheckoutClient from "./BusinessCheckoutClient";
 
 export default async function BusinessCheckoutPage({
@@ -10,33 +14,77 @@ export default async function BusinessCheckoutPage({
   searchParams: Promise<{ plan?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [orderCounts, rootsRegionCounts] = await Promise.all([
-    getAllPlanOrderCounts(),
-    getRootsOrderCountsByRegion(),
+  const [plans, rootsRegions, national, allSlots] = await Promise.all([
+    Promise.resolve(getBusinessPlansWithUrls()),
+    getRootsRegionAvailabilityFromAdSlots(),
+    getNationalTierAvailabilityFromAdSlots(),
+    listAdSlots(),
   ]);
-  const plans = getBusinessPlansWithUrls();
+
+  const rootsTotal = allSlots
+    .filter((s) => s.tier === "roots")
+    .reduce(
+      (acc, s) => {
+        acc.total += s.total;
+        acc.sold += s.sold;
+        return acc;
+      },
+      { total: 0, sold: 0 },
+    );
+  const nationalByTier = new Map(national.map((n) => [n.tier, n]));
 
   const plansWithAvailability: BusinessPlanWithAvailability[] = plans.map((plan) => {
-    const soldCount = orderCounts[plan.id] ?? 0;
+    if (plan.id === "roots") {
+      const remaining = Math.max(0, rootsTotal.total - rootsTotal.sold);
+      return {
+        ...plan,
+        seats: rootsTotal.total || plan.seats,
+        soldCount: rootsTotal.sold,
+        remaining,
+        soldOut: remaining <= 0,
+      };
+    }
+    const nat = nationalByTier.get(plan.id);
+    if (nat) {
+      return {
+        ...plan,
+        seats: nat.seats || plan.seats,
+        soldCount: nat.seats - nat.remaining,
+        remaining: nat.remaining,
+        soldOut: nat.soldOut,
+      };
+    }
     return {
       ...plan,
-      soldCount,
-      remaining: plan.seats - soldCount,
-      soldOut: soldCount >= plan.seats,
+      soldCount: 0,
+      remaining: plan.seats,
+      soldOut: false,
     };
   });
 
-  const rootsRegionAvailability: RootsRegionAvailability[] = BUSINESS_REGIONS.map((r) => {
-    const sold = rootsRegionCounts[r.id] ?? 0;
-    const remaining = Math.max(0, ROOTS_SEATS_PER_REGION - sold);
-    return { id: r.id, label: r.label, seats: ROOTS_SEATS_PER_REGION, remaining, soldOut: remaining <= 0 };
-  });
+  const rootsRegionAvailability: RootsRegionAvailability[] = rootsRegions.map((r) => ({
+    id: r.id,
+    label: r.label,
+    seats: r.seats,
+    remaining: r.remaining,
+    soldOut: r.soldOut,
+  }));
+
+  const prefSlots = allSlots
+    .filter((s) => s.tier === "roots")
+    .map((s) => ({
+      prefecture: s.prefecture,
+      remaining: s.remaining,
+      soldOut: s.soldOut,
+      total: s.total,
+    }));
 
   return (
     <BusinessCheckoutClient
       plans={plansWithAvailability}
       initialPlanId={resolvedSearchParams.plan ?? null}
       rootsRegionAvailability={rootsRegionAvailability}
+      prefSlots={prefSlots}
     />
   );
 }

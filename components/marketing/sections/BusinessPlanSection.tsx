@@ -7,8 +7,9 @@ import { motion, useInView } from "framer-motion";
 const PLANS = [
   {
     name: "Roots",
-    price: "¥30,000〜",
-    period: "/月",
+    price: "¥30,000",
+    regularPrice: "¥120,000",
+    period: "1ヶ月料金で4ヶ月利用",
     target: "地域密着型スポーツビジネス",
     features: ["プロフィール掲載", "Journey閲覧", "Discovery掲載"],
     color: "#32D278",
@@ -16,7 +17,8 @@ const PLANS = [
   {
     name: "Signal",
     price: "¥100,000",
-    period: "/月",
+    regularPrice: "¥400,000",
+    period: "1ヶ月料金で4ヶ月利用",
     target: "全国展開を目指すブランド",
     features: ["Roots全機能", "Discovery優先表示", "効果測定レポート"],
     color: "var(--electric)",
@@ -24,7 +26,8 @@ const PLANS = [
   {
     name: "Presence",
     price: "¥300,000",
-    period: "/月",
+    regularPrice: "¥1,200,000",
+    period: "1ヶ月料金で4ヶ月利用",
     target: "スポーツ業界のリーディングカンパニー",
     features: ["Signal全機能", "専任サポート", "カスタム施策"],
     color: "var(--flame)",
@@ -32,6 +35,7 @@ const PLANS = [
   {
     name: "Legacy",
     price: "個別見積",
+    regularPrice: "",
     period: "",
     target: "長期パートナーシップを検討する企業",
     features: ["全機能", "共同開発権", "独占ポジション"],
@@ -87,11 +91,16 @@ export function BusinessPlanSection() {
                 {plan.name}
               </h3>
               <div className="mb-1">
+                {plan.regularPrice && (
+                  <p className="mb-0.5 font-mono text-[11px] text-white/35 line-through">
+                    通常 {plan.regularPrice}
+                  </p>
+                )}
                 <span className="font-display text-[22px] font-black" style={{ color: plan.color }}>
                   {plan.price}
                 </span>
                 {plan.period && (
-                  <span className="ml-1 font-body text-[13px] text-white/45">{plan.period}</span>
+                  <span className="ml-1.5 font-body text-[11px] text-white/45">{plan.period}</span>
                 )}
               </div>
               <p className="mb-5 font-body text-[11px] leading-relaxed text-white/40">{plan.target}</p>
@@ -118,9 +127,13 @@ export function BusinessPlanSection() {
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ delay: 0.5, duration: 0.7 }}
-          className="mt-6 font-mono text-[10px] tracking-wider text-white/25"
+          className="mt-6 font-mono text-[10px] leading-relaxed tracking-wider text-white/25"
         >
-          ※ 料金・プラン内容の詳細はお問い合わせください
+          ※ 1ヶ月分の料金で合計4ヶ月利用可能（1ヶ月＋ボーナス3ヶ月）／キャンペーン期間：2026年7月19日〜7月31日
+          <br />
+          ※ 4ヶ月の利用期間終了後は、解約の申し出がない限り同額で自動継続されます。通常価格は月額×4の換算表示です。
+          <br />
+          ※ 料金・プラン内容の詳細は /business またはお問い合わせください
         </motion.p>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BUSINESS_PLANS } from "@/features/business/constants";
+import { BUSINESS_CAMPAIGN, BUSINESS_PLANS } from "@/features/business/constants";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import JapanMap from "@/components/marketing/JapanMap";
@@ -18,13 +18,17 @@ const FAQS = [
   { q: "Q. 地方プランはどのブロックを選べますか？", a: "北海道・東北 / 関東 / 中部 / 近畿 / 中国・四国 / 九州・沖縄の6ブロックから選択できます。申し込み後の確認メールにてご希望ブロックをお知らせください。" },
   { q: "Q. 複数ブロックに出稿できますか？", a: "可能です。ブロックごとに1プランとしてお申し込みください。" },
   { q: "Q. 決済方法は？", a: "Square決済（クレジットカード）は全プランでご利用いただけます。銀行振込・請求書払いは Signal / Presence / Legacy が対象です。法人請求書が必要な場合は銀行振込をお選びください。" },
-  { q: "Q. 特典の詳細は？", a: "全プランで正式版3ヶ月間を月額料金のまま利用できます。" },
-  { q: "Q. キャンセルはできますか？", a: "決済後の扱いはプランや決済方法によって異なります。詳細はお問い合わせください。" },
+  {
+    q: "Q. 契約期間・キャンペーンの内容は？",
+    a: `${BUSINESS_CAMPAIGN.periodLabel}。キャンペーン期間は${BUSINESS_CAMPAIGN.dateRange}です。${BUSINESS_CAMPAIGN.autoRenewNote}`,
+  },
+  { q: "Q. キャンセルはできますか？", a: "決済後の扱いはプランや決済方法によって異なります。4ヶ月終了後の自動継続を希望されない場合は、期間内に解約の申し出をお願いします。詳細はお問い合わせください。" },
   { q: "Q. 紹介制度はありますか？", a: "紹介いただいた企業が成約した場合、決済額の15%相当のVizion Pointを付与します。" },
 ];
 
 const TABLE_ROWS = [
-  ["単価", "¥30,000", "¥100,000", "¥300,000", "個別見積"],
+  ["キャンペーン価格", "¥30,000", "¥100,000", "¥300,000", "個別見積"],
+  ["通常価格（4ヶ月換算）", "¥120,000", "¥400,000", "¥1,200,000", "—"],
   ["枠数", "120枠", "30枠", "10枠", "5枠"],
   ["表示エリア", "地方ブロック", "全国", "全国", "全国"],
   ["表示サイズ", "small", "medium", "large", "hero"],
@@ -32,7 +36,7 @@ const TABLE_ROWS = [
   ["地域広告枠", "—", "—", "1ブロック", "全ブロック"],
   ["月次レポート", "—", "—", "✓", "✓"],
   ["戦略MTG", "—", "—", "—", "✓"],
-  ["正式版3ヶ月間 月額料金で利用可能", "✓", "✓", "✓", "✓"],
+  ["1ヶ月料金で4ヶ月利用（1＋ボーナス3）", "✓", "✓", "✓", "✓"],
 ];
 
 // セルの強調判定
@@ -57,17 +61,24 @@ const REGION_LEGEND = [
 ] as const;
 
 type RootsRegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
+type NationalTierAvail = { tier: string; prefecture: string; seats: number; remaining: number; soldOut: boolean };
 
 export default function BusinessPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [rootsRegions, setRootsRegions] = useState<RootsRegionAvail[]>([]);
+  const [nationalTiers, setNationalTiers] = useState<NationalTierAvail[]>([]);
 
   useEffect(() => {
     let active = true;
+    // ad_slots テーブル由来の残枠（ハードコード禁止）
     fetch("/api/business/region-availability", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => { if (active && Array.isArray(d?.regions)) setRootsRegions(d.regions as RootsRegionAvail[]); })
+      .then((d) => {
+        if (!active) return;
+        if (Array.isArray(d?.regions)) setRootsRegions(d.regions as RootsRegionAvail[]);
+        if (Array.isArray(d?.national)) setNationalTiers(d.national as NationalTierAvail[]);
+      })
       .catch(() => { /* 取得失敗時は非表示 */ });
     return () => { active = false; };
   }, []);
@@ -156,13 +167,19 @@ export default function BusinessPage() {
             <section className="relative overflow-hidden rounded-xl border border-[#C8E800]/14 bg-gradient-to-br from-[#C8E800]/7 to-[#C8E800]/4 p-9 md:p-11">
               {/* glow blob */}
               <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-[#C8E800]/7 blur-3xl" />
-              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#C8E800]">Plan Benefit</p>
-              <h2 className="text-[clamp(1.4rem,3.5vw,2.2rem)] font-extrabold leading-[1.2] tracking-[-0.01em] text-white">
-                正式版3ヶ月間を<br />月額料金で利用可能。
+              <p className="mb-2 font-mono text-[9px] uppercase tracking-[.2em] text-[#C8E800]">Campaign Benefit</p>
+              <h2 className="text-[clamp(1.25rem,3.2vw,2rem)] font-extrabold leading-[1.25] tracking-[-0.01em] text-white">
+                {BUSINESS_CAMPAIGN.periodLabel}
               </h2>
               <p className="mt-4 max-w-2xl text-[.85rem] font-light leading-[1.9] text-[#5a6070]">
+                キャンペーン期間：
+                <strong className="font-semibold text-[#c8cdd8]">{BUSINESS_CAMPAIGN.dateRange}</strong>
+                <br />
                 Roots から Legacy まで、現在提供中のすべてのBusinessプランに適用されます。
                 地域密着で始めたい企業も、全国で存在感を取りたい企業も、現状に合うプランから参加できます。
+              </p>
+              <p className="mt-3 max-w-2xl text-[.8rem] font-light leading-[1.85] text-[#7a8494]">
+                {BUSINESS_CAMPAIGN.autoRenewNote}
               </p>
             </section>
 
@@ -171,7 +188,12 @@ export default function BusinessPage() {
               <div>
                 <p className="mb-1.5 font-mono text-[9px] uppercase tracking-[.22em] text-[#3a3f50]">Plans</p>
                 <h2 className="text-[clamp(1.6rem,4vw,2.6rem)] font-extrabold tracking-[-0.02em] text-white">Businessプラン</h2>
-                <p className="mt-1 font-mono text-[.78rem] tracking-[.05em] text-[#3a3f50]">全プラン一括払い — 座席数限定</p>
+                <p className="mt-1 font-mono text-[.78rem] tracking-[.05em] text-[#3a3f50]">
+                  {BUSINESS_CAMPAIGN.periodShort} — 座席数限定
+                </p>
+                <p className="mt-1 text-[.75rem] font-light text-[#5a6070]">
+                  キャンペーン期間：{BUSINESS_CAMPAIGN.dateRange}
+                </p>
               </div>
               <div className="flex flex-col gap-3">
                 {BUSINESS_PLANS.map((plan) => (
@@ -185,8 +207,16 @@ export default function BusinessPage() {
                         <p className="mt-1 text-[.78rem] font-light text-[#5a6070]">{plan.tagline}</p>
                       </div>
                       <div className="text-right">
+                        {plan.regularPriceLabel && (
+                          <p className="font-mono text-[.72rem] tracking-[.02em] text-[#5a6070] line-through decoration-[#5a6070]/80">
+                            通常 {plan.regularPriceLabel}
+                          </p>
+                        )}
                         <p className="text-[1.5rem] font-extrabold text-white">{plan.priceLabel}</p>
-                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#C8E800]/70">全国{plan.seats}枠限定</p>
+                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#C8E800]/70">
+                          {plan.amount === 0 ? "個別見積" : "1ヶ月分の料金（4ヶ月利用）"}
+                        </p>
+                        <p className="mt-0.5 font-mono text-[.7rem] tracking-[.05em] text-[#3a3f50]">全国{plan.seats}枠限定</p>
                       </div>
                     </div>
                     <div className="mx-8 h-px bg-white/6" />
@@ -218,6 +248,15 @@ export default function BusinessPage() {
                   </article>
                 ))}
               </div>
+              <p className="text-[.72rem] font-light leading-[1.8] text-[#5a6070]">
+                ※ {BUSINESS_CAMPAIGN.periodLabel}
+                <br />
+                ※ キャンペーン期間：{BUSINESS_CAMPAIGN.dateRange}
+                <br />
+                ※ {BUSINESS_CAMPAIGN.autoRenewNote}
+                <br />
+                ※ 通常価格は月額相当額×4ヶ月分の換算表示です。
+              </p>
             </section>
 
             <section className="space-y-5">
@@ -230,7 +269,7 @@ export default function BusinessPage() {
               {rootsRegions.length > 0 && (
                 <div className="mt-4">
                   <p className="mb-3 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">
-                    Roots · 地方ブロック残枠（各20枠）
+                    Roots · 地方ブロック残枠（ad_slots 集計）
                   </p>
                   <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                     {rootsRegions.map((r) => (
@@ -245,7 +284,33 @@ export default function BusinessPage() {
                             r.soldOut ? "text-[#ff6b5b]" : r.remaining <= 3 ? "text-[#ff6b5b]" : "text-[#C8E800]",
                           ].join(" ")}
                         >
-                          {r.soldOut ? "満席" : `残り${r.remaining}枠`}
+                          {r.soldOut ? "満席" : `残り${r.remaining}/${r.seats}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {nationalTiers.length > 0 && (
+                <div className="mt-6">
+                  <p className="mb-3 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">
+                    全国プラン残枠（ad_slots）
+                  </p>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {nationalTiers.map((n) => (
+                      <div
+                        key={n.tier}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0e1018] px-4 py-3"
+                      >
+                        <span className="text-[.82rem] font-bold capitalize text-white">{n.tier}</span>
+                        <span
+                          className={[
+                            "font-mono text-[.72rem] tracking-[.03em]",
+                            n.soldOut ? "text-[#ff6b5b]" : n.remaining <= 3 ? "text-[#ff6b5b]" : "text-[#C8E800]",
+                          ].join(" ")}
+                        >
+                          {n.soldOut ? "満席" : `残り${n.remaining}/${n.seats}`}
                         </span>
                       </div>
                     ))}

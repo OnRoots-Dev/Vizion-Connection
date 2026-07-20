@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getAuthCookieOptions, mergeAuthCookieOptions } from "@/lib/supabase/cookie-options";
 
 export const createMiddlewareClient = (request: NextRequest) => {
     let response = NextResponse.next({ request });
@@ -7,20 +8,17 @@ export const createMiddlewareClient = (request: NextRequest) => {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
-            cookieOptions: {
-                domain: process.env.NODE_ENV === 'production' ? '.vizion-connection.jp' : undefined,
-                path: '/',
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
-            },
+            cookieOptions: getAuthCookieOptions(),
             cookies: {
                 getAll: () => request.cookies.getAll(),
-                setAll: (cookies) => {
-                    cookies.forEach(({ name, value }) => request.cookies.set(name, value));
+                setAll: (cookiesToSet) => {
+                    cookiesToSet.forEach(({ name, value }) => {
+                        request.cookies.set(name, value);
+                    });
                     response = NextResponse.next({ request });
-                    cookies.forEach(({ name, value, options }) =>
-                        response.cookies.set(name, value, options),
-                    );
+                    cookiesToSet.forEach(({ name, value, options }) => {
+                        response.cookies.set(name, value, mergeAuthCookieOptions(options));
+                    });
                 },
             },
         },

@@ -1,28 +1,37 @@
 // app/api/business/region-availability/route.ts
-// Roots プランの地方ブロック別 残枠を返す公開API（LP・申込ページ用）。
+// Roots 地方ブロック別 残枠 + 全国 tier 残枠を ad_slots から返す公開API。
 import { NextResponse } from "next/server";
-import { BUSINESS_REGIONS, ROOTS_SEATS_PER_REGION } from "@/features/business/constants";
-import { getRootsOrderCountsByRegion } from "@/lib/supabase/business-orders";
+import {
+  getNationalTierAvailabilityFromAdSlots,
+  getRootsRegionAvailabilityFromAdSlots,
+  listAdSlots,
+} from "@/lib/supabase/ad-slots";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<NextResponse> {
-    try {
-        const counts = await getRootsOrderCountsByRegion();
-        const regions = BUSINESS_REGIONS.map((r) => {
-            const sold = counts[r.id] ?? 0;
-            const remaining = Math.max(0, ROOTS_SEATS_PER_REGION - sold);
-            return {
-                id: r.id,
-                label: r.label,
-                seats: ROOTS_SEATS_PER_REGION,
-                remaining,
-                soldOut: remaining <= 0,
-            };
-        });
-        return NextResponse.json({ regions });
-    } catch (err) {
-        console.error("[GET /api/business/region-availability]", err);
-        return NextResponse.json({ error: "サーバーエラーが発生しました" }, { status: 500 });
-    }
+  try {
+    const [regions, national, slots] = await Promise.all([
+      getRootsRegionAvailabilityFromAdSlots(),
+      getNationalTierAvailabilityFromAdSlots(),
+      listAdSlots(),
+    ]);
+
+    return NextResponse.json({
+      regions,
+      national,
+      // 都道府県単位の生データ（JapanMap 等で利用可）
+      slots: slots.map((s) => ({
+        prefecture: s.prefecture,
+        tier: s.tier,
+        total: s.total,
+        sold: s.sold,
+        remaining: s.remaining,
+        soldOut: s.soldOut,
+      })),
+    });
+  } catch (err) {
+    console.error("[GET /api/business/region-availability]", err instanceof Error ? err.message : "unknown");
+    return NextResponse.json({ error: "サーバーエラーが発生しました" }, { status: 500 });
+  }
 }

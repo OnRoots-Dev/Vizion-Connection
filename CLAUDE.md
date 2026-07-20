@@ -1,103 +1,62 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**Vizion Connection**（vizion-connection.jp）— アスリート・トレーナー・クルー・企業をつなぐ日本のスポーツプラットフォーム。
+Next.js 16 App Router / React 19 / TypeScript / Tailwind v4 / Supabase。個人開発・単一リポジトリ・**顧客の個人情報を扱う本番SaaS**。
 
-## Commands
+## コマンド
 
 ```bash
-npm run dev       # Start dev server on localhost:3000
-npm run build     # Production build
-npm run lint      # Run ESLint
+npm run dev       # devサーバー (localhost:3000)
+npm run build     # 本番ビルド
+npm run lint      # ESLint
+npx tsc --noEmit  # 型チェック（テストスイートは無い）
 ```
 
-There is no test suite. TypeScript type-checking is done via the build or via the IDE's language server (`tsc --noEmit`).
+## 鉄則（違反はhooksが機械的にブロックする）
 
-## Architecture Overview
+1. **RLS**: `anon`/`authenticated` は `users`/`journeys`/`career_profiles`/`ads` にSELECTのみ。書き込みは全て service role のサーバールート経由。全開ポリシー（`USING(true)`）禁止。
+2. **service role キー**はブラウザに出さない。入口は `lib/supabase/server.ts` のみ。
+3. **mutating APIルートは3点セット必須**: `validateCSRF` + レートリミット + body検証。
+4. **PIIをログに出さない**: email/phone/氏名/token/`console.log(user)` 丸ごと出力は禁止。識別子は id/slug のみ。
+5. **破壊的SQL**（DROP/TRUNCATE/WHEREなしDELETE・UPDATE/PIIテーブル変更）は人間の承認必須。
+6. **シークレットの直書き禁止**: 設定ファイルは `${ENV_VAR}` 参照。`.env*` はコミット・削除・上書きしない。
+7. マイグレーションは `supabase/migrations/` のみ。**ファイル作成と `apply_migration` は必ずセット**。
+8. `user.id` と `user.slug` を混同しない（移行期の既知バグ源）。
+9. アカウント「削除」はソフトデリート（`is_deleted`）。完全消去は `.claude/rules/pii-handling.md` の範囲定義に従う。
+10. 破壊的なシェル操作（`rm -rf`、`.env`削除、`git clean -x` 等）はhooksがブロックする。回避しない。
 
-**Vizion Connection** is a Japanese sports platform (vizion-connection.jp) connecting athletes, trainers, crew, and businesses. It is a Next.js 16 App Router application using React 19, TypeScript, Tailwind v4, and Supabase as the database.
+## 作業前に読むルール（対象パスを触る時は必読）
 
-### Route Groups
+| 触るパス | 読むファイル |
+|---|---|
+| `features/auth/`, `lib/auth/`, `app/api/account/`, `middleware.ts` | `.claude/rules/auth.md` |
+| PII関連（`app/api/{account,contact,profile,register}/`, `lib/supabase/data/`, `contacts.ts`, `business-orders.ts`） | `.claude/rules/pii-handling.md` |
+| `supabase/`, `lib/supabase/`, SQL全般 | `.claude/rules/db-and-rls.md` |
+| 決済（`app/api/business-checkout/`, `app/api/webhooks/`, `features/business/`） | `.claude/rules/payments.md` |
+| UI（`app/`, `components/`） | `.claude/rules/frontend.md` |
+| DBマイグレーション作業 | `.claude/skills/db-migration/SKILL.md` |
+| デプロイ | `.claude/skills/deploy/SKILL.md` |
 
-- `app/(app)/` — Authenticated app shell (dashboard, pulse, timeline)
-- `app/(auth)/` — Auth pages: login, register, reset-password, verify
-- `app/(marketing)/` — Public marketing pages
-- `app/(onboarding)/` — Multi-step onboarding (day0 → profile → discovery → journey → invite → cheer)
-- `app/api/` — REST-style API routes (one directory per feature)
-- `app/p/[slug]` — Public profile card pages
-- `app/u/[slug]` — User profile pages
-- `app/r/[slug]` — Referral pages
+危険地帯ディレクトリには個別の `CLAUDE.md` がある（`features/auth/`, `app/api/`, `lib/supabase/`, `supabase/migrations/`）。
+PII関連のヒヤリハットは `agent-memory/pii-incidents.md` に追記・参照。
 
-### Dashboard SPA Pattern
+## アーキテクチャ（要点のみ）
 
-The main authenticated experience at `/dashboard` is a **single-page SPA** — navigation between sections does not change the URL. The `DashboardView` union type (`app/(app)/dashboard/types.ts`) enumerates all views. `DashboardClient` renders the active view via a switch and `Sidebar` calls `setView()` to navigate. Pulse (`/pulse`) and Timeline (`/timeline`) are separate full-page routes outside the dashboard SPA.
+- ルートグループ: `app/(app)/`（認証済みシェル: dashboard/pulse/timeline）, `app/(auth)/`, `app/(marketing)/`, `app/(onboarding)/`（day0→profile→discovery→journey→invite→cheer）, `app/api/`, 公開プロフィール `app/p/[slug]` `app/u/[slug]` `app/r/[slug]`
+- `/dashboard` は**URLを変えないSPA**（詳細: `.claude/rules/frontend.md`）
+- 機能ロジックは `features/<name>/{server,types.ts,validation}`。`lib/` は横断ヘルパー
+- Supabaseクライアントは4種を使い分け（**必読**: `lib/supabase/CLAUDE.md`）
+- ロール: `Athlete | Trainer | Crew | Business | Admin`（`features/auth/types.ts`）
+- スポンサープラン: `roots | signal | presence | legacy`
 
-### Feature Modules (`features/`)
+## 環境変数（`lib/env.ts`）
 
-Feature-scoped logic lives here rather than in `lib/`. Each feature has:
-- `server/` — Server Actions or server-only helpers
-- `types.ts` — Feature-specific types
-- `validation/` — Zod schemas (where applicable)
+必須: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `RESEND_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `NEXT_PUBLIC_BASE_URL`
+任意: `FROM_EMAIL`, `VOICELAB_ADMIN_EMAILS`, `SQUARE_LINK_*`, `SQUARE_WEBHOOK_SIGNATURE_KEY`
+MCP用（gitファイルに値を書かない）: `SUPABASE_ACCESS_TOKEN`（`.mcp.json` が参照）
 
-### Supabase Client Split
+## 経緯メモ
 
-Three distinct clients — use the right one for the context:
-
-| File | When to use |
-|------|-------------|
-| `lib/supabase/server.ts` → `supabaseServer` | Server Actions / API routes needing service role (bypasses RLS) |
-| `lib/supabase/server.ts` → `createClient()` | Server Components needing user auth context (cookie-based, respects RLS) |
-| `lib/supabase/browser.ts` → `supabaseBrowser` | Client Components (anon key, persists session) |
-| `lib/supabase/client.ts` → `createClient()` | SSR client for middleware |
-
-Data access helpers are grouped by domain in `lib/supabase/` (e.g. `career-profiles.ts`, `follows.ts`, `notifications.ts`).
-
-### User Roles and Theming
-
-Five roles: `Athlete | Trainer | Crew | Business | Admin` (defined in `features/auth/types.ts`).
-
-Role colors used throughout the UI:
-- Athlete: `#FF5050`
-- Trainer: `#32D278`
-- Crew: `#FFC81E`
-- Business: `#3C8CFF`
-
-The dashboard supports three themes (`dark | dim | light`). Dynamic colors (borders, backgrounds, text) are driven by a `ThemeColors` object passed as prop `t` — avoid hardcoding colors in dashboard components; use `t.bg`, `t.border`, `t.text`, `t.sub`, etc.
-
-Sponsor plans: `roots | roots_plus | signal | presence | legacy` (on the `ProfileData.sponsorPlan` field).
-
-### Security Conventions
-
-- **CSRF**: All mutating API routes call `validateCSRF(req)` from `lib/security/csrf.ts` — it checks `Origin`/`Referer` against the allowlist.
-- **Rate limiting**: All sensitive endpoints use per-action limiters from `lib/ratelimit.ts` (backed by Upstash Redis).
-- **Body validation**: Incoming request bodies should be parsed through `lib/security/body.ts`.
-- **Service role key** must never reach the browser — `lib/supabase/server.ts` throws at module load if `window` is defined.
-
-### Styling
-
-- Tailwind v4 (`@import "tailwindcss"` in `globals.css`)
-- shadcn/ui for base components (`components/ui/`)
-- Framer Motion for all animations
-- Design tokens use `--vc-*` CSS custom properties for the dark design system
-- Fonts: `--font-bebas` (Bebas Neue, display/headings) and `--font-noto` (Noto Sans JP, body — Japanese-first)
-- Path alias: `@/` maps to the repo root
-
-### Environment Variables
-
-Required at runtime (see `lib/env.ts`):
-
-```
-SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-RESEND_API_KEY
-UPSTASH_REDIS_REST_URL
-UPSTASH_REDIS_REST_TOKEN
-NEXT_PUBLIC_BASE_URL
-```
-
-Optional: `FROM_EMAIL`, `VOICELAB_ADMIN_EMAILS`, `SQUARE_LINK_*`, `SQUARE_WEBHOOK_SIGNATURE_KEY`.
-
-### Known Context
-
-The codebase was recently migrated from Airtable to Supabase. The `airtable` package in `package.json` is a leftover with no active imports and can be removed. See `MIGRATION_ANALYSIS_REPORT.md` for known bugs identified during the migration (e.g. routes using `user.id` where `user.slug` is required).
+- 2026年前半に Airtable → Supabase 移行済み。既知バグは `MIGRATION_ANALYSIS_REPORT.md`。`airtable` パッケージは未使用の残骸（削除可）。
+- RLS監査（2026-06-20）の記録とロールバックSQLは `SECURITY.md`。
+- 旧 `migrations/`（ルート直下）は `docs/legacy-migrations/` にアーカイブ済み。追加禁止。

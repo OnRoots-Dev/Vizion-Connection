@@ -10,7 +10,13 @@ export interface BusinessPlan {
     id: PlanId;
     name: string;
     tagline: string;
+    /** キャンペーン価格（1ヶ月分の料金 = 請求額） */
     priceLabel: string;
+    /**
+     * 4ヶ月換算の通常価格（取り消し線表示用）。
+     * 月額 × 4。個別見積プランは null。
+     */
+    regularPriceLabel: string | null;
     amount: number;
     seats: number;
     highlight: boolean;
