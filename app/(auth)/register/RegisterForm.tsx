@@ -173,6 +173,7 @@ export default function RegisterForm() {
         slug: "",
         email: "",
         password: "",
+        confirmPassword: "",
         displayName: "",
         region: "" as "" | (typeof VALID_REGIONS)[number],
         prefecture: "",
@@ -180,6 +181,7 @@ export default function RegisterForm() {
         termsAccepted: false,
     });
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [succeeded, setSucceeded] = useState(false);
     const [error, setError] = useState("");
@@ -217,6 +219,10 @@ export default function RegisterForm() {
         : [];
 
     function handleStep2Next() {
+        if (form.password !== form.confirmPassword) {
+            setError("パスワードが一致しません");
+            return;
+        }
         const parsed = registerSchema.safeParse({ ...buildPayload(), redirectTo: undefined });
         if (!parsed.success) {
             setError(parsed.error.issues[0]?.message ?? "入力内容を確認してください");
@@ -442,7 +448,10 @@ export default function RegisterForm() {
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
-                                        required placeholder="8文字以上" value={form.password}
+                                        required
+                                        autoComplete="new-password"
+                                        placeholder="8文字以上"
+                                        value={form.password}
                                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                                         className="vc-auth-input pr-11"
                                     />
@@ -458,6 +467,39 @@ export default function RegisterForm() {
                                 <p className="pl-1 text-[10px] leading-relaxed text-white/25">
                                     8文字以上 ／ 半角英字・数字を含めてください
                                 </p>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-white/40">パスワード（確認） <span style={{ color: "var(--flame)" }}>*</span></label>
+                                <div className="relative">
+                                    <input
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        required
+                                        autoComplete="new-password"
+                                        placeholder="もう一度入力"
+                                        value={form.confirmPassword}
+                                        onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                                        className="vc-auth-input pr-11"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword((v) => !v)}
+                                        aria-label={showConfirmPassword ? "パスワードを隠す" : "パスワードを表示"}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white/60"
+                                    >
+                                        <EyeIcon open={showConfirmPassword} />
+                                    </button>
+                                </div>
+                                {form.confirmPassword.length > 0 && form.password !== form.confirmPassword && (
+                                    <p className="pl-1 text-[10px] leading-relaxed" style={{ color: "var(--flame)" }}>
+                                        パスワードが一致していません
+                                    </p>
+                                )}
+                                {form.confirmPassword.length > 0 && form.password === form.confirmPassword && form.password.length >= 8 && (
+                                    <p className="pl-1 text-[10px] leading-relaxed text-[#32D278]">
+                                        パスワードが一致しています
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-1.5">

@@ -3,9 +3,43 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // dashboard/components/ui.tsx  — SectionCard / SLabel / ViewHeader / Buttons
 // すべてのビューコンポーネントがここからインポートする
+// Apple Design: spring ベース・押下フィードバック・reduced-motion 尊重
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { useEffect, useRef } from "react";
+import {
+    motion,
+    AnimatePresence,
+    useReducedMotion,
+    useMotionValue,
+    useSpring,
+    useTransform,
+    type Transition,
+} from "framer-motion";
 import type { ThemeColors } from "../types";
+import { springSnap, fadeReduced } from "@/lib/motion/apple-springs";
+import { PRESS_SCALE } from "@/components/ui/Pressable";
+
+const pressSpring: Transition = {
+    type: "spring",
+    stiffness: 600,
+    damping: 32,
+    mass: 0.5,
+};
+
+const hoverSpring: Transition = {
+    type: "spring",
+    stiffness: 420,
+    damping: 36,
+    mass: 0.75,
+};
+
+/** 数値用: やや質量があり慣性を感じる critically damped spring */
+const numberSpring = {
+    stiffness: 120,
+    damping: 22,
+    mass: 1.1,
+};
 
 // ── カードコンテナ ────────────────────────────────────────────────────────────
 export function SectionCard({
@@ -17,15 +51,34 @@ export function SectionCard({
     accentColor?: string;
     t: ThemeColors;
 }) {
+    const reduce = useReducedMotion();
+    void t;
+
     return (
-        <div
+        <motion.div
             className="relative overflow-hidden"
             style={{
                 background: "#111118",
                 border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 12,
                 padding: "20px 24px",
+                boxShadow: "0 0 0 rgba(0,0,0,0)",
+                willChange: "transform, box-shadow",
             }}
+            // 出現: 直前の presentation から target へ（再ターゲット可能）
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0, boxShadow: "0 0 0 rgba(0,0,0,0)" }}
+            transition={reduce ? fadeReduced : hoverSpring}
+            whileHover={
+                reduce
+                    ? undefined
+                    : {
+                          y: -3,
+                          boxShadow: "0 14px 44px rgba(0,0,0,0.38)",
+                      }
+            }
+            // hover 中の割込みも spring で現在値から戻る
+            whileTap={reduce ? undefined : { y: -1, scale: 0.995 }}
         >
             {accentColor && (
                 <div
@@ -36,10 +89,9 @@ export function SectionCard({
                 />
             )}
             <div className="relative z-[1]">{children}</div>
-        </div>
+        </motion.div>
     );
 }
-
 // ── セクションラベル ──────────────────────────────────────────────────────────
 export function SLabel({ text, color, size }: { text: string; color?: string; size?: number }) {
     return (
@@ -72,6 +124,9 @@ export function ActionPill({
     color: string;
     t?: ThemeColors;
 }) {
+    const reduce = useReducedMotion();
+    void t;
+
     const style: React.CSSProperties = {
         display: "inline-flex",
         alignItems: "center",
@@ -91,13 +146,33 @@ export function ActionPill({
         border: "none",
         cursor: "pointer",
         whiteSpace: "nowrap",
+        userSelect: "none",
     };
 
     if (href) {
-        return <a href={href} style={style}>{children}</a>;
+        return (
+            <motion.a
+                href={href}
+                style={style}
+                whileTap={reduce ? undefined : { scale: PRESS_SCALE }}
+                transition={pressSpring}
+            >
+                {children}
+            </motion.a>
+        );
     }
 
-    return <button type="button" onClick={onClick} style={style}>{children}</button>;
+    return (
+        <motion.button
+            type="button"
+            onClick={onClick}
+            style={style}
+            whileTap={reduce ? undefined : { scale: PRESS_SCALE }}
+            transition={pressSpring}
+        >
+            {children}
+        </motion.button>
+    );
 }
 
 export function CardHeader({
@@ -111,6 +186,7 @@ export function CardHeader({
     action?: React.ReactNode;
     meta?: React.ReactNode;
 }) {
+    void color;
     return (
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
             <div style={{ minWidth: 0 }}>
@@ -148,13 +224,20 @@ export function ViewHeader({
     t: ThemeColors;
     roleColor: string;
 }) {
+    const reduce = useReducedMotion();
+    void t;
+    void roleColor;
+
     return (
         <div className="mb-1 flex items-center gap-3">
-            <button
+            <motion.button
                 onClick={onBack}
                 type="button"
                 aria-label="戻る"
                 title="戻る"
+                whileTap={reduce ? undefined : { scale: PRESS_SCALE }}
+                whileHover={reduce ? undefined : { borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.04)" }}
+                transition={pressSpring}
                 style={{
                     display: "flex",
                     alignItems: "center",
@@ -170,10 +253,23 @@ export function ViewHeader({
                 <svg width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.55)" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
-            </button>
-            <div>
-                <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#f0f0f5", letterSpacing: "-0.01em" }}>{title}</h2>
-                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{sub}</p>
+            </motion.button>
+            {/* タイトル切替: キー変更時も AnimatePresence で現在値→次へ（presentation 起点） */}
+            <div style={{ minWidth: 0, overflow: "hidden" }}>
+                <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.div
+                        key={`${title}::${sub}`}
+                        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                        transition={reduce ? fadeReduced : springSnap}
+                    >
+                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#f0f0f5", letterSpacing: "-0.01em" }}>
+                            {title}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{sub}</p>
+                    </motion.div>
+                </AnimatePresence>
             </div>
         </div>
     );
@@ -181,6 +277,7 @@ export function ViewHeader({
 
 // ── ローディングスピナー ──────────────────────────────────────────────────────
 export function ViewLoader({ t }: { t: ThemeColors }) {
+    void t;
     return (
         <div
             className="flex h-[200px] items-center justify-center"
@@ -195,89 +292,133 @@ export function ViewLoader({ t }: { t: ThemeColors }) {
 }
 
 // ── ボタン群 ──────────────────────────────────────────────────────────────────
-export function PrimaryButton({ children, onClick, disabled, style }: {
+function DashboardButton({
+    children,
+    onClick,
+    disabled,
+    style,
+    variant,
+}: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     style?: React.CSSProperties;
+    variant: "primary" | "secondary" | "danger";
 }) {
+    const reduce = useReducedMotion();
+
+    const base: React.CSSProperties =
+        variant === "primary"
+            ? {
+                  background: "#C8E800",
+                  color: "#000000",
+                  borderRadius: 8,
+                  padding: "11px 20px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  border: "none",
+                  boxShadow: "0 0 20px rgba(200,232,0,0.28)",
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  opacity: disabled ? 0.45 : 1,
+              }
+            : variant === "secondary"
+              ? {
+                    background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.16)",
+                    color: "rgba(255,255,255,0.6)",
+                    borderRadius: 8,
+                    padding: "10px 20px",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? 0.45 : 1,
+                }
+              : {
+                    background: "rgba(255,59,48,0.12)",
+                    border: "1px solid rgba(255,59,48,0.3)",
+                    color: "#ff3b30",
+                    borderRadius: 8,
+                    padding: "10px 20px",
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? 0.45 : 1,
+                };
+
     return (
-        <button
+        <motion.button
             type="button"
             onClick={onClick}
             disabled={disabled}
-            style={{
-                background: "#a78bfa",
-                color: "#000000",
-                borderRadius: 8,
-                padding: "11px 20px",
-                fontSize: 13,
-                fontWeight: 700,
-                border: "none",
-                boxShadow: "0 0 20px rgba(167,139,250,0.3)",
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.45 : 1,
-                ...style,
-            }}
+            style={{ ...base, ...style, userSelect: "none" }}
+            whileTap={disabled || reduce ? undefined : { scale: PRESS_SCALE }}
+            whileHover={
+                disabled || reduce
+                    ? undefined
+                    : variant === "primary"
+                      ? { boxShadow: "0 0 28px rgba(200,232,0,0.4)", filter: "brightness(1.04)" }
+                      : variant === "secondary"
+                        ? { borderColor: "rgba(255,255,255,0.28)", color: "rgba(255,255,255,0.85)" }
+                        : { backgroundColor: "rgba(255,59,48,0.18)" }
+            }
+            transition={pressSpring}
         >
             {children}
-        </button>
+        </motion.button>
     );
 }
 
-export function SecondaryButton({ children, onClick, disabled, style }: {
+export function PrimaryButton({
+    children,
+    onClick,
+    disabled,
+    style,
+}: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     style?: React.CSSProperties;
 }) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            style={{
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.16)",
-                color: "rgba(255,255,255,0.6)",
-                borderRadius: 8,
-                padding: "10px 20px",
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: disabled ? "not-allowed" : "pointer",
-                ...style,
-            }}
-        >
+        <DashboardButton variant="primary" onClick={onClick} disabled={disabled} style={style}>
             {children}
-        </button>
+        </DashboardButton>
     );
 }
 
-export function DangerButton({ children, onClick, disabled, style }: {
+export function SecondaryButton({
+    children,
+    onClick,
+    disabled,
+    style,
+}: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     style?: React.CSSProperties;
 }) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            style={{
-                background: "rgba(255,59,48,0.12)",
-                border: "1px solid rgba(255,59,48,0.3)",
-                color: "#ff3b30",
-                borderRadius: 8,
-                padding: "10px 20px",
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: disabled ? "not-allowed" : "pointer",
-                ...style,
-            }}
-        >
+        <DashboardButton variant="secondary" onClick={onClick} disabled={disabled} style={style}>
             {children}
-        </button>
+        </DashboardButton>
+    );
+}
+
+export function DangerButton({
+    children,
+    onClick,
+    disabled,
+    style,
+}: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+    style?: React.CSSProperties;
+}) {
+    return (
+        <DashboardButton variant="danger" onClick={onClick} disabled={disabled} style={style}>
+            {children}
+        </DashboardButton>
     );
 }
 
@@ -302,8 +443,33 @@ export function SectionHeader({ label }: { label: string }) {
     );
 }
 
+// ── Pulse 日数の spring 数値 ──────────────────────────────────────────────────
+function SpringDays({ value, color, fontSize }: { value: number; color: string; fontSize: number }) {
+    const reduce = useReducedMotion();
+    const mv = useMotionValue(value);
+    const spring = useSpring(mv, numberSpring);
+    const display = useTransform(spring, (v) => Math.round(v).toString());
+    const first = useRef(true);
+
+    useEffect(() => {
+        if (reduce || first.current) {
+            mv.jump(value);
+            first.current = false;
+            return;
+        }
+        mv.set(value);
+    }, [value, mv, reduce]);
+
+    return (
+        <motion.span style={{ color, fontSize, fontFamily: "'Space Mono', monospace", fontWeight: 600 }}>
+            {display}
+        </motion.span>
+    );
+}
+
 // ── PulseIndicator（継続日数 + 波動バー） ────────────────────────────────────
 export function PulseIndicator({ days, size = "md" }: { days: number; size?: "sm" | "md" | "lg" }) {
+    const reduce = useReducedMotion();
     const sizes = { sm: 11, md: 13, lg: 15 } as const;
     const fontSize = sizes[size];
 
@@ -328,28 +494,68 @@ export function PulseIndicator({ days, size = "md" }: { days: number; size?: "sm
             }}
         >
             <span style={{ display: "inline-flex", alignItems: "center", gap: 2, height: fontSize }}>
-                {[0.5, 0.9, 0.65, 1, 0.55].map((h, i) => (
-                    <span
-                        key={i}
-                        style={{
-                            display: "inline-block",
-                            width: 2,
-                            height: fontSize * h,
-                            borderRadius: 9,
-                            background: color,
-                            animation: `vcWave 1.2s ease-in-out ${i * 0.12}s infinite`,
-                            transformOrigin: "center bottom",
-                        }}
-                    />
-                ))}
+                {[0.5, 0.9, 0.65, 1, 0.55].map((h, i) =>
+                    reduce ? (
+                        <span
+                            key={i}
+                            style={{
+                                display: "inline-block",
+                                width: 2,
+                                height: fontSize * h,
+                                borderRadius: 9,
+                                background: color,
+                            }}
+                        />
+                    ) : (
+                        <motion.span
+                            key={i}
+                            style={{
+                                display: "inline-block",
+                                width: 2,
+                                height: fontSize * h,
+                                borderRadius: 9,
+                                background: color,
+                                transformOrigin: "center bottom",
+                            }}
+                            animate={{ scaleY: [0.55, 1, 0.7, 1] }}
+                            transition={{
+                                duration: 1.35,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.1,
+                            }}
+                        />
+                    ),
+                )}
             </span>
-            PULSE {days}日
+            PULSE{" "}
+            <SpringDays value={days} color={color} fontSize={fontSize} />
+            日
         </span>
     );
 }
 
 // ── StatBlock（大きな数値 + ラベル） ─────────────────────────────────────────
 export function StatBlock({ value, label, accent }: { value: string | number; label: string; accent?: string }) {
+    const reduce = useReducedMotion();
+    const numeric = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+    const isNumeric = Number.isFinite(numeric) && String(value).trim() !== "" && !Number.isNaN(numeric);
+
+    const mv = useMotionValue(isNumeric ? numeric : 0);
+    const spring = useSpring(mv, numberSpring);
+    const display = useTransform(spring, (v) => Math.round(v).toLocaleString("en-US"));
+    const first = useRef(true);
+
+    useEffect(() => {
+        if (!isNumeric) return;
+        if (reduce || first.current) {
+            mv.jump(numeric);
+            first.current = false;
+            return;
+        }
+        mv.set(numeric);
+    }, [numeric, isNumeric, mv, reduce]);
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <span
@@ -361,7 +567,7 @@ export function StatBlock({ value, label, accent }: { value: string | number; la
                     fontFamily: "'Space Mono', monospace",
                 }}
             >
-                {value}
+                {isNumeric ? <motion.span>{display}</motion.span> : value}
             </span>
             <span style={{ fontSize: 11, color: "var(--vc-text3)", letterSpacing: "0.05em" }}>{label}</span>
         </div>

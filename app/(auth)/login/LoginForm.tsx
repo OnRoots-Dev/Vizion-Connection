@@ -145,13 +145,13 @@ export default function LoginForm() {
                         className="m-0 mb-3 text-[10px] font-bold uppercase tracking-[0.2em]"
                         style={{ color: "var(--electric)", fontFamily: "monospace" }}
                     >
-                        WELCOME BACK
+                        SIGN IN
                     </p>
                     <h1 className="m-0 text-[1.5rem] font-bold tracking-[-0.025em] text-white sm:text-[1.65rem]">
-                        Pulse に戻る
+                        ログインする
                     </h1>
-                    <p className="m-0 mx-auto mt-2.5 max-w-[28ch] text-[13.5px] leading-relaxed text-white/45">
-                        挑戦の続きが、ここで待っています。
+                    <p className="m-0 mx-auto mt-2.5 max-w-[30ch] text-[13.5px] leading-relaxed text-white/45">
+                        あなたの挑戦と Pulse が、ここで待っています。
                     </p>
                 </div>
 
@@ -289,7 +289,7 @@ export default function LoginForm() {
                         }}
                     >
                         {loading && <InlinePulseSpinner />}
-                        {loading ? "ログイン中…" : "ログインして Pulse へ"}
+                        {loading ? "ログイン中…" : "ログインする"}
                     </motion.button>
                 </form>
 

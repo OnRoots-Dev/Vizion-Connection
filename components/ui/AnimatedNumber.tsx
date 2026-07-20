@@ -8,7 +8,6 @@ import {
   useReducedMotion,
   useTransform,
 } from "framer-motion";
-import { springSnap } from "@/lib/motion/apple-springs";
 
 type Props = {
   value: number;
@@ -19,8 +18,9 @@ type Props = {
 };
 
 /**
- * 数値変化を spring で補間。常に「今の表示値」から次の target へ向かい、
- * 途中で value が変わっても中断可能（presentation value から再ターゲット）。
+ * 数値変化を spring で補間。
+ * - 常に「今の表示値」から次の target へ（presentation 起点・中断可能）
+ * - 質量をやや持たせ、慣性が伝わる critically damped 系
  */
 export function AnimatedNumber({
   value,
@@ -30,10 +30,12 @@ export function AnimatedNumber({
 }: Props) {
   const reduce = useReducedMotion();
   const mv = useMotionValue(value);
+  // 慣性: mass 高め + damping で critically damped 付近（オーバーシュートほぼなし）
   const spring = useSpring(mv, {
-    stiffness: springSnap.stiffness as number,
-    damping: springSnap.damping as number,
-    mass: springSnap.mass as number,
+    stiffness: 140,
+    damping: 24,
+    mass: 1.15,
+    restDelta: 0.001,
   });
   const display = useTransform(spring, (v) => format(v));
   const first = useRef(true);

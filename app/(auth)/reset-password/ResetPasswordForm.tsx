@@ -474,6 +474,16 @@ export default function ResetPasswordForm() {
                                                 <EyeIcon open={showConfirm} />
                                             </button>
                                         </motion.div>
+                                        {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                                            <p className="m-0 pl-0.5 text-[10px] leading-relaxed" style={{ color: "var(--flame)" }}>
+                                                パスワードが一致していません
+                                            </p>
+                                        )}
+                                        {confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8 && (
+                                            <p className="m-0 pl-0.5 text-[10px] leading-relaxed text-[#32D278]">
+                                                パスワードが一致しています
+                                            </p>
+                                        )}
                                     </div>
 
                                     <AnimatePresence mode="wait">
