@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
@@ -20,6 +21,8 @@ interface Content {
   title: string;
   desc: string;
   showMailHelp: boolean;
+  /** 認証完了ページでウェルカムメール送信をトリガ */
+  triggerWelcomeEmail: boolean;
   cta: { href: string; label: string } | null;
 }
 
@@ -31,15 +34,17 @@ function resolveContent(type: string | undefined): Content {
       title: "メールを確認してください",
       desc: "ご登録のメールアドレスに認証リンクを送りました。リンクを開くと本登録が完了し、Pulse を始められます。",
       showMailHelp: true,
+      triggerWelcomeEmail: false,
       cta: null,
     },
     verified: {
       iconType: "verified",
       eyebrow: "VERIFIED",
       title: "認証が完了しました",
-      desc: "ようこそ Vizion Connection へ。つづいてプロフィールを整え、最初の一歩を記録しましょう。",
+      desc: "メール認証へのご協力ありがとうございます。アカウントの本登録が完了しました。ログインして、挑戦の記録をはじめましょう。",
       showMailHelp: false,
-      cta: { href: "/onboarding", label: "オンボーディングへ進む" },
+      triggerWelcomeEmail: true,
+      cta: { href: "/login", label: "ログイン画面へ" },
     },
     email_changed: {
       iconType: "verified",
@@ -47,6 +52,7 @@ function resolveContent(type: string | undefined): Content {
       title: "メールアドレスを更新しました",
       desc: "新しいメールアドレスでのログインが有効になりました。必要ならログイン画面から続けてください。",
       showMailHelp: false,
+      triggerWelcomeEmail: false,
       cta: { href: "/login", label: "ログインする" },
     },
     business: {
@@ -55,6 +61,7 @@ function resolveContent(type: string | undefined): Content {
       title: "お申し込みありがとうございます",
       desc: "Business ポジションへのお申し込みを受け付けました。決済完了後、ご案内をお送りします。",
       showMailHelp: false,
+      triggerWelcomeEmail: false,
       cta: { href: "/dashboard", label: "ダッシュボードへ" },
     },
   };
@@ -74,6 +81,25 @@ export default function ThanksClient({
   const content = resolveContent(type);
   const press = reduce ? undefined : { scale: PRESS_SCALE };
   const enter = reduce ? fadeReduced : springDefault;
+  const welcomeTriggered = useRef(false);
+
+  // 認証完了ページ表示後にウェルカムメールを自動送信（1回のみ）
+  useEffect(() => {
+    if (!content.triggerWelcomeEmail || welcomeTriggered.current) return;
+    welcomeTriggered.current = true;
+
+    void (async () => {
+      try {
+        await fetch("/api/auth/confirm/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+        });
+      } catch {
+        // メール送信失敗は画面をブロックしない（サーバーログに残る）
+      }
+    })();
+  }, [content.triggerWelcomeEmail]);
 
   return (
     <div className="vc-auth-shell">
@@ -149,6 +175,17 @@ export default function ThanksClient({
                 </p>
               </div>
             </motion.div>
+          )}
+
+          {type === "verified" && (
+            <motion.p
+              className="m-0 rounded-2xl border border-[rgba(200,232,0,0.18)] bg-[rgba(200,232,0,0.06)] px-4 py-3 text-[12px] leading-relaxed text-white/55"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? fadeReduced : { ...enter, delay: 0.1 }}
+            >
+              認証完了の確認メールを自動送信しています。届くまで少しお待ちください。
+            </motion.p>
           )}
 
           {content.cta && (

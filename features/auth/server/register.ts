@@ -13,8 +13,17 @@ const supabaseAdmin = createSupabaseClient(
 
 const FOUNDING_MEMBER_LIMIT = 100;
 
+/**
+ * signUp / resend の emailRedirectTo。
+ * 本番は NEXT_PUBLIC_BASE_URL=https://vizion-connection.jp を想定。
+ * （メール本文は token_hash 直リンクを優先。ここは ConfirmationURL / PKCE フォールバック用）
+ */
 function buildEmailRedirectTo(redirectTo?: string): string {
-    const emailRedirectToBase = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/confirm`;
+    const base = (process.env.NEXT_PUBLIC_BASE_URL ?? "https://vizion-connection.jp").replace(
+        /\/$/,
+        "",
+    );
+    const emailRedirectToBase = `${base}/auth/confirm`;
     return redirectTo
         ? `${emailRedirectToBase}?next=${encodeURIComponent(redirectTo)}`
         : emailRedirectToBase;
