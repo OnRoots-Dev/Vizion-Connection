@@ -205,3 +205,46 @@ export function buildVerifiedWelcomeHtml(input: {
     ctaColor: EMAIL_BRAND.electric,
   });
 }
+
+/** パスワードリセット依頼メール */
+export function buildPasswordResetRequestHtml(input: {
+  displayName: string;
+  resetUrl: string;
+}): string {
+  const name = input.displayName?.trim() || "あなた";
+  return buildBrandEmailHtml({
+    title: "パスワードをリセット",
+    eyebrow: "PASSWORD RESET",
+    paragraphs: [
+      `${escapeHtml(name)} さん、パスワードリセットのリクエストを受け付けました。`,
+      '下のボタンから新しいパスワードを設定してください。リンクは <strong style="color:rgba(255,255,255,0.7);">1時間</strong> 有効です。',
+      "心当たりがない場合は、このメールを無視してください。パスワードは変更されません。",
+    ],
+    cta: {
+      label: "パスワードを再設定する",
+      url: input.resetUrl,
+    },
+    footerNote: "このリンクは1時間後に無効になります。期限切れの場合は、ログイン画面から再度お手続きください。",
+  });
+}
+
+/** パスワード再設定完了メール */
+export function buildPasswordChangedHtml(input: {
+  displayName: string;
+  loginUrl: string;
+}): string {
+  const name = input.displayName?.trim() || "あなた";
+  return buildBrandEmailHtml({
+    title: "パスワードを変更しました",
+    eyebrow: "SECURITY NOTICE",
+    paragraphs: [
+      `${escapeHtml(name)} さん、パスワードの再設定が完了しました。`,
+      "新しいパスワードでログインできます。心当たりがない場合は、すぐにサポートへご連絡のうえ、パスワードを再度変更してください。",
+    ],
+    cta: {
+      label: "ログインする",
+      url: input.loginUrl,
+    },
+    footerNote: "このメールはパスワード変更完了時に自動送信されています。",
+  });
+}
