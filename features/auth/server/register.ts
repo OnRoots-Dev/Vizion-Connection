@@ -42,9 +42,10 @@ export async function resendSignupVerificationEmail(params: {
 
 export async function registerUser(input: RegisterInput): Promise<RegisterResponse> {
     const supabase = await createClient();
-    const { email, password, role, displayName, slug, region, referrerSlug, redirectTo } = input;
+    const { email, password, role, displayName, slug, region, prefecture, referrerSlug, redirectTo } = input;
     const resolvedDisplayName = displayName?.trim() || "";
-    const resolvedRegion = region?.trim() || "未設定";
+    const resolvedRegion = region.trim();
+    const resolvedPrefecture = prefecture?.trim() || null;
 
     // email + slug の重複チェックを並列実行
     const [existingByEmail, existingBySlug] = await Promise.all([
@@ -167,6 +168,7 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         displayName: resolvedDisplayName,
         slug,
         region: resolvedRegion,
+        prefecture: resolvedPrefecture,
         referrerSlug: resolvedReferrerSlug,
         isFoundingMember,
     });

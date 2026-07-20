@@ -8,7 +8,8 @@ export interface RegisterInput {
     role: UserRole;
     displayName?: string;
     slug: string;
-    region?: string;
+    region: string;
+    prefecture?: string;
     referrerSlug?: string;
     redirectTo?: string;
     termsAccepted: true;

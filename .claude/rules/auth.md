@@ -30,5 +30,5 @@ paths:
 6. セッションcookieの読み取りはServer Componentなら `lib/supabase/server.ts` の `createClient()`、ミドルウェアなら `middleware-client.ts`。service role（`supabaseServer`）をセッション判定に使わない。
 
 ## バリデーション仕様（現状）
-- `registerSchema`: email必須 / password 8〜100字（英数記号）/ role は Athlete|Trainer|Crew|Business / **region は任意** / slug 3〜30字 `^[a-z0-9_.]+$` / 利用規約同意必須
+- `registerSchema`: email必須 / password 8〜100字（英数記号）/ role は Athlete|Trainer|Crew|Business / **region（活動エリア・地方）は必須** / **prefecture（活動エリア・都道府県）は任意** / slug 3〜30字 `^[a-z0-9_.]+$` / 利用規約同意必須
 - 変更時は register UI・onboarding・DB制約の三者を同期させること

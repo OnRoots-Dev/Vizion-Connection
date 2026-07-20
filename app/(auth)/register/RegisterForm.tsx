@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { registerSchema, VALID_REGIONS } from "@/features/auth/validation/register-schema";
+import { registerSchema, VALID_REGIONS, PREFECTURES_BY_REGION } from "@/features/auth/validation/register-schema";
 import { LottieAnim } from "@/components/ui/LottieAnim";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
@@ -25,27 +25,26 @@ const ROLES: {
     color: string;
     detail: string;
     nameLabel: string;
-    regionLabel: string;
 }[] = [
     {
         value: "Athlete", label: "Athlete", displayName: "アスリート", color: "#FF5050",
         detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
-        nameLabel: "表示名（アスリート名）", regionLabel: "活動地域",
+        nameLabel: "表示名（アスリート名）",
     },
     {
         value: "Trainer", label: "Trainer", displayName: "トレーナー", color: "#32D278",
         detail: "スポーツの指導・サポートをしている方向け。",
-        nameLabel: "表示名", regionLabel: "活動地域",
+        nameLabel: "表示名",
     },
     {
         value: "Crew", label: "Crew", displayName: "サポーター", color: "#FFC81E",
         detail: "ファン、サポーター、家族、友人、関係者の方向け。",
-        nameLabel: "ニックネーム", regionLabel: "お住まいの地域",
+        nameLabel: "ニックネーム",
     },
     {
         value: "Business", label: "Business", displayName: "ビジネス", color: "#3C8CFF",
         detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。",
-        nameLabel: "会社・団体名", regionLabel: "対象エリア",
+        nameLabel: "会社・団体名",
     },
 ];
 
@@ -175,6 +174,7 @@ export default function RegisterForm() {
         password: "",
         displayName: "",
         region: "" as "" | (typeof VALID_REGIONS)[number],
+        prefecture: "",
         referrerSlug: refSlug,
         termsAccepted: false,
     });
@@ -203,12 +203,17 @@ export default function RegisterForm() {
             email: form.email,
             password: form.password,
             displayName: form.displayName || undefined,
-            region: form.region || undefined,
+            region: form.region,
+            prefecture: form.prefecture || undefined,
             referrerSlug: form.referrerSlug || undefined,
             termsAccepted: form.termsAccepted,
             role,
         };
     }
+
+    const prefectureOptions = form.region
+        ? (PREFECTURES_BY_REGION[form.region] ?? [])
+        : [];
 
     function handleStep2Next() {
         const parsed = registerSchema.safeParse({ ...buildPayload(), redirectTo: undefined });
@@ -480,15 +485,41 @@ export default function RegisterForm() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-white/40">{selectedRole.regionLabel}（任意）</label>
+                                <label className="text-xs font-medium text-white/40">
+                                    活動エリア（地方） <span style={{ color: "var(--flame)" }}>*</span>
+                                </label>
                                 <select
+                                    required
                                     value={form.region}
-                                    onChange={(e) => setForm({ ...form, region: e.target.value as typeof form.region })}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            region: e.target.value as typeof form.region,
+                                            prefecture: "",
+                                        })
+                                    }
                                     className="vc-auth-input"
                                 >
                                     <option value="">選択してください</option>
                                     {VALID_REGIONS.map((r) => (
                                         <option key={r} value={r}>{r}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-white/40">活動エリア（都道府県）（任意）</label>
+                                <select
+                                    value={form.prefecture}
+                                    onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
+                                    disabled={!form.region}
+                                    className="vc-auth-input disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    <option value="">
+                                        {form.region ? "選択してください" : "先に地方を選択"}
+                                    </option>
+                                    {prefectureOptions.map((p) => (
+                                        <option key={p} value={p}>{p}</option>
                                     ))}
                                 </select>
                             </div>
@@ -559,7 +590,8 @@ export default function RegisterForm() {
                                     { label: "パスワード", value: "•".repeat(Math.min(form.password.length, 12)) },
                                     { label: "ユーザーID", value: `@${form.slug}` },
                                     { label: selectedRole.nameLabel, value: form.displayName || "未入力" },
-                                    { label: selectedRole.regionLabel, value: form.region || "未選択" },
+                                    { label: "活動エリア（地方）", value: form.region || "未選択" },
+                                    { label: "活動エリア（都道府県）", value: form.prefecture || "未選択" },
                                     ...(form.referrerSlug ? [{ label: "紹介コード", value: form.referrerSlug }] : []),
                                 ].map((row) => (
                                     <div key={row.label} className="flex items-center justify-between gap-4 py-3.5">

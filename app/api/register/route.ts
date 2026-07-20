@@ -6,19 +6,34 @@ import type { RegisterInput } from "@/features/auth/types";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { registerLimiter, getIp } from "@/lib/ratelimit";
+import { VALID_REGIONS, PREFECTURES_BY_REGION } from "@/features/auth/validation/register-schema";
 import { z } from "zod";
 
-const schema = z.object({
-    email: z.string().email().max(320),
-    password: z.string().min(8).max(100).regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/),
-    role: z.enum(["Athlete", "Trainer", "Crew", "Business"]),
-    region: z.enum(["北海道", "東北", "関東", "中部", "近畿", "中国・四国", "九州・沖縄"]).optional(),
-    displayName: z.string().max(50).optional(),
-    slug: z.string().min(3).max(30).regex(/^[a-z0-9_.]+$/),
-    referrerSlug: z.string().max(64).optional(),
-    redirectTo: z.string().max(500).optional(),
-    termsAccepted: z.literal(true),
-}).strict();
+const schema = z
+    .object({
+        email: z.string().email().max(320),
+        password: z.string().min(8).max(100).regex(/^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/),
+        role: z.enum(["Athlete", "Trainer", "Crew", "Business"]),
+        region: z.enum(VALID_REGIONS, { message: "活動エリア（地方）を選択してください" }),
+        prefecture: z.string().max(20).optional().transform((v) => (v === "" || v === undefined ? undefined : v)),
+        displayName: z.string().max(50).optional(),
+        slug: z.string().min(3).max(30).regex(/^[a-z0-9_.]+$/),
+        referrerSlug: z.string().max(64).optional(),
+        redirectTo: z.string().max(500).optional(),
+        termsAccepted: z.literal(true),
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+        if (!data.prefecture) return;
+        const allowed = PREFECTURES_BY_REGION[data.region];
+        if (!allowed.includes(data.prefecture)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["prefecture"],
+                message: "選択した地方に属する都道府県を選んでください",
+            });
+        }
+    });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {

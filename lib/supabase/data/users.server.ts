@@ -171,6 +171,7 @@ export async function createUser(params: {
     email: string;
     role: string;
     region?: string | null;
+    prefecture?: string | null;
     fromSlug?: string;
     referrerSlug?: string;
     isFoundingMember?: boolean;
@@ -190,6 +191,7 @@ export async function createUser(params: {
             email: params.email,
             role: params.role,
             region: params.region ?? null,
+            prefecture: params.prefecture ?? null,
             rand_a: randA,
             rand_b: randB,
             from_slug: params.fromSlug ?? null,
