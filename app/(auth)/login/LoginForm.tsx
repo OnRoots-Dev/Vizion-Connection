@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
+import { LoginAmbientBg } from "@/components/auth/LoginAmbientBg";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 
@@ -110,7 +110,7 @@ export default function LoginForm() {
 
     return (
         <div className="vc-auth-shell">
-            <AuthAmbientBg />
+            <LoginAmbientBg />
 
             <a
                 href={MARKETING_HOME_URL}
