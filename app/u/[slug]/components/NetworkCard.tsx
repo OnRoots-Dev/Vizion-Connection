@@ -8,7 +8,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { MOTION } from "@/lib/design/tokens";
-import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle } from "../profile-theme";
+import {
+    VP,
+    VP_DISPLAY_FONT,
+    VP_MONO_FONT,
+    vpSectionTitle,
+    vpPanel,
+    vpCardHover,
+} from "../profile-theme";
 import NeonCountUp from "./NeonCountUp";
 import BondAudience from "../BondAudience";
 import BondButtonClient from "../BondButtonClient";
@@ -49,16 +56,16 @@ export default function NetworkCard({
         >
             <h2 style={vpSectionTitle}>Network</h2>
 
-            <div
+            <motion.div
                 style={{
-                    borderRadius: 16,
-                    border: `1px solid ${VP.border}`,
-                    background: VP.surface,
+                    ...vpPanel,
                     padding: 16,
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
                 }}
+                whileHover={reduceMotion ? undefined : vpCardHover}
+                transition={MOTION.slide}
             >
                 {/* 双方向カウント（常時） */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -135,7 +142,7 @@ export default function NetworkCard({
                         <BondAudience bondCount={bondCount} isBonded={initialBonded} accent={VP.neon} />
                     </div>
                 </Expandable>
-            </div>
+            </motion.div>
         </motion.section>
     );
 }

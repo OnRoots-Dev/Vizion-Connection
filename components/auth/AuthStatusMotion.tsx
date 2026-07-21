@@ -5,6 +5,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
+import { INTERACTION } from "@/lib/design/tokens";
 
 /** 登録中: 中心の Pulse と同心円の広がり */
 export function AuthPulseLoader({ label = "登録しています..." }: { label?: string }) {
@@ -163,12 +164,15 @@ export function AuthIconBadge({
         />
       )}
       <div
-        className="relative flex h-24 w-24 items-center justify-center rounded-[28px] text-[var(--electric)]"
+        className="relative flex h-24 w-24 items-center justify-center text-[var(--electric)]"
         style={{
+          borderRadius: INTERACTION.radius.glass,
           background: "linear-gradient(145deg, rgba(200,232,0,0.16), rgba(255,255,255,0.03))",
           border: "1.5px solid rgba(200,232,0,0.32)",
           boxShadow: "0 0 36px var(--electric-glow)",
-          backdropFilter: reduce ? "none" : "blur(12px)",
+          backdropFilter: reduce
+            ? "none"
+            : `blur(${INTERACTION.glass.scrimBlurPx}px)`,
         }}
       >
         {kind === "verify" && (

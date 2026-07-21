@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { INTERACTION } from "@/lib/design/tokens";
 
 type TabId = "profile" | "career" | "schedule";
 
@@ -17,9 +18,10 @@ function PulseStatItem({ label, value, suffix }: { label: string; value: number;
             style={{
                 textAlign: "center",
                 padding: "12px 8px",
-                borderRadius: 14,
+                borderRadius: INTERACTION.radius.card,
                 border: "1px solid rgba(255,255,255,0.07)",
                 background: "rgba(255,255,255,0.02)",
+                boxShadow: INTERACTION.hover.shadow.rest,
             }}
         >
             <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
@@ -82,9 +84,10 @@ export default function PublicProfileTabs({
         <section
             className="u4"
             style={{
-                borderRadius: 20,
+                borderRadius: INTERACTION.radius.card,
                 border: "1px solid rgba(255,255,255,0.08)",
                 background: "#0d0d1a",
+                boxShadow: INTERACTION.hover.shadow.rest,
                 overflow: "hidden",
             }}
         >

@@ -6,7 +6,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { MOTION } from "@/lib/design/tokens";
+import { MOTION, INTERACTION } from "@/lib/design/tokens";
 import { IconBond, IconCheck, IconCheer, IconJourney, IconStreak } from "@/lib/design/icons";
 import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle } from "../profile-theme";
 import Expandable from "./Expandable";
@@ -170,11 +170,11 @@ function BadgeGrid({
                         style={{
                             position: "relative",
                             padding: "16px 12px",
-                            borderRadius: 16,
+                            borderRadius: INTERACTION.radius.card,
                             textAlign: "center",
                             background: achieved ? VP.neonFaint : "rgba(255,255,255,0.02)",
                             border: `1px solid ${achieved ? VP.neonBorder : VP.border}`,
-                            boxShadow: achieved ? VP.glow : "none",
+                            boxShadow: achieved ? VP.glow : INTERACTION.hover.shadow.rest,
                         }}
                     >
                         <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>

@@ -4,7 +4,15 @@
 // 世界観: スポーティ・ダイナミック × ゲーミフィケーション（ミニマル高級感 × サイバー）
 
 import type { UserRole } from "@/features/auth/types";
-import { COLOR, GLOW, FONT, MOTION, ROLE_COLOR } from "@/lib/design/tokens";
+import {
+    COLOR,
+    GLOW,
+    FONT,
+    MOTION,
+    ROLE_COLOR,
+    INTERACTION,
+    cardSurfaceTokens,
+} from "@/lib/design/tokens";
 
 export const VP = {
     // Surfaces
@@ -75,9 +83,18 @@ export const vpSectionTitle = {
     fontFamily: VP_MONO_FONT,
 };
 
-// パネル共通スタイル
+// パネル共通スタイル（角丸・影は INTERACTION カードレシピ）
+const _card = cardSurfaceTokens();
 export const vpPanel = {
     background: VP.surface,
     border: `1px solid ${VP.border}`,
-    borderRadius: 16,
-};
+    borderRadius: _card.borderRadius,
+    boxShadow: _card.boxShadowRest,
+} as const;
+
+/** カードホバー（リフト + 影）— motion whileHover 用 */
+export const vpCardHover = {
+    y: INTERACTION.hover.y,
+    scale: INTERACTION.hover.scale,
+    boxShadow: INTERACTION.hover.shadow.hover,
+} as const;

@@ -239,14 +239,14 @@ export default function ComponentGalleryClient({
                 used="auth 系は PRESS_SCALE 定数利用、コンポーネント自体は少数"
               />
               <StateRow label="default">
-                <Pressable className="rounded-lg bg-[#C8E800] px-4 py-2 text-sm font-bold text-black">
+                <Pressable className="bg-[#C8E800] px-4 py-2 text-sm font-bold text-black">
                   Press me (scale {PRESS_SCALE})
                 </Pressable>
               </StateRow>
               <StateRow label="disabled">
                 <Pressable
                   disabled
-                  className="rounded-lg bg-[#C8E800] px-4 py-2 text-sm font-bold text-black opacity-50"
+                  className="bg-[#C8E800] px-4 py-2 text-sm font-bold text-black opacity-50"
                 >
                   Disabled
                 </Pressable>
@@ -299,15 +299,11 @@ export default function ComponentGalleryClient({
                 path="globals.css · .vc-auth-shell / inline glass"
                 used="login / register / reset / thanks"
               />
-              <div
-                className="rounded-[20px] border border-white/[0.08] px-5 py-6"
-                style={{
-                  background: "rgba(10,10,10,0.72)",
-                  backdropFilter: "blur(20px) saturate(160%)",
-                }}
-              >
+              <div className="vc-auth-glass px-5 py-6">
                 <p className="m-0 font-mono text-[10px] tracking-widest text-[#C8E800]">AUTH GLASS</p>
-                <p className="mt-2 text-sm text-white/50">コンポーネントではなくパターン共有</p>
+                <p className="mt-2 text-sm text-white/50">
+                  INTERACTION.radius.glass / blur / shadow（.vc-auth-glass）
+                </p>
               </div>
             </Panel>
           </div>

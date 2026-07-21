@@ -7,9 +7,9 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { MOTION } from "@/lib/design/tokens";
+import { MOTION, INTERACTION } from "@/lib/design/tokens";
 import { IconArrowRight, IconCheer } from "@/lib/design/icons";
-import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle } from "../profile-theme";
+import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle, vpCardHover } from "../profile-theme";
 
 export type TimelineEntry = {
     id: string;
@@ -73,11 +73,13 @@ function EntryCard({ entry, index, compact }: { entry: TimelineEntry; index: num
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-20px" }}
                 transition={{ ...MOTION.pop, delay: reduceMotion ? 0 : (index % 4) * 0.05 }}
+                whileHover={reduceMotion ? undefined : vpCardHover}
                 style={{
                     position: "relative",
-                    borderRadius: 14,
+                    borderRadius: INTERACTION.radius.card,
                     border: `1px solid ${VP.border}`,
                     background: "rgba(255,255,255,0.02)",
+                    boxShadow: INTERACTION.hover.shadow.rest,
                     padding: compact ? 12 : 14,
                     overflow: "hidden",
                 }}
@@ -155,7 +157,7 @@ export default function TimelineStack({
             <h2 style={vpSectionTitle}>{title}</h2>
 
             {entries.length === 0 ? (
-                <div style={{ borderRadius: 16, border: `1px solid ${VP.border}`, background: "rgba(255,255,255,0.02)", padding: "28px 16px", textAlign: "center" }}>
+                <div style={{ borderRadius: INTERACTION.radius.card, border: `1px solid ${VP.border}`, background: "rgba(255,255,255,0.02)", boxShadow: INTERACTION.hover.shadow.rest, padding: "28px 16px", textAlign: "center" }}>
                     <p style={{ margin: 0, fontSize: 13, color: VP.sub, lineHeight: 1.8 }}>まだ公開された活動記録がありません。</p>
                 </div>
             ) : (

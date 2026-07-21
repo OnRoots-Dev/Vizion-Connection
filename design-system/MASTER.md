@@ -50,7 +50,102 @@
 
 - **4pxグリッド**: `SPACE` = 4 / 8 / 12 / 16 / 24 / 32 / 48 のみ使用（18px等は禁止）
 - セクション間 32px、パネル内 16px、要素間 8–12px
-- 角丸 `RADIUS`: 8（小要素）/ 12（ボタン・チップ・入力 = `--vc-radius`）/ 16（カード・パネル）/ 999（ピル）
+- 角丸 `RADIUS` / `INTERACTION.radius`（同値）:
+  - 8（小要素）
+  - **12** ボタン・チップ・**入力**（`--vc-radius` / `md`）
+  - **16** **カード**・パネル（`lg`）
+  - **28** auth ガラスカード・大型モーダルシェル（`xl` / `glass`）
+  - 999 ピル
+
+## 共通インタラクションレシピ（`INTERACTION`）
+
+**今後すべてのボタン・カード実装が参照する単一基準。**  
+正本: `lib/design/tokens.ts` の `INTERACTION`（および `SPRING_*`）。  
+実装の入口: `components/ui/Pressable.tsx`（押下）、`lib/motion/apple-springs.ts`（spring の re-export）。
+
+### 1. 押下フィードバック
+
+| 項目 | 値 | コード |
+|---|---|---|
+| scale | **0.97** | `INTERACTION.press.scale` / `PRESS_SCALE` |
+| spring | `type: "spring"`, **stiffness 600**, **damping 32**, **mass 0.5** | `INTERACTION.press.transition` / `SPRING_PRESS` / `MOTION.press` |
+
+```ts
+whileTap={{ scale: INTERACTION.press.scale }}
+transition={INTERACTION.press.transition}
+// または <Pressable> / PRESS_SCALE
+```
+
+**統一メモ**: 旧 `TAP_SCALE = 0.96` と `MOTION.press.damping: 30`（mass なし）は廃止し、Pressable 実値（0.97 / damping 32 / mass 0.5）に揃えた。
+
+### 2. ホバー時のリフトアップ
+
+| 項目 | 値 | コード |
+|---|---|---|
+| Y 移動 | **-2px**（上） | `INTERACTION.hover.y` |
+| scale 上限 | **1.02** | `INTERACTION.hover.scale` |
+| box-shadow 静止 | `0 4px 16px rgba(0,0,0,0.28)` | `INTERACTION.hover.shadow.rest` |
+| box-shadow ホバー | `0 12px 32px rgba(0,0,0,0.42)` | `INTERACTION.hover.shadow.hover` |
+
+```ts
+whileHover={{ y: INTERACTION.hover.y, scale: INTERACTION.hover.scale }}
+// style / animate で shadow.rest ↔ shadow.hover を切替
+```
+
+### 3. 角丸スケール
+
+| 用途 | px | トークン |
+|---|---|---|
+| ボタン | 12 | `INTERACTION.radius.button` / `RADIUS.md` |
+| 入力欄 | 12 | `INTERACTION.radius.input` / `RADIUS.md` |
+| カード | 16 | `INTERACTION.radius.card` / `RADIUS.lg` |
+| ガラス / 大型シェル | 28 | `INTERACTION.radius.glass` / `RADIUS.xl` |
+
+Tailwind 対応の目安: 12 → `rounded-xl`、16 → `rounded-2xl`、28 → `rounded-[28px]`。
+
+### 4. 半透明素材（glass）
+
+| 用途 | 値 | コード |
+|---|---|---|
+| 標準ガラス blur | **24px** | `INTERACTION.glass.blurPx` |
+| saturate | **160%** | `INTERACTION.glass.saturatePct` |
+| モーダルスクラム blur | **12px** | `INTERACTION.glass.scrimBlurPx` |
+| 強フロスト（ログイン等・例外） | **40px** | `INTERACTION.glass.blurHeavyPx` |
+
+```css
+backdrop-filter: blur(24px) saturate(160%);
+/* モーダル背後: blur(12px) */
+```
+
+`prefers-reduced-transparency` 時は blur を外し不透明サーフェスへ。
+
+**実装ヘルパー**（`lib/design/tokens.ts`）:
+- `cardSurfaceTokens()` — 不透明カード（SectionCard / 公開プロフィール `vpPanel`）
+- `authGlassTokens({ heavy?, reducedTransparency? })` — auth ガラス（register / reset / thanks）
+- CSS: `.vc-login-glass`（login・heavy blur）/ `.vc-auth-glass`（標準 blur）— 変数 `--vc-radius-glass` / `--vc-glass-blur*` / `--vc-shadow-*` は上記と同値
+
+### 5. トランジション（duration / easing / spring）
+
+| 用途 | Motion（正） | CSS fallback |
+|---|---|---|
+| ボタン押下 | `INTERACTION.transition.press` = SPRING_PRESS | `100ms` + `cubic-bezier(0.22, 1, 0.36, 1)` |
+| カード出現 | `INTERACTION.transition.cardEnter` = SPRING_CARD_ENTER（stiffness 520 / damping 40 / mass 0.7） | `280ms` + 同 easing |
+| 画面遷移 | `INTERACTION.transition.page` = SPRING_PAGE（stiffness 380 / damping 34 / mass 0.9） | `320ms` + 同 easing |
+| reduced-motion | `INTERACTION.transition.reduced`（tween 0.2s easeOut） | — |
+
+`lib/motion/apple-springs.ts`: `springPress` / `springSnap`(= cardEnter) / `springDefault`(= page) / `fadeReduced` は上記の re-export。
+
+### モーション 3 リズム（`MOTION`）
+
+| トークン | spring | 用途 |
+|---|---|---|
+| `MOTION.press` | = SPRING_PRESS | 押下応答 |
+| `MOTION.pop` | stiffness 300 / damping 14 | 入場・報酬（軽いオーバーシュート） |
+| `MOTION.slide` | stiffness 260 / damping 24 | 開閉・レイアウト遷移 |
+
+- 入場 stagger は 40–60ms/項目
+- 報酬演出（Cheer送信・Bond成立・達成バッジ）のみ強めのフィードバック（パーティクル・リング衝撃波・シャイン）を許可
+- **全アニメーションは `useReducedMotion` / `prefers-reduced-motion` でフォールバック必須**
 
 ## アイコン辞書（`lib/design/icons.tsx`）
 
@@ -67,18 +162,6 @@
 | 開閉 | `IconChevronDown` | Expandable 用 |
 
 線画は stroke 2px / viewBox 24 で統一。既知の残課題: ダッシュボードのコンディション絵文字（`TimelineView` の 😵😕🙂🔥🚀）は別途置換予定。
-
-## モーション（3トークンのみ）
-
-| トークン | spring | 用途 |
-|---|---|---|
-| `MOTION.press` | stiffness 600 / damping 30 | 押下応答。`whileTap: scale 0.96` |
-| `MOTION.pop` | stiffness 300 / damping 14 | 入場・報酬（軽いオーバーシュート） |
-| `MOTION.slide` | stiffness 260 / damping 24 | 開閉・レイアウト遷移 |
-
-- hover は `scale 1.02` まで。入場 stagger は 40–60ms/項目
-- 報酬演出（Cheer送信・Bond成立・達成バッジ）のみ強めのフィードバック（パーティクル・リング衝撃波・シャイン）を許可
-- **全アニメーションは `useReducedMotion` / `prefers-reduced-motion` でフォールバック必須**
 
 ## アクセシビリティ
 

@@ -128,29 +128,45 @@ export default function LoginForm() {
             </a>
 
             <motion.div
-                className="relative z-10 w-full max-w-[400px] rounded-[28px] border border-white/[0.08] px-6 py-8 sm:px-8 sm:py-9"
-                style={{
-                    background: "rgba(10,10,10,0.72)",
-                    backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-                    WebkitBackdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-                    boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
-                }}
+                className={`relative z-10 w-full max-w-[400px] overflow-hidden px-6 py-8 sm:px-8 sm:py-9 ${
+                    reduce ? "vc-login-glass vc-login-glass--solid" : "vc-login-glass"
+                }`}
                 initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={reduce ? fadeReduced : springSnap}
             >
+                {/* グラス上面ハイライト（光が乗る縁） */}
+                <div
+                    className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                    style={{
+                        background:
+                            "linear-gradient(90deg, transparent, rgba(255,255,255,0.22) 25%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.22) 75%, transparent)",
+                    }}
+                    aria-hidden
+                />
+                {/* すりガラスの白霞 */}
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        borderRadius: "inherit",
+                        background:
+                            "linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 35%, rgba(0,0,0,0.12) 100%)",
+                    }}
+                    aria-hidden
+                />
+                <div className="relative z-[1]">
                 {/* 見出し */}
                 <div className="mb-7 text-center">
                     <p
                         className="m-0 mb-3 text-[10px] font-bold uppercase tracking-[0.2em]"
                         style={{ color: "var(--electric)", fontFamily: "monospace" }}
                     >
-                        SIGN IN
+                        LOG IN
                     </p>
                     <h1 className="m-0 text-[1.5rem] font-bold tracking-[-0.025em] text-white sm:text-[1.65rem]">
                         ログインする
                     </h1>
-                    <p className="m-0 mx-auto mt-2.5 max-w-[30ch] text-[13.5px] leading-relaxed text-white/45">
+                    <p className="m-0 mx-auto mt-2.5 max-w-[30ch] text-[13.5px] leading-relaxed text-white/50">
                         あなたの挑戦と Pulse が、ここで待っています。
                     </p>
                 </div>
@@ -293,19 +309,20 @@ export default function LoginForm() {
                     </motion.button>
                 </form>
 
-                <div className="mt-7 space-y-3 border-t border-white/[0.06] pt-6 text-center">
-                    <p className="m-0 text-xs text-white/35">
+                <div className="mt-7 space-y-3 border-t border-white/[0.08] pt-6 text-center">
+                    <p className="m-0 text-xs text-white/40">
                         アカウントをお持ちでない方
                         <Link
                             href="/register"
-                            className="ml-1.5 font-semibold text-white/70 underline-offset-4 transition-colors hover:text-white hover:underline"
+                            className="ml-1.5 font-semibold text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
                         >
                             無料で登録
                         </Link>
                     </p>
-                    <p className="m-0 text-[11px] leading-relaxed text-white/25">
+                    <p className="m-0 text-[11px] leading-relaxed text-white/30">
                         ログインすると、あなたの Pulse と挑戦の記録に戻れます。
                     </p>
+                </div>
                 </div>
             </motion.div>
         </div>

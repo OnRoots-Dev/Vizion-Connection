@@ -8,7 +8,7 @@ import { useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { MOTION, TAP_SCALE } from "@/lib/design/tokens";
 import { IconChevronDown } from "@/lib/design/icons";
-import { VP, VP_MONO_FONT } from "../profile-theme";
+import { VP, VP_MONO_FONT, vpPanel } from "../profile-theme";
 
 export default function Expandable({
     title,
@@ -31,9 +31,8 @@ export default function Expandable({
     return (
         <section
             style={{
-                borderRadius: 16,
+                ...vpPanel,
                 border: `1px solid ${open ? VP.neonBorder : VP.border}`,
-                background: VP.surface,
                 overflow: "hidden",
                 transition: "border-color .2s",
             }}

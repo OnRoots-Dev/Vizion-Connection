@@ -82,25 +82,187 @@ export const SPACE = {
 } as const;
 
 // ── 角丸（--vc-radius = md） ─────────────────────────────────────────────
+// ボタン / 入力 / カードは INTERACTION.radius と同値（下記 RECIPE を正とする）
 export const RADIUS = {
     sm: 8,
-    md: 12,   // ボタン・チップ・入力
-    lg: 16,   // カード・パネル
+    md: 12,   // ボタン・チップ・入力（INTERACTION.radius.button / input）
+    lg: 16,   // カード・パネル（INTERACTION.radius.card）
+    xl: 28,   // auth ガラスカード・大型モーダルシェル（INTERACTION.radius.glass）
     pill: 999,
 } as const;
 
-// ── モーショントークン（全アニメーションはこの3種のリズムを使う） ─────────
-// PRESS: 押下・即応（tap 0.96 → 復帰）
-// POP:   入場・報酬（軽いオーバーシュートで「跳ねる」）
-// SLIDE: 開閉・レイアウト遷移（滑らかに追従）
-export const MOTION = {
-    press: { type: "spring", stiffness: 600, damping: 30 },
-    pop: { type: "spring", stiffness: 300, damping: 14 },
-    slide: { type: "spring", stiffness: 260, damping: 24 },
+// ── 共通インタラクションレシピ（ボタン・カード実装の単一基準） ───────────
+// design-system/MASTER.md 「共通インタラクションレシピ」と同値を保つこと。
+// Framer Motion / Motion の Transition 記法。
+
+/** 押下 spring（Pressable / whileTap の正） */
+export const SPRING_PRESS = {
+    type: "spring",
+    stiffness: 600,
+    damping: 32,
+    mass: 0.5,
 } as const;
 
-export const TAP_SCALE = 0.96;
-export const HOVER_SCALE = 1.02;
+/** カード・小さな UI の入場（旧 springSnap） */
+export const SPRING_CARD_ENTER = {
+    type: "spring",
+    stiffness: 520,
+    damping: 40,
+    mass: 0.7,
+} as const;
+
+/** 画面遷移・レイアウト追従（旧 springDefault） */
+export const SPRING_PAGE = {
+    type: "spring",
+    stiffness: 380,
+    damping: 34,
+    mass: 0.9,
+} as const;
+
+/** 報酬・ポップ（軽いオーバーシュート） */
+export const SPRING_POP = {
+    type: "spring",
+    stiffness: 300,
+    damping: 14,
+} as const;
+
+/** 開閉・スライド */
+export const SPRING_SLIDE = {
+    type: "spring",
+    stiffness: 260,
+    damping: 24,
+} as const;
+
+/**
+ * 共通インタラクションレシピ — 今後のボタン・カードはここを参照する。
+ *
+ * 1. press … 押下フィードバック
+ * 2. hover … リフトアップ（Y + 影 2 段階）
+ * 3. radius … 角丸（ボタン / カード / 入力 / ガラス）
+ * 4. glass … 半透明素材（blur / saturate）
+ * 5. transition … 用途別 spring と CSS fallback
+ */
+export const INTERACTION = {
+    /** 1. 押下フィードバック */
+    press: {
+        /** whileTap / active の scale。Pressable の PRESS_SCALE と同値 */
+        scale: 0.97,
+        transition: SPRING_PRESS,
+    },
+
+    /** 2. ホバー時のリフトアップ */
+    hover: {
+        /** whileHover scale 上限 */
+        scale: 1.02,
+        /** Y 軸リフト（px・上方向が負） */
+        y: -2,
+        shadow: {
+            /** 静止時 */
+            rest: "0 4px 16px rgba(0,0,0,0.28)",
+            /** ホバー時 */
+            hover: "0 12px 32px rgba(0,0,0,0.42)",
+        },
+    },
+
+    /** 3. 角丸スケール（px）。RADIUS.* と同値 */
+    radius: {
+        button: 12, // RADIUS.md
+        input: 12,  // RADIUS.md
+        card: 16,   // RADIUS.lg
+        glass: 28,  // RADIUS.xl — auth ガラス / 大型モーダル
+    },
+
+    /**
+     * 4. 半透明素材
+     * - blurPx / saturatePct: auth ガラスカード・dashboard 浮遊パネルの共通値
+     * - scrimBlurPx: モーダル背後の dim オーバーレイ
+     * CSS: `blur(${blurPx}px) saturate(${saturatePct}%)`
+     */
+    glass: {
+        blurPx: 24,
+        saturatePct: 160,
+        scrimBlurPx: 12,
+        /** ログイン等の強フロストが必要なときのみ（既定は blurPx） */
+        blurHeavyPx: 40,
+    },
+
+    /**
+     * 5. トランジション（用途別）
+     * Motion では `transition={INTERACTION.transition.press}` のように渡す。
+     * CSS のみの箇所は `css.*` を使う。
+     */
+    transition: {
+        /** ボタン押下・即応 */
+        press: SPRING_PRESS,
+        /** カード出現・小さな要素の入場 */
+        cardEnter: SPRING_CARD_ENTER,
+        /** 画面遷移・レイアウト */
+        page: SPRING_PAGE,
+        /** prefers-reduced-motion 時の短いクロスフェード */
+        reduced: { type: "tween", duration: 0.2, ease: "easeOut" } as const,
+        /** CSS transition 用（spring を使えない箇所） */
+        css: {
+            pressMs: 100,
+            cardMs: 280,
+            pageMs: 320,
+            /** ease-out 寄り（Apple 風） */
+            ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+        },
+    },
+} as const;
+
+// ── モーショントークン（3 リズム + レシピとの対応） ─────────────────────
+// PRESS → INTERACTION.press / transition.press
+// POP   → 入場・報酬（軽いオーバーシュート）
+// SLIDE → 開閉・レイアウト遷移
+export const MOTION = {
+    press: SPRING_PRESS,
+    pop: SPRING_POP,
+    slide: SPRING_SLIDE,
+} as const;
+
+/** @deprecated INTERACTION.press.scale を使う。互換のため残置 */
+export const TAP_SCALE = INTERACTION.press.scale;
+/** @deprecated INTERACTION.hover.scale を使う。互換のため残置 */
+export const HOVER_SCALE = INTERACTION.hover.scale;
 
 // 最小タップ領域（Apple HIG）
 export const MIN_TAP = 44;
+
+// ── カード面ヘルパー（角丸・影・blur を INTERACTION から解決） ──────────────
+
+/** 不透明カード（dashboard SectionCard / 公開プロフィール パネル） */
+export function cardSurfaceTokens() {
+    return {
+        borderRadius: INTERACTION.radius.card,
+        boxShadowRest: INTERACTION.hover.shadow.rest,
+        boxShadowHover: INTERACTION.hover.shadow.hover,
+        hoverY: INTERACTION.hover.y,
+        hoverScale: INTERACTION.hover.scale,
+    } as const;
+}
+
+/**
+ * Auth ガラスカード共通。
+ * @param reducedTransparency prefers-reduced-transparency / reduced-motion で blur オフ
+ * @param heavy ログイン等の強フロスト（blurHeavyPx）。既定は blurPx
+ */
+export function authGlassTokens(options?: {
+    reducedTransparency?: boolean;
+    heavy?: boolean;
+}) {
+    const g = INTERACTION.glass;
+    const blurPx = options?.heavy ? g.blurHeavyPx : g.blurPx;
+    const filter =
+        options?.reducedTransparency
+            ? "none"
+            : `blur(${blurPx}px) saturate(${g.saturatePct}%)`;
+    return {
+        borderRadius: INTERACTION.radius.glass,
+        boxShadow: INTERACTION.hover.shadow.hover,
+        backdropFilter: filter,
+        WebkitBackdropFilter: filter,
+        blurPx,
+        saturatePct: g.saturatePct,
+    } as const;
+}

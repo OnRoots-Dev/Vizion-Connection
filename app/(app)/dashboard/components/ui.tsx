@@ -19,13 +19,10 @@ import {
 import type { ThemeColors } from "../types";
 import { springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
+import { INTERACTION, RADIUS, cardSurfaceTokens } from "@/lib/design/tokens";
 
-const pressSpring: Transition = {
-    type: "spring",
-    stiffness: 600,
-    damping: 32,
-    mass: 0.5,
-};
+/** 押下 spring — INTERACTION.press.transition の正 */
+const pressSpring: Transition = { ...INTERACTION.press.transition };
 
 const hoverSpring: Transition = {
     type: "spring",
@@ -53,6 +50,7 @@ export function SectionCard({
 }) {
     const reduce = useReducedMotion();
     void t;
+    const card = cardSurfaceTokens();
 
     return (
         <motion.div
@@ -60,25 +58,30 @@ export function SectionCard({
             style={{
                 background: "#111118",
                 border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 12,
+                borderRadius: card.borderRadius,
                 padding: "20px 24px",
-                boxShadow: "0 0 0 rgba(0,0,0,0)",
+                boxShadow: card.boxShadowRest,
                 willChange: "transform, box-shadow",
             }}
             // 出現: 直前の presentation から target へ（再ターゲット可能）
             initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0, boxShadow: "0 0 0 rgba(0,0,0,0)" }}
+            animate={{ opacity: 1, y: 0, boxShadow: card.boxShadowRest }}
             transition={reduce ? fadeReduced : hoverSpring}
             whileHover={
                 reduce
                     ? undefined
                     : {
-                          y: -3,
-                          boxShadow: "0 14px 44px rgba(0,0,0,0.38)",
+                          y: card.hoverY,
+                          scale: card.hoverScale,
+                          boxShadow: card.boxShadowHover,
                       }
             }
             // hover 中の割込みも spring で現在値から戻る
-            whileTap={reduce ? undefined : { y: -1, scale: 0.995 }}
+            whileTap={
+                reduce
+                    ? undefined
+                    : { y: Math.min(0, card.hoverY / 2), scale: INTERACTION.press.scale }
+            }
         >
             {accentColor && (
                 <div
@@ -134,7 +137,7 @@ export function ActionPill({
         gap: 4,
         minHeight: 30,
         padding: "6px 11px",
-        borderRadius: 999,
+        borderRadius: RADIUS.pill,
         fontSize: 10,
         fontWeight: 800,
         fontFamily: "'Space Mono', 'SF Mono', 'Fira Code', monospace",
@@ -149,13 +152,21 @@ export function ActionPill({
         userSelect: "none",
     };
 
+    const hoverMotion = reduce
+        ? undefined
+        : {
+              y: INTERACTION.hover.y,
+              scale: INTERACTION.hover.scale,
+          };
+
     if (href) {
         return (
             <motion.a
                 href={href}
                 style={style}
-                whileTap={reduce ? undefined : { scale: PRESS_SCALE }}
-                transition={pressSpring}
+                whileTap={reduce ? undefined : { scale: INTERACTION.press.scale }}
+                whileHover={hoverMotion}
+                transition={INTERACTION.press.transition}
             >
                 {children}
             </motion.a>
@@ -167,8 +178,9 @@ export function ActionPill({
             type="button"
             onClick={onClick}
             style={style}
-            whileTap={reduce ? undefined : { scale: PRESS_SCALE }}
-            transition={pressSpring}
+            whileTap={reduce ? undefined : { scale: INTERACTION.press.scale }}
+            whileHover={hoverMotion}
+            transition={INTERACTION.press.transition}
         >
             {children}
         </motion.button>
@@ -307,17 +319,19 @@ function DashboardButton({
 }) {
     const reduce = useReducedMotion();
 
+    const btnRadius = INTERACTION.radius.button;
+
     const base: React.CSSProperties =
         variant === "primary"
             ? {
                   background: "#C8E800",
                   color: "#000000",
-                  borderRadius: 8,
+                  borderRadius: btnRadius,
                   padding: "11px 20px",
                   fontSize: 13,
                   fontWeight: 700,
                   border: "none",
-                  boxShadow: "0 0 20px rgba(200,232,0,0.28)",
+                  boxShadow: INTERACTION.hover.shadow.rest,
                   cursor: disabled ? "not-allowed" : "pointer",
                   opacity: disabled ? 0.45 : 1,
               }
@@ -326,7 +340,7 @@ function DashboardButton({
                     background: "transparent",
                     border: "1px solid rgba(255,255,255,0.16)",
                     color: "rgba(255,255,255,0.6)",
-                    borderRadius: 8,
+                    borderRadius: btnRadius,
                     padding: "10px 20px",
                     fontSize: 13,
                     fontWeight: 500,
@@ -337,7 +351,7 @@ function DashboardButton({
                     background: "rgba(255,59,48,0.12)",
                     border: "1px solid rgba(255,59,48,0.3)",
                     color: "#ff3b30",
-                    borderRadius: 8,
+                    borderRadius: btnRadius,
                     padding: "10px 20px",
                     fontSize: 13,
                     fontWeight: 500,
@@ -351,17 +365,33 @@ function DashboardButton({
             onClick={onClick}
             disabled={disabled}
             style={{ ...base, ...style, userSelect: "none" }}
-            whileTap={disabled || reduce ? undefined : { scale: PRESS_SCALE }}
+            whileTap={disabled || reduce ? undefined : { scale: INTERACTION.press.scale }}
             whileHover={
                 disabled || reduce
                     ? undefined
                     : variant === "primary"
-                      ? { boxShadow: "0 0 28px rgba(200,232,0,0.4)", filter: "brightness(1.04)" }
+                      ? {
+                            y: INTERACTION.hover.y,
+                            scale: INTERACTION.hover.scale,
+                            boxShadow: INTERACTION.hover.shadow.hover,
+                            filter: "brightness(1.04)",
+                        }
                       : variant === "secondary"
-                        ? { borderColor: "rgba(255,255,255,0.28)", color: "rgba(255,255,255,0.85)" }
-                        : { backgroundColor: "rgba(255,59,48,0.18)" }
+                        ? {
+                              y: INTERACTION.hover.y,
+                              scale: INTERACTION.hover.scale,
+                              borderColor: "rgba(255,255,255,0.28)",
+                              color: "rgba(255,255,255,0.85)",
+                              boxShadow: INTERACTION.hover.shadow.hover,
+                          }
+                        : {
+                              y: INTERACTION.hover.y,
+                              scale: INTERACTION.hover.scale,
+                              backgroundColor: "rgba(255,59,48,0.18)",
+                              boxShadow: INTERACTION.hover.shadow.hover,
+                          }
             }
-            transition={pressSpring}
+            transition={INTERACTION.press.transition}
         >
             {children}
         </motion.button>

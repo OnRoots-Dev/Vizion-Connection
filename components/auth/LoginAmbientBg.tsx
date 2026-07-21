@@ -1,60 +1,144 @@
 // components/auth/LoginAmbientBg.tsx
-// ログイン画面専用背景。「記録」と「繋がる」を控えめに可視化。
+// ログイン画面専用背景。「記録」と「繋がる」を可視化。
+// オーブ・ネットワークは画面外へはみ出し、点滅は要素ごとにバラバラ。
 // ブランド: electric #C8E800 / ダーク #07070e。reduced-motion 時は静止。
 
 "use client";
 
 import { useReducedMotion } from "framer-motion";
 
-/** 繋がる: ノード座標（viewBox 0–100） */
+/**
+ * 繋がる: ノード座標（viewBox 0–100 の「可視域」に対し、負〜100超で画面外へ）
+ * 画面内: おおよそ 8–92 / 画面外: <0 or >100
+ */
 const NODES = [
-  { x: 12, y: 28, r: 1.1, delay: 0 },
-  { x: 28, y: 42, r: 0.9, delay: 0.4 },
-  { x: 18, y: 62, r: 1.0, delay: 0.8 },
-  { x: 42, y: 22, r: 0.85, delay: 0.2 },
-  { x: 58, y: 38, r: 1.15, delay: 0.6 },
-  { x: 72, y: 24, r: 0.9, delay: 1.0 },
-  { x: 78, y: 52, r: 1.0, delay: 0.3 },
-  { x: 62, y: 68, r: 0.95, delay: 0.9 },
-  { x: 88, y: 36, r: 0.8, delay: 1.2 },
-  { x: 48, y: 58, r: 1.05, delay: 0.5 },
-  { x: 34, y: 74, r: 0.85, delay: 1.1 },
-  { x: 82, y: 72, r: 0.9, delay: 0.7 },
-] as const;
-
-/** 繋がる: エッジ（ノード index） */
-const EDGES: readonly [number, number][] = [
-  [0, 1],
-  [1, 2],
-  [0, 3],
-  [3, 4],
-  [4, 5],
-  [4, 6],
-  [5, 8],
-  [6, 7],
-  [7, 9],
-  [1, 9],
-  [9, 10],
-  [6, 11],
-  [7, 11],
-  [2, 10],
-  [3, 9],
-];
-
-/** 記録: タイムライン上の「エントリ」位置 */
-const RECORD_MARKS = [
-  { y: 18, delay: 0 },
-  { y: 32, delay: 1.2 },
-  { x: 0, y: 46, delay: 2.4 },
-  { y: 58, delay: 0.6 },
-  { y: 72, delay: 1.8 },
-  { y: 84, delay: 3.0 },
+  // 画面内
+  { x: 18, y: 32, r: 1.15 },
+  { x: 38, y: 22, r: 0.95 },
+  { x: 52, y: 48, r: 1.25 },
+  { x: 68, y: 28, r: 1.0 },
+  { x: 78, y: 58, r: 1.1 },
+  { x: 42, y: 68, r: 1.05 },
+  { x: 22, y: 58, r: 0.95 },
+  { x: 58, y: 78, r: 1.0 },
+  { x: 88, y: 42, r: 0.9 },
+  { x: 32, y: 42, r: 1.1 },
+  // 画面外・縁（はみ出し）
+  { x: -12, y: 18, r: 1.2 },
+  { x: -8, y: 55, r: 1.0 },
+  { x: -6, y: 88, r: 0.95 },
+  { x: 15, y: -10, r: 1.05 },
+  { x: 48, y: -14, r: 1.15 },
+  { x: 85, y: -8, r: 0.9 },
+  { x: 108, y: 12, r: 1.1 },
+  { x: 112, y: 48, r: 1.2 },
+  { x: 106, y: 82, r: 0.95 },
+  { x: 72, y: 108, r: 1.0 },
+  { x: 28, y: 110, r: 1.05 },
+  { x: -4, y: 105, r: 0.9 },
+  { x: 118, y: -6, r: 1.0 },
+  { x: 118, y: 108, r: 0.95 },
 ] as const;
 
 /**
+ * 繋がる: エッジ（本数を抑え、画面内外をまたぐ骨格のみ）
+ * 同時に明るく見えるのは点滅の sparse ピークで 2〜4 本程度になる想定
+ */
+const EDGES: readonly [number, number][] = [
+  // 内側の骨格（少なめ）
+  [0, 1],
+  [1, 2],
+  [2, 3],
+  [2, 5],
+  [0, 6],
+  [9, 2],
+  [4, 8],
+  [5, 7],
+  // 外→内（四辺から1〜2本ずつ）
+  [10, 0],
+  [11, 9],
+  [14, 2],
+  [15, 3],
+  [17, 4],
+  [18, 7],
+  [20, 5],
+  [12, 6],
+  // 長く画面を横切る線（2本だけ）
+  [10, 17],
+  [14, 20],
+];
+
+const ORBS = [
+  {
+    w: 560,
+    h: 560,
+    // 上端から大きくはみ出し
+    style: { top: "-18%", left: "42%", marginLeft: -280 } as const,
+    bg: "radial-gradient(circle, rgba(200,232,0,0.22) 0%, rgba(200,232,0,0.06) 42%, transparent 70%)",
+    salt: 3,
+  },
+  {
+    w: 420,
+    h: 420,
+    style: { bottom: "-22%", right: "-12%" } as const,
+    bg: "radial-gradient(circle, rgba(200,232,0,0.16) 0%, rgba(200,232,0,0.04) 48%, transparent 70%)",
+    salt: 7,
+  },
+  {
+    w: 380,
+    h: 380,
+    style: { top: "38%", left: "-16%" } as const,
+    bg: "radial-gradient(circle, rgba(200,232,0,0.14) 0%, transparent 68%)",
+    salt: 11,
+  },
+  {
+    w: 300,
+    h: 300,
+    style: { top: "-8%", right: "-10%" } as const,
+    bg: "radial-gradient(circle, rgba(200,232,0,0.12) 0%, transparent 68%)",
+    salt: 13,
+  },
+  {
+    w: 340,
+    h: 340,
+    style: { bottom: "-14%", left: "18%" } as const,
+    bg: "radial-gradient(circle, rgba(200,232,0,0.1) 0%, transparent 70%)",
+    salt: 19,
+  },
+] as const;
+
+/**
+ * 決定論的な疑似乱数（SSR/CSR 一致）。
+ * 周期・位相・点滅パターンを強くばらす。
+ */
+function blinkParams(index: number, salt: number) {
+  const n = ((index + 1) * 2654435761 + salt * 1013904223) >>> 0;
+  // 9–24s: ゆっくり＋個体差
+  const duration = 9 + (n % 1500) / 100;
+  // 開始位相を広く散らす
+  const delay = -((n >>> 7) % 24000) / 1000;
+  // 3種の非対称キーフレーム
+  const variant = n % 3;
+  // ピークの明るさ（要素ごと）
+  const peak = 0.55 + ((n >>> 14) % 40) / 100; // 0.55–0.94
+  const dim = 0.12 + ((n >>> 20) % 22) / 100; // 0.12–0.33
+  return { duration, delay, variant, peak, dim };
+}
+
+/** 線専用: ピークを短く・暗時間を長く → 同時に目立つ本数を制限 */
+function edgeBlinkParams(index: number) {
+  const base = blinkParams(index, 17);
+  // さらに周期を伸ばし、ピークは控えめ
+  return {
+    ...base,
+    duration: base.duration + 4 + (index % 5), // 13–33s 帯
+    peak: 0.42 + (base.peak - 0.55) * 0.6, // ~0.42–0.65
+    dim: 0.06 + base.dim * 0.35, // ~0.10–0.18（ほぼ消灯）
+  };
+}
+
+/**
  * ログイン背景。pointer-events: none。
- * - 記録: 左の縦タイムライン + 点滅する記録ノード
- * - 繋がる: 薄いネットワークの線とノード
  */
 export function LoginAmbientBg() {
   const reduce = useReducedMotion();
@@ -69,13 +153,13 @@ export function LoginAmbientBg() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 80% 55% at 50% -8%, rgba(200,232,0,0.08) 0%, transparent 52%), radial-gradient(ellipse 60% 45% at 80% 90%, rgba(200,232,0,0.04) 0%, transparent 50%), radial-gradient(ellipse 50% 40% at 10% 70%, rgba(60,140,255,0.04) 0%, transparent 55%), #07070e",
+            "radial-gradient(ellipse 80% 55% at 50% -8%, rgba(200,232,0,0.08) 0%, transparent 52%), radial-gradient(ellipse 60% 45% at 80% 90%, rgba(200,232,0,0.05) 0%, transparent 50%), #07070e",
         }}
       />
 
-      {/* soft grid — 記録の「ノート」感 */}
+      {/* soft grid */}
       <div
-        className="absolute inset-0 opacity-[0.28]"
+        className="absolute inset-0 opacity-[0.24]"
         style={{
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
@@ -89,60 +173,78 @@ export function LoginAmbientBg() {
         }}
       />
 
-      {/* electric orbs */}
-      <div
-        className={`vc-auth-orb vc-auth-orb-a ${reduce ? "vc-auth-orb--static" : ""}`}
-        style={{
-          width: 400,
-          height: 400,
-          top: "6%",
-          left: "50%",
-          marginLeft: -200,
-          background:
-            "radial-gradient(circle, rgba(200,232,0,0.14) 0%, rgba(200,232,0,0.03) 42%, transparent 70%)",
-        }}
-      />
-      <div
-        className={`vc-auth-orb vc-auth-orb-b ${reduce ? "vc-auth-orb--static" : ""}`}
-        style={{
-          width: 260,
-          height: 260,
-          bottom: "10%",
-          right: "6%",
-          background:
-            "radial-gradient(circle, rgba(200,232,0,0.09) 0%, transparent 68%)",
-        }}
-      />
-      <div
-        className={`vc-auth-orb vc-auth-orb-c ${reduce ? "vc-auth-orb--static" : ""}`}
-        style={{
-          width: 200,
-          height: 200,
-          top: "48%",
-          left: "4%",
-          background:
-            "radial-gradient(circle, rgba(60,140,255,0.07) 0%, transparent 70%)",
-        }}
-      />
+      {/* electric orbs — 画面外にはみ出し + 個別にゆっくり点滅 */}
+      {ORBS.map((orb, i) => {
+        const { duration, delay, variant, peak, dim } = blinkParams(i, orb.salt);
+        // オーブは完全に消えないよう dim を底上げ
+        const orbDim = 0.45 + dim * 0.5; // ~0.51–0.615
+        const orbPeak = 0.75 + peak * 0.25; // ~0.89–0.985
+        return (
+          <div
+            key={`orb-${i}`}
+            className={
+              reduce
+                ? "vc-auth-orb vc-auth-orb--static"
+                : `vc-auth-orb vc-login-orb-blink vc-login-blink-v${variant}`
+            }
+            style={{
+              width: orb.w,
+              height: orb.h,
+              ...orb.style,
+              background: orb.bg,
+              ...(reduce
+                ? { opacity: 0.75 }
+                : ({
+                    ["--blink-dur" as string]: `${duration * 1.15}s`,
+                    ["--blink-delay" as string]: `${delay}s`,
+                    ["--blink-peak" as string]: String(orbPeak),
+                    ["--blink-dim" as string]: String(orbDim),
+                  } as React.CSSProperties)),
+            }}
+          />
+        );
+      })}
 
-      {/* ── 繋がる: ネットワーク ── */}
+      {/* ── 繋がる: ネットワーク（可視域より大きく、縁で切れる） ── */}
       <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 100 100"
+        className="absolute"
+        viewBox="-18 -18 136 136"
         preserveAspectRatio="xMidYMid slice"
-        style={{ opacity: 0.55 }}
+        style={{
+          opacity: 0.72,
+          // 画面より一回り大きくして、外のノード・線が自然にクリップされる
+          width: "138%",
+          height: "138%",
+          top: "-19%",
+          left: "-19%",
+        }}
       >
         <defs>
           <linearGradient id="login-edge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(200,232,0,0.0)" />
-            <stop offset="40%" stopColor="rgba(200,232,0,0.35)" />
-            <stop offset="100%" stopColor="rgba(60,140,255,0.2)" />
+            <stop offset="0%" stopColor="rgba(200,232,0,0.18)" />
+            <stop offset="45%" stopColor="rgba(200,232,0,0.7)" />
+            <stop offset="100%" stopColor="rgba(200,232,0,0.32)" />
           </linearGradient>
+          <radialGradient id="login-node-core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(220,245,100,0.9)" />
+            <stop offset="35%" stopColor="rgba(200,232,0,0.55)" />
+            <stop offset="70%" stopColor="rgba(200,232,0,0.14)" />
+            <stop offset="100%" stopColor="rgba(200,232,0,0)" />
+          </radialGradient>
+          <radialGradient id="login-node-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(200,232,0,0.28)" />
+            <stop offset="55%" stopColor="rgba(200,232,0,0.08)" />
+            <stop offset="100%" stopColor="rgba(200,232,0,0)" />
+          </radialGradient>
+          <filter id="login-node-blur" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" />
+          </filter>
         </defs>
 
         {EDGES.map(([a, b], i) => {
           const n0 = NODES[a];
           const n1 = NODES[b];
+          const { duration, delay, variant, peak, dim } = edgeBlinkParams(i);
           return (
             <line
               key={`e-${i}`}
@@ -151,115 +253,98 @@ export function LoginAmbientBg() {
               x2={n1.x}
               y2={n1.y}
               stroke="url(#login-edge-grad)"
-              strokeWidth={0.12}
-              className={reduce ? undefined : "vc-login-edge"}
+              strokeWidth={0.2}
+              strokeLinecap="round"
+              className={
+                reduce
+                  ? undefined
+                  : `vc-login-edge vc-login-edge--sparse vc-login-blink-v${variant}`
+              }
               style={
                 reduce
-                  ? { opacity: 0.35 }
-                  : ({ ["--edge-delay" as string]: `${i * 0.35}s` } as React.CSSProperties)
+                  ? { opacity: 0.28 }
+                  : ({
+                      ["--blink-dur" as string]: `${duration}s`,
+                      ["--blink-delay" as string]: `${delay}s`,
+                      ["--blink-peak" as string]: String(peak),
+                      ["--blink-dim" as string]: String(dim),
+                    } as React.CSSProperties)
               }
             />
           );
         })}
 
-        {NODES.map((n, i) => (
-          <g
-            key={`n-${i}`}
-            className={reduce ? undefined : "vc-login-node-g"}
-            style={
-              reduce
-                ? undefined
-                : ({
-                    transformBox: "fill-box",
-                    transformOrigin: "center",
-                    animationDelay: `${n.delay}s`,
-                  } as React.CSSProperties)
-            }
-          >
-            {!reduce && (
-              <circle
-                cx={n.x}
-                cy={n.y}
-                r={n.r * 2.6}
-                fill="rgba(200,232,0,0.1)"
-                className="vc-login-node-halo"
-              />
-            )}
-            <circle
-              cx={n.x}
-              cy={n.y}
-              r={n.r}
-              fill="rgba(200,232,0,0.6)"
-            />
-          </g>
-        ))}
+        <g filter="url(#login-node-blur)" className="vc-login-nodes-layer">
+          {NODES.map((n, i) => {
+            const { duration, delay, variant, peak, dim } = blinkParams(i, 41);
+            return (
+              <g
+                key={`n-${i}`}
+                className={
+                  reduce ? undefined : `vc-login-node-g vc-login-blink-v${variant}`
+                }
+                style={
+                  reduce
+                    ? { opacity: 0.75 }
+                    : ({
+                        transformBox: "fill-box",
+                        transformOrigin: "center",
+                        ["--blink-dur" as string]: `${duration}s`,
+                        ["--blink-delay" as string]: `${delay}s`,
+                        ["--blink-peak" as string]: String(peak),
+                        ["--blink-dim" as string]: String(dim),
+                      } as React.CSSProperties)
+                }
+              >
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r * 3.6}
+                  fill="url(#login-node-halo)"
+                />
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r * 1.7}
+                  fill="url(#login-node-core)"
+                />
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r * 0.35}
+                  fill="rgba(230,250,140,0.75)"
+                />
+              </g>
+            );
+          })}
+        </g>
       </svg>
 
-      {/* ── 記録: 縦タイムライン + エントリ ── */}
-      <div
-        className="absolute left-[8%] top-[14%] bottom-[14%] w-px sm:left-[12%]"
-        style={{
-          background:
-            "linear-gradient(to bottom, transparent, rgba(200,232,0,0.22) 15%, rgba(200,232,0,0.22) 85%, transparent)",
-          opacity: 0.7,
-        }}
-      >
-        {RECORD_MARKS.map((m, i) => (
-          <span
-            key={i}
-            className={reduce ? "vc-login-record-mark vc-login-record-mark--static" : "vc-login-record-mark"}
-            style={{
-              top: `${m.y}%`,
-              animationDelay: reduce ? undefined : `${m.delay}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 記録: 右側の薄いジャーニー線（対称のリズム） */}
-      <div
-        className="absolute right-[10%] top-[20%] bottom-[18%] w-px sm:right-[14%]"
-        style={{
-          background:
-            "linear-gradient(to bottom, transparent, rgba(200,232,0,0.12) 20%, rgba(200,232,0,0.12) 80%, transparent)",
-          opacity: 0.55,
-        }}
-      >
-        {[22, 40, 55, 70].map((y, i) => (
-          <span
-            key={i}
-            className={
-              reduce
-                ? "vc-login-record-mark vc-login-record-mark--static vc-login-record-mark--right"
-                : "vc-login-record-mark vc-login-record-mark--right"
-            }
-            style={{
-              top: `${y}%`,
-              animationDelay: reduce ? undefined : `${i * 0.9 + 0.4}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* 記録: ゆっくり流れる「ログ行」の気配（横線のフェード） */}
+      {/* 記録: ログ行の気配（左右にはみ出して流れる） */}
       {!reduce &&
-        [0, 1, 2].map((i) => (
-          <div
-            key={`log-${i}`}
-            className="vc-login-logline"
-            style={{
-              top: `${28 + i * 18}%`,
-              animationDelay: `${i * 2.8}s`,
-            }}
-          />
-        ))}
+        [0, 1, 2, 3].map((i) => {
+          const { duration, delay } = blinkParams(i, 29);
+          return (
+            <div
+              key={`log-${i}`}
+              className="vc-login-logline"
+              style={{
+                top: `${18 + i * 20}%`,
+                left: "-8%",
+                right: "-8%",
+                animationDuration: `${duration + 4}s`,
+                animationDelay: `${delay}s`,
+              }}
+            />
+          );
+        })}
 
-      {/* vignette — カード可読性を守る */}
+      {/* vignette: 中央を少し沈め、外周のネットワークは残す */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 70% 65% at 50% 48%, transparent 25%, rgba(7,7,14,0.55) 70%, rgba(7,7,14,0.88) 100%)",
+            "radial-gradient(ellipse 52% 46% at 50% 48%, rgba(7,7,14,0.4) 0%, transparent 56%, rgba(7,7,14,0.5) 100%)",
         }}
       />
     </div>

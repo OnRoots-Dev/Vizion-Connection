@@ -10,6 +10,7 @@ import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
 import { AuthIconBadge } from "@/components/auth/AuthStatusMotion";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
+import { authGlassTokens } from "@/lib/design/tokens";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
@@ -97,6 +98,7 @@ export default function ThanksClient({
   const content = resolveContent(type);
   const press = reduce ? undefined : { scale: PRESS_SCALE };
   const enter = reduce ? fadeReduced : springDefault;
+  const glass = authGlassTokens({ reducedTransparency: !!reduce });
   const welcomeTriggered = useRef(false);
 
   // 認証完了ページ表示後にウェルカムメールを自動送信（1回のみ）
@@ -137,12 +139,14 @@ export default function ThanksClient({
       </a>
 
       <motion.div
-        className="relative z-10 w-full max-w-[420px] rounded-[28px] border border-white/[0.08] px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9"
+        className={`relative z-10 w-full max-w-[420px] px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9 ${
+          reduce ? "vc-auth-glass vc-auth-glass--solid" : "vc-auth-glass"
+        }`}
         style={{
-          background: "rgba(10,10,10,0.72)",
-          backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-          WebkitBackdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
+          borderRadius: glass.borderRadius,
+          boxShadow: glass.boxShadow,
+          backdropFilter: glass.backdropFilter,
+          WebkitBackdropFilter: glass.WebkitBackdropFilter,
         }}
         initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

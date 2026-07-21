@@ -12,6 +12,7 @@ import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
 import { AuthPulseLoader, AuthSuccessMark } from "@/components/auth/AuthStatusMotion";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
+import { authGlassTokens } from "@/lib/design/tokens";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 const TERMS_URL = "https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link";
@@ -154,6 +155,7 @@ export default function RegisterForm() {
     const [direction, setDirection] = useState(1);
     const press = reduce ? undefined : { scale: PRESS_SCALE };
     const stepTr = reduce ? fadeReduced : stepTransition;
+    const glass = authGlassTokens({ reducedTransparency: !!reduce });
 
     const [role, setRole] = useState<Role>(() => {
         if (roleFromQuery && ROLES.some((r) => r.value === roleFromQuery)) {
@@ -321,12 +323,14 @@ export default function RegisterForm() {
             </a>
 
             <div
-                className="relative z-10 w-full max-w-md rounded-[28px] border border-white/[0.08] px-5 py-7 sm:px-7 sm:py-8"
+                className={`relative z-10 w-full max-w-md px-5 py-7 sm:px-7 sm:py-8 ${
+                    reduce ? "vc-auth-glass vc-auth-glass--solid" : "vc-auth-glass"
+                }`}
                 style={{
-                    background: "rgba(10,10,10,0.72)",
-                    backdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-                    WebkitBackdropFilter: reduce ? "none" : "blur(24px) saturate(160%)",
-                    boxShadow: "0 24px 80px rgba(0,0,0,0.45)",
+                    borderRadius: glass.borderRadius,
+                    boxShadow: glass.boxShadow,
+                    backdropFilter: glass.backdropFilter,
+                    WebkitBackdropFilter: glass.WebkitBackdropFilter,
                 }}
             >
                 <div className="mb-6 space-y-1 text-center">
@@ -704,7 +708,7 @@ export default function RegisterForm() {
                             )}
 
                             {!submitting && !succeeded && registerState?.kind === "pending_verification" && (
-                                <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] px-5 py-6">
+                                <div className="space-y-4 border border-white/10 bg-white/[0.04] px-5 py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
                                     <div className="space-y-2 text-center">
                                         <p className="text-xs font-bold tracking-[0.2em]" style={{ color: "var(--flame)" }}>PENDING</p>
                                         <h2 className="text-2xl font-bold text-white">仮登録済みです</h2>
@@ -765,7 +769,7 @@ export default function RegisterForm() {
                             )}
 
                             {!submitting && !succeeded && registerState?.kind === "already_registered" && (
-                                <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] px-5 py-6">
+                                <div className="space-y-4 border border-white/10 bg-white/[0.04] px-5 py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
                                     <div className="space-y-2 text-center">
                                         <p className="text-xs font-bold tracking-[0.2em]" style={{ color: "var(--flame)" }}>REGISTERED</p>
                                         <h2 className="text-2xl font-bold text-white">既に登録されています</h2>

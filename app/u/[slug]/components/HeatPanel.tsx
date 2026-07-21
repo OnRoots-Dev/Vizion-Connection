@@ -9,9 +9,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { MOTION } from "@/lib/design/tokens";
+import { MOTION, INTERACTION } from "@/lib/design/tokens";
 import { PUBLIC_PROFILE_ENGAGEMENT_EVENT, type PublicProfileEngagementDetail } from "../engagement-events";
-import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle } from "../profile-theme";
+import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpSectionTitle, vpCardHover } from "../profile-theme";
 import NeonCountUp from "./NeonCountUp";
 
 export type HeatSponsor = {
@@ -86,9 +86,10 @@ export default function HeatPanel({
                 key={`flash-${flash}`}
                 animate={flash && !reduceMotion ? { boxShadow: [VP.glow, VP.glowStrong, VP.glow] } : undefined}
                 transition={{ duration: 0.7, ease: "easeOut" }}
+                whileHover={reduceMotion ? undefined : vpCardHover}
                 style={{
                     padding: "24px 16px",
-                    borderRadius: 16,
+                    borderRadius: INTERACTION.radius.card,
                     background: VP.neonFaint,
                     border: `1px solid ${VP.neonBorder}`,
                     boxShadow: VP.glow,
