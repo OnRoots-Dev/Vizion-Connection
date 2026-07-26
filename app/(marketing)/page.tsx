@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import LpHomeClient from "./LpHomeClient";
+import { SiteHeader } from "@/components/marketing/site-header";
+import { Hero } from "@/components/marketing/hero";
+import { ConnectSection } from "@/components/marketing/connect-section";
+import { ProfileCardsDemo } from "@/components/marketing/profile-cards-demo";
+import { RolesSection } from "@/components/marketing/roles-section";
+import { NetworkEffectSection } from "@/components/marketing/network-effect-section";
+import { CtaSection } from "@/components/marketing/cta-section";
+import { SiteFooter } from "@/components/marketing/site-footer";
 
 export const metadata: Metadata = {
   title: "Vizion Connection — 積み重ねが、見える。応援が、届く。",
@@ -8,9 +15,22 @@ export const metadata: Metadata = {
 };
 
 /**
- * マーケティング LP — lp-prototype.html のデザイン言語を Next.js に移植。
- * Palette: lime #C8E800 / near-black #050608 / Bebas Neue + Noto Sans JP
+ * マーケティング LP — Vizion-Connection-UI提案のデザイン言語を採用。
+ * Palette: lime #C8E800 / near-black #050608 / Network map visualization
  */
 export default function MarketingHomePage() {
-  return <LpHomeClient />;
+  return (
+    <div className="relative min-h-screen bg-background">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <ConnectSection />
+        <ProfileCardsDemo />
+        <RolesSection />
+        <NetworkEffectSection />
+        <CtaSection />
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }
