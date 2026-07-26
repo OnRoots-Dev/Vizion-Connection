@@ -1,3 +1,6 @@
+// lib/ads/adSlots.ts
+// フィード広告の枠・ティア設定（旧 src/constants/adSlots.ts）
+
 export const AD_CONFIG = {
   // フィード内の広告挿入間隔（コンテンツN件ごとに1広告）
   FEED_AD_INTERVAL: 3,

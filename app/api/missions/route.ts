@@ -1,4 +1,4 @@
-// app/api/missions/complete/route.ts
+// app/api/missions/route.ts
 
 import { NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";

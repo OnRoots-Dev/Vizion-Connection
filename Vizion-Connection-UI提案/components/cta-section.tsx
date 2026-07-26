@@ -1,0 +1,52 @@
+'use client'
+
+import { motion } from 'motion/react'
+import { ArrowRight } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+export function CtaSection() {
+  return (
+    <section id="cta" className="relative mx-auto max-w-6xl px-4 pb-28 pt-12">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden rounded-3xl border border-lime/25 bg-card px-6 py-16 text-center md:px-12 md:py-20"
+      >
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_50%_70%_at_50%_0%,var(--lime-soft),transparent_70%)]"
+          aria-hidden="true"
+        />
+        <div className="relative">
+          <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight md:text-5xl">
+            Put yourself on the map
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-pretty leading-relaxed text-muted-foreground">
+            Join Vizion Connection and turn your role — athlete, trainer, fan or business — into a
+            node that grows with the whole network.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href="#"
+              className={cn(
+                buttonVariants({ size: 'lg' }),
+                'h-11 bg-lime px-6 text-primary-foreground hover:bg-lime/90',
+              )}
+            >
+              Join the map
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="#roles"
+              className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'h-11 px-6')}
+            >
+              Explore the roles
+            </a>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  )
+}

@@ -1,3 +1,6 @@
+// lib/ads/get-ads.ts
+// ユーザー向け広告取得（旧 lib/ads.ts）
+
 import { supabaseServer } from "@/lib/supabase/server";
 import type { AdItem } from "@/lib/ads-shared";
 
@@ -49,10 +52,8 @@ export async function getAdsForUser(userRegion?: string | null, _sport?: string)
   try {
     const normalizedRegion = userRegion?.trim() ?? "";
 
-    const buildBaseQuery = () => supabaseServer
-      .from("ads")
-      .select("*")
-      .eq("is_active", true);
+    const buildBaseQuery = () =>
+      supabaseServer.from("ads").select("*").eq("is_active", true);
 
     const nationalPromise = buildBaseQuery()
       .eq("ad_scope", "national")
@@ -61,15 +62,17 @@ export async function getAdsForUser(userRegion?: string | null, _sport?: string)
       .limit(1);
 
     const regionalPromise = normalizedRegion
-      ? buildBaseQuery()
-          .eq("ad_scope", "regional")
-          .eq("region", normalizedRegion)
+      ? buildBaseQuery().eq("ad_scope", "regional").eq("region", normalizedRegion)
       : Promise.resolve({ data: [], error: null } as { data: any[]; error: null });
 
     const [nationalRes, regionalRes] = await Promise.all([nationalPromise, regionalPromise]);
 
-    const nationalAds = nationalRes.error ? [] : (nationalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
-    const regionalAds = regionalRes.error ? [] : (regionalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
+    const nationalAds = nationalRes.error
+      ? []
+      : (nationalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
+    const regionalAds = regionalRes.error
+      ? []
+      : (regionalRes.data ?? []).map((row) => toAd(row as Record<string, unknown>));
 
     const onlyApprovedIfStatusExists = (ad: AdItem) => (ad.status ? ad.status === "approved" : true);
 

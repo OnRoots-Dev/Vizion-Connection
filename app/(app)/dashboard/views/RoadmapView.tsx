@@ -35,7 +35,7 @@ const PHASES_DATA = [
             { name: "デイリーミッション", done: true },
             { name: "ロードマップ解放カウンター", done: false },
         ],
-        accent: "#FFD600", accentDim: "#FFD60020", accentBorder: "#FFD60040",
+        accent: "#FFD600,", accentDim: "#FFD60020", accentBorder: "#FFD60040",
     },
     {
         id: "beta", num: "02", label: "MOMENTUM", status: "upcoming" as const,

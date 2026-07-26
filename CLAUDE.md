@@ -57,6 +57,6 @@ MCP用（gitファイルに値を書かない）: `SUPABASE_ACCESS_TOKEN`（`.mc
 
 ## 経緯メモ
 
-- 2026年前半に Airtable → Supabase 移行済み。既知バグは `MIGRATION_ANALYSIS_REPORT.md`。`airtable` パッケージは未使用の残骸（削除可）。
+- 2026年前半に Airtable → Supabase 移行済み。移行メモは `docs/archive/MIGRATION_ANALYSIS_REPORT.md`。
 - RLS監査（2026-06-20）の記録とロールバックSQLは `SECURITY.md`。
 - 旧 `migrations/`（ルート直下）は `docs/legacy-migrations/` にアーカイブ済み。追加禁止。

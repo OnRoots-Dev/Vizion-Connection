@@ -8,8 +8,8 @@ import { isLocalPlan } from "@/lib/ads-shared";
 import type { NewsPost, NewsTopic } from "@/lib/news";
 import { NEWS_TOPIC_LABEL } from "@/lib/news";
 import AdCard from "@/components/AdCard";
-import { injectAdsIntoFeed, isAdSlot } from "@/src/utils/adSlotUtils";
-import type { AdTier, SlotType } from "@/src/constants/adSlots";
+import { injectAdsIntoFeed, isAdSlot } from "@/lib/ads/adSlotUtils";
+import type { AdTier, SlotType } from "@/lib/ads/adSlots";
 
 type RecommendedUser = {
   slug: string;

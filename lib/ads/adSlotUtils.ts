@@ -1,4 +1,7 @@
-import { AD_CONFIG, AdTier, SlotType } from "../constants/adSlots";
+// lib/ads/adSlotUtils.ts
+// フィードへの広告スロット注入（旧 src/utils/adSlotUtils.ts）
+
+import { AD_CONFIG, type AdTier, type SlotType } from "@/lib/ads/adSlots";
 
 /**
  * ウェイト付き確率で地方枠の広告ティアを抽選する
