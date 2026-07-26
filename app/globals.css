@@ -56,7 +56,7 @@
   --role-athlete: oklch(0.87 0.21 118); /* lime */
   --role-trainer: oklch(0.82 0.14 200); /* cyan */
   --role-fan: oklch(0.82 0.15 75); /* amber */
-  --role-business: oklch(0.96 0.006 110); /* white */
+  --role-business: oklch(0.65 0.18 250); /* blue */
 }
 
 /* ── Apple Design: unified press feedback (pointer-down) ── */
