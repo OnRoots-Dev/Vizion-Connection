@@ -20,36 +20,36 @@ const ROLES: RoleCard[] = [
     label: 'Athlete',
     labelJa: 'アスリート',
     color: 'var(--role-athlete)',
-    headline: 'Turn performance into presence',
-    gives: 'Real training data, stories, moments',
-    gets: 'Coaching, fans, sponsorship reach',
+    headline: 'パフォーマンスを存在感に変える',
+    gives: 'リアルなトレーニングデータ、ストーリー、瞬間',
+    gets: 'コーチング、ファン、スポンサーシップのリーチ',
   },
   {
     icon: Dumbbell,
     label: 'Trainer',
     labelJa: 'トレーナー',
     color: 'var(--role-trainer)',
-    headline: 'Grow a roster that grows itself',
-    gives: 'Programs, expertise, accountability',
-    gets: 'Discoverable athletes & referrals',
+    headline: '自ら成長するロスターを育てる',
+    gives: 'プログラム、専門知識、責任感',
+    gets: '発見可能なアスリートと紹介',
   },
   {
     icon: HeartHandshake,
     label: 'Fan',
     labelJa: 'ファン',
     color: 'var(--role-fan)',
-    headline: 'Follow the journey, fuel the rise',
-    gives: 'Attention, support, community energy',
-    gets: 'Access, belonging, shared wins',
+    headline: '旅路を追い、成長を後押しする',
+    gives: '注目、応援、コミュニティの熱量',
+    gets: 'アクセス、帰属感、共有された勝利',
   },
   {
     icon: Briefcase,
     label: 'Business',
     labelJa: 'ビジネス',
     color: 'var(--role-business)',
-    headline: 'Sponsor signal, not noise',
-    gives: 'Funding, gear, opportunities',
-    gets: 'Authentic audiences & attribution',
+    headline: 'ノイズではなく、シグナルを支援する',
+    gives: '資金、ギア、機会',
+    gets: '本物のオーディエンスと帰属',
   },
 ]
 
@@ -57,13 +57,12 @@ export function RolesSection() {
   return (
     <section id="roles" className="relative mx-auto max-w-6xl px-4 py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-lime">Four roles</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-lime">4つのロール</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          Each role gives something — and gets more back
+          各ロールは何かを提供し — それ以上を受け取る
         </h2>
         <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
-          On the map, value never flows one way. Every connection is a two-way exchange that makes
-          the whole network stronger.
+          マップ上で、価値は一方向に流れることはない。すべてのつながりは双方向の交換であり、ネットワーク全体を強くする。
         </p>
       </div>
 
@@ -98,13 +97,13 @@ export function RolesSection() {
               <dl className="mt-5 space-y-3 border-t border-border pt-4 text-sm">
                 <div>
                   <dt className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Gives
+                    提供するもの
                   </dt>
                   <dd className="mt-1 leading-snug">{role.gives}</dd>
                 </div>
                 <div>
                   <dt className="font-mono text-[10px] uppercase tracking-widest text-lime">
-                    Gets
+                    受け取るもの
                   </dt>
                   <dd className="mt-1 leading-snug">{role.gets}</dd>
                 </div>

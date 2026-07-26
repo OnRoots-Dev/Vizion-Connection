@@ -8,31 +8,31 @@ type Metric = { value: string; label: string }
 type Feature = { icon: LucideIcon; title: string; body: string }
 
 const METRICS: Metric[] = [
-  { value: '4', label: 'Roles on one map' },
-  { value: 'n²', label: 'Value per new node' },
-  { value: '24/7', label: 'Live connections' },
+  { value: '4', label: 'ひとつのマップ上のロール' },
+  { value: 'n²', label: '新しいノードごとの価値' },
+  { value: '24/7', label: 'ライブ接続' },
 ]
 
 const FEATURES: Feature[] = [
   {
     icon: Network,
-    title: 'Proximity creates synergy',
-    body: 'When roles cluster on the map, matching links form automatically — trainers meet athletes, fans meet stories, business meets reach.',
+    title: '近接性が相乗効果を生む',
+    body: 'マップ上でロールが集まると、マッチングするリンクが自動的に形成される — トレーナーはアスリートに出会い、ファンはストーリーに出会い、ビジネスはリーチに出会う。',
   },
   {
     icon: Radio,
-    title: 'Connections pulse and flow',
-    body: 'Every active link carries signal. Activity ripples outward in real time, so the graph always feels alive and in motion.',
+    title: 'つながりが脈動し、流れる',
+    body: 'すべてのアクティブなリンクがシグナルを運ぶ。活動がリアルタイムで外側へと広がり、グラフは常に生きていて動いていると感じられる。',
   },
   {
     icon: TrendingUp,
-    title: 'Every node compounds',
-    body: 'Each new member raises the value for everyone already connected. Growth is not linear — it multiplies across the network.',
+    title: 'すべてのノードが複利で成長する',
+    body: '新しいメンバーが参加するたびに、すでに接続している全員の価値が上がる。成長は線形ではない — ネットワーク全体で掛け算される。',
   },
   {
     icon: Globe,
-    title: 'The map keeps expanding',
-    body: 'Local clusters connect into regions, regions into a global graph. The network is designed to grow, not to plateau.',
+    title: 'マップは拡大し続ける',
+    body: 'ローカルなクラスターが地域に接続し、地域がグローバルなグラフに接続する。ネットワークは成長するように設計されており、停滞するようには作られていない。',
   },
 ]
 
@@ -43,9 +43,9 @@ export function NetworkEffectSection() {
 
       <div className="relative mx-auto max-w-6xl px-4">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-lime">Network effect</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-lime">ネットワーク効果</p>
           <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-            A network that&apos;s worth more with every link
+            リンクが増えるほど価値が高まるネットワーク
           </h2>
         </div>
 

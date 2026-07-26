@@ -103,7 +103,7 @@ export function ProfileCardsDemo() {
   return (
     <section id="profiles" className="relative mx-auto max-w-6xl px-4 py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-lime">Profile Demo</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-lime">プロフィールデモ</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
           Map上で出会う、4つのプロフィール
         </h2>

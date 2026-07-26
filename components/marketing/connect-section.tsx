@@ -5,23 +5,23 @@ import { motion } from 'motion/react'
 const STEPS = [
   {
     step: '01',
-    title: 'Land on the map',
-    body: 'Pick your role. Your node appears on the live map, ready to connect.',
+    title: 'マップに参加',
+    body: '自分のロールを選ぶ。あなたのノードがライブマップに現れ、つながる準備が整う。',
   },
   {
     step: '02',
-    title: 'Links form',
-    body: 'Nearby roles and shared interests spark connections. Lines light up between you.',
+    title: 'リンクが形成される',
+    body: '近くのロールや共通の興味がつながりを生む。あなたの間に線が点灯する。',
   },
   {
     step: '03',
-    title: 'Signal flows',
-    body: 'Activity pulses across every link — training, support, deals, and stories move in real time.',
+    title: 'シグナルが流れる',
+    body: 'すべてのリンクで活動が脈動する — トレーニング、応援、取引、ストーリーがリアルタイムで動く。',
   },
   {
     step: '04',
-    title: 'The network grows',
-    body: 'Each connection makes the next one more valuable. Momentum compounds outward.',
+    title: 'ネットワークが成長する',
+    body: '各つながりが次のつながりをより価値あるものにする。勢いは外側へと広がっていく。',
   },
 ]
 
@@ -29,9 +29,9 @@ export function ConnectSection() {
   return (
     <section id="network" className="relative mx-auto max-w-6xl px-4 py-24">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-lime">How it connects</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-lime">つながり方</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          From a single node to a living network
+          ひつのノードから、生きたネットワークへ
         </h2>
       </div>
 

@@ -21,11 +21,10 @@ export function CtaSection() {
         />
         <div className="relative">
           <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold tracking-tight md:text-5xl">
-            Put yourself on the map
+            自分をマップに置こう
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-pretty leading-relaxed text-muted-foreground">
-            Join Vizion Connection and turn your role — athlete, trainer, fan or business — into a
-            node that grows with the whole network.
+            Vizion Connectionに参加し、自分のロール — アスリート、トレーナー、ファン、ビジネス — をネットワーク全体と共に成長するノードに変えよう。
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
@@ -35,14 +34,14 @@ export function CtaSection() {
                 'h-11 bg-lime px-6 text-primary-foreground hover:bg-lime/90',
               )}
             >
-              Join the map
+              Mapに参加
               <ArrowRight className="h-4 w-4" />
             </a>
             <a
               href="#roles"
               className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'h-11 px-6')}
             >
-              Explore the roles
+              ロールを探る
             </a>
           </div>
         </div>

@@ -11,7 +11,7 @@ export function SiteFooter() {
           <span className="font-mono text-sm">Vizion Connection</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Where athletes, trainers, fans &amp; business connect on one map.
+          アスリート、トレーナー、ファン、ビジネスがひとつのマップでつながる場所。
         </p>
         <p className="font-mono text-xs text-muted-foreground">© {new Date().getFullYear()}</p>
       </div>
