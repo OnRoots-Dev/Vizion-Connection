@@ -28,7 +28,6 @@ const ROLES: Role[] = [
 const EDGES: { a: number; b: number; label: string }[] = [
   { a: 0, b: 1, label: '指導 × データ' },
   { a: 0, b: 2, label: '応援 × 発信' },
-  { a: 0, b: 3, label: '支援 × 露出' },
   { a: 1, b: 3, label: '実績 × 案件' },
   { a: 2, b: 3, label: '熱量 × ブランド' },
 ]
@@ -76,6 +75,9 @@ export function NetworkMap() {
           const to = ROLES[edge.b]
           const mx = (from.x + to.x) / 2
           const my = (from.y + to.y) / 2
+          // ファン↔トレーナー (2↔1) と アスリート↔ビジネス (0↔3) を点滅させる
+          const shouldBlink = (edge.a === 2 && edge.b === 1) || (edge.a === 1 && edge.b === 2) ||
+                             (edge.a === 0 && edge.b === 3) || (edge.a === 3 && edge.b === 0)
           return (
             <g key={`edge-${i}`}>
               <line
@@ -92,10 +94,10 @@ export function NetworkMap() {
                 y1={from.y}
                 x2={to.x}
                 y2={to.y}
-                stroke="url(#flow)"
+                stroke={shouldBlink ? "var(--lime)" : "url(#flow)"}
                 strokeWidth={2.2}
                 strokeDasharray="6 34"
-                style={{ animation: `vz-dash-flow ${2.6 + i * 0.3}s linear infinite` }}
+                style={{ animation: shouldBlink ? `vz-pulse-line 2s ease-in-out infinite` : `vz-dash-flow ${2.6 + i * 0.3}s linear infinite` }}
               />
               {/* relationship label chip */}
               <g transform={`translate(${mx}, ${my})`}>
@@ -170,6 +172,28 @@ export function NetworkMap() {
         >
           SYNERGY
         </text>
+        {/* 支援 × 露出 - 相乗効果の下に移動 */}
+        <g transform={`translate(${CENTER.x}, ${CENTER.y + 45})`}>
+          <rect
+            x={-42}
+            y={-9}
+            width={84}
+            height={18}
+            rx={9}
+            fill="color-mix(in oklch, var(--background) 90%, transparent)"
+            stroke="var(--lime)"
+            strokeWidth={0.75}
+          />
+          <text
+            x={0}
+            y={4}
+            textAnchor="middle"
+            className="fill-lime font-semibold"
+            style={{ fontSize: 9.5 }}
+          >
+            支援 × 露出
+          </text>
+        </g>
 
         {/* role nodes */}
         {ROLES.map((role, i) => {

@@ -34,7 +34,7 @@ export function CtaSection() {
                 'h-11 bg-lime px-6 text-primary-foreground hover:bg-lime/90',
               )}
             >
-              Mapに参加
+              マップに参加
               <ArrowRight className="h-4 w-4" />
             </a>
             <a

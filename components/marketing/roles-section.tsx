@@ -59,7 +59,7 @@ export function RolesSection() {
       <div className="mx-auto max-w-2xl text-center">
         <p className="font-mono text-xs uppercase tracking-widest text-lime">4つのロール</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          各ロールは何かを提供し — それ以上を受け取る
+          各ロールは何かを提供し — それ以上の価値を受け取る
         </h2>
         <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
           マップ上で、価値は一方向に流れることはない。すべてのつながりは双方向の交換であり、ネットワーク全体を強くする。
@@ -76,7 +76,7 @@ export function RolesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="group relative flex flex-col rounded-2xl border border-border bg-card p-5 transition-colors hover:border-lime/40"
+              className="group relative flex flex-col h-full rounded-2xl border border-border bg-card p-5 transition-colors hover:border-lime/40"
             >
               <div
                 className="flex h-11 w-11 items-center justify-center rounded-xl border"

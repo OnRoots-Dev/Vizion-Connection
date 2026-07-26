@@ -122,7 +122,7 @@ export function ProfileCardsDemo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-lime/40"
+              className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-lime/40"
             >
               {/* cover */}
               <div className="relative h-20 w-full overflow-hidden">

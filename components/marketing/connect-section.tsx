@@ -31,7 +31,7 @@ export function ConnectSection() {
       <div className="mx-auto max-w-2xl text-center">
         <p className="font-mono text-xs uppercase tracking-widest text-lime">つながり方</p>
         <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          ひつのノードから、生きたネットワークへ
+          ひとつのノードから、生きたネットワークへ
         </h2>
       </div>
 
