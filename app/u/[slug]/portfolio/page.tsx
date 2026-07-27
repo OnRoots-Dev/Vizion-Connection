@@ -191,7 +191,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
             <header style={{ position: "sticky", top: 0, zIndex: 40, borderBottom: `1px solid ${VP.border}`, background: "rgba(5,6,8,0.84)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
                 <div style={{ maxWidth: 620, margin: "0 auto", padding: "0 18px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Link href="/" aria-label="Vizion Connection トップへ">
-                        <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion Connection" width={200} height={40} priority style={{ height: 34, width: "auto", opacity: 0.95 }} />
+                        <Image src="/images/vizion-connection-logo-6-cropped.png" alt="Vizion Connection" width={200} height={40} priority style={{ height: 34, width: "auto", opacity: 0.95 }} />
                     </Link>
                     {/* Profile / Portfolio 切替 */}
                     <ProfilePortfolioNav slug={slug} active="portfolio" accent={VP.neon} />

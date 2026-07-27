@@ -19,14 +19,14 @@ const REGIONS = [
 const FEED_EVENTS = [
   { c: "#FF5050", t: "東京都のアスリートが Journey に今日の練習を記録しました" },
   { c: "#FFC81E", t: "大阪府のファンが Cheer を送りました「次も応援してる！」" },
-  { c: "#32D278", t: "福岡県のトレーナーが Career に指導実績を追加しました" },
+  { c: "#30de1d", t: "福岡県のトレーナーが Career に指導実績を追加しました" },
   { c: "#3C8CFF", t: "愛知県の企業が Discovery でアスリートを検索しました" },
   { c: "#FF5050", t: "北海道のアスリートがプロフィールカードを公開しました" },
   { c: "#FFC81E", t: "神奈川県のファンと選手の Bond が深まりました" },
   { c: "#FF5050", t: "沖縄県のアスリートがデイリーミッションを達成しました" },
   { c: "#3C8CFF", t: "宮城県の企業が Roots 掲載枠に申し込みました" },
   { c: "#FFC81E", t: "広島県のファンが新しい選手のフォローを始めました" },
-  { c: "#32D278", t: "京都府のトレーナーのプロフィールが閲覧されました" },
+  { c: "#30de1d", t: "京都府のトレーナーのプロフィールが閲覧されました" },
   { c: "#FF5050", t: "新潟県のアスリートに初期メンバー番号が発行されました" },
   { c: "#FFC81E", t: "熊本県のファンが Cheer を送りました「ここからだ！」" },
 ];
@@ -36,10 +36,10 @@ type RegionAvail = { id: string; label: string; seats: number; remaining: number
 /** アプリ共通ロゴ（Header / Login 等と同じアセット） */
 function AppLogo({ height = 48, priority = false }: { height?: number; priority?: boolean }) {
   // 元画像の横長比率に合わせて width を推定（表示は h / w-auto）
-  const width = Math.round(height * (180 / 48));
+  const width = Math.round(height * (492 / 232));
   return (
     <Image
-      src="/images/Vizion_Connection_logo-wt.png"
+      src="/images/vizion-connection-logo-6-cropped.png"
       alt="Vizion Connection"
       width={width}
       height={height}

@@ -31,7 +31,7 @@ export default function OnboardingWelcomeClient({ displayName }: { displayName: 
             >
                 <div style={{ marginBottom: 24 }}>
                     <Image
-                        src="/images/Vizion_Connection_logo-wt.png"
+                        src="/images/vizion-connection-logo-6-cropped.png"
                         alt="Vizion Connection"
                         width={200}
                         height={50}

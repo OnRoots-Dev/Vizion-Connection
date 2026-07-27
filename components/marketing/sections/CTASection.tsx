@@ -6,7 +6,7 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 
 const ROLE_LINKS = [
   { role: "Athlete", label: "アスリート", color: "#FF5050" },
-  { role: "Trainer", label: "トレーナー", color: "#32D278" },
+  { role: "Trainer", label: "トレーナー", color: "#30de1d" },
   { role: "Crew", label: "サポーター", color: "#FFC81E" },
   { role: "Business", label: "ビジネス", color: "#3C8CFF" },
 ];

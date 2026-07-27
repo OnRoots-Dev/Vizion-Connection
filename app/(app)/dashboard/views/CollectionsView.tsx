@@ -252,12 +252,12 @@ export function CollectionsView({
               {pagedCards.map((card) => {
                 const cardRoleColor =
                   card.role === "Athlete" ? "#C1272D" :
-                  card.role === "Trainer" ? "#1A7A4A" :
+                  card.role === "Trainer" ? "#30de1d" :
                   card.role === "Crew" ? "#B8860B" :
                   "#1B3A8C";
                 const bg =
                   card.role === "Athlete" ? "#2D0000" :
-                  card.role === "Trainer" ? "#001A0A" :
+                  card.role === "Trainer" ? "#082a06" :
                   card.role === "Crew" ? "#1A0F00" :
                   "#000A24";
 

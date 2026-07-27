@@ -16,7 +16,7 @@ import SponsorBadge from "@/components/SponsorBadge";
 import { calcDayCount } from "@/lib/day-count";
 
 const ROLE_GRADIENT: Record<string, string> = {
-    Athlete: "#2D0000", Trainer: "#001A0A", Crew: "#1A0F00", Business: "#000A24",
+    Athlete: "#2D0000", Trainer: "#082a06", Crew: "#1A0F00", Business: "#000A24",
 };
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
@@ -669,7 +669,7 @@ export function ProfileCardSection({
                                     </div>
                                 </div>
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
-                                    <NextImage src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+                                    <NextImage src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
                                 </div>
                             </div>
 
@@ -685,7 +685,7 @@ export function ProfileCardSection({
                                 )}
                                 <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 13px 16px" }}>
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
-                                        <NextImage src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={120} height={30} style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
+                                        <NextImage src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={120} height={30} style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                                             <span style={{ width: 5, height: 5, borderRadius: "50%", background: rl, boxShadow: `0 0 5px ${rl}`, flexShrink: 0, display: "inline-block" }} />
                                             <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{ROLE_LABEL[profile.role]}</span>

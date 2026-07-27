@@ -34,7 +34,7 @@ const ROLES: {
         nameLabel: "表示名（アスリート名）",
     },
     {
-        value: "Trainer", label: "Trainer", displayName: "トレーナー", color: "#32D278",
+        value: "Trainer", label: "Trainer", displayName: "トレーナー", color: "#30de1d",
         detail: "スポーツの指導・サポートをしている方向け。",
         nameLabel: "表示名",
     },
@@ -313,7 +313,7 @@ export default function RegisterForm() {
                 className="relative z-10 mb-5 inline-block active:scale-[0.97] transition-transform duration-100"
             >
                 <Image
-                    src="/images/Vizion_Connection_logo-wt.png"
+                    src="/images/vizion-connection-logo-6-cropped.png"
                     alt="Vizion Connection"
                     width={320}
                     height={86}

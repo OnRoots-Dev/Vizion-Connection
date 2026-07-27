@@ -309,7 +309,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
             <div className="flex items-center justify-between gap-3 border-b px-[14px] pb-3 pt-4" style={{ borderBottomColor: t.border }}>
                 <div className="flex items-center gap-2">
                     <Image
-                        src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/Vizion_Connection_logo-wt.png"}
+                        src={theme === "light" ? "/images/Vizion_Connection_logo-bk.png" : "/images/vizion-connection-logo-6-cropped.png"}
                         alt="Vizion Connection"
                         width={220}
                         height={44}

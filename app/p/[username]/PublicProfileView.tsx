@@ -20,13 +20,13 @@ function roleToKey(role: string) {
 }
 
 function roleColor(role: string) {
-  if (role === "Trainer") return "#32D278";
+  if (role === "Trainer") return "#30de1d";
   if (role === "Athlete") return "#FF5050";
   return "#FFD600";
 }
 
 function roleGradient(role: string) {
-  if (role === "Trainer") return "linear-gradient(135deg, #32D278 0%, #0E5C35 100%)";
+  if (role === "Trainer") return "linear-gradient(135deg, #30de1d 0%, #0E5C35 100%)";
   if (role === "Athlete") return "linear-gradient(135deg, #FF5050 0%, #7A1C1C 100%)";
   return "linear-gradient(135deg, #FFD600 0%, #7A6A12 100%)";
 }

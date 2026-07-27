@@ -34,7 +34,7 @@ const EDGES: { a: number; b: number; label: string }[] = [
 
 export function NetworkMap() {
   return (
-    <div className="relative mx-auto w-full max-w-2xl">
+    <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-3xl">
       <div className="vz-grid absolute inset-0 rounded-3xl" aria-hidden="true" />
       <svg
         viewBox="0 0 520 440"
@@ -115,8 +115,8 @@ export function NetworkMap() {
                   x={0}
                   y={4}
                   textAnchor="middle"
-                  className="fill-muted-foreground"
-                  style={{ fontSize: 9.5 }}
+                  fill="var(--vc-text-secondary)"
+                  style={{ fontSize: 9.5, fontWeight: 700 }}
                 >
                   {edge.label}
                 </text>
@@ -158,8 +158,8 @@ export function NetworkMap() {
           x={CENTER.x}
           y={CENTER.y - 2}
           textAnchor="middle"
-          className="fill-lime font-semibold"
-          style={{ fontSize: 13 }}
+          fill="var(--vc-accent)"
+          style={{ fontSize: 13, fontWeight: 800 }}
         >
           相乗効果
         </text>
@@ -167,8 +167,8 @@ export function NetworkMap() {
           x={CENTER.x}
           y={CENTER.y + 13}
           textAnchor="middle"
-          className="fill-muted-foreground font-mono"
-          style={{ fontSize: 8, letterSpacing: 1 }}
+          fill="var(--vc-text-primary)"
+          style={{ fontSize: 8, fontWeight: 800, letterSpacing: 1 }}
         >
           SYNERGY
         </text>
@@ -188,8 +188,8 @@ export function NetworkMap() {
             x={0}
             y={4}
             textAnchor="middle"
-            className="fill-lime font-semibold"
-            style={{ fontSize: 9.5 }}
+            fill="var(--vc-text-primary)"
+            style={{ fontSize: 9.5, fontWeight: 800 }}
           >
             支援 × 露出
           </text>
@@ -222,8 +222,8 @@ export function NetworkMap() {
                 x={role.x}
                 y={role.y + 12}
                 textAnchor="middle"
-                className="fill-foreground font-semibold"
-                style={{ fontSize: 11 }}
+                fill="var(--vc-text-primary)"
+                style={{ fontSize: 11, fontWeight: 800 }}
               >
                 {role.labelJa}
               </text>
@@ -237,12 +237,12 @@ export function NetworkMap() {
         {ROLES.map((role) => (
           <div key={role.id} className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: role.color }} />
-            <span className="text-xs text-muted-foreground">{role.labelJa}</span>
+            <span className="text-xs font-medium text-muted-foreground">{role.labelJa}</span>
           </div>
         ))}
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-lime" />
-          <span className="text-xs text-muted-foreground">相乗効果ハブ</span>
+          <span className="text-xs font-medium text-muted-foreground">相乗効果ハブ</span>
         </div>
       </div>
     </div>

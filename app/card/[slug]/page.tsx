@@ -69,7 +69,7 @@ export default async function CardPage({ params }: Props) {
                     </div>
                     <Link href="/" style={{ display: "flex" }}>
                         <Image
-                            src="/images/Vizion_Connection_logo-wt.png"
+                            src="/images/vizion-connection-logo-6-cropped.png"
                             alt="Vizion Connection"
                             width={130}
                             height={26}

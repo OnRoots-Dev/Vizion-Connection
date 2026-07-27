@@ -384,7 +384,7 @@ export default function DashboardClient({
                                 <button type="button" aria-label="Open sidebar" title="Open sidebar" onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
-                                <Image src="/images/Vizion_Connection_logo-wt.png" alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
+                                <Image src="/images/vizion-connection-logo-6-cropped.png" alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
                                 <div style={{ width: 20 }} />
                             </div>
                         )}

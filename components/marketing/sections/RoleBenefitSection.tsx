@@ -17,7 +17,7 @@ const roles = [
   {
     label: "Trainer",
     displayName: "トレーナー",
-    color: "#32D278",
+    color: "#30de1d",
     Icon: Dumbbell,
     desc: "スポーツの指導・サポートをしている専門家。",
     benefit: "専門性とサポート実績を可視化し、選手・チームとの信頼を育てられる。",

@@ -46,17 +46,162 @@
 
   /* Role colors (badge / accent line only) */
   --vc-athlete:  #FF5050;
-  --vc-trainer:  #32D278;
+  --vc-trainer:  #30de1d;
   --vc-crew:     #FFC81E;
   --vc-business: #3C8CFF;
 
   /* Vizion Connection accent + role colors for LP */
   --lime: oklch(0.87 0.21 118);
   --lime-soft: oklch(0.87 0.21 118 / 0.14);
-  --role-athlete: oklch(0.87 0.21 118); /* lime */
-  --role-trainer: oklch(0.82 0.14 200); /* cyan */
+  --role-athlete: #d91414;
+  --role-trainer: #30de1d;
   --role-fan: oklch(0.82 0.15 75); /* amber */
   --role-business: oklch(0.65 0.18 250); /* blue */
+  --role-athlete-soft: rgba(217, 20, 20, 0.14);
+  --role-athlete-border: rgba(217, 20, 20, 0.42);
+}
+
+/* ── Marketing LP scoped tokens & typography ── */
+.marketing-lp {
+  --role-athlete: #d91414;
+  --role-athlete-soft: rgba(217, 20, 20, 0.14);
+  --role-athlete-border: rgba(217, 20, 20, 0.42);
+  scroll-behavior: smooth;
+}
+
+.marketing-lp .lp-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 1.4vw, 0.85rem);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--lime);
+}
+
+.marketing-lp .lp-kicker::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: var(--lime);
+  opacity: 0.85;
+}
+
+.marketing-lp .lp-section-head.text-center .lp-kicker::before {
+  display: none;
+}
+
+.marketing-lp .lp-title {
+  margin-top: 0.875rem;
+  font-family: var(--font-display), var(--font-body, var(--font-sans));
+  font-size: clamp(2rem, 5.2vw, 3.75rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+}
+
+.marketing-lp .lp-title .lp-accent {
+  color: var(--lime);
+  text-shadow: 0 0 28px rgba(200, 232, 0, 0.35);
+}
+
+.marketing-lp .lp-title .lp-display {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 7.5vw, 5rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.marketing-lp .lp-lead {
+  margin-top: 1.125rem;
+  max-width: 36rem;
+  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  line-height: 1.85;
+  color: var(--muted-foreground);
+}
+
+.marketing-lp .lp-section-head.text-center .lp-lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.marketing-lp .lp-stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.marketing-lp .lp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 2px solid rgba(200, 232, 0, 0.4);
+  background: rgba(200, 232, 0, 0.1);
+  padding: 0.4rem 1rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lime);
+}
+
+.marketing-lp .lp-nav-link {
+  position: relative;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+.marketing-lp .lp-nav-link:hover {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 65%, transparent);
+}
+
+.marketing-lp .lp-nav-link[data-active="true"] {
+  color: var(--lime);
+  background: rgba(200, 232, 0, 0.1);
+}
+
+.marketing-lp .lp-nav-link[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 0.15rem;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--lime);
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--lime);
+}
+
+.marketing-lp .lp-nav-link[data-business="true"] {
+  color: #9ec3ff;
+}
+
+.marketing-lp .lp-nav-link[data-business="true"][data-active="true"] {
+  color: #3c8cff;
+  background: rgba(60, 140, 255, 0.12);
+}
+
+.marketing-lp .lp-nav-link[data-business="true"][data-active="true"]::after {
+  background: #3c8cff;
+  box-shadow: 0 0 8px #3c8cff;
 }
 
 /* ── Apple Design: unified press feedback (pointer-down) ── */
@@ -291,9 +436,9 @@ select:focus {
 }
 
 .vc-card[data-role="trainer"] {
-  --rc: rgba(50, 210, 120, 0.9);
-  --rg: rgba(30, 180, 90, 0.52);
-  --rl: #32D278;
+  --rc: rgba(48, 222, 29, 0.9);
+  --rg: rgba(48, 222, 29, 0.52);
+  --rl: #30de1d;
 }
 
 .vc-card[data-role="business"] {
@@ -1143,6 +1288,92 @@ html {
 
   .vc-menu-line {
     @apply block h-0.5 w-[22px] transition-all duration-200;
+  }
+
+  .marketing-lp .lp-cta-primary,
+  .marketing-lp .lp-cta-secondary,
+  .marketing-lp .lp-cta-business {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transform: none;
+    box-shadow: none;
+    transition-property: color, border-color, background-color, filter;
+    transition-duration: 220ms;
+  }
+
+  .marketing-lp .lp-cta-primary::before,
+  .marketing-lp .lp-cta-secondary::before,
+  .marketing-lp .lp-cta-business::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.35) 38%, transparent 62%);
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+
+  .marketing-lp .lp-cta-primary:hover::before,
+  .marketing-lp .lp-cta-secondary:hover::before,
+  .marketing-lp .lp-cta-business:hover::before {
+    animation: vc-lp-cta-scan 700ms ease-out;
+    opacity: 1;
+  }
+
+  .marketing-lp .lp-cta-primary {
+    border-color: rgba(200, 232, 0, 0.9);
+    background: linear-gradient(135deg, #d8f23a, #c8e800 48%, #f1ff82);
+    color: #171716;
+  }
+
+  .marketing-lp .lp-cta-primary:hover {
+    filter: saturate(1.12) contrast(1.05);
+  }
+
+  .marketing-lp .lp-cta-secondary {
+    border-color: rgba(255, 255, 255, 0.22);
+    background:
+      linear-gradient(#171716, #171716) padding-box,
+      linear-gradient(120deg, rgba(255, 255, 255, 0.28), rgba(200, 232, 0, 0.55), rgba(255, 255, 255, 0.18)) border-box;
+    color: #f5f5ee;
+  }
+
+  .marketing-lp .lp-cta-secondary:hover {
+    border-color: rgba(200, 232, 0, 0.66);
+    color: #c8e800;
+  }
+
+  .marketing-lp .lp-cta-business {
+    border-color: rgba(60, 140, 255, 0.72);
+    background:
+      linear-gradient(#171716, #171716) padding-box,
+      linear-gradient(120deg, rgba(60, 140, 255, 0.9), rgba(200, 232, 0, 0.5), rgba(60, 140, 255, 0.45)) border-box;
+    color: #eaf2ff;
+  }
+
+  .marketing-lp .lp-cta-business:hover {
+    border-color: rgba(60, 140, 255, 0.95);
+    color: #7fb2ff;
+  }
+
+  @keyframes vc-lp-cta-scan {
+    0% {
+      transform: translateX(-130%);
+    }
+    100% {
+      transform: translateX(130%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marketing-lp .lp-cta-primary:hover::before,
+    .marketing-lp .lp-cta-secondary:hover::before,
+    .marketing-lp .lp-cta-business:hover::before {
+      animation: none;
+    }
   }
 }
 

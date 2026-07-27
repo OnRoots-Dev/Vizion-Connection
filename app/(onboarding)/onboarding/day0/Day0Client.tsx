@@ -11,7 +11,7 @@ import { LottieAnim } from "@/components/ui/LottieAnim";
 import { springDefault } from "@/lib/motion/apple-springs";
 
 const ROLE_COLOR: Record<string, string> = {
-    Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "var(--electric)",
+    Athlete: "#FF5050", Trainer: "#30de1d", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "var(--electric)",
 };
 
 const DARK_THEME = {

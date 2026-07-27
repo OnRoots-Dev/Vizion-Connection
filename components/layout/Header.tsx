@@ -24,7 +24,7 @@ export function Header() {
       />
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2 md:px-10">
         <Link href="/" className="active:scale-[0.97] transition-transform duration-100">
-          <Image src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={180} height={48} priority className="h-12 w-auto" />
+          <Image src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={180} height={48} priority className="h-12 w-auto" />
         </Link>
 
         {/* Desktop */}

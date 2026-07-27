@@ -28,7 +28,7 @@
 | `gold` | `#FFD600` | Cheer 専用色 |
 | `green` | `#10B981` | 成功・アクティブ |
 | `danger` | `#FF5050` | エラー・破壊的操作 |
-| 役割色 | Athlete `#FF5050` / Trainer `#32D278` / Crew `#FFC81E` / Business `#3C8CFF` / Admin `#7C3AED` | ロール識別のみ |
+| 役割色 | Athlete `#FF5050` / Trainer `#30de1d` / Crew `#FFC81E` / Business `#3C8CFF` / Admin `#7C3AED` | ロール識別のみ |
 
 **ルール**: 生hexをコンポーネントに直書きしない。必ず `lib/design/tokens.ts`（TSX）か `--vc-*`（CSS）を参照。
 ネオンのグローは `GLOW.soft / strong / text` の3段階のみ。

@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { Zap, Dumbbell, HeartHandshake, Briefcase } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { SectionHeader } from './section-header'
 
 type RoleCard = {
   icon: LucideIcon
@@ -55,59 +56,108 @@ const ROLES: RoleCard[] = [
 
 export function RolesSection() {
   return (
-    <section id="roles" className="relative mx-auto max-w-6xl px-4 py-24">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-lime">4つのロール</p>
-        <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          各ロールは何かを提供し — それ以上の価値を受け取る
-        </h2>
-        <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
-          マップ上で、価値は一方向に流れることはない。すべてのつながりは双方向の交換であり、ネットワーク全体を強くする。
-        </p>
+    <section id="roles" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-24 md:scroll-mt-28 md:py-32">
+      {/* Street-style background */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="vz-grid absolute inset-0 opacity-30" />
+        <div
+          className="absolute left-1/4 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
+          style={{ background: 'rgba(217, 20, 20, 0.1)' }}
+        />
       </div>
 
-      <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <SectionHeader
+        kicker="4つのロール"
+        title={
+          <>
+            各ロールは何かを提供し —
+            <br />
+            <span className="lp-accent">それ以上の価値</span>を受け取る
+          </>
+        }
+        lead="マップ上で、価値は一方向に流れることはない。すべてのつながりは双方向の交換であり、ネットワーク全体を強くする。"
+      />
+
+      <div className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {ROLES.map((role, i) => {
           const Icon = role.icon
+          const isAthlete = role.label === 'Athlete'
           return (
             <motion.article
               key={role.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="group relative flex flex-col h-full rounded-2xl border border-border bg-card p-5 transition-colors hover:border-lime/40"
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="group relative flex h-full flex-col overflow-hidden rounded-3xl border-2 bg-[#0d0d12]/80 p-6 transition-all duration-300 hover:-translate-y-2"
+              style={{
+                borderColor: isAthlete ? '#d91414' : 'rgba(255,255,255,0.1)',
+                boxShadow: isAthlete ? '0 0 50px rgba(217,20,20,0.25)' : '0 0 30px rgba(255,255,255,0.05)',
+              }}
             >
+              {/* Accent glow background */}
               <div
-                className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
-                  borderColor: `color-mix(in oklch, ${role.color} 40%, transparent)`,
-                  background: `color-mix(in oklch, ${role.color} 12%, transparent)`,
+                  background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${role.color}20, transparent 70%)`,
                 }}
-              >
-                <Icon className="h-5 w-5" style={{ color: role.color }} />
-              </div>
+              />
+              
+              {/* Top accent line */}
+              <div
+                className="absolute left-0 right-0 top-0 h-1"
+                style={{
+                  background: role.color,
+                  boxShadow: `0 0 20px ${role.color}`,
+                }}
+              />
 
-              <div className="mt-4 flex items-baseline gap-2">
-                <h3 className="text-lg font-medium">{role.label}</h3>
-                <span className="text-xs text-muted-foreground">{role.labelJa}</span>
-              </div>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{role.headline}</p>
+              <div className="relative">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl border-2"
+                  style={{
+                    borderColor: `${role.color}60`,
+                    background: `${role.color}20`,
+                    color: role.color,
+                    boxShadow: `0 0 20px ${role.color}40`,
+                  }}
+                >
+                  <Icon className="h-7 w-7" strokeWidth={2.5} />
+                </div>
 
-              <dl className="mt-5 space-y-3 border-t border-border pt-4 text-sm">
-                <div>
-                  <dt className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    提供するもの
-                  </dt>
-                  <dd className="mt-1 leading-snug">{role.gives}</dd>
+                <div className="mt-5 flex items-baseline gap-2">
+                  <h3
+                    className="font-display text-4xl uppercase tracking-wide md:text-5xl"
+                    style={{
+                      color: role.color,
+                      textShadow: `0 0 24px ${role.color}40`,
+                    }}
+                  >
+                    {role.label}
+                  </h3>
+                  <span className="text-base font-bold text-white/50 md:text-lg">{role.labelJa}</span>
                 </div>
-                <div>
-                  <dt className="font-mono text-[10px] uppercase tracking-widest text-lime">
-                    受け取るもの
-                  </dt>
-                  <dd className="mt-1 leading-snug">{role.gets}</dd>
-                </div>
-              </dl>
+                <p className="mt-4 text-xl font-black leading-relaxed text-white md:text-2xl">
+                  {role.headline}
+                </p>
+
+                <dl className="mt-8 flex-1 space-y-5 border-t border-white/10 pt-6">
+                  <div>
+                    <dt className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
+                      提供するもの
+                    </dt>
+                    <dd className="mt-3 leading-relaxed text-white/60 font-bold text-base md:text-lg">{role.gives}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-mono text-xs font-semibold uppercase tracking-[0.2em]"
+                      style={{ color: role.color }}
+                    >
+                      受け取るもの
+                    </dt>
+                    <dd className="mt-3 leading-relaxed text-white/90 font-black text-base md:text-lg">{role.gets}</dd>
+                  </div>
+                </dl>
+              </div>
             </motion.article>
           )
         })}

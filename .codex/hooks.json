@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*__(execute_sql|apply_migration)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash 'C:\\Vizion Connection\\vizion-connection\\.codex\\hooks\\sql-guard.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash 'C:\\Vizion Connection\\vizion-connection\\.codex\\hooks\\protect.sh'"
+          },
+          {
+            "type": "command",
+            "command": "bash 'C:\\Vizion Connection\\vizion-connection\\.codex\\hooks\\pii-guard.sh'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash 'C:\\Vizion Connection\\vizion-connection\\.codex\\hooks\\pii-guard.sh'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash 'C:\\Vizion Connection\\vizion-connection\\.codex\\hooks\\format.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

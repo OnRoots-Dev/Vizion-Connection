@@ -12,7 +12,7 @@ const PLANS = [
     period: "1ヶ月料金で4ヶ月利用",
     target: "地域密着型スポーツビジネス",
     features: ["プロフィール掲載", "Journey閲覧", "Discovery掲載"],
-    color: "#32D278",
+    color: "#30de1d",
   },
   {
     name: "Signal",

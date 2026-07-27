@@ -16,7 +16,7 @@ export default function PrivateProfilePage({ displayName }: Props) {
             <header className="border-b border-white/6 px-6 py-[14px]">
                 <Link href="/dashboard">
                     <Image
-                        src="/images/Vizion_Connection_logo-wt.png"
+                        src="/images/vizion-connection-logo-6-cropped.png"
                         alt="Vizion Connection"
                         width={196}
                         height={28}

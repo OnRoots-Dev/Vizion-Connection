@@ -12,7 +12,7 @@ export default async function OnboardingJourneyPage() {
 
     const { profile } = result.data;
     const roleColor: Record<string, string> = {
-        Athlete: "#FF5050", Trainer: "#32D278", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "#a78bfa",
+        Athlete: "#FF5050", Trainer: "#30de1d", Crew: "#FFC81E", Business: "#3C8CFF", Admin: "#a78bfa",
     };
 
     return <JourneyOnboardingClient role={profile.role} roleColor={roleColor[profile.role] ?? "#a78bfa"} />;

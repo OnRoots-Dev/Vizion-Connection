@@ -338,7 +338,7 @@ export default function ScheduleClient({
     }
   };
 
-  const accentColor = roleColor ?? (profile.role === "Athlete" ? "#C1272D" : profile.role === "Trainer" ? "#1A7A4A" : "#FFD600");
+  const accentColor = roleColor ?? (profile.role === "Athlete" ? "#C1272D" : profile.role === "Trainer" ? "#30de1d" : "#FFD600");
   const theme: ThemeColors = t ?? {
     bg: "#0B0B0F",
     surface: "rgba(255,255,255,0.04)",

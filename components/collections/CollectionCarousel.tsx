@@ -32,7 +32,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 const ROLE_BG: Record<string, string> = {
   Athlete: "#2D0000",
-  Trainer: "#001A0A",
+  Trainer: "#082a06",
   Crew: "#1A0F00",
   Business: "#000A24",
 };

@@ -9,7 +9,7 @@ export function Footer() {
       <div className="mx-auto">
         <div className="mb-10 grid gap-8 border-b border-white/5 pb-10 lg:grid-cols-[1.2fr_1fr] lg:items-end">
           <div className="max-w-[460px]">
-            <Image src="/images/Vizion_Connection_logo-wt.png" alt="Logo" width={280} height={112} className="h-24 w-auto sm:h-28" />
+            <Image src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={280} height={112} className="h-24 w-auto sm:h-28" />
             <p className="mt-2 font-body text-[12px] leading-relaxed text-white/35">
               スポーツ業界の信頼ネットワークを広げるための登録受付を行っています。
             </p>

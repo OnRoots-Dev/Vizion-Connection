@@ -339,7 +339,7 @@ export default async function UserProfilePage({ params }: Props) {
                 <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <Link href="/" aria-label="Vizion Connection トップへ">
                         <Image
-                            src="/images/Vizion_Connection_logo-wt.png"
+                            src="/images/vizion-connection-logo-6-cropped.png"
                             alt="Vizion Connection"
                             width={230}
                             height={46}

@@ -11,14 +11,14 @@ export const EMAIL_BRAND = {
   muted: "rgba(255,255,255,0.52)",
   faint: "rgba(255,255,255,0.28)",
   border: "rgba(255,255,255,0.08)",
-  logoUrl: "https://vizion-connection.jp/images/Vizion_Connection_logo-wt.png",
+  logoUrl: "https://vizion-connection.jp/images/vizion-connection-logo-6-cropped.png",
   siteUrl: "https://vizion-connection.jp",
   fromLabel: "Vizion Connection",
 } as const;
 
 export const ROLE_LABEL: Record<string, { label: string; color: string }> = {
   Athlete: { label: "Athlete", color: "#FF5050" },
-  Trainer: { label: "Trainer", color: "#32D278" },
+  Trainer: { label: "Trainer", color: "#30de1d" },
   Business: { label: "Business", color: "#3C8CFF" },
   Crew: { label: "Crew", color: "#FFC81E" },
 };

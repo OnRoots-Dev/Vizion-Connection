@@ -29,7 +29,7 @@ type DiscoveryRole = "Athlete" | "Trainer" | "Crew" | "Business";
 
 const ROLE_COLORS: Record<string, string> = {
   Athlete: "#FF5050",
-  Trainer: "#32D278",
+  Trainer: "#30de1d",
   Crew: "#FFC81E",
   Business: "#3C8CFF",
 };

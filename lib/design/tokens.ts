@@ -44,7 +44,7 @@ export const GLOW = {
 // ── 役割色（サブ識別子。--vc-athlete 等と同値） ─────────────────────────────
 export const ROLE_COLOR: Record<UserRole, string> = {
     Athlete: "#FF5050",
-    Trainer: "#32D278",
+    Trainer: "#30de1d",
     Crew: "#FFC81E",
     Business: "#3C8CFF",
     Admin: "#7C3AED",

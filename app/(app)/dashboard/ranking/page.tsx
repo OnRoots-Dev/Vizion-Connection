@@ -49,7 +49,7 @@ export default async function RankingPage({
     const tabs = [
         { label: "全体", value: undefined, color: "#FFD600" },
         { label: "Athlete", value: "Athlete", color: "#C1272D" },
-        { label: "Trainer", value: "Trainer", color: "#1A7A4A" },
+        { label: "Trainer", value: "Trainer", color: "#30de1d" },
         { label: "Crew", value: "Crew", color: "#B8860B" },
         { label: "Business", value: "Business", color: "#1B3A8C" },
     ];

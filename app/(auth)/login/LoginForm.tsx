@@ -118,7 +118,7 @@ export default function LoginForm() {
                 className="relative z-10 mb-6 inline-block active:scale-[0.97] transition-transform duration-100"
             >
                 <Image
-                    src="/images/Vizion_Connection_logo-wt.png"
+                    src="/images/vizion-connection-logo-6-cropped.png"
                     alt="Vizion Connection"
                     width={320}
                     height={86}

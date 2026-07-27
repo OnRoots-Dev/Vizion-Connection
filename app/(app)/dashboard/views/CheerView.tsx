@@ -22,7 +22,7 @@ type InlineAd = {
 
 const ROLE_COLOR_MAP: Record<string, string> = {
   Athlete: "#FF5050",
-  Trainer: "#32D278",
+  Trainer: "#30de1d",
   Crew: "#FFC81E",
   Business: "#3C8CFF",
 };
@@ -126,10 +126,10 @@ export function CheerView({ profile, t, roleColor, setView }: {
       </div>
 
       {suggests.length > 0 && (
-        <SectionCard t={t} accentColor="#32D278">
+        <SectionCard t={t} accentColor="#30de1d">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <SLabel text="Cheerを送る" />
-            <button type="button" onClick={() => setView("discovery")} style={{ border: "none", background: "none", color: "#32D278", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+            <button type="button" onClick={() => setView("discovery")} style={{ border: "none", background: "none", color: "#30de1d", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>
               もっと見る →
             </button>
           </div>

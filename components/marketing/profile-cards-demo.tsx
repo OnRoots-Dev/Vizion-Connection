@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { motion } from 'motion/react'
 import { Zap, Dumbbell, HeartHandshake, Briefcase, MapPin, Link2, BadgeCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { SectionHeader } from './section-header'
 
 type Stat = { label: string; value: string }
 
@@ -101,20 +102,22 @@ const ROLE_LABEL: Record<string, string> = {
 
 export function ProfileCardsDemo() {
   return (
-    <section id="profiles" className="relative mx-auto max-w-6xl px-4 py-24">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-lime">プロフィールデモ</p>
-        <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight md:text-4xl">
-          Map上で出会う、4つのプロフィール
-        </h2>
-        <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
-          各ロールはそれぞれのプロフィールカードを持ち、つながることで価値を交換します。これはデモ用のサンプルカードです。
-        </p>
-      </div>
+    <section id="profiles" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-24 md:scroll-mt-28 md:py-32">
+      <SectionHeader
+        kicker="プロフィールデモ"
+        title={
+          <>
+            Map上で出会う、
+            <span className="lp-accent">4つのプロフィール</span>
+          </>
+        }
+        lead="各ロールはそれぞれのプロフィールカードを持ち、つながることで価値を交換します。これはデモ用のサンプルカードです。"
+      />
 
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {PROFILES.map((p, i) => {
           const Icon = p.icon
+          const isAthlete = p.id === 'athlete'
           return (
             <motion.article
               key={p.id}
@@ -122,9 +125,13 @@ export function ProfileCardsDemo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-lime/40"
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-lime/40"
+              style={
+                isAthlete
+                  ? { boxShadow: '0 0 32px rgba(217, 20, 20, 0.12)' }
+                  : undefined
+              }
             >
-              {/* cover */}
               <div className="relative h-20 w-full overflow-hidden">
                 <Image
                   src="/moments/cover.png"
@@ -133,8 +140,16 @@ export function ProfileCardsDemo() {
                   className="object-cover opacity-60 transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                {isAthlete && (
+                  <div
+                    className="absolute inset-0 opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(217,20,20,0.35) 0%, transparent 60%)',
+                    }}
+                  />
+                )}
                 <span
-                  className="absolute right-3 top-3 flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px]"
+                  className="absolute right-3 top-3 flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold"
                   style={{
                     borderColor: `color-mix(in oklch, ${p.color} 45%, transparent)`,
                     background: `color-mix(in oklch, ${p.color} 14%, transparent)`,
@@ -146,7 +161,6 @@ export function ProfileCardsDemo() {
                 </span>
               </div>
 
-              {/* avatar + identity */}
               <div className="-mt-8 flex flex-col px-5">
                 <div
                   className="relative h-16 w-16 overflow-hidden rounded-2xl border-2"
@@ -155,29 +169,32 @@ export function ProfileCardsDemo() {
                   <Image src={p.avatar} alt={`${p.name}のプロフィール写真`} fill className="object-cover" />
                 </div>
                 <div className="mt-3 flex items-center gap-1.5">
-                  <h3 className="text-base font-semibold leading-tight">{p.name}</h3>
+                  <h3 className="text-xl font-black leading-tight md:text-2xl">{p.name}</h3>
                   <BadgeCheck className="h-4 w-4 shrink-0 text-lime" aria-label="認証済み" />
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" />
                   {p.location}
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.bio}</p>
+                <p className="mt-2 text-base leading-relaxed text-white/70 md:text-lg">{p.bio}</p>
               </div>
 
-              {/* stats */}
               <div className="mt-4 grid grid-cols-3 gap-1 border-t border-border px-3 py-3">
                 {p.stats.map((s) => (
                   <div key={s.label} className="flex flex-col items-center text-center">
-                    <span className="font-mono text-sm font-semibold text-foreground">{s.value}</span>
-                    <span className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                    <span
+                      className="font-display text-2xl tracking-wide md:text-3xl"
+                      style={isAthlete ? { color: p.color } : { color: 'var(--foreground)' }}
+                    >
+                      {s.value}
+                    </span>
+                    <span className="mt-1 text-xs font-bold leading-tight text-white/50">
                       {s.label}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* connections */}
               <div className="flex items-center gap-2 border-t border-border px-5 py-3">
                 <Link2 className="h-3.5 w-3.5 shrink-0 text-lime" />
                 <div className="flex flex-wrap gap-1">
