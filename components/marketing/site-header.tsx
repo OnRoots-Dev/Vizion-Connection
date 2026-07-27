@@ -6,14 +6,21 @@ import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const NAV = [
+type NavItem = {
+  label: string
+  href: string
+  sectionId: string | null
+  business?: boolean
+}
+
+const NAV: readonly NavItem[] = [
   { label: 'つながり方', href: '#network', sectionId: 'network' },
   { label: 'プロフィール', href: '#profiles', sectionId: 'profiles' },
   { label: '4つのロール', href: '#roles', sectionId: 'roles' },
   { label: 'ネットワーク効果', href: '#effect', sectionId: 'effect' },
   { label: 'ロードマップ', href: '#roadmap', sectionId: 'roadmap' },
   { label: '企業向け', href: '/business', sectionId: null, business: true },
-] as const
+]
 
 const SECTION_IDS = NAV.filter((item) => item.sectionId).map((item) => item.sectionId!)
 
