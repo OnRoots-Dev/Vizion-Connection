@@ -42,14 +42,17 @@ export function SiteHeader() {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        // 最もビューポートの中央に近いセクションをアクティブにする
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible[0]?.target.id) {
-          setActiveSection(visible[0].target.id)
+        
+        if (visible.length > 0) {
+          const topSection = visible[0]?.target.id
+          setActiveSection(topSection || null)
         }
       },
-      { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.15, 0.35, 0.55] },
+      { rootMargin: '-40% 0px -40% 0px', threshold: [0, 0.1, 0.25, 0.5] },
     )
 
     sections.forEach((el) => observer.observe(el))

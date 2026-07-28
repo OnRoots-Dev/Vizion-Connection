@@ -62,7 +62,7 @@ export function RolesSection() {
         <div className="vz-grid absolute inset-0 opacity-30" />
         <div
           className="absolute left-1/4 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
-          style={{ background: 'rgba(217, 20, 20, 0.1)' }}
+          style={{ background: 'rgba(255, 200, 30, 0.1)' }}
         />
       </div>
 
@@ -78,7 +78,7 @@ export function RolesSection() {
         lead="マップ上で、価値は一方向に流れることはない。すべてのつながりは双方向の交換であり、ネットワーク全体を強くする。"
       />
 
-      <div className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 gsap-stagger-card">
         {ROLES.map((role, i) => {
           const Icon = role.icon
           const isAthlete = role.label === 'Athlete'
@@ -89,7 +89,7 @@ export function RolesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group relative flex h-full flex-col overflow-hidden rounded-3xl border-2 bg-[#0d0d12]/80 p-6 transition-all duration-300 hover:-translate-y-2"
+              className="group relative flex h-full flex-col overflow-hidden rounded-3xl border-2 bg-[#0d0d12]/80 p-6 transition-all duration-300 hover:-translate-y-2 gsap-stagger-item"
               style={{
                 borderColor: isAthlete ? '#d91414' : 'rgba(255,255,255,0.1)',
                 boxShadow: isAthlete ? '0 0 50px rgba(217,20,20,0.25)' : '0 0 30px rgba(255,255,255,0.05)',

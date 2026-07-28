@@ -1,11 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, useInView } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { Flame, Link2, Radio, Share2, Sparkles, Zap } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { SectionHeader } from './section-header'
 import { cn } from '@/lib/utils'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 type Step = {
   step: string
@@ -62,21 +68,77 @@ const STEPS: Step[] = [
 ]
 
 function NetworkPulse({ activeIndex }: { activeIndex: number }) {
-  const nodes = [
-    { cx: 80, cy: 80, r: 10, color: 'var(--role-athlete)', label: 'A' },
-    { cx: 200, cy: 50, r: 9, color: 'var(--role-trainer)', label: 'T' },
-    { cx: 240, cy: 140, r: 9, color: 'var(--role-business)', label: 'B' },
-    { cx: 120, cy: 160, r: 9, color: 'var(--role-fan)', label: 'F' },
-  ]
-  const hub = { cx: 160, cy: 105 }
+  // activeIndexに応じてノード数・配置を変える
+  const getNodeConfig = (index: number) => {
+    switch (index) {
+      case 0:
+        // Step 01: 1ノード（自分）
+        return [
+          { cx: 160, cy: 110, r: 12, color: 'var(--role-athlete)', label: 'YOU' },
+        ]
+      case 1:
+        // Step 02: 3ノード + 最初の接続
+        return [
+          { cx: 160, cy: 110, r: 12, color: 'var(--role-athlete)', label: 'YOU' },
+          { cx: 100, cy: 70, r: 10, color: 'var(--role-trainer)', label: 'T' },
+          { cx: 220, cy: 150, r: 10, color: 'var(--role-fan)', label: 'F' },
+        ]
+      case 2:
+        // Step 03: 6ノード + 脈動
+        return [
+          { cx: 160, cy: 110, r: 12, color: 'var(--role-athlete)', label: 'YOU' },
+          { cx: 100, cy: 70, r: 10, color: 'var(--role-trainer)', label: 'T' },
+          { cx: 220, cy: 150, r: 10, color: 'var(--role-fan)', label: 'F' },
+          { cx: 240, cy: 60, r: 9, color: 'var(--role-business)', label: 'B' },
+          { cx: 80, cy: 160, r: 9, color: 'var(--role-trainer)', label: 'T2' },
+          { cx: 200, cy: 180, r: 9, color: 'var(--role-fan)', label: 'F2' },
+        ]
+      case 3:
+        // Step 04: 16ノードが画面全体に拡散
+        return [
+          { cx: 160, cy: 110, r: 12, color: 'var(--role-athlete)', label: 'YOU' },
+          { cx: 100, cy: 70, r: 10, color: 'var(--role-trainer)', label: 'T' },
+          { cx: 220, cy: 150, r: 10, color: 'var(--role-fan)', label: 'F' },
+          { cx: 240, cy: 60, r: 9, color: 'var(--role-business)', label: 'B' },
+          { cx: 80, cy: 160, r: 9, color: 'var(--role-trainer)', label: 'T2' },
+          { cx: 200, cy: 180, r: 9, color: 'var(--role-fan)', label: 'F2' },
+          // 外側に拡散するノード
+          { cx: 40, cy: 50, r: 8, color: 'var(--role-athlete)', label: 'A2' },
+          { cx: 280, cy: 40, r: 8, color: 'var(--role-trainer)', label: 'T3' },
+          { cx: 300, cy: 120, r: 8, color: 'var(--role-business)', label: 'B2' },
+          { cx: 260, cy: 200, r: 8, color: 'var(--role-fan)', label: 'F3' },
+          { cx: 120, cy: 210, r: 8, color: 'var(--role-athlete)', label: 'A3' },
+          { cx: 30, cy: 130, r: 8, color: 'var(--role-trainer)', label: 'T4' },
+          { cx: 60, cy: 90, r: 7, color: 'var(--role-fan)', label: 'F4' },
+          { cx: 250, cy: 90, r: 7, color: 'var(--role-business)', label: 'B3' },
+          { cx: 180, cy: 30, r: 7, color: 'var(--role-athlete)', label: 'A4' },
+          { cx: 140, cy: 190, r: 7, color: 'var(--role-trainer)', label: 'T5' },
+        ]
+      default:
+        return []
+    }
+  }
 
-  const edgesByLevel: [number, number][][] = [
-    [],
-    [[0, 1], [0, 3]],
-    [[0, 1], [0, 3], [1, 2]],
-    [[0, 1], [0, 2], [0, 3], [1, 2], [2, 3], [3, 1]],
-  ]
-  const visibleEdges = edgesByLevel[Math.min(activeIndex, 3)] ?? []
+  const nodes = getNodeConfig(activeIndex)
+  const hub = { cx: 160, cy: 110 }
+
+  // activeIndexに応じて接続密度を変える
+  const getEdges = (index: number, nodeCount: number): [number, number][] => {
+    if (index === 0) return []
+    if (index === 1) return [[0, 1], [0, 2]]
+    if (index === 2) return [[0, 1], [0, 2], [1, 3], [2, 4], [3, 5]]
+    // Step 04: 高密度接続
+    const edges: [number, number][] = []
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dist = Math.hypot(nodes[i].cx - nodes[j].cx, nodes[i].cy - nodes[j].cy)
+        if (dist < 120) edges.push([i, j])
+      }
+    }
+    return edges
+  }
+
+  const visibleEdges = getEdges(activeIndex, nodes.length)
 
   return (
     <svg viewBox="0 0 320 220" className="h-full w-full" aria-hidden="true">
@@ -105,12 +167,12 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
         />
       ))}
 
-      {/* hub glow */}
-      <circle cx={hub.cx} cy={hub.cy} r={activeIndex >= 1 ? 52 : 28} fill="url(#connectHub)" />
+      {/* hub glow - Step 04で拡大 */}
+      <circle cx={hub.cx} cy={hub.cy} r={activeIndex >= 1 ? (activeIndex === 3 ? 70 : 52) : 28} fill="url(#connectHub)" />
 
-      {/* spokes to hub */}
+      {/* spokes to hub - Step 02以降 */}
       {activeIndex >= 1 &&
-        nodes.map((n, i) => (
+        nodes.slice(1).map((n, i) => (
           <line
             key={`spoke-${i}`}
             x1={n.cx}
@@ -123,29 +185,28 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
           />
         ))}
 
-      {/* perimeter edges */}
-      {activeIndex >= 1 &&
-        visibleEdges.map(([a, b], i) => {
-          if (a === b) return null
-          const from = nodes[a]
-          const to = nodes[b]
-          if (!from || !to) return null
-          return (
-            <g key={`edge-${i}`}>
-              <line x1={from.cx} y1={from.cy} x2={to.cx} y2={to.cy} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
-              <line
-                x1={from.cx}
-                y1={from.cy}
-                x2={to.cx}
-                y2={to.cy}
-                stroke="url(#connectFlow)"
-                strokeWidth={2}
-                strokeDasharray="6 28"
-                style={{ animation: `vz-dash-flow ${2.2 + i * 0.2}s linear infinite` }}
-              />
-            </g>
-          )
-        })}
+      {/* perimeter edges - スクロール進行度に応じて表示 */}
+      {visibleEdges.map(([a, b], i) => {
+        if (a === b) return null
+        const from = nodes[a]
+        const to = nodes[b]
+        if (!from || !to) return null
+        return (
+          <g key={`edge-${i}`}>
+            <line x1={from.cx} y1={from.cy} x2={to.cx} y2={to.cy} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+            <line
+              x1={from.cx}
+              y1={from.cy}
+              x2={to.cx}
+              y2={to.cy}
+              stroke="url(#connectFlow)"
+              strokeWidth={2}
+              strokeDasharray="6 28"
+              style={{ animation: `vz-dash-flow ${2.2 + i * 0.1}s linear infinite` }}
+            />
+          </g>
+        )
+      })}
 
       {/* hub */}
       {activeIndex >= 1 && (
@@ -163,15 +224,12 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
         />
       )}
 
-      {/* nodes */}
+      {/* nodes - activeIndexに応じてフェードイン */}
       {nodes.map((n, i) => (
         <motion.g
           key={n.label}
-          initial={{ opacity: 0.35, scale: 0.7 }}
-          animate={{
-            opacity: activeIndex === 0 ? (i === 0 ? 1 : 0.35) : 1,
-            scale: activeIndex === 0 ? (i === 0 ? 1.15 : 0.85) : 1,
-          }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.45, delay: i * 0.05 }}
           style={{ transformOrigin: `${n.cx}px ${n.cy}px` }}
         >
@@ -195,7 +253,7 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
             y={n.cy + 4}
             textAnchor="middle"
             fill={n.color}
-            style={{ fontSize: 10, fontWeight: 800 }}
+            style={{ fontSize: i === 0 ? 10 : 8, fontWeight: 800 }}
           >
             {n.label}
           </text>
@@ -220,30 +278,35 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
 }
 
 export function ConnectSection() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const inView = useInView(sectionRef, { once: false, margin: '-20% 0px' })
+  const pinRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    if (!inView) return
-    const timer = window.setInterval(() => {
-      setActiveIndex((prev) => {
-        const next = (prev + 1) % STEPS.length
-        setProgress(((next + 1) / STEPS.length) * 100)
-        return next
-      })
-    }, 3200)
-    return () => clearInterval(timer)
-  }, [inView])
+    if (!pinRef.current) return
 
-  useEffect(() => {
-    setProgress(((activeIndex + 1) / STEPS.length) * 100)
-  }, [activeIndex])
+    const mm = gsap.matchMedia()
+
+    mm.add('(min-width: 768px)', () => {
+      ScrollTrigger.create({
+        trigger: pinRef.current,
+        pin: true,
+        scrub: 1,
+        anticipatePin: 1,
+        end: () => `+=${window.innerHeight * 3}`,
+        onUpdate: (self) => {
+          const stepIndex = Math.min(Math.floor(self.progress * 4), 3)
+          setActiveIndex(stepIndex)
+          setProgress(((stepIndex + 1) / 4) * 100)
+        },
+      })
+    })
+
+    return () => mm.revert()
+  }, [])
 
   return (
     <section
-      ref={sectionRef}
       id="network"
       className="relative scroll-mt-24 overflow-hidden py-24 md:scroll-mt-28 md:py-32"
     >
@@ -252,11 +315,11 @@ export function ConnectSection() {
         <div className="vz-grid absolute inset-0 opacity-60" />
         <div
           className="absolute -left-20 top-20 h-64 w-64 rounded-full blur-[100px]"
-          style={{ background: 'rgba(217, 20, 20, 0.12)' }}
+          style={{ background: 'rgba(48, 222, 29, 0.12)' }}
         />
         <div
           className="absolute -right-16 bottom-10 h-72 w-72 rounded-full blur-[110px]"
-          style={{ background: 'rgba(200, 232, 0, 0.08)' }}
+          style={{ background: 'rgba(255, 80, 80, 0.08)' }}
         />
       </div>
 
@@ -273,50 +336,51 @@ export function ConnectSection() {
           lead="参加 → 接続 → 脈動 → 拡張。Zwiftの達成感、Nikeキャンペーンの熱量——スポーツの「積み重ね」を、遊び心のあるビジュアルで可視化する。"
         />
 
-        {/* Network level bar — gamification header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mx-auto mt-12 max-w-3xl rounded-2xl border border-lime/25 bg-card/60 p-4 backdrop-blur-sm md:p-5"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="lp-badge">
-                <Flame className="h-3.5 w-3.5" />
-                Network Quest
-              </span>
-              <span className="font-mono text-xs text-muted-foreground">
-                Step {STEPS[activeIndex].step} / 04
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="lp-stat-num text-lime">{STEPS[activeIndex].level}</span>
-              <span className="font-mono text-sm font-bold text-muted-foreground">
-                {STEPS[activeIndex].xp}
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted/80">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-[#d91414] via-lime to-[#30de1d]"
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
-        </motion.div>
-
-        <div className="mt-10 grid gap-5 lg:grid-cols-[1.05fr_1fr] lg:gap-8">
-          {/* Live network visualization panel */}
+        <div ref={pinRef} className="mt-12">
+          {/* Network level bar — gamification header */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="relative min-h-[350px] overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-5 md:min-h-[450px] md:p-8"
-            style={{ boxShadow: '0 0 60px rgba(200,232,0,0.15)' }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mx-auto max-w-3xl rounded-2xl border border-lime/25 bg-card/60 p-4 backdrop-blur-sm md:p-5"
           >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="lp-badge">
+                  <Flame className="h-3.5 w-3.5" />
+                  Network Quest
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Step {STEPS[activeIndex].step} / 04
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="lp-stat-num text-lime">{STEPS[activeIndex].level}</span>
+                <span className="font-mono text-sm font-bold text-muted-foreground">
+                  {STEPS[activeIndex].xp}
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted/80">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-[#d91414] via-lime to-[#30de1d]"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          </motion.div>
+
+          <div className="mt-6 flex flex-col gap-6 md:mt-8">
+            {/* Live network visualization panel */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55 }}
+              className="relative min-h-[280px] overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-4 md:min-h-[360px] md:p-6"
+              style={{ boxShadow: '0 0 60px rgba(200,232,0,0.15)' }}
+            >
             <div className="absolute left-5 top-5 flex items-center gap-3">
               <span className="relative flex h-3 w-3">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime opacity-60" />
@@ -324,88 +388,74 @@ export function ConnectSection() {
               </span>
               <span className="font-display text-sm font-black uppercase tracking-[0.2em] text-lime">Live Map</span>
             </div>
-            <div className="mt-10 h-[280px] md:h-[360px]">
+            <div className="mt-8 h-[240px] md:mt-10 md:h-full md:min-h-[300px]">
               <NetworkPulse activeIndex={activeIndex} />
             </div>
-            <p className="mt-4 text-center font-mono text-xs font-bold uppercase tracking-widest text-white/60">
+            <p className="mt-3 text-center font-mono text-xs font-bold uppercase tracking-widest text-white/60">
               {STEPS[activeIndex].title} — シミュレーション
             </p>
           </motion.div>
 
-          {/* Step cards — bento stack */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            {STEPS.map((s, i) => {
-              const Icon = s.icon
-              const isActive = activeIndex === i
-              return (
-                <motion.button
-                  key={s.step}
-                  type="button"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.07 }}
-                  onClick={() => setActiveIndex(i)}
-                  className={cn(
-                    'group relative w-full overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 md:p-5',
-                    isActive
-                      ? 'border-lime/45 bg-card shadow-[0_0_40px_rgba(200,232,0,0.08)]'
-                      : 'border-border bg-card/40 hover:border-border/80 hover:bg-card/70',
-                  )}
-                  aria-pressed={isActive}
+          {/* 現在のステップカードのみ表示 */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border p-5 md:p-6"
+              style={{
+                borderColor: `color-mix(in oklch, ${STEPS[activeIndex].accent} 45%, transparent)`,
+                background: `color-mix(in oklch, ${STEPS[activeIndex].accent} 8%, transparent)`,
+                boxShadow: '0 0 40px rgba(200,232,0,0.08)',
+              }}
+            >
+              <div className="relative flex items-start gap-4">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border"
+                  style={{
+                    borderColor: `color-mix(in oklch, ${STEPS[activeIndex].accent} 45%, transparent)`,
+                    background: `color-mix(in oklch, ${STEPS[activeIndex].accent} 15%, transparent)`,
+                    color: STEPS[activeIndex].accent,
+                  }}
                 >
-                  {isActive && (
-                    <div
-                      className="pointer-events-none absolute inset-0 opacity-30"
-                      style={{
-                        background: `radial-gradient(ellipse 80% 60% at 0% 0%, color-mix(in oklch, ${s.accent} 35%, transparent), transparent 70%)`,
-                      }}
-                    />
-                  )}
-                  <div className="relative flex items-start gap-3">
-                    <div
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
-                      style={{
-                        borderColor: `color-mix(in oklch, ${s.accent} 45%, transparent)`,
-                        background: `color-mix(in oklch, ${s.accent} 12%, transparent)`,
-                        color: s.accent,
-                      }}
+                  {(() => {
+                    const Icon = STEPS[activeIndex].icon
+                    return <Icon className="h-7 w-7" strokeWidth={2.25} />
+                  })()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className="font-display text-3xl leading-none tracking-wide"
+                      style={{ color: STEPS[activeIndex].accent }}
                     >
-                      <Icon className="h-5 w-5" strokeWidth={2.25} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className="font-display text-2xl leading-none tracking-wide"
-                          style={{ color: isActive ? s.accent : 'var(--muted-foreground)' }}
-                        >
-                          {s.step}
-                        </span>
-                        <span className="lp-badge text-[0.62rem]">{s.level}</span>
-                        {isActive && (
-                          <Sparkles className="h-3.5 w-3.5 text-lime" aria-hidden="true" />
-                        )}
-                      </div>
-                      <h3 className="mt-1 text-base font-bold tracking-tight md:text-lg">{s.title}</h3>
-                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground md:text-sm">{s.body}</p>
-                      <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2">
-                        <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                          {s.stat.label}
-                        </span>
-                        <span
-                          className="font-display text-lg tracking-wide"
-                          style={{ color: s.accent }}
-                        >
-                          {s.stat.value}
-                        </span>
-                      </div>
-                    </div>
+                      {STEPS[activeIndex].step}
+                    </span>
+                    <span className="lp-badge text-xs">{STEPS[activeIndex].level}</span>
+                    <span className="lp-badge text-xs">{STEPS[activeIndex].xp}</span>
+                    <Sparkles className="h-4 w-4 text-lime" aria-hidden="true" />
                   </div>
-                </motion.button>
-              )
-            })}
-          </div>
+                  <h3 className="mt-2 text-xl font-bold tracking-tight md:text-2xl">{STEPS[activeIndex].title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">{STEPS[activeIndex].body}</p>
+                  <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+                    <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                      {STEPS[activeIndex].stat.label}
+                    </span>
+                    <span
+                      className="font-display text-2xl tracking-wide"
+                      style={{ color: STEPS[activeIndex].accent }}
+                    >
+                      {STEPS[activeIndex].stat.value}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
+      </div>
 
         {/* bottom CTA strip */}
         <motion.div

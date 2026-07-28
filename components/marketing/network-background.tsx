@@ -12,10 +12,10 @@ type Node = {
 }
 
 const ROLE_COLORS = [
-  [200, 232, 0], // lime
-  [86, 194, 224], // cyan
-  [232, 176, 74], // amber
-  [235, 235, 230], // white
+  [255, 80, 80],   // athlete red
+  [48, 222, 29],   // trainer green
+  [255, 200, 30],  // crew/fan amber
+  [60, 140, 255],  // business blue
 ]
 
 export function NetworkBackground() {

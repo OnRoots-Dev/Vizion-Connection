@@ -70,7 +70,7 @@ export function RoadmapSection() {
         <div className="vz-grid absolute inset-0 opacity-30" />
         <div
           className="absolute left-1/2 top-1/3 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[100px]"
-          style={{ background: 'rgba(200, 232, 0, 0.08)' }}
+          style={{ background: 'rgba(60, 140, 255, 0.08)' }}
         />
       </div>
 

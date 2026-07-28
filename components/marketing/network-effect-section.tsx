@@ -49,11 +49,11 @@ export function NetworkEffectSection() {
         <div className="vz-grid absolute inset-0 opacity-40" />
         <div
           className="absolute -left-32 top-20 h-96 w-96 rounded-full blur-[120px]"
-          style={{ background: 'rgba(217, 20, 20, 0.15)' }}
+          style={{ background: 'rgba(48, 222, 29, 0.15)' }}
         />
         <div
           className="absolute -right-24 bottom-20 h-[28rem] w-[28rem] rounded-full blur-[140px]"
-          style={{ background: 'rgba(200, 232, 0, 0.1)' }}
+          style={{ background: 'rgba(60, 140, 255, 0.1)' }}
         />
       </div>
 

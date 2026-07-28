@@ -13,11 +13,11 @@ export function CtaSection() {
         <div className="vz-grid absolute inset-0 opacity-40" />
         <div
           className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
-          style={{ background: 'rgba(217, 20, 20, 0.15)' }}
+          style={{ background: 'rgba(255, 200, 30, 0.15)' }}
         />
         <div
           className="absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full blur-[120px]"
-          style={{ background: 'rgba(200, 232, 0, 0.1)' }}
+          style={{ background: 'rgba(48, 222, 29, 0.1)' }}
         />
       </div>
 

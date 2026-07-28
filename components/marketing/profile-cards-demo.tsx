@@ -114,7 +114,7 @@ export function ProfileCardsDemo() {
         lead="各ロールはそれぞれのプロフィールカードを持ち、つながることで価値を交換します。これはデモ用のサンプルカードです。"
       />
 
-      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4 gsap-stagger-card">
         {PROFILES.map((p, i) => {
           const Icon = p.icon
           const isAthlete = p.id === 'athlete'
@@ -125,7 +125,7 @@ export function ProfileCardsDemo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-lime/40"
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-lime/40 gsap-stagger-item"
               style={
                 isAthlete
                   ? { boxShadow: '0 0 32px rgba(217, 20, 20, 0.12)' }
@@ -183,8 +183,10 @@ export function ProfileCardsDemo() {
                 {p.stats.map((s) => (
                   <div key={s.label} className="flex flex-col items-center text-center">
                     <span
-                      className="font-display text-2xl tracking-wide md:text-3xl"
-                      style={isAthlete ? { color: p.color } : { color: 'var(--foreground)' }}
+                      className="text-2xl tracking-wide md:text-3xl gsap-count-up"
+                      style={isAthlete ? { color: p.color, fontFamily: 'var(--font-mono)' } : { color: 'var(--foreground)', fontFamily: 'var(--font-mono)' }}
+                      data-value={s.value.replace(/[^0-9.]/g, '')}
+                      data-suffix={s.value.replace(/[0-9.]/g, '')}
                     >
                       {s.value}
                     </span>

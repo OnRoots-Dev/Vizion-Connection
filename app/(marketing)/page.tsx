@@ -9,6 +9,7 @@ import { NetworkEffectSection } from "@/components/marketing/network-effect-sect
 import { RoadmapSection } from "@/components/marketing/roadmap-section";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { SiteFooter } from "@/components/marketing/site-footer";
+import { ScrollAnimations } from "@/components/marketing/scroll-animations";
 
 export const metadata: Metadata = {
   title: "Vizion Connection — 積み重ねが、見える。応援が、届く。",
@@ -35,6 +36,7 @@ export default function MarketingHomePage() {
   return (
     <div className="marketing-lp relative min-h-screen scroll-pt-24 bg-[#171716] text-foreground md:scroll-pt-28" style={marketingTheme}>
       <SiteHeader />
+      <ScrollAnimations />
       <main>
         <Hero />
         <ConnectSection />

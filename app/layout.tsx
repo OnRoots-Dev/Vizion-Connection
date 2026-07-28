@@ -3,6 +3,21 @@ import "./globals.css";
 import localFont from "next/font/local";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
+import { Saira_Condensed, Inter } from "next/font/google";
+
+// Google Fonts: Saira Condensed（数字・ゲーミフィケーション用）, Inter（本文用
+const saira = Saira_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-saira",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const bebas = localFont({
   src: "../public/fonts/BebasNeue-Regular.ttf",
@@ -80,7 +95,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={cn(bebas.variable, noto.variable, "font-sans")}>
+    <html lang="ja" className={cn(bebas.variable, noto.variable, saira.variable, inter.variable, "font-sans")}>
       <body>
         {children}
         <SpeedInsights />

@@ -4,6 +4,28 @@
 
 /* ── Vizion Connection Dashboard Design Tokens ── */
 :root {
+  /* ── フォント設定（Nike/ストリート感 + ゲーミフィケーション） ── */
+  /* 見出し用（ストリート感・力強い） */
+  --font-display: "Bebas Neue", "Oswald", "Saira Extra Condensed", "Noto Sans JP", sans-serif;
+  
+  /* 本文・UI用 */
+  --font-body: "Inter", "Noto Sans JP", sans-serif;
+  
+  /* 数字・スコア・Lv用（少し幾何学的） */
+  --font-mono: "Saira Condensed", "Inter", "Noto Sans JP", sans-serif;
+
+  /* フォントサイズの基準 */
+  --text-hero: clamp(3.5rem, 8vw, 7.5rem);
+  --text-section: clamp(2rem, 4.5vw, 3.5rem);
+  --text-card-title: clamp(1.25rem, 2.5vw, 1.75rem);
+  --text-body: clamp(0.95rem, 1.5vw, 1.125rem);
+
+  /* アニメーション用 */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-normal: 0.8s;
+  --duration-slow: 1.2s;
+
   --vc-bg-base:       #09090f;
   --vc-bg-surface:    #111118;
   --vc-bg-elevated:   #1a1a24;
@@ -95,9 +117,9 @@
 
 .marketing-lp .lp-title {
   margin-top: 0.875rem;
-  font-family: var(--font-display), var(--font-body, var(--font-sans));
+  font-family: var(--font-display);
   font-size: clamp(2rem, 5.2vw, 3.75rem);
-  font-weight: 900;
+  font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.03em;
   color: var(--foreground);
@@ -112,7 +134,7 @@
   display: block;
   font-family: var(--font-display);
   font-size: clamp(2.8rem, 7.5vw, 5rem);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 0.9;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -121,7 +143,9 @@
 .marketing-lp .lp-lead {
   margin-top: 1.125rem;
   max-width: 36rem;
+  font-family: var(--font-body);
   font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  font-weight: 400;
   line-height: 1.85;
   color: var(--muted-foreground);
 }
@@ -132,8 +156,9 @@
 }
 
 .marketing-lp .lp-stat-num {
-  font-family: var(--font-display);
+  font-family: var(--font-gaming);
   font-size: clamp(2.5rem, 5vw, 3.75rem);
+  font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
