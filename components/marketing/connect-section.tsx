@@ -94,7 +94,7 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
           { cx: 200, cy: 180, r: 9, color: 'var(--role-fan)', label: 'F2' },
         ]
       case 3:
-        // Step 04: 16ノードが画面全体に拡散
+        // Step 04: 14ノードが画面全体に拡散
         return [
           { cx: 160, cy: 110, r: 12, color: 'var(--role-athlete)', label: 'YOU' },
           { cx: 100, cy: 70, r: 10, color: 'var(--role-trainer)', label: 'T' },
@@ -102,7 +102,7 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
           { cx: 240, cy: 60, r: 9, color: 'var(--role-business)', label: 'B' },
           { cx: 80, cy: 160, r: 9, color: 'var(--role-trainer)', label: 'T2' },
           { cx: 200, cy: 180, r: 9, color: 'var(--role-fan)', label: 'F2' },
-          // 外側に拡散するノード
+          // 外側に拡散するノード（8個追加）
           { cx: 40, cy: 50, r: 8, color: 'var(--role-athlete)', label: 'A2' },
           { cx: 280, cy: 40, r: 8, color: 'var(--role-trainer)', label: 'T3' },
           { cx: 300, cy: 120, r: 8, color: 'var(--role-business)', label: 'B2' },
@@ -111,8 +111,6 @@ function NetworkPulse({ activeIndex }: { activeIndex: number }) {
           { cx: 30, cy: 130, r: 8, color: 'var(--role-trainer)', label: 'T4' },
           { cx: 60, cy: 90, r: 7, color: 'var(--role-fan)', label: 'F4' },
           { cx: 250, cy: 90, r: 7, color: 'var(--role-business)', label: 'B3' },
-          { cx: 180, cy: 30, r: 7, color: 'var(--role-athlete)', label: 'A4' },
-          { cx: 140, cy: 190, r: 7, color: 'var(--role-trainer)', label: 'T5' },
         ]
       default:
         return []
@@ -371,14 +369,14 @@ export function ConnectSection() {
             </div>
           </motion.div>
 
-          <div className="mt-6 flex flex-col gap-6 md:mt-8">
+          <div className="mt-6 flex flex-col gap-5 md:mt-8 md:gap-6">
             {/* Live network visualization panel */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.55 }}
-              className="relative min-h-[280px] overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-4 md:min-h-[360px] md:p-6"
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="relative h-[260px] overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-4 md:h-[340px] md:p-6"
               style={{ boxShadow: '0 0 60px rgba(200,232,0,0.15)' }}
             >
             <div className="absolute left-5 top-5 flex items-center gap-3">
@@ -388,7 +386,7 @@ export function ConnectSection() {
               </span>
               <span className="font-display text-sm font-black uppercase tracking-[0.2em] text-lime">Live Map</span>
             </div>
-            <div className="mt-8 h-[240px] md:mt-10 md:h-full md:min-h-[300px]">
+            <div className="mt-8 h-[220px] md:mt-10 md:h-[280px]">
               <NetworkPulse activeIndex={activeIndex} />
             </div>
             <p className="mt-3 text-center font-mono text-xs font-bold uppercase tracking-widest text-white/60">
@@ -400,11 +398,11 @@ export function ConnectSection() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeIndex}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="rounded-2xl border p-5 md:p-6"
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="flex-shrink-0 rounded-2xl border p-5 md:p-6"
               style={{
                 borderColor: `color-mix(in oklch, ${STEPS[activeIndex].accent} 45%, transparent)`,
                 background: `color-mix(in oklch, ${STEPS[activeIndex].accent} 8%, transparent)`,

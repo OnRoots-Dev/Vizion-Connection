@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
@@ -27,11 +27,23 @@ const SECTION_IDS = NAV.filter((item) => item.sectionId).map((item) => item.sect
 export function SiteHeader() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const lastScrollY = useRef(0)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
+    const onScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // 下スクロールでフェードアウト、上スクロールでフェードイン
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      
+      lastScrollY.current = currentScrollY
+    }
+    
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -87,15 +99,14 @@ export function SiteHeader() {
       <header
         className={cn(
           'fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-3 sm:px-4 sm:pt-4',
-          'transition-[padding] duration-300',
+          'transition-all duration-300',
+          isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         )}
       >
         <div
           className={cn(
             'flex w-full max-w-7xl items-center justify-between gap-2 rounded-2xl border px-3 py-2.5 backdrop-blur-xl sm:rounded-full sm:px-5 sm:py-3',
-            scrolled
-              ? 'border-lime/30 bg-[#0a0a0f]/95 shadow-[0_8px_32px_rgba(0,0,0,0.35)]'
-              : 'border-border/40 bg-[#0a0a0f]/80',
+            'border-border/40 bg-[#0a0a0f]/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)]'
           )}
         >
           <a href="#" className="flex min-w-0 shrink-0 items-center pl-0.5 sm:pl-1" aria-label="Vizion Connection トップへ">
