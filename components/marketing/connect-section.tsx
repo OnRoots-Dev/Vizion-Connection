@@ -291,6 +291,7 @@ export function ConnectSection() {
         pin: true,
         scrub: 1,
         anticipatePin: 1,
+        start: 'center center',
         end: () => `+=${window.innerHeight * 3}`,
         onUpdate: (self) => {
           const stepIndex = Math.min(Math.floor(self.progress * 4), 3)
