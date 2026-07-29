@@ -14,11 +14,11 @@
   /* 数字・スコア・Lv用（少し幾何学的） */
   --font-mono: "Saira Condensed", "Inter", "Noto Sans JP", sans-serif;
 
-  /* フォントサイズの基準 */
-  --text-hero: clamp(3.5rem, 8vw, 7.5rem);
-  --text-section: clamp(2rem, 4.5vw, 3.5rem);
-  --text-card-title: clamp(1.25rem, 2.5vw, 1.75rem);
-  --text-body: clamp(0.95rem, 1.5vw, 1.125rem);
+  /* フォントサイズの基準（日産採用サイト参考：文字を抑え、余白で見せる） */
+  --text-hero: clamp(2.5rem, 5.5vw, 4.5rem);
+  --text-section: clamp(1.5rem, 3vw, 2.5rem);
+  --text-card-title: clamp(1rem, 1.8vw, 1.25rem);
+  --text-body: clamp(0.875rem, 1.2vw, 1rem);
 
   /* アニメーション用 */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

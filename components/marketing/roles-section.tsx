@@ -56,7 +56,7 @@ const ROLES: RoleCard[] = [
 
 export function RolesSection() {
   return (
-    <section id="roles" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-24 md:scroll-mt-28 md:py-32">
+    <section id="roles" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-32 md:scroll-mt-28 md:py-40">
       {/* Street-style background */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="vz-grid absolute inset-0 opacity-30" />

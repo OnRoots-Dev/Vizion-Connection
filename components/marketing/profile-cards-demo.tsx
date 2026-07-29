@@ -102,7 +102,7 @@ const ROLE_LABEL: Record<string, string> = {
 
 export function ProfileCardsDemo() {
   return (
-    <section id="profiles" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-24 md:scroll-mt-28 md:py-32">
+    <section id="profiles" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-32 md:scroll-mt-28 md:py-40">
       <SectionHeader
         kicker="プロフィールデモ"
         title={

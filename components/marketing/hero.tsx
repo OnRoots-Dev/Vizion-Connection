@@ -96,7 +96,7 @@ export function Hero() {
     return () => ctx.revert()
   }, [])
   return (
-    <section id="hero" ref={containerRef} className="relative isolate overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
+    <section id="hero" ref={containerRef} className="relative isolate overflow-hidden pt-32 pb-20 md:pt-40 md:pb-28">
       <NetworkBackground />
 
       {/* Street-style ambient glows */}

@@ -306,7 +306,7 @@ export function ConnectSection() {
   return (
     <section
       id="network"
-      className="relative scroll-mt-24 overflow-hidden py-24 md:scroll-mt-28 md:py-32"
+      className="relative scroll-mt-24 overflow-hidden py-32 md:scroll-mt-28 md:py-40"
     >
       {/* street texture overlays */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -335,32 +335,32 @@ export function ConnectSection() {
         />
 
         <div ref={pinRef} className="mt-12">
-          {/* Network level bar — gamification header */}
+          {/* Network level bar — gamification header - 薄く・小さく */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto max-w-3xl rounded-2xl border border-lime/25 bg-card/60 p-4 backdrop-blur-sm md:p-5"
+            className="mx-auto max-w-2xl rounded-xl border border-lime/15 bg-card/40 p-3 backdrop-blur-sm md:p-4"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="lp-badge">
-                  <Flame className="h-3.5 w-3.5" />
+                <span className="lp-badge text-[10px]">
+                  <Flame className="h-3 w-3" />
                   Network Quest
                 </span>
-                <span className="font-mono text-xs text-muted-foreground">
+                <span className="font-mono text-[10px] text-muted-foreground">
                   Step {STEPS[activeIndex].step} / 04
                 </span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="lp-stat-num text-lime">{STEPS[activeIndex].level}</span>
-                <span className="font-mono text-sm font-bold text-muted-foreground">
+              <div className="flex items-baseline gap-1.5">
+                <span className="lp-stat-num text-sm text-lime">{STEPS[activeIndex].level}</span>
+                <span className="font-mono text-[10px] font-bold text-muted-foreground">
                   {STEPS[activeIndex].xp}
                 </span>
               </div>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted/80">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted/60">
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-[#d91414] via-lime to-[#30de1d]"
                 animate={{ width: `${progress}%` }}
@@ -369,16 +369,44 @@ export function ConnectSection() {
             </div>
           </motion.div>
 
-          <div className="mt-6 flex flex-col gap-5 md:mt-8 md:gap-6">
-            {/* Live network visualization panel */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="relative h-[260px] overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-4 md:h-[340px] md:p-6"
-              style={{ boxShadow: '0 0 60px rgba(200,232,0,0.15)' }}
-            >
+          <div className="mt-6 grid gap-6 md:grid-cols-[0.95fr_1.05fr] md:mt-8 md:gap-8">
+            {/* 左カラム: ステップインジケーター + LIVE MAP */}
+            <div className="flex flex-col gap-4 md:flex-row md:gap-4">
+              {/* ステップインジケーター - PC: 左縦配置、モバイル: 上横並び */}
+              <div className="flex items-center justify-center gap-3 md:flex-col md:justify-start md:gap-4">
+                {STEPS.map((step, i) => (
+                  <button
+                    key={step.step}
+                    type="button"
+                    onClick={() => {
+                      setActiveIndex(i)
+                      setProgress(((i + 1) / 4) * 100)
+                    }}
+                    className={cn(
+                      'font-mono text-xs font-bold uppercase tracking-wider transition-all duration-300',
+                      activeIndex === i
+                        ? 'text-lime scale-110'
+                        : 'text-muted-foreground/60 hover:text-muted-foreground'
+                    )}
+                  >
+                    <span className="hidden md:inline">{step.step}</span>
+                    <span className={cn(
+                      'inline-block h-2 w-2 rounded-full md:hidden',
+                      activeIndex === i ? 'bg-lime' : 'bg-muted-foreground/60'
+                    )} />
+                  </button>
+                ))}
+              </div>
+
+              {/* Live network visualization panel */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="relative h-[260px] flex-1 overflow-hidden rounded-3xl border-2 border-lime/30 bg-[#111118]/90 p-4 md:h-[340px] md:p-6"
+                style={{ boxShadow: '0 0 60px rgba(200,232,0,0.15)' }}
+              >
             <div className="absolute left-5 top-5 flex items-center gap-3">
               <span className="relative flex h-3 w-3">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime opacity-60" />
@@ -393,22 +421,24 @@ export function ConnectSection() {
               {STEPS[activeIndex].title} — シミュレーション
             </p>
           </motion.div>
+            </div>
 
-          {/* 現在のステップカードのみ表示 */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="flex-shrink-0 rounded-2xl border p-5 md:p-6"
-              style={{
-                borderColor: `color-mix(in oklch, ${STEPS[activeIndex].accent} 45%, transparent)`,
-                background: `color-mix(in oklch, ${STEPS[activeIndex].accent} 8%, transparent)`,
-                boxShadow: '0 0 40px rgba(200,232,0,0.08)',
-              }}
-            >
+            {/* 右カラム: 現在のステップカードのみ表示 */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="flex-shrink-0 rounded-2xl border p-5 md:p-6"
+                style={{
+                  borderColor: `color-mix(in oklch, ${STEPS[activeIndex].accent} 45%, transparent)`,
+                  background: `color-mix(in oklch, ${STEPS[activeIndex].accent} 8%, transparent)`,
+                  boxShadow: '0 0 40px rgba(200,232,0,0.08)',
+                  minHeight: '340px',
+                }}
+              >
               <div className="relative flex items-start gap-4">
                 <div
                   className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border"

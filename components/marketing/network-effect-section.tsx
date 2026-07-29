@@ -43,7 +43,7 @@ const FEATURES: Feature[] = [
 
 export function NetworkEffectSection() {
   return (
-    <section id="effect" className="relative scroll-mt-24 overflow-hidden py-24 md:scroll-mt-28 md:py-32">
+    <section id="effect" className="relative scroll-mt-24 overflow-hidden py-32 md:scroll-mt-28 md:py-40">
       {/* Street-style background effects */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="vz-grid absolute inset-0 opacity-40" />

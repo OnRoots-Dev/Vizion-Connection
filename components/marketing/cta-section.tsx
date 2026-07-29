@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 export function CtaSection() {
   return (
-    <section id="cta" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 pb-28 pt-12 md:scroll-mt-28">
+    <section id="cta" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 pb-36 pt-16 md:scroll-mt-28">
       {/* Street-style background effects */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="vz-grid absolute inset-0 opacity-40" />
