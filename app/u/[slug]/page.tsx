@@ -528,7 +528,8 @@ export default async function UserProfilePage({ params }: Props) {
                     progress={{ cheerCount: profile.cheerCount ?? 0, streakDays, journeyCount, bondCount }}
                 />
 
-                {/* ④ ネットワーク（カウント＋CTAのみ常時、観客席は展開） */}
+                {/* ④ ネットワーク — BondはMVP外のため封印（config/mvp-scope.ts）。
+                    Connection がMVPの関係モデル。サポーター表示もBond依存のため非表示。
                 <NetworkCard
                     slug={slug}
                     viewerSlug={viewerSlug}
@@ -538,6 +539,7 @@ export default async function UserProfilePage({ params }: Props) {
                     bondingCount={bondingCount}
                     supporters={supporters}
                 />
+                */}
 
                 {/* Career（段階的開示） */}
                 <Expandable title={publicCareerLabel} summary={profile.sport ?? undefined}>

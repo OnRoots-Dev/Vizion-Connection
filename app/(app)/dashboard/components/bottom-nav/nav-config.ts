@@ -20,40 +20,30 @@ export interface NavItem {
     target: NavTarget;
 }
 
-type Role = string;
-
-function hubLabel(role: Role): string {
-    switch (role) {
-        case "Athlete": return "Athlete";
-        case "Trainer": return "Trainer";
-        case "Crew":    return "Crew";
-        case "Business": return "Business";
-        case "Admin":   return "Admin";
-        default:        return "My Hub";
-    }
-}
 
 const ICONS = {
     home: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75",
-    journey: "M3.75 12h3l2.25-6 4.5 12 2.25-6h4.5",
-    pulse: "M3.75 12h2.25l1.5 6 3-13.5 3 9 1.5-3h4.5",
-    discovery: "M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z",
-    notifications: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0",
-    hub: "M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z",
+    activities: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z",
+    moments: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9",
+    map: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z",
+    schedule: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5",
+    settings: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
 } as const;
 
 /**
- * Bottom Bar に常時表示する共通導線。
- * Home / Journey / Pulse(中央・強調) / Discovery / Notifications / Hub
- * Pulse は SPA ビューではなくフルページルート(/pulse)へ遷移する。
+ * Bottom Bar に常時表示する共通項目。
+ * MVPスコープ（config/mvp-scope.ts）準拠:
+ * Home / Activities / Moments / Viz Map / Schedule / Settings
  */
-export function getPrimaryItems(role: Role): NavItem[] {
+export function getPrimaryItems(): NavItem[] {
     return [
-        { id: "home",          label: "Home",          icon: ICONS.home,          target: { kind: "view",  view: "home" } },
-        { id: "journey",       label: "Journey",       icon: ICONS.journey,       target: { kind: "view",  view: "journey" } },
-        { id: "pulse",         label: "Pulse",         icon: ICONS.pulse,         target: { kind: "route", href: "/pulse" } },
-        { id: "discovery",     label: "Discovery",     icon: ICONS.discovery,     target: { kind: "view",  view: "discovery" } },
-        { id: "notifications", label: "Notif",         icon: ICONS.notifications, target: { kind: "view",  view: "notifications" } },
-        { id: "hub",           label: hubLabel(role),  icon: ICONS.hub,           target: { kind: "view",  view: "hub" } },
+        { id: "home",      label: "Home",      icon: ICONS.home,      target: { kind: "view", view: "home" } },
+        { id: "activities", label: "Activity", icon: ICONS.activities, target: { kind: "view", view: "activities" } },
+        { id: "moments",   label: "Moments",   icon: ICONS.moments,   target: { kind: "view", view: "moments" } },
+        { id: "viz_map",   label: "Viz Map",   icon: ICONS.map,       target: { kind: "view", view: "viz_map" } },
+        { id: "schedule",  label: "Schedule",  icon: ICONS.schedule,  target: { kind: "route", href: "/schedule" } },
+        { id: "settings",  label: "Settings",  icon: ICONS.settings,  target: { kind: "view", view: "settings" } },
     ];
 }
+
+

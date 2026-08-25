@@ -44,6 +44,7 @@ import { CheckoutView } from "./views/CheckoutView";
 import { ActivitiesView } from "./views/ActivitiesView";
 import { MomentsFeedView } from "./views/MomentsFeedView";
 import { VizMapView } from "./views/VizMapView";
+import { isSealedDashboardView } from "@/config/mvp-scope";
 
 type DashboardNewsPost = {
     id: string;
@@ -80,7 +81,9 @@ export default function DashboardClient({
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
     const [referralCount] = useState(initialReferralCount);
-    const [view, setView] = useState<DashboardView>(initialView);
+    const [view, setView] = useState<DashboardView>(
+        isSealedDashboardView(initialView) ? "home" : initialView,
+    );
     const [viewHistory, setViewHistory] = useState<DashboardView[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -226,12 +229,18 @@ export default function DashboardClient({
     }, []);
 
     const handleMenuSetView = useCallback((nextView: DashboardView) => {
+        // MVPスコープガード: 封印ビューへの遷移は home へフォールバック
+        if (isSealedDashboardView(nextView)) {
+            setViewHistory([]);
+            setView("home");
+            return;
+        }
         setViewHistory([]);
         setView(nextView);
     }, []);
 
     const handleSetView = useCallback((nextView: DashboardView) => {
-        if (nextView === "home") {
+        if (nextView === "home" || isSealedDashboardView(nextView)) {
             setViewHistory([]);
             setView("home");
             return;

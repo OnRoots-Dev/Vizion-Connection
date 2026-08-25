@@ -1,6 +1,7 @@
 // middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
+import { findSealedTopLevelPath, isSealedApiPath } from "@/config/mvp-scope";
 
 // 認証が必要なパス
 const PROTECTED_PATHS = [
@@ -102,9 +103,24 @@ export async function middleware(req: NextRequest) {
 
     // Avoid cross-origin redirects for App Router internals such as RSC and prefetch.
     if (isInternalRequest) {
-        // 内部リクエストでもセッション更新は行う（Cookie 属性の再適用のため）
+        // 内部リクエストでもセッション更新は行う（Cookie 再適用ののため）
         await supabase.auth.getUser();
         return applyCors(req, getResponse());
+    }
+
+    // MVPスコープガード: 封印ルートへの直接アクセスはMVP画面へリダイレクト
+    const sealedPath = findSealedTopLevelPath(pathname);
+    if (sealedPath) {
+        const toDashboard = ["/pulse", "/timeline", "/discovery", "/business-hub", "/news-rooms"];
+        return applyCors(req, NextResponse.redirect(new URL(toDashboard.includes(sealedPath) ? "/dashboard" : "/", req.nextUrl)));
+    }
+
+    // MVPスコープガード: 封印APIは存在しないものとして404（Webhook/Auth配下は対象外）
+    if (isSealedApiPath(pathname)) {
+        return applyCors(req, new NextResponse(JSON.stringify({ error: "Not found" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+        }));
     }
 
     // Local development should stay on the same host.
@@ -167,7 +183,20 @@ export const config = {
         "/",
         "/dashboard/:path*",
         "/business/:path*",
+        "/business-hub/:path*",
         "/news-rooms/:path*",
+        "/news/:path*",
+        "/api/:path*",
+        "/pulse",
+        "/timeline",
+        "/ranking",
+        "/discovery",
+        "/roadmap",
+        "/voicelab",
+        "/demo",
+        "/company",
+        "/contact",
+        "/r/:path*",
         "/onboarding/:path*",
         "/onboarding",
         "/login",

@@ -72,10 +72,9 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         return () => { cancelled = true; };
     }, [profile.slug]);
 
+    // MVPスコープ: journey / timeline は封印済み（config/mvp-scope.ts）。Cheer のみ表示。
     const circuitTasks = [
-        { key: "journey", label: "Journey記録", done: circuit.journey, view: "journey" as DashboardView },
         { key: "cheer", label: "Cheer送信", done: circuit.cheer, view: "cheer" as DashboardView },
-        { key: "timeline", label: "Timeline閲覧", done: circuit.timeline, view: "timeline" as DashboardView },
     ];
     const circuitComplete = circuitTasks.every((task) => task.done);
 

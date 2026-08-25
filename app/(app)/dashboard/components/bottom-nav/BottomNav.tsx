@@ -18,10 +18,10 @@ interface Props {
 
 // モバイル向け Bottom Navigation。5項目フラット構成。
 // Home / Journey / Discovery / Notifications（未読バッジ付き） / Hub
-export function BottomNav({ role, view, setView, t, theme, roleColor, notificationUnreadCount = 0 }: Props) {
+export function BottomNav({ view, setView, t, theme, roleColor, notificationUnreadCount = 0 }: Props) {
     const router = useRouter();
     const pathname = usePathname();
-    const items = useMemo(() => getPrimaryItems(role), [role]);
+    const items = useMemo(() => getPrimaryItems(), []);
     const onDashboard = pathname === "/dashboard";
 
     const isActive = useCallback(
@@ -183,3 +183,7 @@ export function BottomNav({ role, view, setView, t, theme, roleColor, notificati
         </nav>
     );
 }
+
+
+
+
