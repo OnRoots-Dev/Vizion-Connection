@@ -102,7 +102,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const paymentKey = `square_webhook:payment:${payment.id}`;
-  const alreadyProcessed = await upstashRedis.get(paymentKey);
+  // Redis 冪等キーは best-effort。障害時は DB 側の注文状態遷移
+  // (incomplete -> completed) が冪等性を担保する。
+  let alreadyProcessed: unknown = null;
+  try {
+    alreadyProcessed = await upstashRedis.get(paymentKey);
+  } catch (err) {
+    console.error("[square webhook] redis unavailable — skip dedupe check", err instanceof Error ? err.message : err);
+  }
   if (alreadyProcessed) {
     return NextResponse.json({ success: true, duplicate: true });
   }
@@ -158,7 +165,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.warn("[square webhook] slot prefecture missing", payment.id);
   }
 
-  await upstashRedis.set(paymentKey, "1", { ex: PROCESSED_TTL_SECONDS });
+  try {
+    await upstashRedis.set(paymentKey, "1", { ex: PROCESSED_TTL_SECONDS });
+  } catch (err) {
+    console.error("[square webhook] redis set failed (non-fatal)", err instanceof Error ? err.message : err);
+  }
 
   return NextResponse.json({ success: true, orderId: order.id });
 }
