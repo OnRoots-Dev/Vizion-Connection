@@ -1,62 +1,46 @@
-# AGENTS.md
+# Vizion Connection — Agent Operating Rules
 
-**Vizion Connection**（vizion-connection.jp）— アスリート・トレーナー・クルー・企業をつなぐ日本のスポーツプラットフォーム。
-Next.js 16 App Router / React 19 / TypeScript / Tailwind v4 / Supabase。個人開発・単一リポジトリ・**顧客の個人情報を扱う本番SaaS**。
+## Source hierarchy
+1. `00_MASTER_SPEC.md` — product/spec authority.
+2. The numbered SPEC files — domain detail.
+3. `design-system/MASTER.md` and `lib/design/tokens.ts` — UI authority.
+4. Existing production code and `supabase/migrations/` — implementation truth.
+5. `.skills/*/SKILL.md` — execution guidance; never silently override SPECs.
 
-## コマンド
+## Existing First
+Before implementing, search the repository for the same responsibility, route, component, type, API, DB table, RPC, and validation rule.
 
-```bash
-npm run dev       # devサーバー (localhost:3000)
-npm run build     # 本番ビルド
-npm run lint      # ESLint
-npx tsc --noEmit  # 型チェック（テストスイートは無い）
-```
+## Reuse First / No Duplicate
+Reuse existing components, APIs, feature modules, Supabase helpers, tokens, and motion recipes. Do not create a second implementation of an existing responsibility.
 
-## 鉄則（違反はhooksが機械的にブロックする）
+## Spec First
+Read the relevant numbered SPEC and Skill before changing code. Record uncertain behavior as `Undecided`; do not invent requirements.
 
-1. **RLS**: `anon`/`authenticated` は `users`/`journeys`/`career_profiles`/`ads` にSELECTのみ。書き込みは全て service role のサーバールート経由。全開ポリシー（`USING(true)`）禁止。
-2. **service role キー**はブラウザに出さない。入口は `lib/supabase/server.ts` のみ。
-3. **mutating APIルートは3点セット必須**: `validateCSRF` + レートリミット + body検証。
-4. **PIIをログに出さない**: email/phone/氏名/token/`console.log(user)` 丸ごと出力は禁止。識別子は id/slug のみ。
-5. **破壊的SQL**（DROP/TRUNCATE/WHEREなしDELETE・UPDATE/PIIテーブル変更）は人間の承認必須。
-6. **シークレットの直書き禁止**: 設定ファイルは `${ENV_VAR}` 参照。`.env*` はコミット・削除・上書きしない。
-7. マイグレーションは `supabase/migrations/` のみ。**ファイル作成と `apply_migration` は必ずセット**。
-8. `user.id` と `user.slug` を混同しない（移行期の既知バグ源）。
-9. アカウント「削除」はソフトデリート（`is_deleted`）。完全消去は `.Codex/rules/pii-handling.md` の範囲定義に従う。
-10. 破壊的なシェル操作（`rm -rf`、`.env`削除、`git clean -x` 等）はhooksがブロックする。回避しない。
+## Status discipline
+Every requirement must be marked `Current`, `MVP`, `Planned`, `Future`, or `Deprecated`. Never describe Planned/Future work as implemented.
 
-## 作業前に読むルール（対象パスを触る時は必読）
+## Production DB First
+`public` production schema is the DB truth. Treat migration history as evidence, not as proof that the live schema is identical. Do not add or change migrations during this specification task.
 
-| 触るパス | 読むファイル |
-|---|---|
-| `features/auth/`, `lib/auth/`, `app/api/account/`, `middleware.ts` | `.Codex/rules/auth.md` |
-| PII関連（`app/api/{account,contact,profile,register}/`, `lib/supabase/data/`, `contacts.ts`, `business-orders.ts`） | `.Codex/rules/pii-handling.md` |
-| `supabase/`, `lib/supabase/`, SQL全般 | `.Codex/rules/db-and-rls.md` |
-| 決済（`app/api/business-checkout/`, `app/api/webhooks/`, `features/business/`） | `.Codex/rules/payments.md` |
-| UI（`app/`, `components/`） | `.Codex/rules/frontend.md` |
-| DBマイグレーション作業 | `.Codex/skills/db-migration/SKILL.md` |
-| デプロイ | `.Codex/skills/deploy/SKILL.md` |
+## Security
+Preserve RLS, service-role boundaries, CSRF validation, rate limiting, Zod/body validation, HMAC verification, idempotency, and PII-safe logging. Never expose service-role credentials.
 
-危険地帯ディレクトリには個別の `AGENTS.md` がある（`features/auth/`, `app/api/`, `lib/supabase/`, `supabase/migrations/`）。
-PII関連のヒヤリハットは `agent-memory/pii-incidents.md` に追記・参照。
+## Minimal Change
+Do not delete, migrate, rename, or rewrite existing product code merely to fit the new specification. This task is documentation/agent-foundation work.
 
-## アーキテクチャ（要点のみ）
+## Verification
+After implementation changes, run `npm run lint`, `npx tsc --noEmit`, `npm run build`, relevant tests, and inspect `git diff`. For this documentation task, verify file names, links, terminology, and status labels.
 
-- ルートグループ: `app/(app)/`（認証済みシェル: dashboard/pulse/timeline）, `app/(auth)/`, `app/(marketing)/`, `app/(onboarding)/`（day0→profile→discovery→journey→invite→cheer）, `app/api/`, 公開プロフィール `app/p/[slug]` `app/u/[slug]` `app/r/[slug]`
-- `/dashboard` は**URLを変えないSPA**（詳細: `.Codex/rules/frontend.md`）
-- 機能ロジックは `features/<name>/{server,types.ts,validation}`。`lib/` は横断ヘルパー
-- Supabaseクライアントは4種を使い分け（**必読**: `lib/supabase/AGENTS.md`）
-- ロール: `Athlete | Trainer | Crew | Business | Admin`（`features/auth/types.ts`）
-- スポンサープラン: `roots | signal | presence | legacy`
+## Architecture guardrails
+- Next.js 16 App Router / React 19 / TypeScript / Tailwind v4 / Supabase.
+- `app/` owns routes and Route Handlers; `features/` owns domain logic; `lib/` owns cross-cutting infrastructure; `components/` owns reusable UI.
+- Supabase writes to protected production tables go through server-side/service-role paths according to `SECURITY.md`.
+- `user.id` and `user.slug` are different identifiers; do not substitute one for the other.
+- Existing dashboard is a URL-stable SPA; do not introduce navigation changes without checking frontend rules.
 
-## 環境変数（`lib/env.ts`）
+## Current vs planned product vocabulary
+Current implementation uses `Journey` for activity-like records. Product direction standardizes the concept as `Activity`; migration/unification is Planned unless existing code already provides the behavior.
+`Cheer` exists today. `Connection`, `Moment`, and `Viz Map` are product concepts in the new specification and are not to be assumed implemented unless a code audit confirms them.
 
-必須: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `RESEND_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `NEXT_PUBLIC_BASE_URL`
-任意: `FROM_EMAIL`, `VOICELAB_ADMIN_EMAILS`, `SQUARE_LINK_*`, `SQUARE_WEBHOOK_SIGNATURE_KEY`
-MCP用（gitファイルに値を書かない）: `SUPABASE_ACCESS_TOKEN`（`.mcp.json` が参照）
-
-## 経緯メモ
-
-- 2026年前半に Airtable → Supabase 移行済み。移行メモは `docs/archive/MIGRATION_ANALYSIS_REPORT.md`。
-- RLS監査（2026-06-20）の記録とロールバックSQLは `SECURITY.md`。
-- 旧 `migrations/`（ルート直下）は `docs/legacy-migrations/` にアーカイブ済み。追加禁止。
+## Do not do in specification phase
+No DB migration, schema change, bulk API addition, auth redesign, Square redesign, Mapbox implementation, destructive cleanup, or large application rewrite.
