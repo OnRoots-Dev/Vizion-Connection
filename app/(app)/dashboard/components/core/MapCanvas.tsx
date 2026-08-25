@@ -1,12 +1,12 @@
 "use client";
 
-// dashboard/components/core/MapCanvas.tsx
-// Viz Map の抽象キャンバス。Mapbox GL JS 導入時に置き換える単一ポイント。
-// 契約: bbox + items(lat/lng) を受け、marker選択イベントを出すだけ。
-// 現実装は equirectangular 投影の静面マップ（本番仕様ではなく仮描画）。
+// dashboard/components/core/MapCanvas.tsx — Phase A (Standard Mapbox)
+// mapbox://styles/mapbox/dark-v11 + native clustering。独自Style/MarkerはPhase B。
+// 抽象化維持: props契約(bbox/points/selectedId/onSelect)は不変。token未設定時は案内表示。
 
-import { useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import "mapbox-gl/dist/mapbox-gl.css";
+import type { MapBBox } from "./mapTypes";
 
 export interface MapPoint {
     id: string;
@@ -16,129 +16,256 @@ export interface MapPoint {
     kind?: string;
 }
 
-export interface MapBBox {
-    minLat: number;
-    maxLat: number;
-    minLng: number;
-    maxLng: number;
-}
-
-const ROLE_KIND_COLORS: Record<string, string> = {
-    practice: "#C8E800",
-    training: "#7DD3FC",
-    match: "#FFD600",
-    competition: "#FFD600",
-    event: "#F0ABFC",
-    coaching: "#86EFAC",
-    session: "#86EFAC",
-    workshop: "#FDBA74",
-    watching: "#A5B4FC",
-    supporting: "#F9A8D4",
-    participation: "#A5B4FC",
-    other: "#E5E7EB",
-};
-
 export function kindColor(kind?: string): string {
-    return ROLE_KIND_COLORS[kind ?? "other"] ?? "#C8E800";
+    void kind;
+    // Phase A: 色は単一アクセントに限定（多色化禁止）
+    return "#C8E800";
 }
 
-export function MapCanvas({
-    bbox,
-    points,
-    selectedId,
-    onSelect,
-    loading,
-}: {
+interface Props {
     bbox: MapBBox;
     points: MapPoint[];
     selectedId?: string | null;
     onSelect?: (id: string) => void;
+    onViewportChange?: (bbox: MapBBox) => void;
     loading?: boolean;
-}) {
-    const reduce = useReducedMotion();
+}
 
-    const projected = useMemo(() => {
-        const spanLat = Math.max(bbox.maxLat - bbox.minLat, 1e-6);
-        const spanLng = Math.max(bbox.maxLng - bbox.minLng, 1e-6);
-        return points.map((p) => ({
-            ...p,
-            xPct: ((p.longitude - bbox.minLng) / spanLng) * 100,
-            yPct: ((bbox.maxLat - p.latitude) / spanLat) * 100,
-        }));
-    }, [bbox, points]);
+const EMPTY_BBOX: MapBBox = { minLat: 0, maxLat: 0, minLng: 0, maxLng: 0 };
 
-    return (
-        <div
-            role="application"
-            aria-label="Viz Map"
-            style={{
-                position: "relative", width: "100%", aspectRatio: "4 / 3",
-                borderRadius: 16, overflow: "hidden",
-                background:
-                    "radial-gradient(120% 90% at 30% 10%, rgba(200,232,0,0.06), transparent 55%)," +
-                    "repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 44px)," +
-                    "repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 44px)," +
-                    "#0c0c14",
-                border: "1px solid rgba(255,255,255,0.09)",
-            }}
-        >
-            {/* 経緯線グリッド上に marker を配置（Mapbox差し替えポイント） */}
-            {projected.map((p) => {
-                const active = p.id === selectedId;
-                return (
-                    <motion.button
-                        key={p.id}
-                        type="button"
-                        aria-label={`${p.label} の場所`}
-                        title={p.label}
-                        onClick={() => onSelect?.(p.id)}
-                        initial={reduce ? false : { scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        whileTap={reduce ? undefined : { scale: 0.85 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                        style={{
-                            position: "absolute",
-                            left: `calc(${Math.min(Math.max(p.xPct, 2), 98)}% - 12px)`,
-                            top: `calc(${Math.min(Math.max(p.yPct, 3), 96)}% - 12px)`,
-                            width: 24, height: 24,
-                            borderRadius: "50% 50% 50% 4px",
-                            transform: "rotate(45deg)",
-                            border: active ? "2px solid #ffffff" : `1px solid ${kindColor(p.kind)}66`,
-                            background: active ? kindColor(p.kind) : `${kindColor(p.kind)}2e`,
-                            boxShadow: active
-                                ? `0 0 0 5px ${kindColor(p.kind)}33, 0 6px 16px rgba(0,0,0,0.5)`
-                                : "0 4px 10px rgba(0,0,0,0.4)",
-                            cursor: "pointer",
-                            zIndex: active ? 2 : 1,
-                        }}
-                    />
-                );
-            })}
+export function MapCanvas({ bbox, points, selectedId, onSelect, onViewportChange, loading }: Props) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const mapRef = useRef<import("mapbox-gl").Map | null>(null);
+    const dataRef = useRef<{ points: MapPoint[]; selectedId?: string | null }>({ points, selectedId });
+    const selectRef = useRef(onSelect);
+    const viewportRef = useRef(onViewportChange);
+    const [ready, setReady] = useState(false);
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-            {/* zoomヒント（Mapbox導入までの操作ガイド） */}
+    dataRef.current = { points, selectedId };
+    selectRef.current = onSelect;
+    viewportRef.current = onViewportChange;
+
+    // init once
+    useEffect(() => {
+        if (!token || !containerRef.current || mapRef.current) return;
+        let cancelled = false;
+        (async () => {
+            const mapboxgl = (await import("mapbox-gl")).default;
+            if (cancelled) return;
+            mapboxgl.accessToken = token;
+            const map = new mapboxgl.Map({
+                container: containerRef.current!,
+                style: "mapbox://styles/mapbox/dark-v11",
+                center: [(bbox.minLng + bbox.maxLng) / 2, (bbox.minLat + bbox.maxLat) / 2],
+                zoom: 11,
+                attributionControl: true,
+            });
+            map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+            map.dragRotate.disable();
+            map.touchZoomRotate.disableRotation();
+
+            map.on("load", () => {
+                map.addSource("viz-points", {
+                    type: "geojson",
+                    data: { type: "FeatureCollection", features: [] },
+                    cluster: true,
+                    clusterRadius: 48,
+                    clusterMaxZoom: 14,
+                });
+                // cluster count
+                map.addLayer({
+                    id: "clusters-count",
+                    type: "symbol",
+                    source: "viz-points",
+                    filter: ["has", "point_count"],
+                    layout: {
+                        "text-field": ["get", "point_count_abbreviated"],
+                        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+                        "text-size": 12,
+                    },
+                    paint: { "text-color": "#000000" },
+                });
+                // cluster circle
+                map.addLayer({
+                    id: "clusters",
+                    type: "circle",
+                    source: "viz-points",
+                    filter: ["has", "point_count"],
+                    paint: {
+                        "circle-color": "#C8E800",
+                        "circle-radius": 18,
+                        "circle-stroke-width": 2,
+                        "circle-stroke-color": "rgba(255,255,255,0.85)",
+                    },
+                });
+                // single point
+                map.addLayer({
+                    id: "single-point",
+                    type: "circle",
+                    source: "viz-points",
+                    filter: ["!", ["has", "point_count"]],
+                    paint: {
+                        "circle-color": "#C8E800",
+                        "circle-radius": 7,
+                        "circle-stroke-width": 2.5,
+                        "circle-stroke-color": "#ffffff",
+                    },
+                });
+
+                map.on("click", "clusters", (e) => {
+                    const f: any = map.queryRenderedFeatures(e.point, { layers: ["clusters"] })[0];
+                    if (!f) return;
+                    const src = map.getSource("viz-points") as any;
+                    const zoom: number = src.getClusterExpansionZoom(f.properties.cluster_id);
+                    map.easeTo({ center: f.geometry.coordinates, zoom });
+                });
+                map.on("click", "single-point", (e) => {
+                    const f = e.features?.[0];
+                    const id = (f as unknown as { properties?: { id?: string } })?.properties?.id;
+                    if (id) selectRef.current?.(id);
+                });
+                map.on("mousemove", "single-point", () => { map.getCanvas().style.cursor = "pointer"; });
+                map.on("mouseleave", "single-point", () => { map.getCanvas().style.cursor = ""; });
+
+                setReady(true);
+            });
+
+            const emitViewport = () => {
+                const b = map.getBounds();
+        if (!b) return;
+                viewportRef.current?.({
+                    minLat: b.getSouth(), maxLat: b.getNorth(),
+                    minLng: b.getWest(), maxLng: b.getEast(),
+                });
+            };
+            map.on("moveend", emitViewport);
+            map.once("idle", emitViewport);
+
+            mapRef.current = map;
+        })();
+        return () => {
+            cancelled = true;
+            mapRef.current?.remove();
+            mapRef.current = null;
+            setReady(false);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token]);
+
+    // camera follow bbox prop（地域チップ等からの移動）
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !ready) return;
+        const b = map.getBounds();
+        if (!b) return;
+        const same =
+            Math.abs(b.getSouth() - bbox.minLat) < 1e-4 && Math.abs(b.getNorth() - bbox.maxLat) < 1e-4 &&
+            Math.abs(b.getWest() - bbox.minLng) < 1e-4 && Math.abs(b.getEast() - bbox.maxLng) < 1e-4;
+        if (same) return;
+        map.fitBounds([[bbox.minLng, bbox.minLat], [bbox.maxLng, bbox.maxLat]], { padding: 40, duration: 800 });
+    }, [bbox, ready]);
+
+    // data sync
+    const syncData = useCallback(() => {
+        const map = mapRef.current;
+        if (!map || !map.getSource("viz-points")) return;
+        const src = map.getSource("viz-points") as import("mapbox-gl").GeoJSONSource;
+        src.setData({
+            type: "FeatureCollection",
+            features: dataRef.current.points.map((p) => ({
+                type: "Feature" as const,
+                geometry: { type: "Point" as const, coordinates: [p.longitude, p.latitude] },
+                properties: { id: p.id, label: p.label },
+            })),
+        } as unknown as Parameters<import("mapbox-gl").GeoJSONSource["setData"]>[0]);
+        // 選択ハイライト
+        if (map.getLayer("single-point")) {
+            const selId = dataRef.current.selectedId;
+            map.setFilter("single-point", [
+                "!", ["has", "point_count"],
+            ]);
+            if (selId) {
+                map.setPaintProperty("single-point", "circle-radius", [
+                    "case", ["==", ["get", "id"], selId], 10, 7,
+                ]);
+            } else {
+                map.setPaintProperty("single-point", "circle-radius", 7);
+            }
+        }
+    }, []);
+
+    useEffect(() => { syncData(); }, [points, selectedId, ready, syncData]);
+
+    // 現在地
+    function locate() {
+        if (!navigator.geolocation || !mapRef.current) return;
+        navigator.geolocation.getCurrentPosition((pos) => {
+            mapRef.current?.easeTo({
+                center: [pos.coords.longitude, pos.coords.latitude],
+                zoom: 13, duration: 800,
+            });
+        });
+    }
+
+    if (!token) {
+        return (
             <div
-                aria-hidden
+                role="alert"
                 style={{
-                    position: "absolute", right: 8, bottom: 8,
-                    fontSize: 9, fontFamily: "'Space Mono', monospace",
-                    color: "rgba(255,255,255,0.35)", letterSpacing: "0.08em",
+                    width: "100%", aspectRatio: "16 / 10", borderRadius: 16,
+                    border: "1px dashed rgba(255,255,255,0.2)", background: "#111118",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 6, color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", padding: 16,
                 }}
             >
-                VIZ MAP · PREVIEW
+                <strong style={{ color: "#f0f0f5" }}>Viz Map は設定待ちです</strong>
+                <span style={{ fontSize: 11 }}>
+                    NEXT_PUBLIC_MAPBOX_TOKEN が未設定のため地図を表示できません。
+                </span>
             </div>
+        );
+    }
 
+    return (
+        <div style={{ position: "relative" }}>
+            <div ref={containerRef} role="application" aria-label="Viz Map"
+                style={{ width: "100%", aspectRatio: "16 / 10", borderRadius: 16, overflow: "hidden",
+                         border: "1px solid rgba(255,255,255,0.09)", background: "#0c0c14" }} />
+            {/* 現在地ボタン */}
+            <button
+                type="button"
+                aria-label="現在地へ移動"
+                onClick={locate}
+                disabled={!ready}
+                style={{
+                    position: "absolute", left: 10, bottom: 26, zIndex: 5,
+                    width: 40, height: 40, borderRadius: 12, cursor: ready ? "pointer" : "wait",
+                    background: "rgba(12,12,20,0.85)", border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#f0f0f5", fontSize: 15,
+                }}
+            >
+                ◎
+            </button>
             {loading ? (
-                <div
-                    style={{
-                        position: "absolute", inset: 0, display: "flex",
-                        alignItems: "center", justifyContent: "center",
-                        background: "rgba(5,5,10,0.45)", fontSize: 12,
-                        color: "rgba(255,255,255,0.75)",
-                    }}
-                >
+                <div style={{
+                    position: "absolute", top: 10, left: 10, zIndex: 5,
+                    padding: "4px 10px", borderRadius: 999, fontSize: 10, fontWeight: 700,
+                    background: "rgba(12,12,20,0.85)", border: "1px solid rgba(200,232,0,0.35)",
+                    color: "#C8E800",
+                }}>
                     読み込み中...
                 </div>
             ) : null}
         </div>
     );
 }
+
+export type { MapBBox };
+export { EMPTY_BBOX };
+
+
+
+
+
+

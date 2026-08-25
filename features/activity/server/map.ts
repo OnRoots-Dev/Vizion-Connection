@@ -9,6 +9,9 @@ export interface MapActivityItem {
     title: string | null;
     starts_at: string;
     status: string;
+    user_id: number;
+    author_slug: string | null;
+    author_name: string | null;
     place: {
         id: string;
         name: string;
@@ -37,9 +40,9 @@ export async function listPublicMapActivities(
     const { data, error } = await supabaseServer
         .from("activities")
         .select(
-            `id,type,title,starts_at,status,place_id,
+            `id,type,title,starts_at,status,place_id,user_id,
              place:places!inner(id,name,prefecture,latitude,longitude,precision,place_type),
-             owner:users!inner(is_public,is_deleted)`,
+             owner:users!inner(slug,display_name,is_public,is_deleted)`,
         )
         .eq("visibility", "public")
         .eq("status", "planned") // 完了・中止はMapに載せない（段階的取得）
@@ -61,18 +64,23 @@ export async function listPublicMapActivities(
         title: string | null;
         starts_at: string;
         status: string;
+        user_id: number;
         place_id: string | null;
         place: MapActivityItem["place"] | null;
+        owner: { slug: string; display_name: string | null; is_public: boolean; is_deleted: boolean } | null;
     };
 
-    return ((data ?? []) as unknown as Array<Row & { owner: { is_public: boolean; is_deleted: boolean } }>)
-        .filter((row) => row.place && row.owner.is_public && !row.owner.is_deleted)
+    return ((data ?? []) as unknown as Row[])
+        .filter((row) => row.place && row.owner && row.owner.is_public && !row.owner.is_deleted)
         .map((row) => ({
             id: row.id,
             type: row.type,
             title: row.title,
             starts_at: row.starts_at,
             status: row.status,
+            user_id: row.user_id,
+            author_slug: row.owner!.slug,
+            author_name: row.owner!.display_name,
             place: row.place as NonNullable<Row["place"]>,
         }));
 }
