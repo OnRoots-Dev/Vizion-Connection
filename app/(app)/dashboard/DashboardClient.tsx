@@ -41,6 +41,9 @@ import { AthleteHubView } from "./views/AthleteHubView";
 import { MemberHubView } from "./views/MemberHubView";
 import { TrainerHubView } from "./views/TrainerHubView";
 import { CheckoutView } from "./views/CheckoutView";
+import { ActivitiesView } from "./views/ActivitiesView";
+import { MomentsFeedView } from "./views/MomentsFeedView";
+import { VizMapView } from "./views/VizMapView";
 
 type DashboardNewsPost = {
     id: string;
@@ -267,6 +270,12 @@ export default function DashboardClient({
                 return <MyJourneyView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "timeline":
                 return <TimelineView profile={profile} setView={handleSetView} />;
+            case "activities":
+                return <ActivitiesView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
+            case "moments":
+                return <MomentsFeedView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
+            case "viz_map":
+                return <VizMapView t={t} roleColor={roleColor} onBack={goBack} />;
             case "portfolio":
                 // Portfolio（Journey履歴 / 活動記録 / 成長軌跡 / 実績）= Profile と責務分離した専用ビュー。
                 return <PortfolioView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;

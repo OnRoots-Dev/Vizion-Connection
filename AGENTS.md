@@ -60,3 +60,14 @@ MCP用（gitファイルに値を書かない）: `SUPABASE_ACCESS_TOKEN`（`.mc
 - 2026年前半に Airtable → Supabase 移行済み。移行メモは `docs/archive/MIGRATION_ANALYSIS_REPORT.md`。
 - RLS監査（2026-06-20）の記録とロールバックSQLは `SECURITY.md`。
 - 旧 `migrations/`（ルート直下）は `docs/legacy-migrations/` にアーカイブ済み。追加禁止。
+
+## Product specification and local skills
+
+Before product work, read [00_MASTER_SPEC.md](00_MASTER_SPEC.md), then the relevant numbered specification and `.skills/<area>/SKILL.md`.
+
+- **Existing first / Reuse first**: search existing routes, components, feature services, and migrations before adding anything.
+- **No duplicate responsibility**: extend an existing canonical model or API only when its responsibility matches; otherwise document the boundary first.
+- **Spec first**: Current, MVP, Planned, Future, and Deprecated must never be conflated.
+- **Production DB first**: production Supabase is the schema authority. Migration files are historical evidence, not proof of live state; verify read-only before any schema work.
+- **Minimal change and verification**: preserve existing behavior; after changes run the relevant TypeScript, lint, test, and `git diff` checks.
+- **Security is non-optional**: apply authentication, authorization, RLS, CSRF, body validation, and rate limiting to every mutable surface.

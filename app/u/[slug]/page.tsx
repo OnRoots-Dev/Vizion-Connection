@@ -28,6 +28,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { computeStreak } from "@/lib/pulse-stats";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
+import { listVisibleActivitiesByOwner } from "@/features/activity/server/activities";
+import { listVisibleMomentsByOwner } from "@/features/moment/server/moments";
+import type { ActivityRecord } from "@/features/activity/types";
+import type { MomentFeedItem } from "@/features/moment/types";
 import { ProfilePortfolioNav } from "./ProfilePortfolioNav";
 import { getSponsorsForUser } from "@/lib/supabase/business-sponsorships";
 import { getMilestonesForUser } from "@/lib/supabase/portfolio-milestones";
@@ -186,6 +190,21 @@ export default async function UserProfilePage({ params }: Props) {
     ]);
 
     const streakDays = computeStreak(journeyDates.map(r => r.created_at));
+
+    // Core Loop: このユーザーの Activity / Moment（閲覧者の可視性ルールに従う）
+    const viewerUserId = session?.id != null ? Number(session.id) : null;
+    const { data: ownerIdRow } = await supabaseServer
+        .from("users")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle<{ id: number }>();
+    const ownerUserId = ownerIdRow?.id != null ? Number(ownerIdRow.id) : NaN;
+    const [profileActivities, profileMoments] = Number.isFinite(ownerUserId)
+        ? await Promise.all([
+              listVisibleActivitiesByOwner(ownerUserId, viewerUserId, 6),
+              listVisibleMomentsByOwner(ownerUserId, viewerUserId, 3),
+          ])
+        : [[], []];
 
     // 閲覧者がこのプロフィールを Bond（観客席入り）しているか
     let isBonded = false;
@@ -469,6 +488,30 @@ export default async function UserProfilePage({ params }: Props) {
                     viewAllHref={`/u/${slug}/portfolio`}
                 />
 
+                {/* Core Loop: Activity（可視性ルールに従い、閲覧者に見えるもののみ） */}
+                {profileActivities.length > 0 ? (
+                    <section aria-label="Activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <h2 style={vpSectionTitle}>Activity</h2>
+                        <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                            {profileActivities.map((a) => (
+                                <ProfileActivityRow key={a.id} activity={a} />
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
+                {/* Core Loop: Moment（親Activityの可視性を継承） */}
+                {profileMoments.length > 0 ? (
+                    <section aria-label="Moment" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <h2 style={vpSectionTitle}>Moment</h2>
+                        <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+                            {profileMoments.map((m) => (
+                                <ProfileMomentRow key={m.moment.id} item={m} />
+                            ))}
+                        </div>
+                    </section>
+                ) : null}
+
                 {/* Cheer / Collect（主要アクション — 常時） */}
                 <section id="cheer" aria-label="応援" style={{ scrollMarginTop: 90 }}>
                     <h2 style={vpSectionTitle}>Cheer</h2>
@@ -595,6 +638,63 @@ export default async function UserProfilePage({ params }: Props) {
                     <p style={{ position: "relative", zIndex: 1, fontSize: 10, color: VP.faint, margin: "14px 0 0" }}>完全無料 · いつでも退会可</p>
                 </section>
             </main>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Core Loop 表示用の最小プレゼンテーション（server-safe / 非対話）
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PROFILE_ACTIVITY_TYPE_LABELS: Record<string, string> = {
+    practice: "練習", training: "トレーニング", match: "試合", competition: "大会",
+    event: "イベント", coaching: "コーチング", session: "セッション", workshop: "ワークショップ",
+    watching: "観戦", supporting: "サポート", participation: "参加", other: "その他",
+};
+
+function ProfileActivityRow({ activity }: { activity: ActivityRecord & { place?: { id: string; name: string; prefecture: string } | null } }) {
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                    style={{
+                        padding: "2px 8px", borderRadius: 999, fontSize: 9, fontWeight: 800,
+                        fontFamily: VP_MONO_FONT, letterSpacing: ".08em", textTransform: "uppercase" as const,
+                        background: VP.neonFaint, color: VP.neon, border: `1px solid ${VP.neonBorder}`,
+                    }}
+                >
+                    {PROFILE_ACTIVITY_TYPE_LABELS[activity.type] ?? activity.type}
+                </span>
+                <span style={{ marginLeft: "auto", fontSize: 10, color: VP.faint }}>
+                    {new Date(activity.starts_at).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
+                </span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: VP.text }}>{activity.title ?? PROFILE_ACTIVITY_TYPE_LABELS[activity.type] ?? activity.type}</div>
+            {activity.place ? (
+                <div style={{ fontSize: 11, color: VP.sub }}>📍 {activity.place.name}（{activity.place.prefecture}）</div>
+            ) : null}
+        </div>
+    );
+}
+
+function ProfileMomentRow({ item }: { item: MomentFeedItem }) {
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            {item.activity ? (
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: VP.neon, letterSpacing: ".02em" }}>
+                    ⚡ {item.activity.title ?? item.activity.type}
+                </div>
+            ) : null}
+            <p style={{
+                margin: 0, fontSize: 12.5, lineHeight: 1.65, color: VP.text,
+                display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+            }}>
+                {item.moment.body}
+            </p>
+            <div style={{ fontSize: 10.5, color: VP.faint }}>
+                {item.place ? `📍 ${item.place.name} · ` : ""}
+                ♥ {item.moment.cheer_count} · 💬 {item.moment.comment_count}
+            </div>
         </div>
     );
 }

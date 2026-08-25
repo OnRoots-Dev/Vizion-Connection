@@ -106,6 +106,36 @@ export const resetEmailLimiter = new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(3, "10 m"), prefix: "rl:reset:email",
 });
 
+// Activity作成/更新/削除：1分に20回
+export const activityLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:activity",
+});
+
+// Place作成/検索：1分に30回
+export const placeLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:place",
+});
+
+// Moment投稿：1時間に20回
+export const momentLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 h"), prefix: "rl:moment",
+});
+
+// Momentコメント：1分に10回
+export const momentCommentLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:moment-comment",
+});
+
+// Moment Cheer：1分に20回
+export const momentCheerLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:moment-cheer",
+});
+
+// Connection申請/承認/解除：1分に10回
+export const connectionLimiter = new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:connection",
+});
+
 // IPを取得するヘルパー
 export function getIp(req: Request): string {
     const xff = req.headers.get("x-forwarded-for");

@@ -32,7 +32,10 @@ export type DashboardView =
     | "settings"
     | "action_history"
     | "missions"
-    | "checkout";
+    | "checkout"
+    | "activities"
+    | "moments"
+    | "viz_map";
 
 export interface ThemeColors {
     bg: string;
