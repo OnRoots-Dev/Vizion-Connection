@@ -7,6 +7,7 @@ export interface MapActivityItem {
     id: string;
     type: string;
     title: string | null;
+    description: string | null;
     starts_at: string;
     status: string;
     user_id: number;
@@ -40,7 +41,7 @@ export async function listPublicMapActivities(
     const { data, error } = await supabaseServer
         .from("activities")
         .select(
-            `id,type,title,starts_at,status,place_id,user_id,
+            `id,type,title,description,starts_at,status,place_id,user_id,
              place:places!inner(id,name,prefecture,latitude,longitude,precision,place_type),
              owner:users!inner(slug,display_name,is_public,is_deleted)`,
         )
@@ -62,6 +63,7 @@ export async function listPublicMapActivities(
         id: string;
         type: string;
         title: string | null;
+        description: string | null;
         starts_at: string;
         status: string;
         user_id: number;
@@ -76,6 +78,7 @@ export async function listPublicMapActivities(
             id: row.id,
             type: row.type,
             title: row.title,
+            description: row.description,
             starts_at: row.starts_at,
             status: row.status,
             user_id: row.user_id,

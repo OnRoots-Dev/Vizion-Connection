@@ -162,6 +162,13 @@ export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onVi
         const selected = dataRef.current.selectedId ?? "";
         map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 17, 0]);
         map.setPaintProperty("viz-activity-ring", "circle-opacity", ["case", ["==", ["get", "id"], selected], 1, 0]);
+        if (selected) {
+            // A single restrained pulse communicates selection without turning the map into a feed.
+            window.setTimeout(() => {
+                if (mapRef.current !== map || dataRef.current.selectedId !== selected) return;
+                map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 13, 0]);
+            }, 170);
+        }
         // Source changes and cluster expansion use the same short transition rather than abrupt marker replacement.
         map.setPaintProperty("viz-activity-circle", "circle-radius", 0);
         requestAnimationFrame(() => map.setPaintProperty("viz-activity-circle", "circle-radius", 10));
