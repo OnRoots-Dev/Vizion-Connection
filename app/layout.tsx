@@ -3,7 +3,8 @@ import "./globals.css";
 import localFont from "next/font/local";
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
-import { Saira_Condensed, Inter } from "next/font/google";
+import { Saira_Condensed, Inter, JetBrains_Mono } from "next/font/google";
+import { ToastProvider } from "@/components/ui/toast";
 
 // Google Fonts: Saira Condensed（数字・ゲーミフィケーション用）, Inter（本文用
 const saira = Saira_Condensed({
@@ -16,6 +17,14 @@ const saira = Saira_Condensed({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+// Label/HUD用モノスペース（旧'Space Mono'幽霊指定の正式な置換先）
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -95,9 +104,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja" className={cn(bebas.variable, noto.variable, saira.variable, inter.variable, "font-sans")}>
+    <html lang="ja" className={cn(bebas.variable, noto.variable, saira.variable, inter.variable, jetbrains.variable, "font-sans")}>
       <body>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
         <SpeedInsights />
       </body>
     </html>

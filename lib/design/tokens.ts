@@ -52,9 +52,16 @@ export const ROLE_COLOR: Record<UserRole, string> = {
 
 // ── タイポグラフィ ───────────────────────────────────────────────────────
 export const FONT = {
-    display: "var(--font-bebas), 'Bebas Neue', sans-serif", // 大型数字・見出し（ゲームHUD）
-    mono: "'Space Mono', ui-monospace, monospace",           // ラベル・計器
+    display: "var(--font-bebas), 'Bebas Neue', sans-serif", // 見出し・数値（ゲームHUD）
+    mono: "var(--font-jetbrains), ui-monospace, monospace",  // ラベル・計測（JetBrains Mono / layout.tsxでロード）
     body: "var(--font-noto), 'Hiragino Sans', 'Yu Gothic', sans-serif",
+} as const;
+
+/** Status色（--vc-success/--vc-warning/--vc-danger と同一値。役割色とは意図的に分離） */
+export const STATUS = {
+    success: "#32D278",
+    warning: "#FFB454",
+    danger: "#FF5C7A",
 } as const;
 
 // タイプスケール（px）— これ以外のサイズを新規に作らない

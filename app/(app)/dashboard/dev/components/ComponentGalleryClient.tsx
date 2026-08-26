@@ -65,6 +65,13 @@ import {
 } from "@/components/career-wizard/WizardUI";
 import { THEME_MAP } from "@/app/(app)/dashboard/types";
 import type { AdItem } from "@/lib/ads-shared";
+import { Chip } from "@/components/ui/chip";
+import { Badge, ROLE_BADGE_TONE } from "@/components/ui/badge";
+import { Avatar } from "@/components/ui/avatar";
+import { Tabs } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/toast";
+import { EmptyState, ErrorState } from "@/components/ui/states";
+import { Field as SystemField, Input, Textarea, Select } from "@/components/ui/field";
 
 const t = THEME_MAP.dark;
 
@@ -162,6 +169,8 @@ export default function ComponentGalleryClient({
   const [wizardText, setWizardText] = useState("ギャラリー入力");
   const [wizardArea, setWizardArea] = useState("キャリア自己紹介のデモ");
   const [wizardSelect, setWizardSelect] = useState("a");
+  const [systemTab, setSystemTab] = useState<"feed" | "cheer">("feed");
+  const toast = useToast();
 
   return (
     <div className="min-h-screen bg-[#09090f] px-4 py-8 text-white sm:px-8">
@@ -671,6 +680,102 @@ export default function ComponentGalleryClient({
                 </WizardSelect>
               </Field>
             </div>
+          </Panel>
+        </Block>
+
+        {/* ═══════════════════════════════════════════════
+            Design System v2 — 新primitive（移行正）
+        ═══════════════════════════════════════════════ */}
+        <Block title="S · Design System v2（新primitive · 移行の正）">
+          <Panel>
+            <Meta name="Chip" path="components/ui/chip.tsx" used="Filter toggle（3-G〜で採用）" />
+            <StateRow label="off/on">
+              <Chip>すべて</Chip>
+              <Chip selected>練習</Chip>
+              <Chip selected>試合</Chip>
+              <Chip disabled>無効</Chip>
+            </StateRow>
+          </Panel>
+
+          <Panel>
+            <Meta name="Badge" path="components/ui/badge.tsx" used="status / role 識別" />
+            <StateRow label="tones">
+              <Badge tone="neutral">NEUTRAL</Badge>
+              <Badge tone="accent">ACCENT</Badge>
+              <Badge tone="success">SUCCESS</Badge>
+              <Badge tone="warning">WARNING</Badge>
+              <Badge tone="danger">DANGER</Badge>
+            </StateRow>
+            <StateRow label="roles">
+              {(Object.keys(ROLE_BADGE_TONE) as Array<keyof typeof ROLE_BADGE_TONE>).map((role) => (
+                <Badge key={role} tone={ROLE_BADGE_TONE[role]}>{role}</Badge>
+              ))}
+            </StateRow>
+          </Panel>
+
+          <Panel>
+            <Meta name="Avatar" path="components/ui/avatar.tsx" used="role ring 付きアバター" />
+            <StateRow label="sizes">
+              <Avatar name="Yamada Taro" size="xs" ring="Athlete" />
+              <Avatar name="Suzuki" size="sm" ring="Trainer" />
+              <Avatar name="Kimura" size="md" ring="Crew" />
+              <Avatar name="Tanaka" size="lg" ring="Business" />
+              <Avatar name="Admin" size="xl" />
+            </StateRow>
+          </Panel>
+
+          <Panel>
+            <Meta name="Tabs" path="components/ui/tabs.tsx" used="segmented tabs（Moments/Cheer 等）" />
+            <Tabs
+              ariaLabel="ギャラリータブ"
+              value={systemTab}
+              onChange={setSystemTab}
+              items={[
+                { value: "feed", label: "Feed" },
+                { value: "cheer", label: "Cheer", badge: 3 },
+              ]}
+            />
+            <p className="mt-2 text-[11px] text-white/35">selected: {systemTab}（矢印キーで移動可）</p>
+          </Panel>
+
+          <Panel>
+            <Meta name="EmptyState / ErrorState" path="components/ui/states.tsx" used="list states 標準" />
+            <div className="grid gap-4 lg:grid-cols-2">
+              <EmptyState
+                icon="◎"
+                title="まだActivityがありません"
+                description="最初の記録を作成すると、Viz Mapに表示されます。"
+                action={<Chip selected>Activityを作成</Chip>}
+              />
+              <ErrorState message="読み込みに失敗しました" onRetry={() => toast.show({ title: "再試行デモ", tone: "neutral" })} />
+            </div>
+          </Panel>
+
+          <Panel>
+            <Meta name="Field + Input/Textarea/Select" path="components/ui/field.tsx" used="form標準（focus ring内蔵）" />
+            <div className="grid max-w-md gap-4">
+              <SystemField label="Display Name" required htmlFor="g-name">
+                <Input id="g-name" placeholder="例: 山田 太郎" />
+              </SystemField>
+              <SystemField label="Bio" hint="最大200文字" htmlFor="g-bio">
+                <Textarea id="g-bio" placeholder="自己紹介" />
+              </SystemField>
+              <SystemField label="Region" error="選択してください" htmlFor="g-region">
+                <Select id="g-region" defaultValue="" invalid>
+                  <option value="" disabled>選択してください</option>
+                  <option value="kanto">関東</option>
+                </Select>
+              </SystemField>
+            </div>
+          </Panel>
+
+          <Panel>
+            <Meta name="Toast (useToast)" path="components/ui/toast.tsx" used="成功/警告の統一通知" />
+            <StateRow label="trigger">
+              <Button size="sm" onClick={() => toast.show({ title: "保存しました", tone: "success" })}>Success</Button>
+              <Button size="sm" variant="outline" onClick={() => toast.show({ title: "ネットワークエラー", description: "通信状態をご確認ください", tone: "danger" })}>Danger</Button>
+              <Button size="sm" variant="ghost" onClick={() => toast.show({ title: "下書きを保存しました", tone: "neutral" })}>Neutral</Button>
+            </StateRow>
           </Panel>
         </Block>
 

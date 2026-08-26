@@ -72,15 +72,71 @@
   --vc-crew:     #FFC81E;
   --vc-business: #3C8CFF;
 
-  /* Vizion Connection accent + role colors for LP */
+  /* ✛ Status semantic（役割色と値を分離。A3承認済み） */
+  --vc-success: #32D278;
+  --vc-warning: #FFB454;
+  --vc-danger:  #FF5C7A;
+
+  /* ✛ Focus — 全インタラクティブ要素の標準リング */
+  --vc-focus-ring: 0 0 0 2px rgba(200,232,0,0.55), 0 0 0 5px rgba(200,232,0,0.15);
+
+  /* ✛ Overlay scrim */
+  --vc-scrim: rgba(5,5,10,0.62);
+
+  /* ✛ Motion durations / easings（CSS transition用。springはlib/design/tokens.ts） */
+  --vc-dur-fast: 120ms;
+  --vc-dur-normal: 200ms;
+  --vc-dur-slow: 320ms;
+  --vc-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* ✛ Z-index scale */
+  --vc-z-nav: 30;
+  --vc-z-map-overlay: 60;
+  --vc-z-sheet: 80;
+  --vc-z-modal: 90;
+  --vc-z-toast: 95;
+
+  --vc-radius-xl: 24px;
+
+  /* Spec-aligned aliases (dashboard rebuild) ? map to existing token values
+     ⚠ DEPRECATED: 新規コードでは上記正式名を使うこと。既存viewの移行時に削除予定。 */
+  --vc-bg:       var(--vc-bg-base);
+  --vc-surface:  var(--vc-bg-surface);
+  --vc-elevated: var(--vc-bg-elevated);
+  --vc-text1:    var(--vc-text-primary);
+  --vc-text2:    var(--vc-text-secondary);
+  --vc-text3:    var(--vc-text-tertiary);
+
+  /* Vizion Connection accent + role colors for LP（A1: ブランド値へ統一）
+     ※ 旧Athlete赤 #d91414 は廃止。fan は Crew amber の別名。 */
   --lime: oklch(0.87 0.21 118);
   --lime-soft: oklch(0.87 0.21 118 / 0.14);
-  --role-athlete: #d91414;
+  --role-athlete: #FF5050;
   --role-trainer: #30de1d;
-  --role-fan: oklch(0.82 0.15 75); /* amber */
+  --role-fan: #FFC81E; /* crew alias (LP) */
   --role-business: oklch(0.65 0.18 250); /* blue */
-  --role-athlete-soft: rgba(217, 20, 20, 0.14);
-  --role-athlete-border: rgba(217, 20, 20, 0.42);
+  --role-athlete-soft: rgba(255, 80, 80, 0.14);
+  --role-athlete-border: rgba(255, 80, 80, 0.42);
+}
+
+/* ✛ Tailwind v4 utilities（bg-surface-1 / text-ink / border-line 等を生成。
+   shadcn の background/border/primary 等とは衝突しない命名） */
+@theme inline {
+  --color-base: var(--vc-bg-base);
+  --color-surface-1: var(--vc-bg-surface);
+  --color-surface-2: var(--vc-bg-elevated);
+  --color-line: var(--vc-border);
+  --color-line-strong: var(--vc-border-active);
+  --color-ink: var(--vc-text-primary);
+  --color-ink-2: var(--vc-text-secondary);
+  --color-ink-3: var(--vc-text-tertiary);
+  --color-lime: var(--vc-accent);
+  --color-lime-dim: var(--vc-accent-dim);
+  --color-lime-faint: var(--vc-accent-faint);
+  --color-ok: var(--vc-success);
+  --color-warn: var(--vc-warning);
+  --color-bad: var(--vc-danger);
+  --font-hud: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 /* ── Marketing LP scoped tokens & typography ── */
@@ -614,8 +670,7 @@ select:focus {
    フォント設定
 ───────────────────────────────────────── */
 :root {
-  --font-display: 'BebasNeue', 'NotoSansJP', sans-serif;
-  --font-body: 'NotoSansJP', sans-serif;
+  /* ⚠ 上部の正式な :root 定義が正。ここでは shadcn 変数のみ定義する。 */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
