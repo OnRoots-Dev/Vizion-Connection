@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -109,7 +110,7 @@ export function SiteHeader() {
             'border-border/40 bg-[#0a0a0f]/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)]'
           )}
         >
-          <a href="#" className="flex min-w-0 shrink-0 items-center pl-0.5 sm:pl-1" aria-label="Vizion Connection トップへ">
+          <Link href="/" className="flex min-w-0 shrink-0 items-center pl-0.5 sm:pl-1" aria-label="Vizion Connection トップへ">
             <Image
               src="/images/vizion-connection-logo-6-cropped.png"
               alt="Vizion Connection"
@@ -118,7 +119,7 @@ export function SiteHeader() {
               priority
               className="h-8 w-auto object-contain sm:h-9 lg:h-10"
             />
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-1 lg:flex" aria-label="ページ内ナビゲーション">
             {NAV.map((item) => (

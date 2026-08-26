@@ -519,8 +519,9 @@ export default function BusinessCheckoutClient({
                 {(selectedPlan.id === "signal" || selectedPlan.id === "presence" || selectedPlan.id === "legacy") && (
                   <p className="text-center font-mono text-[.68rem] tracking-[.06em] text-[#3a3f50]">
                     請求書払い・振込をご希望の方は{" "}
+                    {/* /contact はMVPスコープ外で封印中のためアプリ内のContactへ */}
                     <a
-                      href={`/contact?plan=${selectedPlan.id}`}
+                      href="/dashboard?view=contact"
                       className="text-[#00d2ff]/70 underline underline-offset-2 hover:text-[#00d2ff] transition-colors"
                     >
                       こちら

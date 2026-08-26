@@ -4,6 +4,7 @@ import { completeLatestPendingOrderBySlug } from "@/lib/supabase/business-orders
 import { setUserPlan } from "@/lib/supabase/data/users.server";
 import { incrementAdSlotSold } from "@/lib/supabase/ad-slots";
 import { validateCSRF } from "@/lib/security/csrf";
+import { businessCompleteLimiter, getIp } from "@/lib/ratelimit";
 import type { PlanId } from "@/features/business/types";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -11,6 +12,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const csrfError = validateCSRF(req);
     if (csrfError) return csrfError as unknown as NextResponse;
+
+    const { success: limited } = await businessCompleteLimiter.limit(getIp(req));
+    if (!limited) {
+      return NextResponse.json({ success: false, error: "リクエストが多すぎます" }, { status: 429 });
+    }
 
     const session = await getSupabaseProfile();
     if (!session) {

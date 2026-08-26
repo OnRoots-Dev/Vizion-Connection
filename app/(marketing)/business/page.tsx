@@ -518,7 +518,7 @@ export default function BusinessPage() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <a
-                    href={`/register?role=Business${selectedPlan ? `&plan=${selectedPlan}` : ""}`}
+                    href={`/register?role=Business${selectedPlan ? `&plan=${selectedPlan}` : ""}${selectedPlan ? `&redirect=${encodeURIComponent(`/dashboard/business/checkout?plan=${selectedPlan}`)}` : ""}`}
                     style={{
                       display: "block",
                       padding: "14px 24px",

@@ -29,7 +29,7 @@ export function Header() {
 
         {/* Desktop */}
         <nav className="hidden items-center gap-8 md:flex">
-          <Link href="/contact" className="font-display text-[13px] uppercase tracking-[0.2em] text-white/50 transition-colors hover:text-[#F4C10A] active:scale-[0.97]">Contact</Link>
+          {/* NOTE: /contact はMVPスコープ外で封印中のためリンク非表示 */}
           <Link href="/login" className="font-display text-[13px] uppercase tracking-[0.2em] text-[#F4C10A] transition-colors hover:text-white active:scale-[0.97]">Login</Link>
         </nav>
 
@@ -56,7 +56,7 @@ export function Header() {
             WebkitBackdropFilter: "blur(28px) saturate(160%)",
           }}
         >
-          <Link href="/contact" onClick={() => setOpen(false)} className="font-display text-[15px] uppercase tracking-[0.2em] text-white/60 active:scale-[0.97]">Contact</Link>
+          {/* NOTE: /contact はMVPスコープ外で封印中のためリンク非表示 */}
           <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] font-bold uppercase tracking-[0.2em] text-[#F4C10A] active:scale-[0.97]">Login</Link>
           <Link
             href="/register"

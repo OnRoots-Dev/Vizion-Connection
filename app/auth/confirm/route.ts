@@ -19,8 +19,25 @@ async function runPostVerification(user: User | null | undefined) {
   }
 }
 
-function verifiedThanksUrl(request: NextRequest) {
+function verifiedThanksUrl(request: NextRequest, next?: string | null) {
+  // 認証後に復帰したいパス（例: /dashboard/business/checkout?plan=roots）があれば
+  // thanks 経由でフォワードする。welcomeメール送信トリガを thanks に保持するため直接飛ばない。
+  if (next) {
+    return new URL(`/thanks?type=verified&next=${encodeURIComponent(next)}`, request.url);
+  }
   return new URL("/thanks?type=verified", request.url);
+}
+
+/**
+ * オープンリダイレクト対策の next 検証。
+ * 同一オリジンの相対パス（"/" で始まり "//"・scheme・"\\" を含まない）のみ許可。
+ */
+function safeNextPath(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return null;
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return null;
+  if (raw.length > 512) return null;
+  return raw;
 }
 
 function failedLoginUrl(request: NextRequest) {
@@ -57,6 +74,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const type = searchParams.get("type");
   const token_hash = searchParams.get("token_hash");
+  const next = safeNextPath(searchParams.get("next"));
 
   console.info("[auth/confirm] hit", summarizeParams(searchParams));
 
@@ -101,7 +119,7 @@ export async function GET(request: NextRequest) {
       });
     } else {
       await runPostVerification(data.session?.user ?? data.user);
-      return NextResponse.redirect(verifiedThanksUrl(request));
+      return NextResponse.redirect(verifiedThanksUrl(request, next));
     }
     // code 失敗時は token_hash があれば続ける
   }
@@ -148,7 +166,7 @@ export async function GET(request: NextRequest) {
         has_user: Boolean(data.user),
       });
       await runPostVerification(data.session?.user ?? data.user);
-      return NextResponse.redirect(verifiedThanksUrl(request));
+      return NextResponse.redirect(verifiedThanksUrl(request, next));
     }
 
     console.error("[auth/confirm] verifyOtp all attempts failed", {

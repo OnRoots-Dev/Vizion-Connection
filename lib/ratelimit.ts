@@ -73,6 +73,11 @@ export const businessLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 h"), prefix: "rl:business",
 }), "business");
 
+// ビジネス決済完了（webhookフォールバック）：1時間に20回
+export const businessCompleteLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 h"), prefix: "rl:business-complete",
+}), "business-complete");
+
 // ミッション：1時間に5回
 export const missionLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(5, "1 h"), prefix: "rl:mission",

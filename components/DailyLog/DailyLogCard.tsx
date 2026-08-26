@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageSquareText } from "lucide-react";
-import { ActionPill, CardHeader, SectionCard } from "@/app/(app)/dashboard/components/ui";
+import { CardHeader, SectionCard } from "@/app/(app)/dashboard/components/ui";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
-import type { DashboardView } from "@/app/(app)/dashboard/types";
 import { useDailyLogStore } from "@/hooks/useDailyLogStore";
 import { ConditionScorePicker } from "./ConditionScorePicker";
 import { formatConditionLabel, getConditionMeta, getJourneyHype, getRandomJourneyTemplateSuggestions, JOURNEY_MAX_CHARS } from "./journey";
@@ -14,14 +13,12 @@ export function DailyLogCard({
   t,
   roleColor,
   role,
-  onOpenJourney,
 }: {
   t: ThemeColors;
   roleColor: string;
   role?: string | null;
-  onOpenJourney?: (view: DashboardView) => void;
 }) {
-  const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog, requestJourneyEdit } = useDailyLogStore();
+  const { todayLog, isLoading, isSubmitting, hasLoaded, error, fetchLogs, submitLog } = useDailyLogStore();
   const [content, setContent] = useState("");
   const [conditionScore, setConditionScore] = useState<number | null>(null);
   const [templateSuggestions, setTemplateSuggestions] = useState<string[]>([]);
@@ -105,7 +102,6 @@ export function DailyLogCard({
       <SectionCard t={t} accentColor="#a78bfa">
         <CardHeader
           title="My Journey"
-          action={<ActionPill onClick={() => onOpenJourney?.("journey")} color="#a78bfa" t={t}>記録画面 →</ActionPill>}
           meta={<p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>一言と今の気分だけ、今日のJourneyを残します。</p>}
         />
 
@@ -136,26 +132,6 @@ export function DailyLogCard({
                 </div>
                 <p style={{ margin: 0, fontSize: 14, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{todayLog.content}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  requestJourneyEdit();
-                  onOpenJourney?.("journey");
-                }}
-                style={{
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: `1px solid ${t.border}`,
-                  background: "rgba(255,255,255,0.03)",
-                  color: t.text,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                記録を修正する
-              </button>
             </div>
           ) : (
             <div style={{ display: "grid", gap: 12 }}>

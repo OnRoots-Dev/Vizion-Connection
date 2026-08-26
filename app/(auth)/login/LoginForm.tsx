@@ -82,7 +82,8 @@ export default function LoginForm() {
             if (!data.isOnboardingComplete) {
                 window.location.assign("/onboarding");
             } else {
-                const appBase = "https://app.vizion-connection.jp";
+                // アプリホストの基底URL。ローカル検証時は NEXT_PUBLIC_APP_BASE_URL で上書き可能
+                const appBase = process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.vizion-connection.jp";
                 const target = redirectTo.startsWith("/")
                     ? appBase + redirectTo
                     : redirectTo;

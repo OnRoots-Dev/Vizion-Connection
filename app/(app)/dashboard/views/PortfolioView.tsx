@@ -10,18 +10,13 @@ import { getConditionMeta } from "@/components/DailyLog/journey";
 import { calcDayCount, getJstDateKey } from "@/lib/day-count";
 import { computeStreak, computeLongestStreak } from "@/lib/pulse-stats";
 import { IconCheer, IconJourney, IconStreak, IconTrophy } from "@/lib/design/icons";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function diffJstDays(fromKey: string, toKey: string): number {
   const from = new Date(`${fromKey}T00:00:00+09:00`).getTime();
   const to = new Date(`${toKey}T00:00:00+09:00`).getTime();
   return Math.round((to - from) / 86400000);
-}
-
-function addDays(base: Date, days: number) {
-  const d = new Date(base);
-  d.setDate(d.getDate() + days);
-  return d;
 }
 
 function formatJa(dateIso: string): string {
@@ -50,24 +45,24 @@ export function PortfolioView({
 }) {
   const [journeys, setJourneys] = useState<JourneyEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
 
+  // NOTE: /api/journey/* はMVPスコープ外で封印中(config/mvp-scope.ts)のため、
+  // 読み取りは RLS 許可の自分の journeys をブラウザクライアントで直接 SELECT する。
   const fetchJourneys = useCallback(async () => {
     setError(null);
-    try {
-      const res = await fetch("/api/journey/list", { cache: "no-store" });
-      if (!res.ok) {
-        setError("読み込みに失敗しました");
-        setJourneys([]);
-        return;
-      }
-      const data = (await res.json()) as { journeys?: JourneyEntry[] };
-      setJourneys(data.journeys ?? []);
-    } catch {
-      setError("通信エラーが発生しました");
+    const { data, error: err } = await supabaseBrowser
+      .from("journeys")
+      .select("id,user_slug,content,condition_score,image_url,video_url,tags,is_public,cheer_count,created_at")
+      .eq("user_slug", profile.slug)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (err) {
+      setError("読み込みに失敗しました");
       setJourneys([]);
+      return;
     }
-  }, []);
+    setJourneys((data ?? []) as unknown as JourneyEntry[]);
+  }, [profile.slug]);
 
   useEffect(() => {
     void fetchJourneys();
@@ -120,25 +115,8 @@ export function PortfolioView({
     return { items, doneCount, percent, next };
   }, [journeys, profile, stats]);
 
-  const toggleVisibility = useCallback(async (entry: JourneyEntry) => {
-    setBusyId(entry.id);
-    const next = !entry.is_public;
-    setJourneys((prev) => prev?.map((j) => (j.id === entry.id ? { ...j, is_public: next } : j)) ?? prev);
-    try {
-      const res = await fetch(`/api/journey/${entry.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_public: next }),
-      });
-      if (!res.ok) {
-        setJourneys((prev) => prev?.map((j) => (j.id === entry.id ? { ...j, is_public: entry.is_public } : j)) ?? prev);
-      }
-    } catch {
-      setJourneys((prev) => prev?.map((j) => (j.id === entry.id ? { ...j, is_public: entry.is_public } : j)) ?? prev);
-    } finally {
-      setBusyId(null);
-    }
-  }, []);
+  // NOTE: 公開/非公開の書き込みは RLS により認証済みから直接不可。
+  // Journey機能のサーバー経路復活までトグルは非表示（状態はバッジ表示のみ）。
 
   if (journeys === null) return <ViewLoader t={t} />;
 
@@ -195,32 +173,54 @@ export function PortfolioView({
           <CompletionGauge percent={completion.percent} roleColor={roleColor} t={t} />
         </div>
 
-        {/* 完成度: 次の一手 */}
+        {/* 完成度: 次の一手。journey系は封印viewへの遷移先がないため、profile系のみ遷移可能 */}
         {completion.next ? (
-          <button
-            type="button"
-            onClick={() => setView(completion.next?.label === "プロフィール自己紹介" ? "profile" : "journey")}
-            style={{
-              marginTop: 14,
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 10,
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: `1px solid ${roleColor}44`,
-              background: `${roleColor}10`,
-              color: t.text,
-              cursor: "pointer",
-            }}
-          >
-            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-              <span style={{ fontSize: 10, color: t.sub, fontFamily: "monospace", letterSpacing: "0.1em" }}>NEXT STEP</span>
-              <span style={{ fontSize: 13, fontWeight: 800 }}>{completion.next.label}</span>
-            </span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: roleColor }}>→</span>
-          </button>
+          completion.next.label === "プロフィール自己紹介" ? (
+            <button
+              type="button"
+              onClick={() => setView("profile")}
+              style={{
+                marginTop: 14,
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                padding: "11px 14px",
+                borderRadius: 12,
+                border: `1px solid ${roleColor}44`,
+                background: `${roleColor}10`,
+                color: t.text,
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+                <span style={{ fontSize: 10, color: t.sub, fontFamily: "monospace", letterSpacing: "0.1em" }}>NEXT STEP</span>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>{completion.next.label}</span>
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 900, color: roleColor }}>→</span>
+            </button>
+          ) : (
+            <div
+              style={{
+                marginTop: 14,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                padding: "11px 14px",
+                borderRadius: 12,
+                border: `1px solid ${roleColor}44`,
+                background: `${roleColor}10`,
+                color: t.text,
+              }}
+            >
+              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+                <span style={{ fontSize: 10, color: t.sub, fontFamily: "monospace", letterSpacing: "0.1em" }}>NEXT STEP</span>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>{completion.next.label}</span>
+              </span>
+            </div>
+          )
         ) : (
           <div style={{ marginTop: 14, padding: "11px 14px", borderRadius: 12, border: `1px solid ${roleColor}44`, background: `${roleColor}10`, textAlign: "center", fontSize: 12, fontWeight: 800, color: roleColor }}>
             🎉 Portfolio 完成度 100% を達成しました
@@ -238,20 +238,20 @@ export function PortfolioView({
       <SectionCard t={t}>
         <CardHeader
           title="Story"
-          meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>DAY 0 から現在までの活動の軌跡。各記録の公開/非公開を切り替えられます。</p>}
+          meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>DAY 0 から現在までの活動の軌跡。</p>}
         />
 
         {journeys.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "28px 10px", textAlign: "center" }}>
             <p style={{ margin: 0, fontSize: 13, color: t.sub, lineHeight: 1.8 }}>
-              まだ軌跡がありません。<br />Activity で最初の Journey を刻みましょう。
+              まだ軌跡がありません。<br />ホームの My Journey から最初の記録をしましょう。
             </p>
             <button
               type="button"
-              onClick={() => setView("journey")}
+              onClick={() => setView("home")}
               style={{ padding: "12px 18px", borderRadius: 12, border: "none", background: roleColor, color: "#0B0B0F", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
             >
-              Activity を記録する
+              ホームへ移動する
             </button>
           </div>
         ) : (
@@ -280,8 +280,6 @@ export function PortfolioView({
                     index={idx}
                     roleColor={roleColor}
                     t={t}
-                    busy={busyId === entry.id}
-                    onToggle={() => void toggleVisibility(entry)}
                   />
                 </div>
               );
@@ -357,16 +355,12 @@ function JourneyCard({
   index,
   roleColor,
   t,
-  busy,
-  onToggle,
 }: {
   entry: JourneyEntry;
   dayNo: number | null;
   index: number;
   roleColor: string;
   t: ThemeColors;
-  busy: boolean;
-  onToggle: () => void;
 }) {
   const meta = getConditionMeta(entry.condition_score);
   const condColor = entry.condition_score ? CONDITION_COLOR[entry.condition_score] ?? roleColor : t.border;
@@ -394,10 +388,8 @@ function JourneyCard({
             {entry.cheer_count > 0 ? <span style={{ fontSize: 11, color: "#FFD600", fontWeight: 800 }}>★{entry.cheer_count}</span> : null}
           </div>
 
-          <button
-            type="button"
-            onClick={onToggle}
-            disabled={busy}
+          {/* 公開/非公開は状態表示のみ（書き込み経路はJourney機能復活まで封印中） */}
+          <span
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -409,11 +401,10 @@ function JourneyCard({
               color: entry.is_public ? roleColor : t.sub,
               fontSize: 10,
               fontWeight: 800,
-              cursor: busy ? "wait" : "pointer",
             }}
           >
             {entry.is_public ? "🌐 公開" : "🔒 非公開"}
-          </button>
+          </span>
         </div>
 
         <p style={{ margin: 0, fontSize: 13, color: t.text, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{entry.content}</p>

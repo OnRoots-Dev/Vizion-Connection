@@ -103,18 +103,41 @@ function Label({ text, required }: { text: string; required?: boolean }) {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export default function OnboardingProfileForm() {
+export interface ProfileFormInitial {
+    displayName?: string;
+    sportsCategory?: string;
+    sport?: string;
+    region?: string;
+    prefecture?: string;
+    avatarUrl?: string;
+    profileImageUrl?: string;
+}
+
+export default function OnboardingProfileForm({ initial }: { initial?: ProfileFormInitial }) {
     const router = useRouter();
 
-    const [displayName, setDisplayName] = useState("");
-    const [sportsCategory, setSportsCategory] = useState("");
-    const [sport, setSport] = useState("");
-    const [customSport, setCustomSport] = useState("");
-    const [region, setRegion] = useState("");
-    const [prefecture, setPrefecture] = useState("");
+    // 保存済みプロフィールを初期値にする（再訪・リロードで入力値が消えないようにする）。
+    // 登録済みの sport がマスタに無い場合は「その他（自由入力）」として復元する。
+    function resolveInitialSport(category: string, saved: string): { sport: string; customSport: string } {
+        if (!category || !saved) return { sport: "", customSport: "" };
+        const masters = SPORTS_BY_CATEGORY[category] ?? [];
+        return masters.includes(saved)
+            ? { sport: saved, customSport: "" }
+            : { sport: CUSTOM_SPORT_OPTION, customSport: saved };
+    }
+
+    const initCategory = initial?.sportsCategory ?? "";
+    const initSport = resolveInitialSport(initCategory, initial?.sport ?? "");
+
+    const [displayName, setDisplayName] = useState(initial?.displayName ?? "");
+    const [sportsCategory, setSportsCategory] = useState(initCategory);
+    const [sport, setSport] = useState(initSport.sport);
+    const [customSport, setCustomSport] = useState(initSport.customSport);
+    const [region, setRegion] = useState(initial?.region ?? "");
+    const [prefecture, setPrefecture] = useState(initial?.prefecture ?? "");
     const [location, setLocation] = useState("");
-    const [avatarUrl, setAvatarUrl] = useState("");
-    const [profileImageUrl, setProfileImageUrl] = useState("");
+    const [avatarUrl, setAvatarUrl] = useState(initial?.avatarUrl ?? "");
+    const [profileImageUrl, setProfileImageUrl] = useState(initial?.profileImageUrl ?? "");
 
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState("");
@@ -220,7 +243,8 @@ export default function OnboardingProfileForm() {
                 setFormError(data.error ?? "保存に失敗しました");
                 return;
             }
-            await fetch("/api/onboarding/complete", { method: "POST" });
+            // NOTE: オンボーディング完了(is_onboarding_complete)は最終ステップ(invite)でのみ
+            // 確定させる。ここで呼ぶと layout ガードが発火し day0 以降へ進めなくなる。
             router.push("/onboarding/day0");
         } catch {
             setFormError("ネットワークエラーが発生しました");

@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 const FOOTER_GROUPS = [
   {
@@ -18,14 +19,7 @@ const FOOTER_GROUPS = [
       { label: '企業・スポンサー向け', href: '/business' },
     ],
   },
-  {
-    title: 'Company',
-    links: [
-      { label: 'ロードマップ', href: '/roadmap' },
-      { label: '運営会社', href: '/company' },
-      { label: 'お問い合わせ', href: '/contact' },
-    ],
-  },
+  // NOTE: Company グループ(/roadmap /company /contact)はMVPスコープ外で封印中のため非表示。
 ]
 
 export function SiteFooter() {
@@ -33,7 +27,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-[#111118]/55">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-[1.2fr_1.8fr] md:py-16">
         <div>
-          <a href="#" className="inline-flex" aria-label="Vizion Connection トップへ">
+          <Link href="/" className="inline-flex" aria-label="Vizion Connection トップへ">
             <Image
               src="/images/vizion-connection-logo-6-cropped.png"
               alt="Vizion Connection"
@@ -41,7 +35,7 @@ export function SiteFooter() {
               height={232}
               className="h-auto w-[220px] object-contain sm:w-[260px]"
             />
-          </a>
+          </Link>
           <p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">
             アスリート、トレーナー、ファン、ビジネスがひとつのマップでつながる場所。
             積み重ねを信頼に変え、応援が届く接点を育てます。

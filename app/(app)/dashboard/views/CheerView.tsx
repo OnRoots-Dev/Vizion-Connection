@@ -129,9 +129,6 @@ export function CheerView({ profile, t, roleColor, setView }: {
         <SectionCard t={t} accentColor="#30de1d">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <SLabel text="Cheerを送る" />
-            <button type="button" onClick={() => setView("discovery")} style={{ border: "none", background: "none", color: "#30de1d", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>
-              もっと見る →
-            </button>
           </div>
           <p style={{ margin: "0 0 12px", fontSize: 11, color: t.sub }}>直近24時間にJourneyを投稿したユーザー</p>
           <div style={{ display: "grid", gap: 10 }}>

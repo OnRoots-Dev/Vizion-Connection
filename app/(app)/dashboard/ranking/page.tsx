@@ -82,7 +82,7 @@ export default async function RankingPage({
                         return (
                             <Link
                                 key={tab.label}
-                                href={tab.value ? `/ranking?role=${tab.value}` : "/ranking"}
+                                href={tab.value ? `/dashboard/ranking?role=${tab.value}` : "/dashboard/ranking"}
                                 style={{
                                     padding: "7px 16px", borderRadius: 99,
                                     fontSize: 11, fontWeight: 700,

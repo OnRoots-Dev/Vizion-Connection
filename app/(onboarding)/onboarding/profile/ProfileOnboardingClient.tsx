@@ -24,7 +24,7 @@ type UserInit = {
     tiktok?: string;
 };
 
-export default function ProfileOnboardingClient({ userInit: _ }: { userInit: UserInit }) {
+export default function ProfileOnboardingClient({ userInit }: { userInit: UserInit }) {
     return (
         <div
             style={{ height: "100dvh", background: "#0A0A0A", display: "flex", flexDirection: "column", overflow: "hidden" }}
@@ -33,7 +33,17 @@ export default function ProfileOnboardingClient({ userInit: _ }: { userInit: Use
                 <OnboardingStepBar current={1} />
             </div>
             <OnboardingPageTransition stepKey="profile">
-                <OnboardingProfileForm />
+                <OnboardingProfileForm
+                    initial={{
+                        displayName: userInit.displayName ?? "",
+                        sportsCategory: userInit.sportsCategory ?? "",
+                        sport: userInit.sport ?? "",
+                        region: userInit.region ?? "",
+                        prefecture: userInit.prefecture ?? "",
+                        avatarUrl: userInit.avatarUrl ?? "",
+                        profileImageUrl: userInit.profileImageUrl ?? "",
+                    }}
+                />
             </OnboardingPageTransition>
         </div>
     );

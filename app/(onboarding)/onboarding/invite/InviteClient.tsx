@@ -73,7 +73,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
             style={{ minHeight: "100vh", background: "var(--surface-1)", paddingBottom: 40 }}
         >
             <div style={{ padding: "16px 24px 0" }}>
-                <OnboardingStepBar current={4} />
+                <OnboardingStepBar current={3} />
             </div>
 
             <div style={{ maxWidth: 480, margin: "0 auto", padding: "40px 20px 0", textAlign: "center" }}>
@@ -95,24 +95,6 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                         あなたの紹介で参加した人には<br />
                         初期メンバー特典が付与されます
                     </p>
-                    <a
-                        href="/dashboard?view=roadmap"
-                        style={{
-                            display: "inline-block",
-                            marginBottom: 28,
-                            padding: "8px 20px",
-                            borderRadius: 20,
-                            border: "1px solid var(--border)",
-                            background: "transparent",
-                            color: "var(--muted-foreground)",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            textDecoration: "none",
-                            transition: "all 0.2s ease",
-                        }}
-                    >
-                        RoadMapを見る →
-                    </a>
                     <p style={{ margin: "0 0 32px", fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.9 }}>
                         Vizion Connectionを一緒に広げましょう。<br />
                         あなたの招待リンクをシェアしてください。
@@ -192,7 +174,7 @@ export default function InviteClient({ slug, referralUrl }: { slug: string; refe
                             marginTop: 4, transition: "all 0.2s ease",
                         }}
                     >
-                        {completing ? "処理中..." : "後にする"}
+                        {completing ? "処理中..." : "Dashboardへ進む"}
                     </button>
                 </motion.div>
 

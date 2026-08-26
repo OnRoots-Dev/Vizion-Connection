@@ -33,9 +33,7 @@ export function FooterLight() {
                                 Company
                             </p>
                             <div className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
-                                <Link href="/company" className="vc-light-link">
-                                    運営会社
-                                </Link>
+                                {/* NOTE: /company /contact はMVPスコープ外で封印中のためリンク非表示 */}
                                 <a href="https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link"
                                     target="_blank" rel="noopener noreferrer"
                                     className="vc-light-link">
@@ -46,9 +44,6 @@ export function FooterLight() {
                                     className="vc-light-link">
                                     プライバシーポリシー
                                 </a>
-                                <Link href="/contact" className="vc-light-link">
-                                    お問い合わせ
-                                </Link>
                             </div>
                         </div>
                     </div>

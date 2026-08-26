@@ -3,11 +3,11 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 
+// Journey ステップは MVP スコープ外(Journey機能封印)のため省略: プロフィール→DAY 0→招待
 const STEPS = [
   { num: 1, label: "プロフィール" },
   { num: 2, label: "DAY 0" },
-  { num: 3, label: "Journey" },
-  { num: 4, label: "招待" },
+  { num: 3, label: "招待" },
 ];
 
 /**

@@ -87,11 +87,22 @@ function resolveContent(type: string | undefined): Content {
   return map.verify;
 }
 
+/** オープンリダイレクト対策: 同一オリジンの相対パスのみ許可（サーバー側と同一規則） */
+function safeNextPath(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) return null;
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) return null;
+  if (raw.length > 512) return null;
+  return raw;
+}
+
 export default function ThanksClient({
   type,
+  next,
   fromEmail,
 }: {
   type?: string;
+  next?: string;
   fromEmail: string;
 }) {
   const reduce = useReducedMotion();
@@ -101,7 +112,13 @@ export default function ThanksClient({
   const glass = authGlassTokens({ reducedTransparency: !!reduce });
   const welcomeTriggered = useRef(false);
 
-  // 認証完了ページ表示後にウェルカムメールを自動送信（1回のみ）
+  // 認証後に復帰するパス（例: Business決済画面）。無ければ従来通り /onboarding。
+  const forwardNext = safeNextPath(next);
+  const ctaHref = forwardNext ?? content.cta?.href ?? null;
+  const ctaLabel = forwardNext ? "続ける" : (content.cta?.label ?? null);
+
+  // 認証完了ページ表示後にウェルカムメールを自動送信（1回のみ）。
+  // next 指定時は送信トリガ後に即座にフォワード（決済導線など）。
   useEffect(() => {
     if (!content.triggerWelcomeEmail || welcomeTriggered.current) return;
     welcomeTriggered.current = true;
@@ -116,8 +133,11 @@ export default function ThanksClient({
       } catch {
         // メール送信失敗は画面をブロックしない（サーバーログに残る）
       }
+      if (forwardNext) {
+        window.location.assign(forwardNext);
+      }
     })();
-  }, [content.triggerWelcomeEmail]);
+  }, [content.triggerWelcomeEmail, forwardNext]);
 
   return (
     <div className="vc-auth-shell">
@@ -223,14 +243,14 @@ export default function ThanksClient({
         )}
 
         {/* CTA — 本文から十分離し、セカンダリとの間も確保 */}
-        {content.cta && (
+        {ctaHref && ctaLabel && (
           <motion.div
             className="mt-7"
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={reduce ? fadeReduced : { ...enter, delay: 0.12 }}
           >
-            <Link href={content.cta.href} className="block">
+            <Link href={ctaHref} className="block">
               <motion.span
                 whileTap={press}
                 transition={springDefault}
@@ -240,14 +260,14 @@ export default function ThanksClient({
                   boxShadow: "0 0 24px var(--electric-glow)",
                 }}
               >
-                {content.cta.label}
+                {ctaLabel}
               </motion.span>
             </Link>
           </motion.div>
         )}
 
         <motion.div
-          className={content.cta ? "mt-4" : "mt-7"}
+          className={ctaHref ? "mt-4" : "mt-7"}
           initial={reduce ? { opacity: 0 } : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={reduce ? fadeReduced : { ...enter, delay: 0.16 }}

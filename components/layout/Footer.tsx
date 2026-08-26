@@ -38,16 +38,14 @@ export function Footer() {
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-[13px] text-white/45">
               <Link href="/register" className="hover:text-[#C8E800] transition-colors">登録</Link>
               {/* <Link href="/business" className="hover:text-[#C8E800] transition-colors">Business登録</Link> */}
-              <Link href="/roadmap" className="hover:text-[#C8E800] transition-colors">Road Map</Link>
             </div>
           </div>
           <div className="flex flex-col gap-3">
             <p className="font-display text-[10px] uppercase tracking-[0.35em] text-white/30">Company</p>
             <div className="flex flex-wrap gap-x-6 gap-y-2 font-body text-[13px] text-white/45">
-              <Link href="/company" className="hover:text-[#C8E800] transition-colors">運営会社</Link>
+              {/* NOTE: /roadmap /company /contact はMVPスコープ外で封印中のためリンク非表示 */}
               <a href="https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link" className="hover:text-[#C8E800] transition-colors">利用規約</a>
               <a href="https://tarry-plywood-9b9.notion.site/287089f25fae80e8a771d66b1ee4fa82?source=copy_link" className="hover:text-[#C8E800] transition-colors">プライバシーポリシー</a>
-              <Link href="/contact" className="hover:text-[#C8E800] transition-colors">お問い合わせ</Link>
             </div>
           </div>
         </div>

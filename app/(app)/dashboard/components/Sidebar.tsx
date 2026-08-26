@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { usePathname } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import type { Theme, DashboardView, ThemeColors } from "../DashboardClient";
-import { getPlanFeatures } from "@/features/business/plan-features";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { PulseIndicator } from "./ui";
 import { computeStreak } from "@/lib/pulse-stats";
@@ -16,12 +15,6 @@ import { ROLE_COLOR } from "@/lib/design/tokens";
 const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
 };
-
-function getHubMenuLabel(role: string) {
-    if (role === "Business") return "Business Hub";
-    if (role === "Admin") return "Admin Hub";
-    return "My Hub";
-}
 
 const NAV_ITEM_BASE = "vz-nav-item relative mb-0.5 flex w-full items-center gap-[9px] rounded-[10px] px-[10px] py-[9px] text-left text-[12px] no-underline transition-all duration-150 ease-in";
 
@@ -82,11 +75,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
     const pathname = usePathname();
     const roleColor = ROLE_COLOR[profile.role] ?? "#a78bfa";
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-    const hubMenuLabel = getHubMenuLabel(profile.role);
     const nestedSurface = theme === "light" ? "rgba(17,17,17,0.03)" : "rgba(255,255,255,0.02)";
-
-    const isPaidPlan = Boolean(profile.sponsorPlan);
-    const planLabel = getPlanFeatures(profile.sponsorPlan ?? null)?.badgeLabel ?? null;
 
     // PULSE（連続記録日数）— 自分の Journey 投稿日から算出
     const [pulseDays, setPulseDays] = useState(0);
@@ -364,13 +353,15 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     </span>
                 </motion.div>
 
-                {(profile.role === "Business" || profile.role === "Crew" || profile.role === "Trainer" || profile.role === "Athlete" || profile.role === "Admin") && (
+                {/* Business有料プランのUpgrade入口（未購入のBusinessロールのみ）。
+                    SPA内のcheckout viewではなく正規ルート /dashboard/business/checkout へ。 */}
+                {profile.role === "Business" && !profile.sponsorPlan && (
                     <motion.button
                         initial={{ opacity: 0, y: 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
                         className="mt-2 flex w-full items-center gap-2 rounded-[10px] px-3 py-[9px] text-left"
-                        onClick={() => { setView("hub"); onClose(); }}
+                        onClick={() => { window.location.assign("/dashboard/business/checkout"); onClose(); }}
                         style={{
                             border: `1px solid ${roleColor}59`,
                             background: `linear-gradient(135deg, ${roleColor}1f, ${roleColor}0f)`,
@@ -380,18 +371,10 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         <span className="text-[14px]">⚡</span>
                         <div className="flex-1">
                             <p className="m-0 text-[10px] font-extrabold" style={{ color: roleColor }}>
-                                {profile.role === "Business"
-                                    ? isPaidPlan
-                                        ? `現在のプラン: ${planLabel ?? "契約中"}`
-                                        : "有料プランにアップグレード"
-                                    : hubMenuLabel}
+                                有料プランにアップグレード
                             </p>
                             <p className="mb-0 mt-px font-mono text-[8px]" style={{ color: t.sub, opacity: theme === "light" ? 0.82 : 0.65 }}>
-                                {profile.role === "Business"
-                                    ? isPaidPlan
-                                        ? "現在のHub体験を利用中"
-                                        : "Hubから役割に合った価値を育てる"
-                                    : "役割に応じたHubを開く"}
+                                Business Partner Program
                             </p>
                         </div>
                         <svg width={12} height={12} fill="none" viewBox="0 0 24 24" stroke={roleColor} strokeWidth={2.5}>

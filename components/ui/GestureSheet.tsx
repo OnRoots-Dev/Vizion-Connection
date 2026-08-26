@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -18,6 +18,11 @@ type Props = {
   side?: "bottom" | "right";
   className?: string;
   dismissOffset?: number;
+  /** Viz Map 等の段階表示。指定時は Peek → Half → close の順で操作する。 */
+  snapHeights?: readonly [peek: string, half: string];
+  /** snapHeights 使用時に外部から段階を切り替える場合の制御値。 */
+  snap?: "peek" | "half";
+  onSnapChange?: (snap: "peek" | "half") => void;
 };
 
 /**
@@ -34,16 +39,38 @@ export function GestureSheet({
   side = "bottom",
   className,
   dismissOffset = 120,
+  snapHeights,
+  snap: controlledSnap,
+  onSnapChange,
 }: Props) {
   const reduce = useReducedMotion();
   const dragControls = useDragControls();
   const isBottom = side === "bottom";
+  const [snap, setSnap] = useState<"peek" | "half">("peek");
+  const currentSnap = controlledSnap ?? snap;
+
+  useEffect(() => {
+    if (open) setSnap("peek");
+  }, [open]);
+
+  const changeSnap = useCallback((next: "peek" | "half") => {
+    setSnap(next);
+    onSnapChange?.(next);
+  }, [onSnapChange]);
 
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {
       if (isBottom) {
         const v = info.velocity.y;
         const projected = info.offset.y + projectMomentum(Math.max(0, v));
+        if (snapHeights && info.offset.y < -36) {
+          changeSnap("half");
+          return;
+        }
+        if (snapHeights && currentSnap === "half" && info.offset.y > 56) {
+          changeSnap("peek");
+          return;
+        }
         if (v > 500 || projected > dismissOffset || info.offset.y > dismissOffset) {
           onClose();
         }
@@ -55,7 +82,7 @@ export function GestureSheet({
         onClose();
       }
     },
-    [dismissOffset, isBottom, onClose],
+    [changeSnap, currentSnap, dismissOffset, isBottom, onClose, snapHeights],
   );
 
   return (
@@ -103,7 +130,7 @@ export function GestureSheet({
               reduce
                 ? { opacity: 1 }
                 : isBottom
-                  ? { y: 0, opacity: 1 }
+                  ? { y: 0, opacity: 1, height: snapHeights ? snapHeights[currentSnap === "half" ? 1 : 0] : undefined }
                   : { x: 0, opacity: 1 }
             }
             exit={
@@ -127,6 +154,9 @@ export function GestureSheet({
               onPointerDown={(e) => {
                 e.preventDefault();
                 dragControls.start(e);
+              }}
+              onClick={() => {
+                if (snapHeights) changeSnap(currentSnap === "peek" ? "half" : "peek");
               }}
               style={{ touchAction: "none" }}
             >

@@ -27,7 +27,9 @@ export const SEALED_DASHBOARD_VIEWS: ReadonlySet<DashboardView> = new Set([
     "admin_ads",
 ]);
 
-/** トップレベルルートの封印（middlewareでredirect） */
+/** トップレベルルートの封印（middlewareでredirect）
+ *  ※ /r/[slug] は封印しない: 紹介クリック→/register?ref= の現役入口（MVP）。
+ *    Referral統計UI(/api/referral/clicks)は引き続き封印。 */
 export const SEALED_TOP_LEVEL_PATHS: readonly string[] = [
     "/pulse",
     "/timeline",
@@ -37,7 +39,6 @@ export const SEALED_TOP_LEVEL_PATHS: readonly string[] = [
     "/voicelab",
     "/news",
     "/news-rooms",
-    "/r",
     "/business-hub",
     "/demo",
     "/company",

@@ -16,7 +16,8 @@ export const BUSINESS_REGIONS = [
 export const BUSINESS_CAMPAIGN = {
     periodLabel: "1ヶ月分の料金で合計4ヶ月利用可能（1ヶ月＋ボーナス3ヶ月）",
     periodShort: "4ヶ月利用（1ヶ月料金＋ボーナス3ヶ月）",
-    dateRange: "2026年7月19日〜7月31日",
+    // 期限切れの固定日付の表示をやめ、実態（在庫主導の先着制）に合わせた表記に統一
+    dateRange: "実施中（在庫がなくなり次第終了）",
     autoRenewNote:
         "4ヶ月の利用期間終了後は、解約の申し出がない限り同額で自動継続されます。",
 } as const;

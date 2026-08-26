@@ -43,9 +43,9 @@ export default function Day0Client({ profile }: { profile: ProfileData }) {
                 setError(data.error ?? "保存に失敗しました");
                 return;
             }
-            // カウントダウン→脈動バーストの演出後にJourneyへ
+            // カウントダウン→脈動バーストの演出後に招待ステップへ（JourneyはMVPスコープ外のため省略）
             setShowBurst(true);
-            setTimeout(() => router.push("/onboarding/journey"), 2100);
+            setTimeout(() => router.push("/onboarding/invite"), 2100);
         } catch {
             setError("通信エラーが発生しました");
         } finally {
