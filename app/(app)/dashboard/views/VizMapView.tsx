@@ -1,5 +1,9 @@
 "use client";
 
+// フルスクリーンMap。DashboardClientのview切替はframer-motionのtransformを伴うため、
+// transform付き祖先の中で position:fixed を使うと包含ブロックが崩れる（全画面にならない）。
+// → createPortal で document.body 直下に描画して回避する。
+import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { GestureSheet } from "@/components/ui/GestureSheet";
@@ -28,7 +32,18 @@ export function VizMapView({ t, onBack }: { t: ThemeColors; roleColor: string; o
     const [sheetSnap, setSheetSnap] = useState<"peek" | "half">("peek");
     const [filterOpen, setFilterOpen] = useState(false);
     const [typeFilter, setTypeFilter] = useState<ActivityType | null>(null);
+    const [mounted, setMounted] = useState(false);
     const selected = items.find((item) => item.id === selectedId) ?? null;
+
+    useEffect(() => { setMounted(true); }, []);
+
+    // 全画面表示中は背景（dashboard）のスクロールを止める
+    useEffect(() => {
+        if (!mounted) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = previousOverflow; };
+    }, [mounted]);
 
     const load = useCallback(async (bbox: MapBBox, zoom: number) => {
         if (bbox.maxLat - bbox.minLat > 30 || bbox.maxLng - bbox.minLng > 40) return;
@@ -55,7 +70,9 @@ export function VizMapView({ t, onBack }: { t: ThemeColors; roleColor: string; o
     const points = useMemo(() => items.filter((item) => !typeFilter || item.type === typeFilter).map((item) => ({ id: item.id, latitude: item.place.latitude, longitude: item.place.longitude, label: item.title ?? TYPE_LABELS[item.type] ?? "Activity", kind: item.type })), [items, typeFilter]);
     const activeCount = typeFilter ? 1 : 0;
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <section className="fixed inset-0 z-50 bg-[#09090f]" aria-label="Viz Map">
             <MapCanvas points={points} selectedId={selectedId} loading={loading} onViewportChange={handleViewport} onSelect={(id) => { setSheetSnap("peek"); setSelectedId(id); }} onClearSelection={() => setSelectedId(null)} />
             <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4 pointer-events-none">
@@ -71,7 +88,8 @@ export function VizMapView({ t, onBack }: { t: ThemeColors; roleColor: string; o
             <GestureSheet open={filterOpen} onClose={() => setFilterOpen(false)} className="px-5 pb-[max(20px,env(safe-area-inset-bottom))]">
                 <div className="mx-auto w-full max-w-xl py-3"><p className="mb-4 font-mono text-[11px] tracking-[.18em] text-white/55">ACTIVITY TYPE</p>{[null, ...FILTERABLE_TYPES].map((type) => <motion.button key={type ?? "all"} type="button" onClick={() => { setTypeFilter(type); setFilterOpen(false); }} whileTap={reduce ? undefined : { scale: 0.97 }} className="flex w-full items-center gap-3 border-b border-white/10 py-4 text-left text-sm text-white"><span className={typeFilter === type ? "grid h-5 w-5 place-items-center rounded-full bg-[color:var(--vc-accent)] text-xs text-black" : "h-5 w-5 rounded-full border border-white/40"}>{typeFilter === type ? "✓" : ""}</span>{type ? TYPE_LABELS[type] : "All"}</motion.button>)}</div>
             </GestureSheet>
-        </section>
+        </section>,
+        document.body,
     );
 }
 

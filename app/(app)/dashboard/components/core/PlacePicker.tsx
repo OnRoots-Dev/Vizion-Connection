@@ -2,9 +2,10 @@
 
 // dashboard/components/core/PlacePicker.tsx
 // Activity作成時の場所選択。検索（GET /api/places）→ 選択 or 手動登録（POST /api/places）。
-// ジオコーディングProviderは導入しない。座標は「詳細」に手動入力（既定は東京駅・approximate）。
+// 手動登録では住所入力からMapbox Geocoding APIの候補（最大3件）を出し、選択で
+// 正確な緯度経度（precision: exact）を取得してViz Mapのピンに反映する。
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { PlaceRecord } from "@/features/place/place";
@@ -22,6 +23,42 @@ const inputStyle: React.CSSProperties = {
     fontSize: 13,
     outline: "none",
 };
+
+interface GeocodeSuggestion {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    prefecture: string | null;
+}
+
+/** Mapbox Geocoding API v6 のレスポンスから必要な形へ絞り込む */
+function toSuggestion(feature: unknown): GeocodeSuggestion | null {
+    const f = feature as {
+        properties?: {
+            name?: string;
+            full_address?: string;
+            coordinates?: { longitude?: number; latitude?: number };
+            context?: { region?: { name?: string } };
+        };
+    } | null;
+    const coords = f?.properties?.coordinates;
+    if (!f?.properties || !coords || typeof coords.latitude !== "number" || typeof coords.longitude !== "number") return null;
+    return {
+        name: f.properties.name ?? f.properties.full_address ?? "",
+        address: f.properties.full_address ?? f.properties.name ?? "",
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        prefecture: matchPrefecture(f.properties.context?.region?.name ?? null),
+    };
+}
+
+/** Geocodingのregion名（"東京都" / "Tōkyō" 等）をアプリの都道府県リストに合わせる */
+function matchPrefecture(regionName: string | null): string | null {
+    if (!regionName) return null;
+    const normalized = regionName.trim();
+    return ALL_PREFECTURES.find((pref) => normalized.startsWith(pref.slice(0, 2))) ?? null;
+}
 
 export function PlacePicker({
     value,
@@ -44,8 +81,67 @@ export function PlacePicker({
     const [address, setAddress] = useState("");
     const [lat, setLat] = useState("35.6812");
     const [lng, setLng] = useState("139.7671");
+    const [precision, setPrecision] = useState<"exact" | "approximate">("approximate");
     const [placeType, setPlaceType] = useState("facility");
     const [creating, setCreating] = useState(false);
+
+    // 住所からの候補表示（Geocoding）
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    const [geoQuery, setGeoQuery] = useState("");
+    const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([]);
+    const [suggestLoading, setSuggestLoading] = useState(false);
+    const abortRef = useRef<AbortController | null>(null);
+
+    // 入力を400msデバウンスし、APIコストを抑える（最小3文字・最大3件・日本国内・中断あり）
+    useEffect(() => {
+        if (mode !== "create" || !token) return;
+        abortRef.current?.abort();
+        const trimmed = geoQuery.trim();
+        if (trimmed.length < 3) {
+            setSuggestions([]);
+            setSuggestLoading(false);
+            return;
+        }
+        const controller = new AbortController();
+        abortRef.current = controller;
+        setSuggestLoading(true);
+        const timer = window.setTimeout(() => {
+            const params = new URLSearchParams({
+                q: trimmed,
+                access_token: token,
+                limit: "3",
+                language: "ja",
+                country: "JP",
+            });
+            fetch(`https://api.mapbox.com/search/geocode/v6/forward?${params}`, { signal: controller.signal })
+                .then((res) => (res.ok ? res.json() : Promise.reject(new Error("geocode failed"))))
+                .then((data: { features?: unknown[] }) => {
+                    setSuggestions((data.features ?? []).map(toSuggestion).filter((s): s is GeocodeSuggestion => s !== null));
+                    setSuggestLoading(false);
+                })
+                .catch((cause: unknown) => {
+                    if (cause instanceof DOMException && cause.name === "AbortError") return;
+                    setSuggestions([]);
+                    setSuggestLoading(false);
+                });
+        }, 400);
+        return () => {
+            window.clearTimeout(timer);
+            controller.abort();
+        };
+    }, [geoQuery, mode, token]);
+
+    function applySuggestion(suggestion: GeocodeSuggestion) {
+        if (suggestion.name && !name.trim()) setName(suggestion.name.slice(0, 80));
+        setAddress(suggestion.address.slice(0, 200));
+        if (suggestion.prefecture) setPrefecture(suggestion.prefecture);
+        setLat(String(suggestion.latitude));
+        setLng(String(suggestion.longitude));
+        setPrecision("exact");
+        setSuggestions([]);
+        setGeoQuery("");
+        setError("");
+    }
 
     async function runSearch() {
         setSearching(true);
@@ -73,7 +169,7 @@ export function PlacePicker({
                 address: address || null,
                 latitude: Number(lat),
                 longitude: Number(lng),
-                precision: "approximate",
+                precision,
                 place_type: placeType,
             });
             onChange(data.place);
@@ -97,7 +193,7 @@ export function PlacePicker({
                 <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#f0f0f5" }}>{value.name}</div>
                     <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-                        {value.prefecture} · {value.precision === "approximate" ? "おおよその位置" : "正確な位置"}
+                        {value.address ? `${value.address} · ` : ""}{value.prefecture} · {value.precision === "approximate" ? "おおよその位置" : "正確な位置"}
                     </div>
                 </div>
                 <motion.button
@@ -210,6 +306,37 @@ export function PlacePicker({
                 </>
             ) : (
                 <>
+                    {/* 住所から探す: 候補を選ぶと名称・住所・都道府県・正確な座標が自動入力される */}
+                    <input
+                        value={geoQuery}
+                        onChange={(e) => setGeoQuery(e.target.value)}
+                        placeholder="住所で検索（例: 東京都渋谷区...）"
+                        style={inputStyle}
+                        aria-label="住所で検索"
+                        autoComplete="off"
+                    />
+                    {suggestLoading && geoQuery.trim().length >= 3 ? (
+                        <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>候補を検索中...</p>
+                    ) : null}
+                    {suggestions.map((suggestion) => (
+                        <button
+                            key={`${suggestion.latitude},${suggestion.longitude},${suggestion.address}`}
+                            type="button"
+                            onClick={() => applySuggestion(suggestion)}
+                            style={{
+                                textAlign: "left", padding: "9px 12px", borderRadius: 10,
+                                background: "rgba(200,232,0,0.05)",
+                                border: "1px solid rgba(200,232,0,0.25)",
+                                color: "#f0f0f5", fontSize: 12, cursor: "pointer",
+                            }}
+                        >
+                            <span style={{ fontWeight: 700 }}>{suggestion.name}</span>
+                            <span style={{ display: "block", marginTop: 2, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+                                {suggestion.address}
+                            </span>
+                        </button>
+                    ))}
+
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="場所名（例: 市営プール）" style={inputStyle} aria-label="場所名" />
                     <select value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={inputStyle} aria-label="都道府県">
                         {ALL_PREFECTURES.map((pref) => (
@@ -218,10 +345,12 @@ export function PlacePicker({
                     </select>
                     <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="住所（任意）" style={inputStyle} aria-label="住所" />
                     <details>
-                        <summary style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>位置の詳細（緯度・経度）</summary>
+                        <summary style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", cursor: "pointer" }}>
+                            位置の詳細{precision === "exact" ? "（住所候補から正確な位置が設定されています）" : "（緯度・経度）"}
+                        </summary>
                         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                            <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="緯度" style={inputStyle} aria-label="緯度" />
-                            <input value={lng} onChange={(e) => setLng(e.target.value)} placeholder="経度" style={inputStyle} aria-label="経度" />
+                            <input value={lat} onChange={(e) => { setLat(e.target.value); setPrecision("approximate"); }} placeholder="緯度" style={inputStyle} aria-label="緯度" />
+                            <input value={lng} onChange={(e) => { setLng(e.target.value); setPrecision("approximate"); }} placeholder="経度" style={inputStyle} aria-label="経度" />
                         </div>
                         <select value={placeType} onChange={(e) => setPlaceType(e.target.value)} style={{ ...inputStyle, marginTop: 6 }} aria-label="場所タイプ">
                             {["facility", "park", "school", "stadium", "gym", "outdoor", "other"].map((tp) => (
@@ -229,6 +358,11 @@ export function PlacePicker({
                             ))}
                         </select>
                     </details>
+                    {precision === "exact" ? (
+                        <p style={{ margin: 0, fontSize: 11, color: "rgba(200,232,0,0.75)" }}>
+                            ◎ 正確な位置で登録されます（Viz Mapのピンに反映されます）
+                        </p>
+                    ) : null}
 
                     <div style={{ display: "flex", gap: 6 }}>
                         <motion.button

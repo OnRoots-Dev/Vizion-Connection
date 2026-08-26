@@ -44,6 +44,9 @@ export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onVi
     const selectRef = useRef(onSelect);
     const clearRef = useRef(onClearSelection);
     const viewportRef = useRef(onViewportChange);
+    const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    // 直前の選択ID。変化した時だけパルス演出を行う（データ更新のたびに全ピンが点滅するのを防ぐ）。
+    const prevSelectedRef = useRef<string>("");
     const [ready, setReady] = useState(false);
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -150,8 +153,25 @@ export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onVi
             });
             map.on("moveend", emitViewport);
             mapRef.current = map;
+
+            // コンテナサイズ変化（マウント時のレイアウト確定・回転・シート開閉）に追従。
+            // Mapboxは自動でコンテナのリサイズを検知しないため明示的に resize() を呼ぶ。
+            if (containerRef.current && typeof ResizeObserver !== "undefined") {
+                const observer = new ResizeObserver(() => {
+                    mapRef.current?.resize();
+                });
+                observer.observe(containerRef.current);
+                resizeObserverRef.current = observer;
+            }
         })();
-        return () => { cancelled = true; mapRef.current?.remove(); mapRef.current = null; setReady(false); };
+        return () => {
+            cancelled = true;
+            resizeObserverRef.current?.disconnect();
+            resizeObserverRef.current = null;
+            mapRef.current?.remove();
+            mapRef.current = null;
+            setReady(false);
+        };
     }, [emitViewport, token]);
 
     const syncData = useCallback(() => {
@@ -160,18 +180,22 @@ export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onVi
         if (!map || !src) return;
         src.setData({ type: "FeatureCollection", features: dataRef.current.points.map((point) => ({ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [point.longitude, point.latitude] }, properties: { id: point.id, label: point.label, kind: point.kind ?? "other", glyph: markerGlyph(point.kind) } })) } as unknown as Parameters<import("mapbox-gl").GeoJSONSource["setData"]>[0]);
         const selected = dataRef.current.selectedId ?? "";
+        const selectionChanged = prevSelectedRef.current !== selected;
+        prevSelectedRef.current = selected;
         map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 17, 0]);
         map.setPaintProperty("viz-activity-ring", "circle-opacity", ["case", ["==", ["get", "id"], selected], 1, 0]);
-        if (selected) {
+        if (selectionChanged && selected) {
             // A single restrained pulse communicates selection without turning the map into a feed.
             window.setTimeout(() => {
                 if (mapRef.current !== map || dataRef.current.selectedId !== selected) return;
                 map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 13, 0]);
             }, 170);
         }
-        // Source changes and cluster expansion use the same short transition rather than abrupt marker replacement.
-        map.setPaintProperty("viz-activity-circle", "circle-radius", 0);
-        requestAnimationFrame(() => map.setPaintProperty("viz-activity-circle", "circle-radius", 10));
+        // 選択が変わった時だけ短いトランジションで強調する（データ更新のたびに全ピンを点滅させない）。
+        if (selectionChanged) {
+            map.setPaintProperty("viz-activity-circle", "circle-radius", 0);
+            requestAnimationFrame(() => map.setPaintProperty("viz-activity-circle", "circle-radius", 10));
+        }
     }, []);
 
     useEffect(() => { syncData(); }, [points, selectedId, ready, syncData]);
