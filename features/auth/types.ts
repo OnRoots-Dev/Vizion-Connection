@@ -6,10 +6,7 @@ export interface RegisterInput {
     email: string;
     password: string;
     role: UserRole;
-    displayName?: string;
     slug: string;
-    region: string;
-    prefecture?: string;
     referrerSlug?: string;
     redirectTo?: string;
     termsAccepted: true;

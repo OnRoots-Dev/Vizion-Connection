@@ -16,64 +16,34 @@ export const PREFECTURES_BY_REGION: Record<(typeof VALID_REGIONS)[number], reado
     "九州・沖縄": ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"],
 };
 
-const ALL_PREFECTURES = Object.values(PREFECTURES_BY_REGION).flat() as [string, ...string[]];
-
-export const registerSchema = z
-    .object({
-        email: z
-            .string()
-            .min(1, "メールアドレスを入力してください")
-            .email("有効なメールアドレスを入力してください"),
-        password: z
-            .string()
-            .min(8, "パスワードは8文字以上で入力してください")
-            .max(100, "パスワードが長すぎます")
-            .regex(
-                /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/,
-                "パスワードは英数字・記号のみ使用できます（スペース不可）"
-            ),
-        role: z.enum(VALID_ROLES, {
-            message: "ロールを選択してください",
-        }),
-        region: z.enum(VALID_REGIONS, {
-            message: "活動エリア（地方）を選択してください",
-        }),
-        prefecture: z
-            .string()
-            .optional()
-            .transform((v) => (v === "" || v === undefined ? undefined : v)),
-        displayName: z.string().max(50, "表示名は50文字以内で入力してください").optional(),
-        slug: z
-            .string()
-            .min(3, "ユーザー名は3文字以上で入力してください")
-            .max(30, "ユーザー名は30文字以内で入力してください")
-            .regex(
-                /^[a-z0-9_.]+$/,
-                "ユーザー名は英小文字・数字・アンダースコア・ドットのみ使用できます（ハイフン不可）"
-            ),
-        referrerSlug: z.string().optional().transform((v) => (v === "" ? undefined : v)),
-        termsAccepted: z.boolean().refine((value) => value === true, {
-            message: "利用規約とプライバシーポリシーへの同意が必要です",
-        }),
-    })
-    .superRefine((data, ctx) => {
-        if (!data.prefecture) return;
-        if (!ALL_PREFECTURES.includes(data.prefecture)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["prefecture"],
-                message: "都道府県の選択が不正です",
-            });
-            return;
-        }
-        const allowed = PREFECTURES_BY_REGION[data.region];
-        if (!allowed.includes(data.prefecture)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["prefecture"],
-                message: "選択した地方に属する都道府県を選んでください",
-            });
-        }
-    });
+export const registerSchema = z.object({
+    email: z
+        .string()
+        .min(1, "メールアドレスを入力してください")
+        .email("有効なメールアドレスを入力してください"),
+    password: z
+        .string()
+        .min(8, "パスワードは8文字以上で入力してください")
+        .max(100, "パスワードが長すぎます")
+        .regex(
+            /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]+$/,
+            "パスワードは英数字・記号のみ使用できます（スペース不可）"
+        ),
+    role: z.enum(VALID_ROLES, {
+        message: "ロールを選択してください",
+    }),
+    slug: z
+        .string()
+        .min(3, "ユーザー名は3文字以上で入力してください")
+        .max(30, "ユーザー名は30文字以内で入力してください")
+        .regex(
+            /^[a-z0-9_.]+$/,
+            "ユーザー名は英小文字・数字・アンダースコア・ドットのみ使用できます（ハイフン不可）"
+        ),
+    referrerSlug: z.string().optional().transform((v) => (v === "" ? undefined : v)),
+    termsAccepted: z.boolean().refine((value) => value === true, {
+        message: "利用規約とプライバシーポリシーへの同意が必要です",
+    }),
+});
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

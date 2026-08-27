@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { registerSchema, VALID_REGIONS, PREFECTURES_BY_REGION } from "@/features/auth/validation/register-schema";
+import { registerSchema } from "@/features/auth/validation/register-schema";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthPulseLoader, AuthSuccessMark } from "@/components/auth/AuthStatusMotion";
 import { EyeIcon } from "@/components/auth/EyeIcon";
@@ -26,27 +26,22 @@ const ROLES: {
     displayName: string;
     color: string;
     detail: string;
-    nameLabel: string;
 }[] = [
     {
         value: "Athlete", label: "Athlete", displayName: "アスリート", color: "#FF5050",
         detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
-        nameLabel: "表示名（アスリート名）",
     },
     {
         value: "Trainer", label: "Trainer", displayName: "トレーナー", color: "#30de1d",
         detail: "スポーツの指導・サポートをしている方向け。",
-        nameLabel: "表示名",
     },
     {
         value: "Crew", label: "Crew", displayName: "サポーター", color: "#FFC81E",
         detail: "ファン、サポーター、家族、友人、関係者の方向け。",
-        nameLabel: "ニックネーム",
     },
     {
         value: "Business", label: "Business", displayName: "ビジネス", color: "#3C8CFF",
         detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。",
-        nameLabel: "会社・団体名",
     },
 ];
 
@@ -160,15 +155,10 @@ export default function RegisterForm() {
         slug: "",
         email: "",
         password: "",
-        confirmPassword: "",
-        displayName: "",
-        region: "" as "" | (typeof VALID_REGIONS)[number],
-        prefecture: "",
         referrerSlug: refSlug,
         termsAccepted: false,
     });
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [succeeded, setSucceeded] = useState(false);
     const [error, setError] = useState("");
@@ -192,24 +182,13 @@ export default function RegisterForm() {
             slug: form.slug,
             email: form.email,
             password: form.password,
-            displayName: form.displayName || undefined,
-            region: form.region,
-            prefecture: form.prefecture || undefined,
             referrerSlug: form.referrerSlug || undefined,
             termsAccepted: form.termsAccepted,
             role,
         };
     }
 
-    const prefectureOptions = form.region
-        ? (PREFECTURES_BY_REGION[form.region] ?? [])
-        : [];
-
     function handleStep2Next() {
-        if (form.password !== form.confirmPassword) {
-            setError("パスワードが一致しません");
-            return;
-        }
         const parsed = registerSchema.safeParse({ ...buildPayload(), redirectTo: undefined });
         if (!parsed.success) {
             setError(parsed.error.issues[0]?.message ?? "入力内容を確認してください");
@@ -247,8 +226,8 @@ export default function RegisterForm() {
             }
             setSucceeded(true);
             const next = redirectTo
-                ? `/thanks?type=verify&redirect=${encodeURIComponent(redirectTo)}`
-                : "/thanks?type=verify";
+                ? `/login?redirect=${encodeURIComponent(redirectTo)}`
+                : "/login";
             setTimeout(() => router.push(next), 1600);
         } catch {
             setError("通信エラーが発生しました");
@@ -438,39 +417,6 @@ export default function RegisterForm() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-white/40">パスワード（確認） <span style={{ color: "var(--flame)" }}>*</span></label>
-                                <div className="relative">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        required
-                                        autoComplete="new-password"
-                                        placeholder="もう一度入力"
-                                        value={form.confirmPassword}
-                                        onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                                        style={{ ...controlStyle, paddingRight: 44 }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword((v) => !v)}
-                                        aria-label={showConfirmPassword ? "パスワードを隠す" : "パスワードを表示"}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white/60"
-                                    >
-                                        <EyeIcon open={showConfirmPassword} />
-                                    </button>
-                                </div>
-                                {form.confirmPassword.length > 0 && form.password !== form.confirmPassword && (
-                                    <p className="pl-1 text-[10px] leading-relaxed" style={{ color: "var(--flame)" }}>
-                                        パスワードが一致していません
-                                    </p>
-                                )}
-                                {form.confirmPassword.length > 0 && form.password === form.confirmPassword && form.password.length >= 8 && (
-                                    <p className="pl-1 text-[10px] leading-relaxed text-[#32D278]">
-                                        パスワードが一致しています
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="space-y-1.5">
                                 <label className="text-xs font-medium text-white/40">ユーザーID <span style={{ color: "var(--flame)" }}>*</span></label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 select-none font-mono text-sm text-white/20">@</span>
@@ -489,55 +435,6 @@ export default function RegisterForm() {
                                 <p className={`font-mono text-xs ${form.slug ? "text-white/60" : "text-white/25"}`}>
                                     {form.slug ? "vizion-connection.jp/u/" : "例：vizion-connection.jp/u/"}{form.slug || "your_id00"}
                                 </p>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-white/40">{selectedRole.nameLabel}（任意）</label>
-                                <input
-                                    type="text" placeholder={role === "Business" ? "株式会社〇〇" : "山田 太郎"} value={form.displayName}
-                                    onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                                    style={controlStyle}
-                                />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-white/40">
-                                    活動エリア（地方） <span style={{ color: "var(--flame)" }}>*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={form.region}
-                                    onChange={(e) =>
-                                        setForm({
-                                            ...form,
-                                            region: e.target.value as typeof form.region,
-                                            prefecture: "",
-                                        })
-                                    }
-                                    style={controlStyle}
-                                >
-                                    <option value="">選択してください</option>
-                                    {VALID_REGIONS.map((r) => (
-                                        <option key={r} value={r}>{r}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-white/40">活動エリア（都道府県）（任意）</label>
-                                <select
-                                    value={form.prefecture}
-                                    onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
-                                    disabled={!form.region}
-                                    style={{ ...controlStyle, opacity: form.region ? 1 : 0.4, cursor: form.region ? "pointer" : "not-allowed" }}
-                                >
-                                    <option value="">
-                                        {form.region ? "選択してください" : "先に地方を選択"}
-                                    </option>
-                                    {prefectureOptions.map((p) => (
-                                        <option key={p} value={p}>{p}</option>
-                                    ))}
-                                </select>
                             </div>
 
                             <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
@@ -605,9 +502,6 @@ export default function RegisterForm() {
                                     { label: "メールアドレス", value: form.email },
                                     { label: "パスワード", value: "•".repeat(Math.min(form.password.length, 12)) },
                                     { label: "ユーザーID", value: `@${form.slug}` },
-                                    { label: selectedRole.nameLabel, value: form.displayName || "未入力" },
-                                    { label: "活動エリア（地方）", value: form.region || "未選択" },
-                                    { label: "活動エリア（都道府県）", value: form.prefecture || "未選択" },
                                     ...(form.referrerSlug ? [{ label: "紹介コード", value: form.referrerSlug }] : []),
                                 ].map((row) => (
                                     <div key={row.label} className="flex items-center justify-between gap-4 py-3.5">
