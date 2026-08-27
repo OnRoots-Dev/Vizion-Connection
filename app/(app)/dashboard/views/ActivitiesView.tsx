@@ -2,13 +2,15 @@
 
 // dashboard/views/ActivitiesView.tsx
 // Core Loop 起点: Activity の作成・一覧・詳細。
-// 既存 Journey（日誌）とは別物。Activity = 継続して行う活動のCore Data。
+// 「自分だけのスポーツフィード（MY ACTIVITY）」として、自分の活動履歴を時系列で振り返るUI。
+// Activity は継続して行う活動の Core Data。Moment のような他人への SNS Feed ではない。
 
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton, ViewLoader } from "../components/ui";
+import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton } from "../components/ui";
 import { BottomSheet } from "../components/core/BottomSheet";
 import { PlacePicker } from "../components/core/PlacePicker";
+import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay } from "../components/feed";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
@@ -33,10 +35,26 @@ const STATUS_LABELS: Record<string, string> = {
     planned: "予定", completed: "完了", cancelled: "中止",
 };
 
+const STATUS_COLOR: Record<string, string> = {
+    planned: "#FFB454",
+    completed: "#32D278",
+    cancelled: "#FF5C7A",
+};
+
 function toLocalInput(iso?: string): string {
     const d = iso ? new Date(iso) : new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatDate(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" });
+}
+
+function formatTime(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
 }
 
 export function ActivitiesView({
@@ -108,7 +126,6 @@ export function ActivitiesView({
             });
             setSuccessFlash(true);
             window.setTimeout(() => setSuccessFlash(false), 1800);
-            // reset minimal
             setFTitle(""); setFDesc(""); setFEnd(""); setFPlace(null); setFTags("");
             setMode("list");
             await load();
@@ -145,11 +162,15 @@ export function ActivitiesView({
         color: "#f0f0f5", fontSize: 13, outline: "none",
     };
 
+    // 時系列（新しい順）。既に starts_at で降順ソート済み。
+    const latest = items[0] ?? null;
+    const past = items.slice(1);
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <ViewHeader
-                title={mode === "create" ? "New Activity" : "Activities"}
-                sub="継続する活動を記録し、MomentとMapにつなげる"
+                title={mode === "create" ? "New Activity" : "MY ACTIVITY"}
+                sub="自分だけのスポーツフィード — 活動履歴を振り返る"
                 onBack={onBack}
                 t={t}
                 roleColor={roleColor}
@@ -177,53 +198,55 @@ export function ActivitiesView({
                 <>
                     <PrimaryButton onClick={() => setMode("create")} disabled={loading}>+ Activity を作成</PrimaryButton>
 
+                    {error ? (
+                        <FeedErrorState message={error} onRetry={() => void load()} />
+                    ) : null}
+
                     {loading ? (
-                        <ViewLoader t={t} />
+                        <LoadingSkeleton media={false} />
                     ) : items.length === 0 ? (
-                        <div style={{ textAlign: "center", padding: "36px 16px", color: "rgba(255,255,255,0.45)", fontSize: 13 }}>
-                            まだActivityがありません。
-                            <br />
-                            最初の活動を記録してみましょう。
-                        </div>
+                        <FeedEmptyState
+                            title="まだActivityがありません"
+                            description="最初の活動を記録して、自分のスポーツフィードを始めましょう。"
+                            action={
+                                <PrimaryButton onClick={() => setMode("create")} disabled={loading}>
+                                    + Activity を記録
+                                </PrimaryButton>
+                            }
+                        />
                     ) : (
-                        items.map((a) => (
-                            <motion.button
-                                key={a.id}
-                                type="button"
-                                whileTap={reduce ? undefined : { scale: 0.985 }}
-                                onClick={() => {
-                                    setDetailId(a.id);
+                        <>
+                            {/* Latest Activity */}
+                            <SLabel text="LATEST" color={`${roleColor}aa`} />
+                            <ActivityFeedCard
+                                activity={latest!}
+                                roleColor={roleColor}
+                                onOpen={() => {
+                                    setDetailId(latest!.id);
                                     setMode("detail");
                                 }}
-                                style={{
-                                    textAlign: "left", cursor: "pointer",
-                                    background: "#111118", border: "1px solid rgba(255,255,255,0.08)",
-                                    borderRadius: 14, padding: "13px 15px",
-                                    display: "flex", flexDirection: "column", gap: 6,
-                                }}
-                            >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span
-                                        style={{
-                                            padding: "3px 9px", borderRadius: 999, fontSize: 10, fontWeight: 800,
-                                            fontFamily: "'Space Mono', monospace", letterSpacing: "0.06em",
-                                            background: `${roleColor}16`, color: roleColor,
-                                            border: `1px solid ${roleColor}30`,
-                                        }}
-                                    >
-                                        {TYPE_LABELS[a.type]}
-                                    </span>
-                                    <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.4)" }}>
-                                        {VISIBILITY_LABELS[a.visibility]} · {STATUS_LABELS[a.status]}
-                                    </span>
-                                </div>
-                                <div style={{ fontSize: 14, fontWeight: 800, color: "#f0f0f5" }}>{a.title}</div>
-                                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                                    🗓 {new Date(a.starts_at).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                                    {a.place ? ` · 📍 ${a.place.name}` : ""}
-                                </div>
-                            </motion.button>
-                        ))
+                                reduce={reduce}
+                            />
+
+                            {/* Past Activity */}
+                            {past.length > 0 ? (
+                                <>
+                                    <SLabel text="PAST ACTIVITY" color={`${roleColor}aa`} />
+                                    {past.map((a) => (
+                                        <ActivityFeedCard
+                                            key={a.id}
+                                            activity={a}
+                                            roleColor={roleColor}
+                                            onOpen={() => {
+                                                setDetailId(a.id);
+                                                setMode("detail");
+                                            }}
+                                            reduce={reduce}
+                                        />
+                                    ))}
+                                </>
+                            ) : null}
+                        </>
                     )}
                 </>
             ) : mode === "create" ? (
@@ -329,16 +352,7 @@ export function ActivitiesView({
                     return (
                         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span
-                                    style={{
-                                        padding: "3px 9px", borderRadius: 999, fontSize: 10, fontWeight: 800,
-                                        fontFamily: "'Space Mono', monospace",
-                                        background: `${roleColor}16`, color: roleColor,
-                                        border: `1px solid ${roleColor}30`,
-                                    }}
-                                >
-                                    {TYPE_LABELS[a.type]}
-                                </span>
+                                <TypeBadge type={a.type} color={roleColor} />
                                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginLeft: "auto" }}>
                                     {VISIBILITY_LABELS[a.visibility]} · {STATUS_LABELS[a.status]}
                                 </span>
@@ -380,6 +394,106 @@ export function ActivitiesView({
     );
 }
 
+function TypeBadge({ type, color }: { type: ActivityType; color: string }) {
+    return (
+        <span
+            style={{
+                padding: "3px 9px", borderRadius: 999, fontSize: 10, fontWeight: 800,
+                fontFamily: "'Space Mono', monospace", letterSpacing: "0.06em",
+                background: `${color}16`, color,
+                border: `1px solid ${color}30`,
+                whiteSpace: "nowrap",
+            }}
+        >
+            {TYPE_LABELS[type]}
+        </span>
+    );
+}
+
+/** Activity フィードカード（自分だけのスポーツフィードの1件）。 */
+function ActivityFeedCard({
+    activity: a,
+    roleColor,
+    onOpen,
+    reduce,
+}: {
+    activity: ActivityWithPlace;
+    roleColor: string;
+    onOpen: () => void;
+    reduce: boolean | null;
+}) {
+    const statusColor = STATUS_COLOR[a.status] ?? "rgba(255,255,255,0.5)";
+    return (
+        <motion.button
+            type="button"
+            whileTap={reduce ? undefined : { scale: 0.985 }}
+            onClick={onOpen}
+            style={{
+                textAlign: "left", cursor: "pointer",
+                background: "#111118", border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 14, padding: "13px 15px",
+                display: "flex", flexDirection: "column", gap: 7,
+            }}
+        >
+            {/* ヘッダー: 日付 + ステータス/公開範囲 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontFamily: "'Space Mono', monospace", letterSpacing: "0.04em", color: "rgba(255,255,255,0.45)" }}>
+                    {formatDate(a.starts_at)}
+                </span>
+                <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 5 }}>
+                    <span style={{ fontSize: 10, color: statusColor, fontWeight: 700 }}>{STATUS_LABELS[a.status]}</span>
+                    <span
+                        style={{
+                            padding: "2px 7px", borderRadius: 999, fontSize: 9,
+                            fontWeight: 700, fontFamily: "'Space Mono', monospace", letterSpacing: "0.04em",
+                            background: "rgba(255,255,255,0.06)",
+                            color: a.visibility === "public" ? "#7FB2FF" : a.visibility === "connections" ? "#FFC81E" : "rgba(255,255,255,0.5)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                    >
+                        {VISIBILITY_LABELS[a.visibility]}
+                    </span>
+                </span>
+            </div>
+
+            {/* タイプ + タイトル */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <TypeBadge type={a.type} color={roleColor} />
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#f0f0f5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                    {a.title}
+                </span>
+            </div>
+
+            {/* 内容 */}
+            {a.description ? (
+                <div
+                    style={{
+                        fontSize: 12.5, lineHeight: 1.55, color: "rgba(255,255,255,0.6)",
+                        whiteSpace: "pre-wrap", wordBreak: "break-word",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                    }}
+                >
+                    {a.description}
+                </div>
+            ) : null}
+
+            {/* 時間・場所 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                <span>🕐 {formatTime(a.starts_at)}{a.ends_at ? ` – ${formatTime(a.ends_at)}` : ""}</span>
+                {a.place ? (
+                    <>
+                        <span aria-hidden style={{ opacity: 0.5 }}>•</span>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📍 {a.place.name}</span>
+                    </>
+                ) : null}
+            </div>
+        </motion.button>
+    );
+}
+
 /** 「このActivityから生まれたMoment」であることを明示する公開コンポーザー */
 function MomentComposerInline({
     activityId,
@@ -401,6 +515,33 @@ function MomentComposerInline({
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState("");
+    const [uploading, setUploading] = useState(false);
+
+    async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setUploading(true);
+        setError("");
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await fetch("/api/moments/upload", {
+                method: "POST",
+                body: formData,
+                credentials: "same-origin",
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || typeof json?.url !== "string") {
+                throw new Error(typeof json?.error === "string" ? json.error : "画像アップロードに失敗しました");
+            }
+            setImageUrl(json.url);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "画像アップロードに失敗しました");
+        } finally {
+            setUploading(false);
+        }
+    }
 
     async function publish() {
         setBusy(true);
@@ -445,7 +586,7 @@ function MomentComposerInline({
                     boxShadow: `0 10px 26px ${roleColor}33`,
                 }}
             >
-                ⚡ Momentとして公開
+                ★ Momentとして公開
             </motion.button>
 
             <AnimatePresence>
@@ -462,7 +603,27 @@ function MomentComposerInline({
                             このMomentは「{activityTitle}」から生まれます
                         </p>
                         <textarea value={body} onChange={(e) => setBody(e.target.value.slice(0, 500))} placeholder="この活動から何を見つけた？" rows={3} style={{ ...inputStyle, resize: "vertical" }} />
-                        <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="画像URL（任意）" style={inputStyle} aria-label="画像URL" />
+
+                        {/* 画像アップロード（URL直接入力の代替） */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                <label
+                                    style={{
+                                        flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                        minHeight: 40, borderRadius: 10, fontSize: 12, fontWeight: 800, cursor: "pointer",
+                                        background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
+                                        color: uploading ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
+                                    }}
+                                >
+                                    {uploading ? "アップロード中..." : (imageUrl ? "画像を変更" : "+ 画像を添付")}
+                                    <input type="file" accept="image/*" onChange={(e) => void handleImageFile(e)} disabled={uploading} style={{ display: "none" }} aria-label="画像を添付" />
+                                </label>
+                            </div>
+                            {imageUrl ? (
+                                <ImageDisplay src={imageUrl} alt="添付予定の画像" maxHeight={200} />
+                            ) : null}
+                        </div>
+
                         <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="動画URL（任意）" style={inputStyle} aria-label="動画URL" />
                         <select value={visibility} onChange={(e) => setVisibility(e.target.value as typeof visibility)} style={inputStyle} aria-label="公開範囲">
                             <option value="public" style={{ color: "#000" }}>公開</option>
@@ -470,7 +631,7 @@ function MomentComposerInline({
                             <option value="private" style={{ color: "#000" }}>非公開（保存のみ）</option>
                         </select>
                         {error ? <p role="alert" style={{ margin: 0, fontSize: 11, color: "rgba(255,120,120,0.9)" }}>{error}</p> : null}
-                        <PrimaryButton onClick={publish} disabled={busy || !body.trim()}>
+                        <PrimaryButton onClick={publish} disabled={busy || uploading || !body.trim()}>
                             {busy ? "公開中..." : "Momentを公開"}
                         </PrimaryButton>
                     </motion.section>

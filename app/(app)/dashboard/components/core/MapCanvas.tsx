@@ -19,6 +19,8 @@ export interface MapPoint {
 interface Props {
     points: MapPoint[];
     selectedId?: string | null;
+    /** Search result selection only: pan the existing map without recreating it. */
+    focusPoint?: Pick<MapPoint, "latitude" | "longitude"> | null;
     onSelect?: (id: string) => void;
     onClearSelection?: () => void;
     onViewportChange?: (bbox: MapBBox, zoom: number) => void;
@@ -40,7 +42,7 @@ function markerGlyph(kind?: string): string {
     }
 }
 
-export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onViewportChange, loading }: Props) {
+export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSelection, onViewportChange, loading }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<import("mapbox-gl").Map | null>(null);
     const dataRef = useRef<{ points: MapPoint[]; selectedId?: string | null }>({ points, selectedId });
@@ -202,6 +204,11 @@ export function MapCanvas({ points, selectedId, onSelect, onClearSelection, onVi
     }, []);
 
     useEffect(() => { syncData(); }, [points, selectedId, ready, syncData]);
+
+    useEffect(() => {
+        if (!focusPoint || !mapRef.current) return;
+        mapRef.current.easeTo({ center: [focusPoint.longitude, focusPoint.latitude], zoom: Math.max(mapRef.current.getZoom(), 14), duration: 360, essential: true });
+    }, [focusPoint]);
 
     if (!token) return <div role="alert" className="flex h-full min-h-[420px] items-center justify-center bg-[#111118] p-6 text-center text-sm text-white/60">NEXT_PUBLIC_MAPBOX_TOKEN が未設定のためViz Mapを表示できません。</div>;
 

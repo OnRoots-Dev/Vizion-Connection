@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
-import { listPublicMapActivities } from "@/features/activity/server/map";
+import { listPublicMapActivities, listPublicMapMoments } from "@/features/activity/server/map";
 
 /**
  * Viz Map データ契約（読み取り専用）。
@@ -28,10 +28,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ success: false, error: "範囲が広すぎます。ズームしてください" }, { status: 400 });
     }
 
-    const items = await listPublicMapActivities(
+    const activities = await listPublicMapActivities(
         { minLat, maxLat, minLng, maxLng },
         { limit: Math.min(Number(sp.get("limit")) || 200, 500) },
     );
+    // Existing callers without an explicit type retain the original Activity-only response.
+    const requestedType = sp.get("type") ?? "activity";
+    const moments = requestedType === "activity" ? [] : await listPublicMapMoments(activities);
+    const items = requestedType === "moment" ? moments : [...activities, ...moments];
 
     return NextResponse.json({ success: true, items });
 }

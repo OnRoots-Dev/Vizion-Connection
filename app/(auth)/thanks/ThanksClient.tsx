@@ -47,13 +47,13 @@ function resolveContent(type: string | undefined): Content {
       title: "認証が完了しました",
       paragraphs: [
         "メール認証へのご協力ありがとうございます。",
-        "アカウントの本登録が完了しました。つづいてプロフィールを整え、最初の一歩を記録しましょう。",
+        "アカウントの本登録が完了しました。ログインして、最初の一歩を記録しましょう。",
       ],
       showMailHelp: false,
       triggerWelcomeEmail: true,
       notice: "認証完了の確認メールを自動送信しています。届くまで少しお待ちください。",
-      // メール確認直後のみセッション継続 → オンボーディングへ（他経路は再ログイン）
-      cta: { href: "/onboarding", label: "オンボーディングへ進む" },
+      // 認証完了後はオンボーディングではなくログイン画面へ。
+      cta: { href: "/login", label: "ログインする" },
     },
     email_changed: {
       iconType: "verified",

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ViewHeader, ViewLoader } from "../components/ui";
 import { MomentCard } from "../components/core/MomentCard";
 import { ConnectionButton } from "../components/core/ConnectionButton";
+import { LoadingSkeleton, FeedEmptyState, FeedErrorState } from "../components/feed";
 import { apiGet, ApiError } from "@/lib/api/core-client";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
@@ -109,22 +110,16 @@ export function MomentsFeedView({
             ) : null}
 
             {error ? (
-                <div role="alert" style={{ padding: "12px 16px", borderRadius: 12, fontSize: 13, background: "rgba(255,59,48,0.1)", border: "1px solid rgba(255,59,48,0.3)", color: "#ff8a84", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                    <span>{error}</span>
-                    <button type="button" onClick={() => void load()} style={{ background: "none", border: "none", color: "#fff", fontSize: 12, textDecoration: "underline", cursor: "pointer" }}>
-                        再試行
-                    </button>
-                </div>
+                <FeedErrorState message={error} onRetry={() => void load()} />
             ) : null}
 
             {loading ? (
-                <ViewLoader t={t} />
+                <LoadingSkeleton media />
             ) : !error && items.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "40px 16px", color: "rgba(255,255,255,0.45)", fontSize: 13 }}>
-                    まだ公開されたMomentがありません。
-                    <br />
-                    Activityを作って最初のMomentを公開してみましょう。
-                </div>
+                <FeedEmptyState
+                    title="まだ公開されたMomentがありません"
+                    description="Activityを作って、最初のMomentを公開してみましょう。"
+                />
             ) : (
                 <>
                     {items.map((item) => (

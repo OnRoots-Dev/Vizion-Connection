@@ -13,6 +13,10 @@ export interface MapActivityItem {
     user_id: number;
     author_slug: string | null;
     author_name: string | null;
+    author_role: "Athlete" | "Trainer" | "Crew" | "Business" | "Admin" | null;
+    /** Activity または、位置を親Activityから引き継いだ公開Moment。 */
+    entity_type: "activity" | "moment";
+    image_url?: string | null;
     place: {
         id: string;
         name: string;
@@ -43,7 +47,7 @@ export async function listPublicMapActivities(
         .select(
             `id,type,title,description,starts_at,status,place_id,user_id,
              place:places!inner(id,name,prefecture,latitude,longitude,precision,place_type),
-             owner:users!inner(slug,display_name,is_public,is_deleted)`,
+             owner:users!inner(slug,display_name,role,is_public,is_deleted)`,
         )
         .eq("visibility", "public")
         .eq("status", "planned") // 完了・中止はMapに載せない（段階的取得）
@@ -69,7 +73,7 @@ export async function listPublicMapActivities(
         user_id: number;
         place_id: string | null;
         place: MapActivityItem["place"] | null;
-        owner: { slug: string; display_name: string | null; is_public: boolean; is_deleted: boolean } | null;
+        owner: { slug: string; display_name: string | null; role: MapActivityItem["author_role"]; is_public: boolean; is_deleted: boolean } | null;
     };
 
     return ((data ?? []) as unknown as Row[])
@@ -84,6 +88,51 @@ export async function listPublicMapActivities(
             user_id: row.user_id,
             author_slug: row.owner!.slug,
             author_name: row.owner!.display_name,
+            author_role: row.owner!.role,
+            entity_type: "activity",
             place: row.place as NonNullable<Row["place"]>,
         }));
+}
+
+/** Public Moments inherit the location of their public parent Activity. */
+export async function listPublicMapMoments(activityItems: MapActivityItem[], limit = 200): Promise<MapActivityItem[]> {
+    const activityIds = activityItems.map((item) => item.id);
+    if (activityIds.length === 0) return [];
+
+    const byActivity = new Map(activityItems.map((item) => [item.id, item]));
+    const { data, error } = await supabaseServer
+        .from("moments")
+        .select("id,activity_id,body,image_url,created_at,user_id,owner:users!inner(slug,display_name,role,is_public,is_deleted)")
+        .eq("visibility", "public")
+        .in("activity_id", activityIds)
+        .order("created_at", { ascending: false })
+        .limit(Math.min(Math.max(limit, 1), 500));
+
+    if (error) {
+        console.error("[listPublicMapMoments]", error);
+        return [];
+    }
+
+    type Row = {
+        id: string; activity_id: string; body: string; image_url: string | null; created_at: string; user_id: number;
+        owner: { slug: string; display_name: string | null; role: MapActivityItem["author_role"]; is_public: boolean; is_deleted: boolean } | null;
+    };
+    return ((data ?? []) as unknown as Row[]).flatMap((row) => {
+        const activity = byActivity.get(row.activity_id);
+        if (!activity || !row.owner || !row.owner.is_public || row.owner.is_deleted) return [];
+        return [{
+            ...activity,
+            id: row.id,
+            type: "moment",
+            title: row.body.trim().slice(0, 72) || "Moment",
+            description: row.body,
+            starts_at: row.created_at,
+            user_id: row.user_id,
+            author_slug: row.owner.slug,
+            author_name: row.owner.display_name,
+            author_role: row.owner.role,
+            entity_type: "moment" as const,
+            image_url: row.image_url,
+        }];
+    });
 }

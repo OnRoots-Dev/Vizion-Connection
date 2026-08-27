@@ -357,6 +357,12 @@ a[data-pressable]:active {
   }
 }
 
+@keyframes media-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes vz-dash-flow {
   to {
     stroke-dashoffset: -40;

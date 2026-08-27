@@ -619,10 +619,6 @@ export default function RegisterForm() {
                                     >
                                         別のメールアドレスを使用する
                                     </button>
-
-                                    <Link href="/login" className="block text-center text-sm text-white/45 underline underline-offset-4 hover:text-white/75">
-                                        既に認証済みの場合はこちら
-                                    </Link>
                                 </div>
                             )}
 

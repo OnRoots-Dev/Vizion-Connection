@@ -19,12 +19,12 @@ export type PinCategory =
 // 1カテゴリ1カラー。Business は専用カラー（Moment blue とは分離）。
 export const PIN_COLOR: Record<PinCategory, string> = {
     activity: "#A78BFA",
-    moment: "#FF8C00", // Moment → Orange（Business blue とは分離）
+    moment: "#3C8CFF",
     athlete: "#FF5050",
     trainer: "#30DE1D",
     crew: "#FFC81E",
-    business: "#3C8CFF", // Business → Blue（専用色）
-    event: "#C8E800", // Event → Brand Lime
+    business: "#00BFA5",
+    event: "#FF8C00",
 };
 
 export const PIN_COLOR_LABEL: Record<PinCategory, string> = {
