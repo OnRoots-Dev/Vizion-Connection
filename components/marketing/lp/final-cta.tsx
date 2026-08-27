@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { TextScramble } from "./text-scramble";
 
 export function FinalCta() {
   const reduce = useReducedMotion();
@@ -23,8 +24,10 @@ export function FinalCta() {
         transition={{ duration: 0.5 }}
         className="relative mx-auto max-w-2xl text-center"
       >
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">Join The Map</p>
-        <h2 className="mt-4 text-balance font-display text-3xl font-black tracking-tight text-white md:text-5xl">
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">
+          <TextScramble text="JOIN THE MAP" delay={100} duration={400} />
+        </p>
+        <h2 className="mt-4 text-balance font-[family-name:var(--font-bebas)] text-4xl font-normal tracking-wide text-white md:text-5xl">
           あなたの一歩を、地図に灯そう。
         </h2>
         <p className="mx-auto mt-5 max-w-md leading-[1.9] text-white/65">

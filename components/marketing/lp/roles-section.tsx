@@ -7,6 +7,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Zap, Dumbbell, HeartHandshake, Building2, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { TextScramble } from "./text-scramble";
 
 interface RoleCard {
   icon: LucideIcon;
@@ -64,8 +65,10 @@ export function RolesSection() {
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">4 Roles</p>
-        <h2 className="mt-3 font-display text-2xl font-black tracking-tight text-white md:text-4xl">
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">
+          <TextScramble text="4 ROLES" delay={100} duration={350} />
+        </p>
+        <h2 className="mt-3 font-[family-name:var(--font-bebas)] text-3xl font-normal tracking-wide text-white md:text-4xl">
           あなたは、どの役割？
         </h2>
       </motion.div>
@@ -98,7 +101,7 @@ export function RolesSection() {
                   <p className="m-0 text-sm font-bold text-white">{role.labelJa}</p>
                 </div>
               </div>
-              <h3 className="mt-4 font-display text-xl tracking-wide text-white">{role.headline}</h3>
+              <h3 className="mt-4 font-[family-name:var(--font-bebas)] text-xl tracking-wider text-white">{role.headline}</h3>
               <p className="mt-2 text-[13px] leading-relaxed text-white/60">{role.desc}</p>
 
               {role.label === "Business" ? (

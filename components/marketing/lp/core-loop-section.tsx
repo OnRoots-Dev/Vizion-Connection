@@ -7,6 +7,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Activity, MapPin, Camera, Heart, Map } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { TextScramble } from "./text-scramble";
 
 const STEPS: { icon: LucideIcon; title: string; ja: string; desc: string }[] = [
   { icon: Activity, title: "Activity", ja: "記録", desc: "練習・試合・イベントを場所と一緒に記録" },
@@ -29,8 +30,10 @@ export function CoreLoopSection() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">The Core Loop</p>
-          <h2 className="mt-3 text-balance font-display text-2xl font-black tracking-tight text-white md:text-4xl">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">
+            <TextScramble text="THE CORE LOOP" delay={150} duration={400} />
+          </p>
+          <h2 className="mt-3 text-balance font-[family-name:var(--font-bebas)] text-3xl font-normal tracking-wide text-white md:text-4xl">
             ひとつの行動が、循環しはじめる。
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-[1.9] text-white/60">
@@ -57,7 +60,7 @@ export function CoreLoopSection() {
                 <span className="grid h-10 w-10 place-items-center rounded-xl border border-lime/30 bg-lime/[0.06]">
                   <Icon className="h-5 w-5 text-lime" strokeWidth={1.8} />
                 </span>
-                <p className="m-0 font-display text-lg tracking-wide text-white">{step.title}</p>
+                <p className="m-0 font-[family-name:var(--font-bebas)] text-lg tracking-wider text-white">{step.title}</p>
                 <p className="m-0 font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">{step.ja}</p>
                 <p className="m-0 text-[12.5px] leading-relaxed text-white/60">{step.desc}</p>
               </motion.li>

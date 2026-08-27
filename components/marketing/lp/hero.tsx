@@ -1,7 +1,7 @@
 "use client";
 
-// components/marketing/lp/hero.tsx — Map-first ヒーロー（H1承認案）
-// GSAP廃止。framer-motion + reduced-motion対応。
+// components/marketing/lp/hero.tsx — Map-first ヒーロー + Product Visual
+// framer-motion + reduced-motion対応。
 
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
@@ -9,6 +9,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { VizMapPreview } from "./viz-map-preview";
+import { TextScramble } from "./text-scramble";
+import { ActivityCard } from "./activity-card";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 18 },
@@ -28,18 +30,18 @@ export function Hero() {
         <div className="absolute bottom-0 right-[10%] h-[380px] w-[380px] rounded-full blur-[150px]" style={{ background: "rgba(60,140,255,0.06)" }} />
       </div>
 
-      <div className="relative mx-auto max-w-5xl px-4 text-center">
+      <div className="relative mx-auto max-w-6xl px-4 text-center">
         <motion.p
           {...(anim ?? fadeUp(0))}
           className="mx-auto w-fit rounded-full border border-lime/35 bg-lime/[0.07] px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] text-lime"
         >
-          Sports Activity, Visible
+          <TextScramble text="SPORTS ACTIVITY, VISIBLE" delay={200} duration={500} />
         </motion.p>
 
         <motion.h1
           {...(anim ?? fadeUp(0.12))}
-          className="mx-auto mt-6 max-w-3xl text-balance font-display text-white leading-[1.12] tracking-tight"
-          style={{ fontSize: "clamp(2.4rem, 6vw, 4.2rem)" }}
+          className="mx-auto mt-6 max-w-3xl text-balance font-[family-name:var(--font-bebas)] text-white leading-[1.05] tracking-wide"
+          style={{ fontSize: "clamp(2.8rem, 7vw, 5rem)" }}
         >
           積み重ねが、<span className="text-lime">見える</span>。
           <br />
@@ -82,15 +84,37 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Map-first ビジュアル（H1） */}
-        <motion.div
-          initial={reduce ? { opacity: 1 } : { opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: reduce ? 0 : 0.55, ease: [0.25, 1, 0.5, 1] }}
-          className="mt-12 md:mt-16"
-        >
-          <VizMapPreview />
-        </motion.div>
+        {/* Product Visual: Map + Activity Card */}
+        <div className="relative mt-12 md:mt-16">
+          {/* Map */}
+          <motion.div
+            initial={reduce ? { opacity: 1 } : { opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: reduce ? 0 : 0.55, ease: [0.25, 1, 0.5, 1] }}
+          >
+            <VizMapPreview />
+          </motion.div>
+
+          {/* Floating Activity Card — desktop only */}
+          <motion.div
+            initial={reduce ? { opacity: 1 } : { opacity: 0, x: 40, y: -20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.8, delay: reduce ? 0 : 0.9, ease: [0.25, 1, 0.5, 1] }}
+            className="pointer-events-none absolute -right-4 bottom-8 hidden w-[320px] lg:block xl:-right-8 xl:w-[360px]"
+          >
+            <ActivityCard
+              athlete="YUKI TANAKA"
+              sport="RUNNING"
+              location="YOKOHAMA"
+              distance="5.82"
+              time="32:41"
+              pace="5:37"
+              cheers={24}
+              comments={12}
+              delay={0}
+            />
+          </motion.div>
+        </div>
       </div>
     </section>
   );

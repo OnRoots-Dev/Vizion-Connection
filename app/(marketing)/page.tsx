@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Hero } from "@/components/marketing/lp/hero";
+import { RealActivitySection } from "@/components/marketing/lp/real-activity-section";
 import { CoreLoopSection } from "@/components/marketing/lp/core-loop-section";
-import { RolesSection } from "@/components/marketing/lp/roles-section";
+import { MomentsSection } from "@/components/marketing/lp/moments-section";
+import { RoleInActionSection } from "@/components/marketing/lp/role-in-action";
 import { FinalCta } from "@/components/marketing/lp/final-cta";
 
 export const metadata: Metadata = {
@@ -13,9 +15,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * マーケティング LP — PHASE 3-C 全面刷新。
- * 構成: Map-first Hero → Core Loop → 4 Roles → Final CTA（MarketingTemplate準拠）。
- * アニメは framer-motion のみ（GSAP廃止・A7）。MVP外（Roadmap等）は訴求しない。
+ * マーケティング LP — PHASE 3-H Brand / Product Experience。
+ * 構成: Hero → Real Activity → Core Loop → Connection → Role in Action → CTA。
+ * SHOW > TELL: 説明ではなく、実際のプロダクト体験を可視化する。
  */
 export default function MarketingHomePage() {
   return (
@@ -23,8 +25,10 @@ export default function MarketingHomePage() {
       <SiteHeader />
       <main>
         <Hero />
+        <RealActivitySection />
         <CoreLoopSection />
-        <RolesSection />
+        <MomentsSection />
+        <RoleInActionSection />
         <FinalCta />
       </main>
       <SiteFooter />

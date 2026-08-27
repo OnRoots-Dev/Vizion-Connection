@@ -15,8 +15,9 @@ type NavItem = {
 }
 
 const NAV: readonly NavItem[] = [
+  { label: 'Activity', href: '#activity', sectionId: 'activity' },
   { label: '使い方（ループ）', href: '#loop', sectionId: 'loop' },
-  { label: '4つのロール', href: '#roles', sectionId: 'roles' },
+  { label: 'ロール', href: '#roles', sectionId: 'roles' },
   { label: '企業向け', href: '/business', sectionId: null, business: true },
 ]
 
