@@ -140,7 +140,7 @@ export function SiteHeader() {
               ログイン
             </a>
             <a
-              href="#cta"
+              href="/register"
               className={cn(
                 buttonVariants({ size: 'sm' }),
                 'lp-cta-primary hidden min-h-11 shrink-0 px-4 hover:translate-y-0 hover:shadow-none active:scale-[0.99] sm:inline-flex sm:px-5 font-black tracking-wide',
@@ -208,7 +208,7 @@ export function SiteHeader() {
               ログイン
             </a>
             <a
-              href="#cta"
+              href="/register"
               className={cn(buttonVariants({ size: 'lg' }), 'lp-cta-primary w-full hover:translate-y-0 hover:shadow-none font-black tracking-wide')}
               onClick={closeMobile}
             >

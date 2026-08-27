@@ -76,7 +76,7 @@ export function Hero() {
             href="/business"
             className={cn(
               buttonVariants({ size: "lg", variant: "outline" }),
-              "h-14 w-full border-white/20 px-8 text-base font-bold hover:border-lime/50 sm:w-auto",
+              "h-14 w-full border-white/20 px-8 text-base font-bold text-white hover:border-lime/50 sm:w-auto",
             )}
           >
             <Building2 className="h-5 w-5" />

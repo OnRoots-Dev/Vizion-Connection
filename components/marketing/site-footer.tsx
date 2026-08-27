@@ -5,10 +5,10 @@ const FOOTER_GROUPS = [
   {
     title: 'Platform',
     links: [
-      { label: 'つながり方', href: '#network' },
-      { label: 'プロフィール', href: '#profiles' },
+      { label: 'つながり方', href: '#activity' },
+      { label: 'プロフィール', href: '#loop' },
       { label: '4つのロール', href: '#roles' },
-      { label: 'ネットワーク効果', href: '#effect' },
+      { label: 'ネットワーク効果', href: '#moments' },
     ],
   },
   {

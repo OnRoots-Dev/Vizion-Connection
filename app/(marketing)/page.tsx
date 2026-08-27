@@ -7,6 +7,7 @@ import { CoreLoopSection } from "@/components/marketing/lp/core-loop-section";
 import { MomentsSection } from "@/components/marketing/lp/moments-section";
 import { RoleInActionSection } from "@/components/marketing/lp/role-in-action";
 import { FinalCta } from "@/components/marketing/lp/final-cta";
+import { LpBackground } from "@/components/marketing/lp/lp-background";
 
 export const metadata: Metadata = {
   title: "Vizion Connection — 積み重ねが、見える。応援が、届く。",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function MarketingHomePage() {
   return (
     <div className="marketing-lp relative min-h-screen scroll-pt-24 bg-[#09090f] text-foreground md:scroll-pt-28">
+      <LpBackground />
       <SiteHeader />
       <main>
         <Hero />

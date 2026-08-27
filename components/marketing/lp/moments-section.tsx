@@ -27,7 +27,7 @@ export function MomentsSection() {
             人と人が、つながる。
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[13px] leading-relaxed text-white/55">
-            Activityに下的Connectorを返す。応援は記録に残り、
+            Activityに対してConnectorが応える。応援は記録に残り、
             新しいつながりが生まれる。
           </p>
         </motion.div>

@@ -45,7 +45,7 @@ export function FinalCta() {
             href="/business"
             className={cn(
               buttonVariants({ size: "lg", variant: "outline" }),
-              "h-14 w-full border-white/20 px-8 font-bold hover:border-lime/50 sm:w-auto",
+              "h-14 w-full border-white/20 px-8 font-bold text-white hover:border-lime/50 sm:w-auto",
             )}
           >
             企業の方はこちら
