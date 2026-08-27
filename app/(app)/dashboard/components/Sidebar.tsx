@@ -339,7 +339,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                         <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 text-[13px] font-black" style={{ background: `${roleColor}20`, borderColor: `${roleColor}50`, color: roleColor, boxShadow: `0 0 10px ${roleColor}20` }}>
                             {profile.avatarUrl
                                 ? <Image src={profile.avatarUrl} alt={profile.displayName} width={36} height={36} className="h-full w-full object-cover" />
-                                : profile.displayName[0].toUpperCase()
+                                : (profile.displayName || profile.slug || "?")[0].toUpperCase()
                             }
                         </div>
                     </div>
