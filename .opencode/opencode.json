@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "omniroute"
+  ],
+  "provider": {
+    "opencode-omniroute": {
+      "options": {
+        "apiKey": "dummy",
+        "baseURL": "http://localhost:20128"
+      },
+      "models": {
+        "openrouter/z-ai/glm-5.3-flash": {
+          "name": "GLM-5.3 Flash"
+        }
+      }
+    }
+  }
+}

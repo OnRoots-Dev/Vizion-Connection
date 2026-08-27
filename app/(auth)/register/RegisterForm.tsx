@@ -2,19 +2,19 @@
 
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { registerSchema, VALID_REGIONS, PREFECTURES_BY_REGION } from "@/features/auth/validation/register-schema";
-import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthPulseLoader, AuthSuccessMark } from "@/components/auth/AuthStatusMotion";
+import { EyeIcon } from "@/components/auth/EyeIcon";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 import { authGlassTokens } from "@/lib/design/tokens";
+import { controlStyle } from "@/components/ui/field";
 
-const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 const TERMS_URL = "https://tarry-plywood-9b9.notion.site/Vizion-Connection-287089f25fae80569ec8f5263bbc6fd2?source=copy_link";
 const PRIVACY_URL = "https://tarry-plywood-9b9.notion.site/287089f25fae80e8a771d66b1ee4fa82?source=copy_link";
 
@@ -51,20 +51,6 @@ const ROLES: {
 ];
 
 const STEP_LABELS = ["ロール", "基本情報", "確認", "完了"];
-
-// 目アイコン
-function EyeIcon({ open }: { open: boolean }) {
-    return open ? (
-        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-    ) : (
-        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-        </svg>
-    );
-}
 
 // エラー表示（Flame Orange）
 function ErrorBox({ message }: { message: string }) {
@@ -155,7 +141,6 @@ export default function RegisterForm() {
     const [direction, setDirection] = useState(1);
     const press = reduce ? undefined : { scale: PRESS_SCALE };
     const stepTr = reduce ? fadeReduced : stepTransition;
-    const glass = authGlassTokens({ reducedTransparency: !!reduce });
 
     const [role, setRole] = useState<Role>(() => {
         if (roleFromQuery && ROLES.some((r) => r.value === roleFromQuery)) {
@@ -305,34 +290,13 @@ export default function RegisterForm() {
     }
 
     return (
-        <div className="vc-auth-shell">
-            <AuthAmbientBg />
-
-            <a
-                href={MARKETING_HOME_URL}
-                className="relative z-10 mb-5 inline-block active:scale-[0.97] transition-transform duration-100"
-            >
-                <Image
-                    src="/images/vizion-connection-logo-6-cropped.png"
-                    alt="Vizion Connection"
-                    width={320}
-                    height={86}
-                    priority
-                    className="inline-block h-[4.5rem] w-auto sm:h-20"
-                />
-            </a>
-
-            <div
-                className={`relative z-10 w-full max-w-md px-5 py-7 sm:px-7 sm:py-8 ${
-                    reduce ? "vc-auth-glass vc-auth-glass--solid" : "vc-auth-glass"
-                }`}
-                style={{
-                    borderRadius: glass.borderRadius,
-                    boxShadow: glass.boxShadow,
-                    backdropFilter: glass.backdropFilter,
-                    WebkitBackdropFilter: glass.WebkitBackdropFilter,
-                }}
-            >
+        <AuthShell
+            logoMarginClass="mb-5"
+            logoClassName="h-[4.5rem] w-auto sm:h-20"
+            logoWithTitle={false}
+            animated={false}
+            cardClassName="max-w-md px-5 py-7 sm:px-7 sm:py-8"
+        >
                 <div className="mb-6 space-y-1 text-center">
                     <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
                         VIZION CONNECTION
@@ -443,7 +407,7 @@ export default function RegisterForm() {
                                 <input
                                     type="email" required placeholder="you@example.com" value={form.email}
                                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                    className="vc-auth-input"
+                                    style={controlStyle}
                                 />
                             </div>
 
@@ -457,7 +421,7 @@ export default function RegisterForm() {
                                         placeholder="8文字以上"
                                         value={form.password}
                                         onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                        className="vc-auth-input pr-11"
+                                        style={{ ...controlStyle, paddingRight: 44 }}
                                     />
                                     <button
                                         type="button"
@@ -483,7 +447,7 @@ export default function RegisterForm() {
                                         placeholder="もう一度入力"
                                         value={form.confirmPassword}
                                         onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                                        className="vc-auth-input pr-11"
+                                        style={{ ...controlStyle, paddingRight: 44 }}
                                     />
                                     <button
                                         type="button"
@@ -513,7 +477,7 @@ export default function RegisterForm() {
                                     <input
                                         type="text" required placeholder="your_id00" value={form.slug}
                                         onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                                        className="vc-auth-input pl-7 pr-4"
+                                        style={{ ...controlStyle, paddingLeft: 28, paddingRight: 16 }}
                                     />
                                 </div>
                                 <p className="pl-1 text-[10px] leading-relaxed text-white/30">
@@ -532,7 +496,7 @@ export default function RegisterForm() {
                                 <input
                                     type="text" placeholder={role === "Business" ? "株式会社〇〇" : "山田 太郎"} value={form.displayName}
                                     onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-                                    className="vc-auth-input"
+                                    style={controlStyle}
                                 />
                             </div>
 
@@ -550,7 +514,7 @@ export default function RegisterForm() {
                                             prefecture: "",
                                         })
                                     }
-                                    className="vc-auth-input"
+                                    style={controlStyle}
                                 >
                                     <option value="">選択してください</option>
                                     {VALID_REGIONS.map((r) => (
@@ -565,7 +529,7 @@ export default function RegisterForm() {
                                     value={form.prefecture}
                                     onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
                                     disabled={!form.region}
-                                    className="vc-auth-input disabled:cursor-not-allowed disabled:opacity-40"
+                                    style={{ ...controlStyle, opacity: form.region ? 1 : 0.4, cursor: form.region ? "pointer" : "not-allowed" }}
                                 >
                                     <option value="">
                                         {form.region ? "選択してください" : "先に地方を選択"}
@@ -814,7 +778,6 @@ export default function RegisterForm() {
                         <Link href="/login" className="ml-1 text-white/60 underline hover:text-white">ログインはこちら</Link>
                     </p>
                 )}
-            </div>
-        </div>
+        </AuthShell>
     );
 }

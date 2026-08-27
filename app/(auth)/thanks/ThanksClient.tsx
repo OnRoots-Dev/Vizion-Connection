@@ -4,13 +4,11 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthIconBadge } from "@/components/auth/AuthStatusMotion";
-import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
+import { springDefault, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
-import { authGlassTokens } from "@/lib/design/tokens";
 
 const MARKETING_HOME_URL = "https://vizion-connection.jp/";
 
@@ -109,7 +107,6 @@ export default function ThanksClient({
   const content = resolveContent(type);
   const press = reduce ? undefined : { scale: PRESS_SCALE };
   const enter = reduce ? fadeReduced : springDefault;
-  const glass = authGlassTokens({ reducedTransparency: !!reduce });
   const welcomeTriggered = useRef(false);
 
   // 認証後に復帰するパス（例: Business決済画面）。無ければ従来通り /onboarding。
@@ -140,38 +137,11 @@ export default function ThanksClient({
   }, [content.triggerWelcomeEmail, forwardNext]);
 
   return (
-    <div className="vc-auth-shell">
-      <AuthAmbientBg />
-
-      <a
-        href={MARKETING_HOME_URL}
-        title="Vizion Connection"
-        className="relative z-10 mb-7 inline-block active:scale-[0.97] transition-transform duration-100"
-      >
-        <Image
-          src="/images/vizion-connection-logo-6-cropped.png"
-          alt="Vizion Connection"
-          width={320}
-          height={86}
-          priority
-          className="inline-block h-[4.25rem] w-auto sm:h-[4.75rem]"
-        />
-      </a>
-
-      <motion.div
-        className={`relative z-10 w-full max-w-[420px] px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9 ${
-          reduce ? "vc-auth-glass vc-auth-glass--solid" : "vc-auth-glass"
-        }`}
-        style={{
-          borderRadius: glass.borderRadius,
-          boxShadow: glass.boxShadow,
-          backdropFilter: glass.backdropFilter,
-          WebkitBackdropFilter: glass.WebkitBackdropFilter,
-        }}
-        initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={reduce ? fadeReduced : springSnap}
-      >
+    <AuthShell
+      cardInitialY={16}
+      logoMarginClass="mb-7"
+      cardClassName="max-w-[420px] px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9"
+    >
         {/* アイコン */}
         <div className="mb-6 flex justify-center">
           <AuthIconBadge kind={content.iconType} />
@@ -279,7 +249,6 @@ export default function ThanksClient({
             トップに戻る
           </a>
         </motion.div>
-      </motion.div>
-    </div>
+    </AuthShell>
   );
 }

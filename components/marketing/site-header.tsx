@@ -15,11 +15,8 @@ type NavItem = {
 }
 
 const NAV: readonly NavItem[] = [
-  { label: 'つながり方', href: '#network', sectionId: 'network' },
-  { label: 'プロフィール', href: '#profiles', sectionId: 'profiles' },
+  { label: '使い方（ループ）', href: '#loop', sectionId: 'loop' },
   { label: '4つのロール', href: '#roles', sectionId: 'roles' },
-  { label: 'ネットワーク効果', href: '#effect', sectionId: 'effect' },
-  { label: 'ロードマップ', href: '#roadmap', sectionId: 'roadmap' },
   { label: '企業向け', href: '/business', sectionId: null, business: true },
 ]
 

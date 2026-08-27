@@ -5,27 +5,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { AuthAmbientBg } from "@/components/auth/AuthAmbientBg";
-import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { EyeIcon } from "@/components/auth/EyeIcon";
+import { springDefault, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
-import { authGlassTokens } from "@/lib/design/tokens";
-
-const MARKETING_HOME_URL = "https://vizion-connection.jp/";
-
-function EyeIcon({ open }: { open: boolean }) {
-    return open ? (
-        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-    ) : (
-        <svg width={18} height={18} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-        </svg>
-    );
-}
+import { controlStyle } from "@/components/ui/field";
 
 function InlinePulseSpinner() {
     return (
@@ -55,7 +40,6 @@ export default function ResetPasswordForm() {
     const token = searchParams.get("token");
     const reduce = useReducedMotion();
     const press = reduce ? undefined : { scale: PRESS_SCALE };
-    const glass = authGlassTokens({ reducedTransparency: !!reduce });
 
     const [email, setEmail] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -65,9 +49,6 @@ export default function ResetPasswordForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [done, setDone] = useState(false);
-    const [emailFocused, setEmailFocused] = useState(false);
-    const [passwordFocused, setPasswordFocused] = useState(false);
-    const [confirmFocused, setConfirmFocused] = useState(false);
 
     async function handleRequest(e: React.FormEvent) {
         e.preventDefault();
@@ -129,38 +110,9 @@ export default function ResetPasswordForm() {
     const isConfirmStep = Boolean(token);
 
     return (
-        <div className="vc-auth-shell">
-            <AuthAmbientBg />
-
-            <a
-                href={MARKETING_HOME_URL}
-                title="Vizion Connection"
-                className="relative z-10 mb-6 inline-block active:scale-[0.97] transition-transform duration-100"
-            >
-                <Image
-                    src="/images/vizion-connection-logo-6-cropped.png"
-                    alt="Vizion Connection"
-                    width={320}
-                    height={86}
-                    priority
-                    className="inline-block h-[4.25rem] w-auto sm:h-[4.75rem]"
-                />
-            </a>
-
-            <motion.div
-                className={`relative z-10 w-full max-w-[400px] px-6 py-8 sm:px-8 sm:py-9 ${
-                    reduce ? "vc-auth-glass vc-auth-glass--solid" : "vc-auth-glass"
-                }`}
-                style={{
-                    borderRadius: glass.borderRadius,
-                    boxShadow: glass.boxShadow,
-                    backdropFilter: glass.backdropFilter,
-                    WebkitBackdropFilter: glass.WebkitBackdropFilter,
-                }}
-                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={reduce ? fadeReduced : springSnap}
-            >
+        <AuthShell
+            cardClassName="max-w-[400px] px-6 py-8 sm:px-8 sm:py-9"
+        >
                 <AnimatePresence mode="wait">
                     {/* ── 送信完了（リクエスト） ── */}
                     {!isConfirmStep && done ? (
@@ -316,37 +268,16 @@ export default function ResetPasswordForm() {
                                         <label htmlFor="reset-email" className="block text-xs font-medium text-white/40">
                                             メールアドレス
                                         </label>
-                                        <motion.div
-                                            animate={
-                                                reduce
-                                                    ? undefined
-                                                    : {
-                                                          boxShadow: emailFocused
-                                                              ? "0 0 0 1px var(--electric), 0 0 20px var(--electric-glow)"
-                                                              : "0 0 0 0 transparent",
-                                                      }
-                                            }
-                                            transition={springDefault}
-                                            className="rounded-xl"
-                                        >
-                                            <input
-                                                id="reset-email"
-                                                type="email"
-                                                required
-                                                autoComplete="email"
-                                                placeholder="you@example.com"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                onFocus={() => setEmailFocused(true)}
-                                                onBlur={() => setEmailFocused(false)}
-                                                className="vc-auth-input"
-                                                style={
-                                                    emailFocused
-                                                        ? { borderColor: "transparent", boxShadow: "none" }
-                                                        : undefined
-                                                }
-                                            />
-                                        </motion.div>
+                                        <input
+                                            id="reset-email"
+                                            type="email"
+                                            required
+                                            autoComplete="email"
+                                            placeholder="you@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            style={controlStyle}
+                                        />
                                     </div>
 
                                     <AnimatePresence mode="wait">
@@ -391,19 +322,7 @@ export default function ResetPasswordForm() {
                                         <label htmlFor="reset-password" className="block text-xs font-medium text-white/40">
                                             新しいパスワード
                                         </label>
-                                        <motion.div
-                                            animate={
-                                                reduce
-                                                    ? undefined
-                                                    : {
-                                                          boxShadow: passwordFocused
-                                                              ? "0 0 0 1px var(--electric), 0 0 20px var(--electric-glow)"
-                                                              : "0 0 0 0 transparent",
-                                                      }
-                                            }
-                                            transition={springDefault}
-                                            className="relative rounded-xl"
-                                        >
+                                        <div className="relative">
                                             <input
                                                 id="reset-password"
                                                 type={showPassword ? "text" : "password"}
@@ -412,14 +331,7 @@ export default function ResetPasswordForm() {
                                                 placeholder="8文字以上"
                                                 value={newPassword}
                                                 onChange={(e) => setNewPassword(e.target.value)}
-                                                onFocus={() => setPasswordFocused(true)}
-                                                onBlur={() => setPasswordFocused(false)}
-                                                className="vc-auth-input pr-11"
-                                                style={
-                                                    passwordFocused
-                                                        ? { borderColor: "transparent", boxShadow: "none" }
-                                                        : undefined
-                                                }
+                                                style={{ ...controlStyle, paddingRight: 44 }}
                                             />
                                             <button
                                                 type="button"
@@ -429,7 +341,7 @@ export default function ResetPasswordForm() {
                                             >
                                                 <EyeIcon open={showPassword} />
                                             </button>
-                                        </motion.div>
+                                        </div>
                                         <p className="m-0 pl-0.5 text-[10px] leading-relaxed text-white/25">
                                             8文字以上 ／ 半角英字・数字を含めてください
                                         </p>
@@ -439,19 +351,7 @@ export default function ResetPasswordForm() {
                                         <label htmlFor="reset-password-confirm" className="block text-xs font-medium text-white/40">
                                             新しいパスワード（確認）
                                         </label>
-                                        <motion.div
-                                            animate={
-                                                reduce
-                                                    ? undefined
-                                                    : {
-                                                          boxShadow: confirmFocused
-                                                              ? "0 0 0 1px var(--electric), 0 0 20px var(--electric-glow)"
-                                                              : "0 0 0 0 transparent",
-                                                      }
-                                            }
-                                            transition={springDefault}
-                                            className="relative rounded-xl"
-                                        >
+                                        <div className="relative">
                                             <input
                                                 id="reset-password-confirm"
                                                 type={showConfirm ? "text" : "password"}
@@ -460,14 +360,7 @@ export default function ResetPasswordForm() {
                                                 placeholder="もう一度入力"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                                onFocus={() => setConfirmFocused(true)}
-                                                onBlur={() => setConfirmFocused(false)}
-                                                className="vc-auth-input pr-11"
-                                                style={
-                                                    confirmFocused
-                                                        ? { borderColor: "transparent", boxShadow: "none" }
-                                                        : undefined
-                                                }
+                                                style={{ ...controlStyle, paddingRight: 44 }}
                                             />
                                             <button
                                                 type="button"
@@ -477,7 +370,7 @@ export default function ResetPasswordForm() {
                                             >
                                                 <EyeIcon open={showConfirm} />
                                             </button>
-                                        </motion.div>
+                                        </div>
                                         {confirmPassword.length > 0 && newPassword !== confirmPassword && (
                                             <p className="m-0 pl-0.5 text-[10px] leading-relaxed" style={{ color: "var(--flame)" }}>
                                                 パスワードが一致していません
@@ -541,7 +434,6 @@ export default function ResetPasswordForm() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </motion.div>
-        </div>
+        </AuthShell>
     );
 }

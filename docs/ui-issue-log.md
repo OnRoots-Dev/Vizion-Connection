@@ -21,4 +21,23 @@
 
 ## Phase 3 以降の追加分
 
-（各フェーズの実装中に追記）
+### Phase 3-C（LP刷新）で解決
+
+- [x] [Duplication] GSAP依存を削除（package.json + LP系コンポーネント15ファイル・計5,400行超）→ framer-motion統一
+- [x] [DeadCTA] LPヘッダーの`#network/#profiles/#effect/#roadmap`等の存在しないセクションアンカー → 新構成(#loop/#roles)に整合
+- [x] [TokenViolation] LPスコープ`--role-fan`(oklch amber) → Crew amberへ統一
+- [x] [Duplication] LpHomeClient.tsx + lp-prototype.css(1,412行) デッドコード削除
+- [x] [Copy] ロール表記「Fan」→「Crew（応援する人）」に統一（MVPロール正）
+- [x] [DeadCTA] ヒーロー一次CTAの#cta二段階誘導 → /register直結
+
+### 残存（次フェーズ以降）
+
+- [ ] [TokenViolation] business/page.tsx 未使用変数3件・roadmap/page.tsx 2件 → 3-Kでbusiness刷新時に解消
+
+### Phase 3-D（Auth刷新）で解決
+
+- [x] [Duplication] EyeIconコンポーネントが3ファイル(Login/Register/ResetPassword)に重複定義 → `components/auth/EyeIcon.tsx`に共通化
+- [x] [TokenViolation] LoginForm の手動フォーカスグロー(framer-motion boxShadow + `vc-auth-input` CSS) → `Field`/`Input`コンポーネントに統一（tokenベース `--vc-focus-ring`）
+- [x] [TokenViolation] RegisterForm/ResetPasswordForm の `vc-auth-input` (hardcoded rgba) → `controlStyle` (token `--vc-*`)に移行
+- [x] [Duplication] ResetPasswordForm のフォーカス状態管理(emailFocused/passwordFocused/confirmFocused + motion.div wrapper) → Input内部処理に統合、状態3件削除
+
