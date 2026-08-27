@@ -38,7 +38,7 @@ export function Hero() {
 
         <motion.h1
           {...(anim ?? fadeUp(0.12))}
-          className="mx-auto mt-6 max-w-3xl text-balance font-display leading-[1.12] tracking-tight"
+          className="mx-auto mt-6 max-w-3xl text-balance font-display text-white leading-[1.12] tracking-tight"
           style={{ fontSize: "clamp(2.4rem, 6vw, 4.2rem)" }}
         >
           積み重ねが、<span className="text-lime">見える</span>。
@@ -48,7 +48,7 @@ export function Hero() {
 
         <motion.p
           {...(anim ?? fadeUp(0.24))}
-          className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-white/70"
+          className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-white/75"
           style={{ fontSize: "var(--text-body)" }}
         >
           アスリート・トレーナー・ファン・ビジネス。

@@ -25,9 +25,9 @@ export function FinalCta() {
       >
         <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">Join The Map</p>
         <h2 className="mt-4 text-balance font-display text-3xl font-black tracking-tight text-white md:text-5xl">
-          あなたの一歩を、<br className="md:hidden" />地図に灯そう。
+          あなたの一歩を、地図に灯そう。
         </h2>
-        <p className="mx-auto mt-5 max-w-md leading-[1.9] text-white/60">
+        <p className="mx-auto mt-5 max-w-md leading-[1.9] text-white/65">
           登録は無料。まずは自分の活動をひとつ、記録してみることから始まります。
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

@@ -24,7 +24,7 @@ const FOOTER_GROUPS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-[#111118]/55">
+    <footer className="border-t border-white/[0.08] bg-[#111118]/55">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-[1.2fr_1.8fr] md:py-16">
         <div>
           <Link href="/" className="inline-flex" aria-label="Vizion Connection トップへ">
@@ -36,7 +36,7 @@ export function SiteFooter() {
               className="h-auto w-[220px] object-contain sm:w-[260px]"
             />
           </Link>
-          <p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">
+          <p className="mt-4 max-w-sm text-sm leading-7 text-white/62">
             アスリート、トレーナー、ファン、ビジネスがひとつのマップでつながる場所。
             積み重ねを信頼に変え、応援が届く接点を育てます。
           </p>
@@ -53,7 +53,7 @@ export function SiteFooter() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime"
+                      className="text-sm text-white/62 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime"
                     >
                       {link.label}
                     </a>
@@ -65,7 +65,7 @@ export function SiteFooter() {
         </nav>
       </div>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-border px-4 py-5 font-mono text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 border-t border-white/[0.08] px-4 py-5 font-mono text-[11px] text-white/50 sm:flex-row sm:items-center sm:justify-between">
         <span>© {new Date().getFullYear()} Vizion Connection</span>
         <span>Street × Sport × Trust — Vizion Connection</span>
       </div>

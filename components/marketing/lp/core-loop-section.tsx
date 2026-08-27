@@ -31,9 +31,9 @@ export function CoreLoopSection() {
         >
           <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-lime">The Core Loop</p>
           <h2 className="mt-3 text-balance font-display text-2xl font-black tracking-tight text-white md:text-4xl">
-            ひとつの行動が、<br className="md:hidden" />循環しはじめる。
+            ひとつの行動が、循環しはじめる。
           </h2>
-          <p className="mx-auto mt-4 max-w-xl leading-[1.9] text-white/55">
+          <p className="mx-auto mt-4 max-w-xl leading-[1.9] text-white/60">
             記録した活動は場所を持ち、Momentとして公開され、応援とつながりを生み、マップで再発見される。
             このループそのものが、Vizion Connectionの使い方です。
           </p>
@@ -49,7 +49,7 @@ export function CoreLoopSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.45, delay: i * 0.08 }}
-                className="relative flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                className="relative flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.05]"
               >
                 <span aria-hidden className="absolute right-3 top-3 font-mono text-[10px] text-white/25">
                   {String(i + 1).padStart(2, "0")}
@@ -59,7 +59,7 @@ export function CoreLoopSection() {
                 </span>
                 <p className="m-0 font-display text-lg tracking-wide text-white">{step.title}</p>
                 <p className="m-0 font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">{step.ja}</p>
-                <p className="m-0 text-[12.5px] leading-relaxed text-white/55">{step.desc}</p>
+                <p className="m-0 text-[12.5px] leading-relaxed text-white/60">{step.desc}</p>
               </motion.li>
             );
           })}

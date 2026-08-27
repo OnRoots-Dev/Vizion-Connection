@@ -80,7 +80,7 @@ export function RolesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.45, delay: i * 0.07 }}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-white/20"
+              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
             >
               {/* 役割色の縦アクセント */}
               <span aria-hidden className="absolute inset-y-0 left-0 w-[3px]" style={{ background: role.colorVar }} />
@@ -99,7 +99,7 @@ export function RolesSection() {
                 </div>
               </div>
               <h3 className="mt-4 font-display text-xl tracking-wide text-white">{role.headline}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/55">{role.desc}</p>
+              <p className="mt-2 text-[13px] leading-relaxed text-white/60">{role.desc}</p>
 
               {role.label === "Business" ? (
                 <Link

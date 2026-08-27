@@ -670,25 +670,25 @@ select:focus {
    フォント設定
 ───────────────────────────────────────── */
 :root {
-  /* ⚠ 上部の正式な :root 定義が正。ここでは shadcn 変数のみ定義する。 */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* shadcn 変数 — ダークテーマ（--vc-* と統合） */
+  --background: #09090f;
+  --foreground: #f0f0f5;
+  --card: #111118;
+  --card-foreground: #f0f0f5;
+  --popover: #111118;
+  --popover-foreground: #f0f0f5;
+  --primary: #C8E800;
+  --primary-foreground: #09090f;
+  --secondary: rgba(255,255,255,0.06);
+  --secondary-foreground: #f0f0f5;
+  --muted: rgba(255,255,255,0.06);
+  --muted-foreground: rgba(255,255,255,0.55);
+  --accent: rgba(255,255,255,0.06);
+  --accent-foreground: #f0f0f5;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: rgba(255,255,255,0.08);
+  --input: rgba(255,255,255,0.08);
+  --ring: #C8E800;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -706,14 +706,14 @@ select:focus {
   --surface-2: #101012;
   --surface-3: #16161a;
   --surface-4: #1e1e24;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #111118;
+  --sidebar-foreground: #f0f0f5;
+  --sidebar-primary: #C8E800;
+  --sidebar-primary-foreground: #09090f;
+  --sidebar-accent: rgba(255,255,255,0.06);
+  --sidebar-accent-foreground: #f0f0f5;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-ring: #C8E800;
 }
 
 .font-display {
