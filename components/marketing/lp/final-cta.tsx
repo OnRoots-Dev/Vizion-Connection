@@ -38,7 +38,7 @@ export function FinalCta() {
             href="/register"
             className={cn(buttonVariants({ size: "lg" }), "h-14 w-full px-10 text-base font-black tracking-wide sm:w-auto")}
           >
-            無料で登録する
+            Vcに参加する（無料）
             <ArrowRight className="h-5 w-5" />
           </Link>
           <Link

@@ -69,7 +69,7 @@ export function Hero() {
               "h-14 w-full px-8 text-base font-black tracking-wide sm:w-auto",
             )}
           >
-            マップに参加する（無料）
+            Vcに参加する（無料）
             <ArrowRight className="h-5 w-5" />
           </Link>
           <Link

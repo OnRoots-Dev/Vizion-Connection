@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { GestureSheet } from "@/components/ui/GestureSheet";
 import { MapCanvas, type MapBBox } from "../components/core/MapCanvas";
+import { PIN_COLOR, type PinCategory } from "../components/core/mapTypes";
 import { apiGet, ApiError } from "@/lib/api/core-client";
 import type { MapActivityItem } from "@/features/activity/server/map";
 import type { ActivityType } from "@/features/activity/types";
@@ -15,6 +16,12 @@ import type { ThemeColors } from "../types";
 
 const FILTERABLE_TYPES: ActivityType[] = ["training", "practice", "match", "competition", "event", "other"];
 const TYPE_LABELS: Record<string, string> = { training: "Training", practice: "Practice", match: "Match", competition: "Competition", event: "Event", other: "Other" };
+
+// ActivityType → Pinカテゴリ（FilterとPinの色統一）
+const TYPE_CATEGORY: Record<string, PinCategory> = {
+    training: "activity", practice: "activity", match: "activity",
+    competition: "activity", event: "event", other: "activity",
+};
 
 function viewportKey(b: MapBBox, zoom: number) {
     return [zoom.toFixed(0), b.minLat.toFixed(3), b.maxLat.toFixed(3), b.minLng.toFixed(3), b.maxLng.toFixed(3)].join(":");
@@ -67,7 +74,10 @@ export function VizMapView({ t, onBack }: { t: ThemeColors; roleColor: string; o
     }, [load]);
     useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
 
-    const points = useMemo(() => items.filter((item) => !typeFilter || item.type === typeFilter).map((item) => ({ id: item.id, latitude: item.place.latitude, longitude: item.place.longitude, label: item.title ?? TYPE_LABELS[item.type] ?? "Activity", kind: item.type })), [items, typeFilter]);
+    const points = useMemo(() => items.filter((item) => !typeFilter || item.type === typeFilter).map((item) => {
+        const cat = TYPE_CATEGORY[item.type] ?? "activity";
+        return { id: item.id, latitude: item.place.latitude, longitude: item.place.longitude, label: item.title ?? TYPE_LABELS[item.type] ?? "Activity", kind: item.type, category: cat, color: PIN_COLOR[cat] };
+    }), [items, typeFilter]);
     const activeCount = typeFilter ? 1 : 0;
 
     if (!mounted) return null;

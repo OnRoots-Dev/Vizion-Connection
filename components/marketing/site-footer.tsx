@@ -52,7 +52,7 @@ export function SiteFooter() {
                 alt="Vizion Connection"
                 width={492}
                 height={232}
-                className="h-auto w-[200px] object-contain sm:w-[240px]"
+                className="h-auto w-[140px] object-contain sm:w-[160px]"
               />
             </Link>
             <p className="mt-5 text-[13px] leading-[1.9] text-white/50">
