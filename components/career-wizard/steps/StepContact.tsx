@@ -4,6 +4,7 @@ import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { ROLE_CONFIG } from "@/types/career";
 import type { UserRole } from "@/types/career";
 import { StepWrapper, StepHeader, Field, WizardInput, WizardSelect } from "../WizardUI";
+import LinkButtonPreview from "../LinkButtonPreview";
 
 export default function StepContact() {
   const { data, setField } = useCareerWizard();
@@ -13,8 +14,8 @@ export default function StepContact() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 10 / 11" title="コンタクト設定"
-        hint="ページ末尾のCTAセクションに表示されます" />
+      <StepHeader eyebrow="Step 10 / 11" title="リンクボタン設定"
+        hint="公開プロフィールに表示されるリンクセクションを設定します" />
       <Field label="CTAタイトル">
         <WizardInput value={data.ctaTitle} onChange={(v) => setField("ctaTitle", v)}
           placeholder={cfg.ctaTitlePlaceholder} maxLength={55} />
@@ -64,6 +65,20 @@ export default function StepContact() {
           <option value="private">非公開（下書き）</option>
         </WizardSelect>
       </Field>
+
+      {/* リアルタイムプレビュー */}
+      <div className="mt-4">
+        <LinkButtonPreview
+          ctaTitle={data.ctaTitle}
+          ctaSub={data.ctaSub}
+          ctaBtn={data.ctaBtn}
+          snsX={data.snsX}
+          snsInstagram={data.snsInstagram}
+          snsTiktok={data.snsTiktok}
+          roleColor={color}
+          slug={data.slug}
+        />
+      </div>
     </StepWrapper>
   );
 }

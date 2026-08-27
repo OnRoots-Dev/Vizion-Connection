@@ -23,7 +23,7 @@ export const STEPS = [
   { id: "stats",         label: "数値実績",        phase: 1, skippable: true  },
   { id: "episodes",      label: "年表",            phase: 1, skippable: true  },
   { id: "skills",        label: "スキル",          phase: 2, skippable: true  },
-  { id: "contact",       label: "連絡先",          phase: 2, skippable: true  },
+  { id: "contact",       label: "リンクボタン設定", phase: 2, skippable: true  },
   { id: "career_media",  label: "キャリア画像",    phase: 2, skippable: true  },
   { id: "complete",      label: "完成",            phase: 2, skippable: false },
 ] as const;

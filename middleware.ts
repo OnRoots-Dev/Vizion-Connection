@@ -164,15 +164,14 @@ export async function middleware(req: NextRequest) {
     }
 
     // ログイン済みで /login・/register へ来た場合:
-    // ダッシュボード直送はしない（メール認証直後の新規が dashboard に落ちるのを防ぐ）。
-    // → /onboarding へ。完了済みユーザーは onboarding layout が /dashboard へ送る。
-    // ※ 認証完了画面以外（完了メールの「ログイン」等）は未ログイン想定＝再ログイン必須。
+    // メール認証直後の新規が dashboard に落ちるのを防ぐため、直接 /dashboard へ送る。
+    // CareerWizardModal が初回ユーザーに自動表示される。
     const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
     if (isAuthPath && session) {
-        const onboardingUrl = req.nextUrl.clone();
-        onboardingUrl.pathname = "/onboarding";
-        onboardingUrl.search = "";
-        return applyCors(req, NextResponse.redirect(onboardingUrl));
+        const dashboardUrl = req.nextUrl.clone();
+        dashboardUrl.pathname = "/dashboard";
+        dashboardUrl.search = "";
+        return applyCors(req, NextResponse.redirect(dashboardUrl));
     }
 
     return applyCors(req, getResponse());
@@ -197,8 +196,6 @@ export const config = {
         "/company",
         "/contact",
         "/r/:path*",
-        "/onboarding/:path*",
-        "/onboarding",
         "/login",
         "/register",
         "/reset-password",

@@ -28,6 +28,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { computeStreak } from "@/lib/pulse-stats";
 import { CATEGORY_CONFIG } from "@/types/schedule";
 import ShareButtonClient from "@/components/profile/ShareButtonClient";
+import LinkButtonPreview from "@/components/career-wizard/LinkButtonPreview";
 import { listVisibleActivitiesByOwner } from "@/features/activity/server/activities";
 import { listVisibleMomentsByOwner } from "@/features/moment/server/moments";
 import type { ActivityRecord } from "@/features/activity/types";
@@ -520,6 +521,23 @@ export default async function UserProfilePage({ params }: Props) {
                         <CollectButtonClient slug={profile.slug} initialCollectorCount={collectorCount} roleColor={VP.neon} isOwn={isOwn} viewerSlug={viewerSlug} fullWidth />
                     </div>
                 </section>
+
+                {/* リンクボタン（CTA設定がある場合のみ表示） */}
+                {careerProfile && (careerProfile.cta_title || careerProfile.cta_btn || careerProfile.sns_x || careerProfile.sns_instagram) ? (
+                    <section aria-label="リンク" style={{ scrollMarginTop: 90 }}>
+                        <LinkButtonPreview
+                            ctaTitle={careerProfile.cta_title ?? ""}
+                            ctaSub={careerProfile.cta_sub ?? ""}
+                            ctaBtn={careerProfile.cta_btn ?? ""}
+                            snsX={careerProfile.sns_x ?? undefined}
+                            snsInstagram={careerProfile.sns_instagram ?? undefined}
+                            snsTiktok={careerProfile.sns_tiktok ?? undefined}
+                            roleColor={VP.neon}
+                            slug={slug}
+                            compact
+                        />
+                    </section>
+                ) : null}
 
                 {/* ③ マイルストーン（段階的開示 — バッジ帯＋サマリーのみ常時） */}
                 <MilestoneBadgeRow

@@ -30,6 +30,8 @@ import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 import { Day0WelcomeModal } from "./components/Day0WelcomeModal";
 import { BottomNav } from "./components/bottom-nav/BottomNav";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
+import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { AdminPostsView } from "./views/admin/AdminPostsView";
 import AdminAdsView from "./views/admin/AdminAdsView";
 import { OffersView } from "./views/OffersView";
@@ -93,9 +95,51 @@ export default function DashboardClient({
 
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [careerProfileCache, setCareerProfileCache] = useState<CareerProfileRow | null | undefined>(undefined);
+    const [showOnboardingWizard, setShowOnboardingWizard] = useState(false);
+    const initFromUser = useCareerWizard((s) => s.initFromUser);
+    const initFromCareerProfile = useCareerWizard((s) => s.initFromCareerProfile);
+    const resetWizard = useCareerWizard((s) => s.resetWizard);
     useEffect(() => {
         setProfile(initialProfile);
     }, [initialProfile]);
+
+    // 初回ログインユーザーにオンボーディングウィザードを自動表示
+    useEffect(() => {
+        if (isOnboardingComplete) return;
+
+        // Zustandストアをリセットして初期化
+        resetWizard();
+        initFromUser({
+            role: profile.role,
+            name: profile.displayName ?? "",
+            slug: profile.slug,
+            sport: profile.sport,
+            region: profile.region,
+            prefecture: profile.prefecture,
+            sportsCategory: profile.sportsCategory,
+            stance: profile.stance,
+            bio: profile.bio,
+            displayName: profile.displayName,
+            profileImageUrl: profile.profileImageUrl,
+            avatarUrl: profile.avatarUrl,
+            isPublic: profile.isPublic,
+            instagram: profile.instagram,
+            xUrl: profile.xUrl,
+            tiktok: profile.tiktok,
+        });
+
+        // キャリアプロフィールがあれば読み込む
+        fetch("/api/career/me", { cache: "no-store" })
+            .then((res) => res.json())
+            .then((json: { careerProfile?: CareerProfileRow | null }) => {
+                if (json.careerProfile) {
+                    initFromCareerProfile(json.careerProfile);
+                }
+            })
+            .catch(() => {});
+
+        setShowOnboardingWizard(true);
+    }, [isOnboardingComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         let cancelled = false;
@@ -372,6 +416,16 @@ export default function DashboardClient({
             <div style={{ minHeight: "100vh", background: "#09090f", color: "#f0f0f5", fontFamily: "'Noto Sans JP', sans-serif", transition: "background 0.3s, color 0.3s", ["--vz-text" as string]: "#f0f0f5", ["--vz-sub" as string]: "rgba(255,255,255,0.55)", ["--vz-surface" as string]: "#111118", ["--vz-border" as string]: "rgba(255,255,255,0.08)" }}>
                 <ProfilePreviewModal slug={selectedProfileSlug} onClose={() => setSelectedProfileSlug(null)} />
                 <Day0WelcomeModal enabled={showDay0Welcome && isOnboardingComplete} />
+                {showOnboardingWizard && !isOnboardingComplete && (
+                    <CareerWizardModal
+                        onboardingMode
+                        onClose={() => setShowOnboardingWizard(false)}
+                        onCompleted={() => {
+                            setShowOnboardingWizard(false);
+                            window.location.reload();
+                        }}
+                    />
+                )}
                 <AnimatePresence>
                     {sidebarOpen && isMobile && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 40, backdropFilter: "blur(4px)" }} />

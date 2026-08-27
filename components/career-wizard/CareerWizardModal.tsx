@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useCareerWizard, STEPS, PHASE_LABELS, TOTAL_STEPS } from "@/hooks/useCareerWizard";
+import { useWizardAutoSave } from "@/hooks/useWizardAutoSave";
 import EpisodeSubModal from "./EpisodeSubModal";
 
 import StepProfileBasicWizard from "./steps/StepProfileBasicWizard";
@@ -35,10 +36,13 @@ export default function CareerWizardModal({
   onClose,
   contained = false,
   onCompleted,
+  onboardingMode = false,
 }: {
   onClose?: () => void;
   contained?: boolean;
   onCompleted?: () => void;
+  /** true: 初回ログイン用オンボーディングモード（閉じるボタン非表示、完了後にis_onboarding_complete更新） */
+  onboardingMode?: boolean;
 }) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
@@ -46,6 +50,8 @@ export default function CareerWizardModal({
     isEpisodeModalOpen,
     progressPct, currentPhase, roleColor, isCurrentStepSkippable,
   } = useCareerWizard();
+
+  useWizardAutoSave();
 
   const color = roleColor();
   const phase = currentPhase();
@@ -68,7 +74,18 @@ export default function CareerWizardModal({
 
     if (isLastContentStep) {
       const ok = await saveCareerToApi();
-      if (!ok) return; // saveErrorが表示される
+      if (!ok) return;
+      // オンボーディング完了をサーバーに通知
+      if (onboardingMode) {
+        try {
+          await fetch("/api/onboarding/complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          // ネットワークエラーでも照样完了扱い（次回ログインで再表示されるだけ）
+        }
+      }
       onCompleted?.();
     }
     nextStep();
@@ -78,6 +95,8 @@ export default function CareerWizardModal({
   const containerClass = contained
     ? "absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
     : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4";
+
+  const finalButtonLabel = onboardingMode ? "Pulseをはじめる" : "完成させる";
 
   if (contained) {
     return (
@@ -165,7 +184,7 @@ export default function CareerWizardModal({
                   保存中...
                 </>
               ) : isLastContentStep ? (
-                <>完成させる
+                <>{finalButtonLabel}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                   </svg>
@@ -191,7 +210,7 @@ export default function CareerWizardModal({
       {/* Backdrop */}
       <motion.div className={backdropClass} style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(12px)" }}
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} />
+        onClick={onboardingMode ? undefined : onClose} />
 
       {/* Modal — centered on all breakpoints */}
       <motion.div className={containerClass}
@@ -204,7 +223,6 @@ export default function CareerWizardModal({
             borderRadius: "28px",
             maxHeight: "92dvh",
           }}
-          // sm以上は完全な角丸
           initial={{ y: 80, opacity: 0, scale: 0.96 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 60, opacity: 0, scale: 0.96 }}
@@ -223,12 +241,14 @@ export default function CareerWizardModal({
           <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 blur-3xl opacity-15 rounded-full"
             style={{ background: color }} />
 
-          {/* Close */}
-          <button onClick={onClose}
-            className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all bg-white/5 border border-white/10 text-white/35 hover:bg-white/10 hover:text-white"
-            aria-label="閉じる">
-            <X size={12} />
-          </button>
+          {/* Close — オンボーディングモードでは非表示 */}
+          {!onboardingMode && (
+            <button onClick={onClose}
+              className="absolute top-3 right-3 z-[70] w-8 h-8 flex items-center justify-center rounded-full transition-all bg-white/5 border border-white/10 text-white/35 hover:bg-white/10 hover:text-white"
+              aria-label="閉じる">
+              <X size={12} />
+            </button>
+          )}
 
           {/* Progress header */}
           {!isCompleteStep && (
@@ -302,7 +322,7 @@ export default function CareerWizardModal({
                     保存中...
                   </>
                 ) : isLastContentStep ? (
-                  <>完成させる
+                  <>{finalButtonLabel}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
@@ -325,6 +345,3 @@ export default function CareerWizardModal({
     </>
   );
 }
-
-
-
