@@ -170,7 +170,7 @@ export default function PulseClient() {
             あなたのPulseを刻み始めよう
           </h1>
           <Link
-            href="/onboarding/journey"
+            href="/dashboard?view=journey"
             className="mt-8 rounded-lg bg-[var(--electric)] px-6 py-3 font-display text-sm uppercase tracking-[0.18em] text-[var(--surface-1)]"
           >
             最初のJourneyを記録する

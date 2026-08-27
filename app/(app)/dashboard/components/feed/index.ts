@@ -6,3 +6,4 @@ export * from "./media";
 export * from "./actions";
 export * from "./location";
 export * from "./states";
+export * from "./upload";

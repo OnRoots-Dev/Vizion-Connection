@@ -14,5 +14,5 @@ export default async function BusinessCompletePage() {
     redirect("/login?redirect=/business/complete");
   }
 
-  return <BusinessCompleteClient onboardingComplete={profile.isOnboardingComplete !== false} />;
+  return <BusinessCompleteClient />;
 }

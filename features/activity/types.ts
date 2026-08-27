@@ -57,6 +57,8 @@ export interface ActivityRecord {
     visibility: ActivityVisibility;
     tags: string[];
     status: ActivityStatus;
+    image_url: string | null;
+    video_url: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -71,6 +73,8 @@ export interface CreateActivityInput {
     visibility: ActivityVisibility;
     tags?: string[];
     status?: ActivityStatus;
+    image_url?: string | null;
+    video_url?: string | null;
 }
 
 export type UpdateActivityInput = Partial<CreateActivityInput>;

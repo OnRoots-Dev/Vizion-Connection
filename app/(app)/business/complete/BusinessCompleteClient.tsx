@@ -9,7 +9,7 @@ type State = "loading" | "success" | "pending" | "error";
  * Square からの戻り。webhook が非同期で注文完了するため、
  * こちらでは pending 注文の完了 API を試行しつつ成功メッセージを表示する。
  */
-export default function BusinessCompleteClient({ onboardingComplete = true }: { onboardingComplete?: boolean }) {
+export default function BusinessCompleteClient() {
   const [state, setState] = useState<State>("loading");
   const [planName, setPlanName] = useState<string | null>(null);
   const [message, setMessage] = useState("決済結果を確認しています…");
@@ -114,9 +114,9 @@ export default function BusinessCompleteClient({ onboardingComplete = true }: { 
           ) : null}
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {/* Onboarding未完了の新規Businessユーザーは決済後に初期設定へ誘導する */}
+          {/* Onboarding未完了の新規Businessユーザーも /dashboard へ誘導し、モーダルで初期設定を促す */}
           <Link
-            href={onboardingComplete ? "/dashboard" : "/onboarding"}
+            href="/dashboard"
             style={{
               display: "block",
               padding: "14px 24px",
@@ -128,7 +128,7 @@ export default function BusinessCompleteClient({ onboardingComplete = true }: { 
               textDecoration: "none",
             }}
           >
-            {onboardingComplete ? "ダッシュボードへ →" : "初期設定（Onboarding）へ →"}
+            ダッシュボードへ →
           </Link>
           <Link
             href="/dashboard/business/checkout"

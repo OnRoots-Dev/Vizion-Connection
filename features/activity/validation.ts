@@ -19,6 +19,8 @@ export const activityCreateSchema = z
         visibility: z.enum(["public", "connections", "private"]),
         tags: z.array(z.string().trim().min(1).max(20)).max(5, "タグは5つまでです").optional(),
         status: z.enum(ACTIVITY_STATUSES).optional(),
+        image_url: z.string().url("画像URLが不正です").nullable().optional(),
+        video_url: z.string().url("動画URLが不正です").nullable().optional(),
     })
     .strict();
 

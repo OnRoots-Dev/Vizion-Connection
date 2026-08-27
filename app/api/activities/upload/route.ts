@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
-import { momentLimiter, getIp } from "@/lib/ratelimit";
+import { activityLimiter, getIp } from "@/lib/ratelimit";
 import { validateCSRF } from "@/lib/security/csrf";
 
-// Moment の画像・動画アップロード。profiles バケットの moments/<slug>/ へ保存し公開URLを返す。
-// DB変更なし・既存Storage活用。UIは /components/feed の MediaViewer が参照して表示。
+// Activity の画像・動画アップロード。profiles バケットの activities/<slug>/ へ保存し公開URLを返す。
+// DB は activities に image_url / video_url カラムを追加済み（20260827190500_activity_media_columns）。
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8MB
 const MAX_VIDEO_SIZE = 60 * 1024 * 1024; // 60MB
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const user = await getSupabaseProfile();
     if (!user) return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
 
-    const { success } = await momentLimiter.limit(getIp(req));
+    const { success } = await activityLimiter.limit(getIp(req));
     if (!success) {
         return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
     }
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = getExt(file, isImage ? "jpg" : "mp4");
-    const path = `moments/${user.slug}/${isImage ? "image" : "video"}-${Date.now()}.${ext}`;
+    const path = `activities/${user.slug}/${isImage ? "image" : "video"}-${Date.now()}.${ext}`;
     const bytes = Buffer.from(await file.arrayBuffer());
 
     const upload = await supabaseServer.storage.from("profiles").upload(path, bytes, {
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         contentType: file.type,
     });
     if (upload.error) {
-        console.error("[moments/upload]", upload.error);
+        console.error("[activities/upload]", upload.error);
         return NextResponse.json(
             { success: false, error: `${isImage ? "画像" : "動画"}アップロードに失敗しました` },
             { status: 500 },

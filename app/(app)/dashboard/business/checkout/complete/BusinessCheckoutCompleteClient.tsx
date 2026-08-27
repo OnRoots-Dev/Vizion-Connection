@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type CompleteState = "loading" | "success" | "error";
+type CompleteState = "loading" | "pending" | "success" | "error";
 
 export default function BusinessCheckoutCompleteClient() {
   const [state, setState] = useState<CompleteState>("loading");
@@ -11,17 +11,23 @@ export default function BusinessCheckoutCompleteClient() {
   useEffect(() => {
     let active = true;
 
-    async function completeOrder() {
+    async function completeOrder(attempt = 0) {
       try {
         const res = await fetch("/api/business-checkout/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
         });
-        const data = (await res.json()) as { success?: boolean; error?: string };
+        const data = (await res.json()) as { success?: boolean; pending?: boolean; error?: string };
 
         if (!active) return;
 
+        if (res.status === 202 && data.pending) {
+          setState("pending");
+          setMessage("決済を確認中です。確認後にプランが自動で有効になります。");
+          if (attempt < 5) window.setTimeout(() => { void completeOrder(attempt + 1); }, 3000);
+          return;
+        }
         if (!res.ok || !data.success) {
           setState("error");
           setMessage(data.error ?? "プラン有効化に失敗しました");
@@ -48,7 +54,7 @@ export default function BusinessCheckoutCompleteClient() {
       <div className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-[#0e1018] p-8 text-center">
         <p className="mb-2 font-mono text-xs tracking-[0.16em] text-[#00d2ff]">BUSINESS CHECKOUT</p>
         <h1 className="mb-4 text-2xl font-extrabold text-white">
-          {state === "success" ? "決済完了" : state === "error" ? "処理エラー" : "処理中"}
+          {state === "success" ? "決済完了" : state === "error" ? "処理エラー" : state === "pending" ? "決済確認中" : "処理中"}
         </h1>
         <p className="text-sm leading-7 text-[#8f97ab]">{message}</p>
 

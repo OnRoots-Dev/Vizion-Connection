@@ -244,8 +244,10 @@ export async function createBusinessHubAd(profile: ProfileRecord, input: {
   startsAt?: string | null;
   endsAt?: string | null;
 }) {
+  // 掲載権はWebhookで確定した sponsor_plan のみ。Businessロールだけでは広告を作れない。
+  if (!profile.sponsorPlan) throw new Error("PLAN_REQUIRED");
   const features = getPlanFeatures(profile.sponsorPlan ?? null);
-  const plan = profile.sponsorPlan ?? "roots";
+  const plan = profile.sponsorPlan;
   const startsAt = input.startsAt ? new Date(input.startsAt).toISOString() : new Date().toISOString();
   const endsAt = input.endsAt ? new Date(input.endsAt).toISOString() : null;
 
@@ -310,6 +312,7 @@ export async function updateBusinessHubAd(profile: ProfileRecord, adId: string, 
   endsAt?: string | null;
   isActive?: boolean;
 }) {
+  if (!profile.sponsorPlan) throw new Error("PLAN_REQUIRED");
   const patch: Record<string, unknown> = {};
   if (typeof input.headline == "string") patch.headline = input.headline;
   if (typeof input.bodyText != "undefined") patch.body_text = input.bodyText;

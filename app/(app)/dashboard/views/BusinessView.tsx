@@ -641,9 +641,8 @@ export function BusinessHubView({
                             );
                         })}
                     </div>
-                    <div style={{ marginTop: 14, padding: 14, borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.025)", color: t.sub, fontSize: 11, lineHeight: 1.8 }}>
-                        プラン: <span style={{ color: t.text, fontWeight: 700 }}>{profile.sponsorPlan ?? "未契約"}</span><br />
-                        公開中の広告と送信済みオファーは、このメニューからすぐ更新できます。
+                    <div style={{ marginTop: 14, padding: 14, borderRadius: 14, border: `1px solid ${profile.sponsorPlan ? `${accent}55` : t.border}`, background: profile.sponsorPlan ? `${accent}10` : "rgba(255,255,255,0.025)", color: t.sub, fontSize: 11, lineHeight: 1.8 }}>
+                        {profile.sponsorPlan ? <><div style={{ color: accent, fontSize: 10, fontWeight: 900, letterSpacing: "0.14em", marginBottom: 5 }}>YOUR BUSINESS IS LIVE</div><div>購入Plan: <span style={{ color: t.text, fontWeight: 700 }}>{profile.sponsorPlan}</span> · Plan Status: <span style={{ color: accent, fontWeight: 700 }}>ACTIVE</span></div><div>Map掲載: 有効 · Activity掲載: 広告枠利用可 · Moment掲載: 広告枠利用可</div></> : <><div>Plan Status: <span style={{ color: t.text, fontWeight: 700 }}>未契約</span></div><div>Map・Activity・Momentへの広告掲載は、決済確認後に有効になります。</div></>}
                     </div>
                     <div style={{ marginTop: 10 }}>
                         <button

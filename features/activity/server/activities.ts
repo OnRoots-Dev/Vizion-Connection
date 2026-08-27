@@ -6,7 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import type { ActivityRecord, CreateActivityInput, UpdateActivityInput } from "../types";
 
 const SELECT_COLUMNS =
-    "id,user_id,type,title,description,starts_at,ends_at,place_id,visibility,tags,status,created_at,updated_at";
+    "id,user_id,type,title,description,starts_at,ends_at,place_id,visibility,tags,status,image_url,video_url,created_at,updated_at";
 
 export interface OwnerProfileLite {
     id: number;
@@ -85,6 +85,8 @@ export async function createActivity(
             visibility: input.visibility,
             tags: input.tags ?? [],
             status: input.status ?? "planned",
+            image_url: input.image_url ?? null,
+            video_url: input.video_url ?? null,
         })
         .select(SELECT_COLUMNS)
         .single();
@@ -111,7 +113,7 @@ export async function updateActivity(
     }
 
     const patch: Record<string, unknown> = {};
-    for (const key of ["type", "title", "description", "starts_at", "ends_at", "place_id", "visibility", "tags", "status"] as const) {
+    for (const key of ["type", "title", "description", "starts_at", "ends_at", "place_id", "visibility", "tags", "status", "image_url", "video_url"] as const) {
         if (input[key] !== undefined) patch[key] = input[key];
     }
     if (Object.keys(patch).length === 0) return getOwnedActivity(actorId, id);

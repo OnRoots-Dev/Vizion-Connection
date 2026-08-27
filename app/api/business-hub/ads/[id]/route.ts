@@ -4,6 +4,7 @@ import { requireBusinessProfile } from "@/lib/auth/require-business-session";
 import { updateBusinessHubAd } from "@/lib/supabase/business-hub";
 import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
+import { businessLimiter, getIp } from "@/lib/ratelimit";
 
 const patchSchema = z.object({
   headline: z.string().min(1).max(80).optional(),
@@ -19,6 +20,8 @@ const patchSchema = z.object({
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const csrfError = validateCSRF(req);
   if (csrfError) return csrfError as unknown as NextResponse;
+  const { success: limited } = await businessLimiter.limit(getIp(req));
+  if (!limited) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
   try {
     const profile = await requireBusinessProfile();
@@ -49,6 +52,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     const message = error instanceof Error ? error.message : "UNKNOWN";
     if (message === "UNAUTHORIZED") return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
     if (message === "FORBIDDEN") return NextResponse.json({ success: false, error: "Businessアカウントのみ利用できます" }, { status: 403 });
+    if (message === "PLAN_REQUIRED") return NextResponse.json({ success: false, error: "広告掲載には有効なBusinessプランが必要です" }, { status: 403 });
     return NextResponse.json({ success: false, error: message === "広告を更新できませんでした" ? message : "広告の更新に失敗しました" }, { status: 500 });
   }
 }

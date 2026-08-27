@@ -135,6 +135,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ? noteMeta.planId
       : "roots";
   const planName = order.planName || planId;
+  // 署名付きSquare payloadでも、別商品の支払いをこの注文に充当させない。
+  // note / 金額 / 通貨はサーバーで発行したpending注文と完全一致が必要。
+  if (
+    !noteMeta.planId ||
+    noteMeta.planId !== order.planId ||
+    noteMeta.slug !== order.slug ||
+    noteMeta.prefecture !== order.region ||
+    payment.total_money.currency !== "JPY" ||
+    payment.total_money.amount !== order.amount
+  ) {
+    console.warn("[square webhook] payment does not match pending order", payment.id);
+    return NextResponse.json({ success: true, skipped: true });
+  }
   const slotPrefecture =
     order.region ||
     noteMeta.prefecture ||

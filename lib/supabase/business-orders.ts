@@ -128,7 +128,7 @@ export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
         .from("business_orders")
         .select("id, email, slug, status, plan_id, plan_name, amount, region")
         .eq("email", email)
-        .neq("status", "completed")
+        .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -155,16 +155,19 @@ export async function markBusinessOrderCompletedById(params: {
     planId: string;
     planName: string;
 }): Promise<boolean> {
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from("business_orders")
         .update({
             status: "completed",
             plan_id: params.planId,
             plan_name: params.planName,
         })
-        .eq("id", params.id);
+        .eq("id", params.id)
+        .neq("status", "completed")
+        .select("id")
+        .maybeSingle();
 
-    if (error) {
+    if (error || !data) {
         console.error("[markBusinessOrderCompletedById]", error);
         return false;
     }

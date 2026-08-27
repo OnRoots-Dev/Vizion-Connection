@@ -62,15 +62,17 @@ export default function LoginForm() {
                 setLoading(false);
                 return;
             }
-            if (!data.isOnboardingComplete) {
-                window.location.assign("/onboarding");
-            } else {
-                const appBase = process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.vizion-connection.jp";
-                const target = redirectTo.startsWith("/")
-                    ? appBase + redirectTo
-                    : redirectTo;
-                window.location.assign(target);
-            }
+            // 初回ログイン含め、未完了ユーザーは必ず /dashboard へ遷移する。
+            // DashboardClient が CareerWizardModal（プロフィール・キャリア登録）を自動表示する。
+            // 完了済みユーザーのみ redirect パラメータを尊重する。
+            const targetPath =
+                !data.isOnboardingComplete
+                    ? "/dashboard"
+                    : redirectTo.startsWith("/")
+                        ? redirectTo
+                        : "/dashboard";
+            const appBase = process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.vizion-connection.jp";
+            window.location.assign(appBase + targetPath);
         } catch {
             setError({ message: "通信エラーが発生しました" });
             setLoading(false);

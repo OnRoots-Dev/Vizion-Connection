@@ -10,7 +10,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton } from "../components/ui";
 import { BottomSheet } from "../components/core/BottomSheet";
 import { PlacePicker } from "../components/core/PlacePicker";
-import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay } from "../components/feed";
+import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia } from "../components/feed";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
@@ -86,6 +86,9 @@ export function ActivitiesView({
     const [fPlace, setFPlace] = useState<PlaceRecord | null>(null);
     const [fVisibility, setFVisibility] = useState<(typeof ACTIVITY_VISIBILITIES)[number]>("private");
     const [fTags, setFTags] = useState("");
+    const [fImageUrl, setFImageUrl] = useState("");
+    const [fVideoUrl, setFVideoUrl] = useState("");
+    const [mediaUploading, setMediaUploading] = useState<"image" | "video" | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [successFlash, setSuccessFlash] = useState(false);
 
@@ -123,10 +126,12 @@ export function ActivitiesView({
                 place_id: fPlace?.id ?? null,
                 visibility: fVisibility,
                 tags: fTags.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean).slice(0, 5),
+                image_url: fImageUrl.trim() || null,
+                video_url: fVideoUrl.trim() || null,
             });
             setSuccessFlash(true);
             window.setTimeout(() => setSuccessFlash(false), 1800);
-            setFTitle(""); setFDesc(""); setFEnd(""); setFPlace(null); setFTags("");
+            setFTitle(""); setFDesc(""); setFEnd(""); setFPlace(null); setFTags(""); setFImageUrl(""); setFVideoUrl("");
             setMode("list");
             await load();
         } catch (e) {
@@ -153,6 +158,23 @@ export function ActivitiesView({
             await load();
         } catch (e) {
             setError(e instanceof ApiError ? e.message : "削除できませんでした");
+        }
+    }
+
+    async function handleActivityMedia(kind: "image" | "video", e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setMediaUploading(kind);
+        setError("");
+        try {
+            const url = await uploadFeedMedia("activities", kind, file);
+            if (kind === "image") setFImageUrl(url);
+            else setFVideoUrl(url);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "アップロードに失敗しました");
+        } finally {
+            setMediaUploading(null);
         }
     }
 
@@ -305,6 +327,40 @@ export function ActivitiesView({
                     <SLabel text="PLACE" color={`${roleColor}aa`} />
                     <PlacePicker value={fPlace} onChange={setFPlace} />
 
+                    <SLabel text="MEDIA（任意）" color={`${roleColor}aa`} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            <label
+                                style={{
+                                    flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                    minHeight: 40, borderRadius: 10, fontSize: 12, fontWeight: 800, cursor: "pointer",
+                                    background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
+                                    color: mediaUploading === "image" ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
+                                }}
+                            >
+                                {mediaUploading === "image" ? "アップロード中..." : (fImageUrl ? "画像を変更" : "+ 画像を添付")}
+                                <input type="file" accept="image/*" onChange={(e) => void handleActivityMedia("image", e)} disabled={mediaUploading !== null} style={{ display: "none" }} aria-label="画像を添付" />
+                            </label>
+                            <label
+                                style={{
+                                    flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                    minHeight: 40, borderRadius: 10, fontSize: 12, fontWeight: 800, cursor: "pointer",
+                                    background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
+                                    color: mediaUploading === "video" ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
+                                }}
+                            >
+                                {mediaUploading === "video" ? "アップロード中..." : (fVideoUrl ? "動画を変更" : "+ 動画を添付")}
+                                <input type="file" accept="video/*" onChange={(e) => void handleActivityMedia("video", e)} disabled={mediaUploading !== null} style={{ display: "none" }} aria-label="動画を添付" />
+                            </label>
+                        </div>
+                        {fImageUrl ? (
+                            <ImageDisplay src={fImageUrl} alt="添付予定の画像" maxHeight={200} />
+                        ) : null}
+                        {fVideoUrl ? (
+                            <VideoDisplay src={fVideoUrl} maxHeight={200} />
+                        ) : null}
+                    </div>
+
                     <SLabel text="VISIBILITY" color={`${roleColor}aa`} />
                     <div role="radiogroup" aria-label="公開範囲" style={{ display: "flex", gap: 6 }}>
                         {ACTIVITY_VISIBILITIES.map((v) => (
@@ -362,6 +418,8 @@ export function ActivitiesView({
                             {a.description ? (
                                 <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.75)" }}>{a.description}</p>
                             ) : null}
+
+                            <MediaViewer imageUrl={a.image_url} videoUrl={a.video_url} alt="Activityの画像" maxHeight={360} />
 
                             <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
                                 <span>🗓 {new Date(a.starts_at).toLocaleString("ja-JP")}{a.ends_at ? ` 〜 ${new Date(a.ends_at).toLocaleString("ja-JP")}` : ""}</span>
@@ -480,6 +538,9 @@ function ActivityFeedCard({
                 </div>
             ) : null}
 
+            {/* Media: アスペクト比を保ったまま表示 */}
+            <MediaViewer imageUrl={a.image_url} videoUrl={a.video_url} alt="Activityの画像" maxHeight={260} />
+
             {/* 時間・場所 */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
                 <span>🕐 {formatTime(a.starts_at)}{a.ends_at ? ` – ${formatTime(a.ends_at)}` : ""}</span>
@@ -515,31 +576,22 @@ function MomentComposerInline({
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState("");
-    const [uploading, setUploading] = useState(false);
+    const [uploading, setUploading] = useState<"image" | "video" | null>(null);
 
-    async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+    async function handleMediaFile(kind: "image" | "video", e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         e.target.value = "";
         if (!file) return;
-        setUploading(true);
+        setUploading(kind);
         setError("");
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-            const res = await fetch("/api/moments/upload", {
-                method: "POST",
-                body: formData,
-                credentials: "same-origin",
-            });
-            const json = await res.json().catch(() => ({}));
-            if (!res.ok || typeof json?.url !== "string") {
-                throw new Error(typeof json?.error === "string" ? json.error : "画像アップロードに失敗しました");
-            }
-            setImageUrl(json.url);
+            const url = await uploadFeedMedia("moments", kind, file);
+            if (kind === "image") setImageUrl(url);
+            else setVideoUrl(url);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "画像アップロードに失敗しました");
+            setError(err instanceof Error ? err.message : "アップロードに失敗しました");
         } finally {
-            setUploading(false);
+            setUploading(null);
         }
     }
 
@@ -604,7 +656,7 @@ function MomentComposerInline({
                         </p>
                         <textarea value={body} onChange={(e) => setBody(e.target.value.slice(0, 500))} placeholder="この活動から何を見つけた？" rows={3} style={{ ...inputStyle, resize: "vertical" }} />
 
-                        {/* 画像アップロード（URL直接入力の代替） */}
+                        {/* 画像・動画アップロード（URL直接入力の代替） */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                                 <label
@@ -612,26 +664,38 @@ function MomentComposerInline({
                                         flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
                                         minHeight: 40, borderRadius: 10, fontSize: 12, fontWeight: 800, cursor: "pointer",
                                         background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
-                                        color: uploading ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
+                                        color: uploading === "image" ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
                                     }}
                                 >
-                                    {uploading ? "アップロード中..." : (imageUrl ? "画像を変更" : "+ 画像を添付")}
-                                    <input type="file" accept="image/*" onChange={(e) => void handleImageFile(e)} disabled={uploading} style={{ display: "none" }} aria-label="画像を添付" />
+                                    {uploading === "image" ? "アップロード中..." : (imageUrl ? "画像を変更" : "+ 画像を添付")}
+                                    <input type="file" accept="image/*" onChange={(e) => void handleMediaFile("image", e)} disabled={uploading !== null} style={{ display: "none" }} aria-label="画像を添付" />
+                                </label>
+                                <label
+                                    style={{
+                                        flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                        minHeight: 40, borderRadius: 10, fontSize: 12, fontWeight: 800, cursor: "pointer",
+                                        background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
+                                        color: uploading === "video" ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.7)",
+                                    }}
+                                >
+                                    {uploading === "video" ? "アップロード中..." : (videoUrl ? "動画を変更" : "+ 動画を添付")}
+                                    <input type="file" accept="video/*" onChange={(e) => void handleMediaFile("video", e)} disabled={uploading !== null} style={{ display: "none" }} aria-label="動画を添付" />
                                 </label>
                             </div>
                             {imageUrl ? (
                                 <ImageDisplay src={imageUrl} alt="添付予定の画像" maxHeight={200} />
                             ) : null}
+                            {videoUrl ? (
+                                <VideoDisplay src={videoUrl} maxHeight={200} />
+                            ) : null}
                         </div>
-
-                        <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="動画URL（任意）" style={inputStyle} aria-label="動画URL" />
                         <select value={visibility} onChange={(e) => setVisibility(e.target.value as typeof visibility)} style={inputStyle} aria-label="公開範囲">
                             <option value="public" style={{ color: "#000" }}>公開</option>
                             <option value="connections" style={{ color: "#000" }}>Connectionのみ</option>
                             <option value="private" style={{ color: "#000" }}>非公開（保存のみ）</option>
                         </select>
                         {error ? <p role="alert" style={{ margin: 0, fontSize: 11, color: "rgba(255,120,120,0.9)" }}>{error}</p> : null}
-                        <PrimaryButton onClick={publish} disabled={busy || uploading || !body.trim()}>
+                        <PrimaryButton onClick={publish} disabled={busy || uploading !== null || !body.trim()}>
                             {busy ? "公開中..." : "Momentを公開"}
                         </PrimaryButton>
                     </motion.section>
