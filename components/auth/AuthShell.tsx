@@ -82,7 +82,7 @@ export function AuthShell({
                 className={`relative z-10 ${logoMarginClass} inline-block active:scale-[0.97] transition-transform duration-100`}
             >
                 <Image
-                    src="/images/vizion-connection-logo-6-cropped.png"
+                    src="/images/Vizion_Connection_logo-wt-cropped.png"
                     alt="Vizion Connection"
                     width={320}
                     height={86}
