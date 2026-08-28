@@ -259,3 +259,39 @@ export const AD_SCOPE_LABEL: Record<AdScope, string> = {
   half: "東日本 / 西日本",
   national: "全国",
 };
+
+/** 人間向けの配信範囲メタ（アイコン + 説明）。技術情報はUIに見せない。 */
+export const SCOPE_META: Record<AdScope, { icon: string; label: string; description: string }> = {
+  local: { icon: "📍", label: "都道府県", description: "特定の1都道府県内のユーザーへ届きます" },
+  region: { icon: "🗾", label: "地方ブロック", description: "関東・東北など、その地方のユーザーへ届きます" },
+  half: { icon: "🗾", label: "東日本 / 西日本", description: "東日本または西日本の広い地域へ届きます" },
+  national: { icon: "🌐", label: "全国", description: "全国のユーザーへ届きます" },
+};
+
+/** 人間向けのプラン表示名（内部PlanコードはUIに出さない） */
+export const PLAN_LABEL: Record<BusinessMonetizePlan, string> = {
+  FREE: "無料",
+  LOCAL: "ローカル",
+  FEATURED: "フィーチャード",
+  PREMIUM: "プレミアム",
+  ENTERPRISE: "エンタープライズ",
+};
+
+/** プランの配信範囲（人間向け表示用） */
+export function planScopeLabel(plan: BusinessMonetizePlan | string | null | undefined): string {
+  const def = getMonetizePlan(plan);
+  return def ? SCOPE_META[def.scope].label : "-";
+}
+
+/**
+ * 新モネタイズPlan → 既存の広告枠（ad_slots.tier / legacy PlanId）対応。
+ * 広告枠表示（P1-3）で getPlansWithAdSlotAvailability の在庫に紐付けるために使う。
+ * API / 決済とは無関係の表示用マッピング。FREEは広告枠を持たないためnull。
+ */
+export const MONETIZE_TO_AD_SLOT_TIER: Record<BusinessMonetizePlan, string | null> = {
+  FREE: null,
+  LOCAL: "roots",
+  FEATURED: "signal",
+  PREMIUM: "presence",
+  ENTERPRISE: "legacy",
+};

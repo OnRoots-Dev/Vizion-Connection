@@ -9,9 +9,15 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { PlaceRecord } from "@/features/place/place";
-import { PREFECTURES_BY_REGION } from "@/lib/discovery-filters";
+import { ALL_PREFECTURES, geocodeByAddress } from "@/features/place/geocode";
 
-const ALL_PREFECTURES = Object.values(PREFECTURES_BY_REGION).flat();
+interface GeocodeSuggestion {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  prefecture: string | null;
+}
 
 const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -23,42 +29,6 @@ const inputStyle: React.CSSProperties = {
     fontSize: 13,
     outline: "none",
 };
-
-interface GeocodeSuggestion {
-    name: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-    prefecture: string | null;
-}
-
-/** Mapbox Geocoding API v6 のレスポンスから必要な形へ絞り込む */
-function toSuggestion(feature: unknown): GeocodeSuggestion | null {
-    const f = feature as {
-        properties?: {
-            name?: string;
-            full_address?: string;
-            coordinates?: { longitude?: number; latitude?: number };
-            context?: { region?: { name?: string } };
-        };
-    } | null;
-    const coords = f?.properties?.coordinates;
-    if (!f?.properties || !coords || typeof coords.latitude !== "number" || typeof coords.longitude !== "number") return null;
-    return {
-        name: f.properties.name ?? f.properties.full_address ?? "",
-        address: f.properties.full_address ?? f.properties.name ?? "",
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-        prefecture: matchPrefecture(f.properties.context?.region?.name ?? null),
-    };
-}
-
-/** Geocodingのregion名（"東京都" / "Tōkyō" 等）をアプリの都道府県リストに合わせる */
-function matchPrefecture(regionName: string | null): string | null {
-    if (!regionName) return null;
-    const normalized = regionName.trim();
-    return ALL_PREFECTURES.find((pref) => normalized.startsWith(pref.slice(0, 2))) ?? null;
-}
 
 export function PlacePicker({
     value,
@@ -86,7 +56,6 @@ export function PlacePicker({
     const [creating, setCreating] = useState(false);
 
     // 住所からの候補表示（Geocoding）
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     const [geoQuery, setGeoQuery] = useState("");
     const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([]);
     const [suggestLoading, setSuggestLoading] = useState(false);
@@ -94,7 +63,7 @@ export function PlacePicker({
 
     // 入力を400msデバウンスし、APIコストを抑える（最小3文字・最大3件・日本国内・中断あり）
     useEffect(() => {
-        if (mode !== "create" || !token) return;
+        if (mode !== "create") return;
         abortRef.current?.abort();
         const trimmed = geoQuery.trim();
         if (trimmed.length < 3) {
@@ -106,17 +75,9 @@ export function PlacePicker({
         abortRef.current = controller;
         setSuggestLoading(true);
         const timer = window.setTimeout(() => {
-            const params = new URLSearchParams({
-                q: trimmed,
-                access_token: token,
-                limit: "3",
-                language: "ja",
-                country: "JP",
-            });
-            fetch(`https://api.mapbox.com/search/geocode/v6/forward?${params}`, { signal: controller.signal })
-                .then((res) => (res.ok ? res.json() : Promise.reject(new Error("geocode failed"))))
-                .then((data: { features?: unknown[] }) => {
-                    setSuggestions((data.features ?? []).map(toSuggestion).filter((s): s is GeocodeSuggestion => s !== null));
+            geocodeByAddress(trimmed, controller.signal)
+                .then((s) => {
+                    setSuggestions(s);
                     setSuggestLoading(false);
                 })
                 .catch((cause: unknown) => {
@@ -129,7 +90,7 @@ export function PlacePicker({
             window.clearTimeout(timer);
             controller.abort();
         };
-    }, [geoQuery, mode, token]);
+    }, [geoQuery, mode]);
 
     function applySuggestion(suggestion: GeocodeSuggestion) {
         if (suggestion.name && !name.trim()) setName(suggestion.name.slice(0, 80));

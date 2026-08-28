@@ -9,7 +9,8 @@ import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { monetizeLimiter, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/auth/require-admin-session";
-import { isMonetizePlan } from "@/features/business-monetize/constants";
+import { isMonetizePlan, MONETIZE_TO_AD_SLOT_TIER } from "@/features/business-monetize/constants";
+import { getPlansWithAdSlotAvailability } from "@/features/business/server/plan-availability";
 
 const planUpdateSchema = z.object({
   plan: z.string().max(20),
@@ -21,7 +22,15 @@ export async function GET() {
   try {
     const profile = await requireBusinessProfile();
     const account = await ensureBusinessAccount(profile);
-    return NextResponse.json({ success: true, account });
+    // P1-3: 現在のプランに紐づく広告枠（在庫）を表示用に付与。
+    // 既存の getPlansWithAdSlotAvailability を再利用し、新プラン→旧広告枠tierへ対応付ける。
+    const plans = await getPlansWithAdSlotAvailability();
+    const tier = MONETIZE_TO_AD_SLOT_TIER[account.plan];
+    const slot = plans.find((p) => p.id === tier) ?? null;
+    const adSlot = slot
+      ? { seats: slot.seats, soldCount: slot.soldCount, remaining: slot.remaining, soldOut: slot.soldOut }
+      : null;
+    return NextResponse.json({ success: true, account, adSlot });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";
     if (message === "UNAUTHORIZED") return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });

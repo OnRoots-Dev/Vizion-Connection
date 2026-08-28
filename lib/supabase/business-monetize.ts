@@ -762,15 +762,20 @@ export async function listPublicAds(options?: { prefecture?: string | null; limi
   const block = prefecture ? regionBlockForPrefecture(prefecture) : null;
   const half = block ? halfRegionForBlock(block) : null;
   const scoped = eligible.filter((c) => {
+    if (!prefecture) {
+      // N04: 閲覧者の地域が不明な場合は、広域広告（national / half / region）を救済表示する。
+      // 都道府県単位の local 広告は「地域不明」に無条件配信せず、対象外にする（商品価値維持）。
+      return c.scope === "national" || c.scope === "half" || c.scope === "region";
+    }
     switch (c.scope) {
       case "national":
         return true;
       case "half":
-        return Boolean(prefecture && c.half && half && c.half === half);
+        return Boolean(c.half && half && c.half === half);
       case "region":
-        return Boolean(prefecture && c.regionBlock && block && c.regionBlock === block);
+        return Boolean(c.regionBlock && block && c.regionBlock === block);
       case "local":
-        return Boolean(prefecture && c.prefecture === prefecture);
+        return Boolean(c.prefecture === prefecture);
       default:
         return false;
     }

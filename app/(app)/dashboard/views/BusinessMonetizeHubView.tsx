@@ -7,11 +7,10 @@
 // ・Campaign（Activity / Moment広告）管理
 // 全ての書き込みは API 経由（service role）。Plan→Scope等はServer側で強制。
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader, PrimaryButton, SecondaryButton, DangerButton } from "@/app/(app)/dashboard/components/ui";
-import { HubAdPanel } from "@/app/(app)/dashboard/components/HubAdPanel";
 import type { AdItem } from "@/lib/ads-shared";
 import type {
   BusinessAccountRecord,
@@ -31,9 +30,12 @@ import {
   HALF_REGIONS,
   AD_SCOPE_LABEL,
   CAMPAIGN_TYPES,
-  planIsPremiumOrAbove,
+  SCOPE_META,
+  PLAN_LABEL,
   planHasSpotlight,
+  planIsPremiumOrAbove,
 } from "@/features/business-monetize/constants";
+import { ALL_PREFECTURES, geocodeByAddress, type GeocodeSuggestion } from "@/features/place/geocode";
 
 const ACCENT = "#00BFA5";
 
@@ -77,6 +79,85 @@ const inputStyle: React.CSSProperties = {
   fontSize: 12,
   outline: "none",
 };
+
+/** 全インタラクティブ要素にfocus-visibleリング（キーボード操作の可視化） */
+const focusRing = `:focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 2px; border-radius: 10px; }`;
+
+/** Business店舗登録用の住所検索（Mapbox Geocodingを再利用）。緯度経度は自動設定される。 */
+function LocationGeocoder({
+  address,
+  onAddress,
+  onPick,
+}: {
+  address: string;
+  onAddress: (v: string) => void;
+  onPick: (lat: number, lng: number, prefecture: string | null) => void;
+}) {
+  const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    abortRef.current?.abort();
+    const trimmed = address.trim();
+    if (trimmed.length < 3) {
+      setSuggestions([]);
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setLoading(true);
+    const t = window.setTimeout(() => {
+      geocodeByAddress(trimmed, controller.signal)
+        .then((s) => { setSuggestions(s); setLoading(false); })
+        .catch((cause: unknown) => {
+          if (cause instanceof DOMException && cause.name === "AbortError") return;
+          setSuggestions([]);
+          setLoading(false);
+        });
+    }, 450);
+    return () => { window.clearTimeout(t); controller.abort(); };
+  }, [address]);
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      <input
+        value={address}
+        onChange={(e) => onAddress(e.target.value)}
+        style={inputStyle}
+        placeholder="住所を入力して検索（例: 東京都渋谷区…）"
+        autoComplete="off"
+        aria-label="店舗の住所を検索"
+      />
+      {loading ? (
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>住所を検索中...</div>
+      ) : null}
+      {suggestions.length > 0 ? (
+        <div style={{ display: "grid", gap: 6 }}>
+          {suggestions.map((s) => (
+            <button
+              key={`${s.latitude},${s.longitude},${s.name}`}
+              type="button"
+              onClick={() => { onPick(s.latitude, s.longitude, s.prefecture); setSuggestions([]); }}
+              style={{
+                textAlign: "left", padding: "10px 12px", borderRadius: 10,
+                border: `1px solid ${ACCENT}35`, background: `${ACCENT}0f`,
+                color: "#f0f0f5", fontSize: 12, cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>{s.name}</div>
+              <div style={{ marginTop: 2, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{s.address}</div>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {!loading && suggestions.length === 0 && address.trim().length >= 3 ? (
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>候補が見つかりません。別の住所をお試しください。</div>
+      ) : null}
+    </div>
+  );
+}
 
 function PlanCard({
   plan,
@@ -127,7 +208,7 @@ function PlanCard({
         </span>
       )}
       <div style={{ fontSize: 14, fontWeight: 900, color: plan.id === "ENTERPRISE" ? "#fff" : ACCENT }}>
-        {plan.id}
+        {PLAN_LABEL[plan.id] ?? plan.id}
       </div>
       <div style={{ fontSize: 18, fontWeight: 900 }}>{plan.priceLabel}</div>
       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>配信単位: {plan.selectionUnit}</div>
@@ -145,7 +226,6 @@ function PlanCard({
 export function BusinessMonetizeHubView({
   t,
   setView,
-  ads,
 }: {
   profile: ProfileData;
   t: ThemeColors;
@@ -158,6 +238,7 @@ export function BusinessMonetizeHubView({
   const [account, setAccount] = useState<BusinessAccountRecord | null>(null);
   const [locations, setLocations] = useState<BusinessLocationRecord[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
+  const [adSlot, setAdSlot] = useState<{ seats: number; soldCount: number; remaining: number; soldOut: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -177,6 +258,7 @@ export function BusinessMonetizeHubView({
       if (!locRes.ok || !loc.success) throw new Error(loc.error ?? "店舗の取得に失敗しました");
       if (!campRes.ok || !camp.success) throw new Error(camp.error ?? "Campaignの取得に失敗しました");
       setAccount(acc.account ?? null);
+      setAdSlot(acc.adSlot ?? null);
       setLocations(loc.locations ?? []);
       setCampaigns(camp.campaigns ?? []);
     } catch (err) {
@@ -200,8 +282,8 @@ export function BusinessMonetizeHubView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <style>{focusRing}</style>
       <ViewHeader title="Business Monetize" sub="広告プラン・店舗・キャンペーンを一元管理" onBack={() => setView("home")} t={t} roleColor={ACCENT} />
-      <HubAdPanel ads={ads} t={t} />
 
       {error ? (
         <div style={{ padding: "12px 14px", borderRadius: 14, border: "1px solid rgba(255,80,80,0.35)", background: "rgba(255,80,80,0.10)", color: "#ffb6b6", fontSize: 12 }}>{error}</div>
@@ -224,6 +306,7 @@ export function BusinessMonetizeHubView({
         <OverviewSection
           account={account}
           planDef={planDef}
+          adSlot={adSlot}
           activeCampaigns={activeCampaigns}
           locations={locations}
           campaigns={campaigns}
@@ -275,6 +358,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 function OverviewSection({
   account,
   planDef,
+  adSlot,
   activeCampaigns,
   locations,
   campaigns,
@@ -284,6 +368,7 @@ function OverviewSection({
 }: {
   account: BusinessAccountRecord | null;
   planDef: ReturnType<typeof getMonetizePlan>;
+  adSlot: { seats: number; soldCount: number; remaining: number; soldOut: boolean } | null;
   activeCampaigns: number;
   locations: BusinessLocationRecord[];
   campaigns: CampaignRecord[];
@@ -293,15 +378,22 @@ function OverviewSection({
 }) {
   void onSubmitError;
   const isFree = account?.plan === "FREE";
+  const planLabel = account ? PLAN_LABEL[account.plan] ?? account.plan : "未契約";
+  const scopeMeta = planDef ? SCOPE_META[planDef.scope] : null;
   return (
     <>
       <SectionCard t={t} accentColor={ACCENT}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <p style={{ margin: 0, fontSize: 10, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: ACCENT, fontFamily: "monospace" }}>Current Plan</p>
-            <h2 style={{ margin: "6px 0 4px", fontSize: 24, fontWeight: 900, color: "#f0f0f5" }}>{account?.plan ?? "FREE"}</h2>
+            <h2 style={{ margin: "6px 0 4px", fontSize: 24, fontWeight: 900, color: "#f0f0f5" }}>{planLabel}</h2>
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{planDef?.priceLabel}</p>
-            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>配信範囲: {planDef ? AD_SCOPE_LABEL[planDef.scope] : "-"}</p>
+            {scopeMeta ? (
+              <div style={{ marginTop: 6, fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+                <span style={{ marginRight: 6 }}>{scopeMeta.icon}</span>{scopeMeta.label}
+                <div style={{ marginTop: 2 }}>{scopeMeta.description}</div>
+              </div>
+            ) : null}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
             <StatusBadge status={account?.status ?? "free"} />
@@ -333,6 +425,17 @@ function OverviewSection({
           <StatTile label="キャンペーン" value={String(campaigns.length)} />
           <StatTile label="配信中" value={String(activeCampaigns)} accent />
         </div>
+        {!isFree && account?.plan !== "ENTERPRISE" ? (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.025)", fontSize: 11, color: "rgba(255,255,255,0.6)" }}>
+            <div style={{ fontWeight: 800, color: "#f0f0f5", marginBottom: 6 }}>配信枠（在庫）</div>
+            {adSlot ? (
+              <div>現在のプランの配信枠: 使用中 {adSlot.soldCount} / {adSlot.seats}座{adSlot.soldOut ? "（満席）" : `（残り ${adSlot.remaining}）`}</div>
+            ) : (
+              <div>在庫情報を取得できませんでした</div>
+            )}
+            <div style={{ marginTop: 6, opacity: 0.7 }}>配信枠が満席の場合は、他プランや地域の枠をご検討ください。</div>
+          </div>
+        ) : null}
       </SectionCard>
     </>
   );
@@ -447,7 +550,7 @@ function PlansSection({
       {selectedPlan ? (
         <SectionCard t={t} accentColor={ACCENT}>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", lineHeight: 1.9 }}>
-            <b style={{ color: "#f0f0f5" }}>{selectedPlan}</b> の配信範囲は <b style={{ color: ACCENT }}>{AD_SCOPE_LABEL[selectedDef?.scope ?? "local"]}</b>。{" "}
+            <b style={{ color: "#f0f0f5" }}>{PLAN_LABEL[selectedPlan] ?? selectedPlan}</b> の配信範囲は <b style={{ color: ACCENT }}>{AD_SCOPE_LABEL[selectedDef?.scope ?? "local"]}</b>。{" "}
             {planHasSpotlight(selectedPlan) ? "Spotlight / 優先表示つき。" : ""}
             {planIsPremiumOrAbove(selectedPlan) ? "東日本 / 西日本・全国規模の大型配信対応。" : ""}
           </div>
@@ -474,8 +577,6 @@ const emptyLocationForm = {
   name: "",
   prefecture: "",
   address: "",
-  latitude: "",
-  longitude: "",
   hours: "",
   phone: "",
   website: "",
@@ -495,7 +596,10 @@ function LocationsSection({
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyLocationForm);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [searchAddress, setSearchAddress] = useState("");
+  const [hosting, setHosting] = useState(false);
 
   const startEdit = (loc: BusinessLocationRecord) => {
     setEditingId(loc.id);
@@ -503,22 +607,30 @@ function LocationsSection({
       name: loc.name,
       prefecture: loc.prefecture,
       address: loc.address ?? "",
-      latitude: String(loc.latitude),
-      longitude: String(loc.longitude),
       hours: loc.hours ?? "",
       phone: loc.phone ?? "",
       website: loc.website ?? "",
     });
+    setSearchAddress(loc.address ?? "");
+    setCoords({ lat: loc.latitude, lng: loc.longitude });
     setShowForm(true);
   };
 
   const reset = () => {
     setForm(emptyLocationForm);
     setEditingId(null);
+    setSearchAddress("");
+    setCoords(null);
     setShowForm(false);
   };
 
+  const pick = (lat: number, lng: number, prefecture: string | null) => {
+    setCoords({ lat, lng });
+    if (prefecture) setForm((f) => ({ ...f, prefecture }));
+  };
+
   const submit = async () => {
+    if (!coords) return;
     setSaving(true);
     onSubmitError("");
     try {
@@ -526,8 +638,8 @@ function LocationsSection({
         name: form.name,
         prefecture: form.prefecture,
         address: form.address || null,
-        latitude: Number(form.latitude),
-        longitude: Number(form.longitude),
+        latitude: coords.lat,
+        longitude: coords.lng,
         hours: form.hours || null,
         phone: form.phone || null,
         website: form.website || null,
@@ -566,10 +678,10 @@ function LocationsSection({
           <div>
             <SLabel text="Locations" color={ACCENT} />
             <p style={{ margin: "8px 0 0", fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.8 }}>
-              多店舗（親子）構造で店舗を登録します。Map Pinの座標は必ずこの実所在地が使われます。
+              多店舗（親子）構造で店舗を登録します。住所検索で自動的にMap Pinの座標が設定されます。
             </p>
           </div>
-          <SecondaryButton onClick={() => { if (showForm) reset(); else { setForm(emptyLocationForm); setEditingId(null); setShowForm(true); } }}>
+          <SecondaryButton onClick={() => { if (showForm) reset(); else { setForm(emptyLocationForm); setEditingId(null); setCoords(null); setSearchAddress(""); setShowForm(true); } }}>
             {showForm ? "閉じる" : "店舗を追加"}
           </SecondaryButton>
         </div>
@@ -582,19 +694,25 @@ function LocationsSection({
             <Field label="店舗名">
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} placeholder="例）Vizion 渋谷店" />
             </Field>
-            <Field label="都道府県">
-              <input value={form.prefecture} onChange={(e) => setForm({ ...form, prefecture: e.target.value })} style={inputStyle} placeholder="東京都 など" />
+            <Field label="住所（検索して位置を自動設定）">
+              <LocationGeocoder address={searchAddress} onAddress={(v) => { setSearchAddress(v); setForm((f) => ({ ...f, address: v })); }} onPick={pick} />
+              {coords ? (
+                <div style={{ fontSize: 11, color: "#3ddc97", marginTop: 4 }}>✓ 位置を設定しました（{coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}）</div>
+              ) : (
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>住所を入力し、候補から選択してください。</div>
+              )}
             </Field>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="緯度">
-                <input type="number" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} style={inputStyle} placeholder="35.68..." />
-              </Field>
-              <Field label="経度">
-                <input type="number" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} style={inputStyle} placeholder="139.76..." />
-              </Field>
-            </div>
-            <Field label="住所">
-              <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} style={inputStyle} />
+            <Field label="都道府県">
+              <select
+                value={form.prefecture}
+                onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
+                style={{ ...inputStyle, appearance: "auto" }}
+              >
+                <option value="">選択してください</option>
+                {ALL_PREFECTURES.map((p) => (
+                  <option key={p} value={p} style={{ color: "#111" }}>{p}</option>
+                ))}
+              </select>
             </Field>
             <Field label="営業時間">
               <input value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} style={inputStyle} />
@@ -606,8 +724,21 @@ function LocationsSection({
               <input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} style={inputStyle} />
             </Field>
           </div>
+          <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+            {hosting ? (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>保存中...</div>
+            ) : null}
+            <button type="button" onClick={() => setHosting(!hosting)} style={{ textAlign: "left", fontSize: 10, color: "rgba(255,255,255,0.5)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              {hosting ? "▲" : "▼"} 位置情報について
+            </button>
+            {hosting ? (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>
+                店舗のMap Pinは、住所検索で自動取得した座標を使用します。手入力は不要です。住所を変更する場合は再度検索して位置を更新してください。
+              </div>
+            ) : null}
+          </div>
           <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-            <PrimaryButton onClick={() => void submit()} disabled={saving || !form.name.trim() || !form.prefecture.trim() || form.latitude === "" || form.longitude === ""}>
+            <PrimaryButton onClick={() => void submit()} disabled={saving || !form.name.trim() || !form.prefecture.trim() || !coords}>
               {saving ? "保存中..." : editingId ? "更新" : "登録"}
             </PrimaryButton>
             <SecondaryButton onClick={reset}>キャンセル</SecondaryButton>
@@ -628,9 +759,6 @@ function LocationsSection({
                   <div style={{ fontSize: 13, fontWeight: 800, color: "#f0f0f5" }}>{loc.name}</div>
                   <div style={{ marginTop: 4, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
                     {loc.prefecture} · {loc.address || "住所未設定"}
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.4)", fontFamily: "monospace" }}>
-                    {loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -965,14 +1093,18 @@ function CampaignWizard({
       ) : step === "scope" ? (
         <div style={{ display: "grid", gap: 12 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-            配信範囲（契約Plan: <b style={{ color: ACCENT }}>{account?.plan}</b> で利用可能な範囲のみ）
+            配信範囲（契約Plan: <b style={{ color: ACCENT }}>{PLAN_LABEL[account?.plan ?? "FREE"] ?? account?.plan}</b> で利用可能な範囲のみ）
           </div>
           <div style={{ display: "grid", gap: 8 }}>
-            {allowedScopes.map((s) => (
-              <label key={s} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "#f0f0f5", padding: 12, borderRadius: 12, border: `1px solid ${scope === s ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`, background: scope === s ? `${ACCENT}10` : "transparent", cursor: "pointer" }}>
-                <input type="radio" checked={scope === s} onChange={() => { setScope(s); setRegionBlock(""); setHalf(""); }} /> {AD_SCOPE_LABEL[s]}
-              </label>
-            ))}
+            {allowedScopes.map((s) => {
+              const meta = SCOPE_META[s];
+              return (
+                <label key={s} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "#f0f0f5", padding: 12, borderRadius: 12, border: `1px solid ${scope === s ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`, background: scope === s ? `${ACCENT}10` : "transparent", cursor: "pointer" }}>
+                  <input type="radio" checked={scope === s} onChange={() => { setScope(s); setRegionBlock(""); setHalf(""); }} /> {AD_SCOPE_LABEL[s]}
+                  {meta ? <span style={{ marginLeft: 4, fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{meta.icon} {meta.description}</span> : null}
+                </label>
+              );
+            })}
           </div>
           {scope === "region" ? (
             <Field label="地方ブロック"><select value={regionBlock} onChange={(e) => setRegionBlock(e.target.value)} style={inputStyle}><option value="">選択</option>{regionOptions.map((o) => <option key={o} value={o}>{o}</option>)}</select></Field>
@@ -981,7 +1113,7 @@ function CampaignWizard({
             <Field label="東日本 / 西日本"><select value={half} onChange={(e) => setHalf(e.target.value)} style={inputStyle}><option value="">選択</option>{halfOptions.map((o) => <option key={o} value={o}>{o}</option>)}</select></Field>
           ) : null}
           {scope === "local" ? (
-            <Field label="都道府県"><input value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={inputStyle} placeholder="東京都 など" /></Field>
+            <Field label="都道府県"><select value={prefecture} onChange={(e) => setPrefecture(e.target.value)} style={{ ...inputStyle, appearance: "auto" }}><option value="">選択してください</option>{ALL_PREFECTURES.map((p) => <option key={p} value={p} style={{ color: "#111" }}>{p}</option>)}</select></Field>
           ) : null}
           <div style={{ display: "flex", gap: 10, justifyContent: "space-between", marginTop: 6 }}>
             <SecondaryButton onClick={() => setStep("location")}>戻る</SecondaryButton>
