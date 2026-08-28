@@ -5,6 +5,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
+import { CareerShowcase } from "@/components/career/CareerShowcase";
+import { VP } from "./profile-theme";
 
 interface CareerSectionProps {
     roleColor: string;
@@ -219,88 +221,13 @@ function CareerTab({ role, rl, slug, careerProfile }: {
                     </div>
                 )}
 
-                {careerProfile.stats?.length > 0 && (
-                    <div>
-                        <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
-                            PERFORMANCE SNAPSHOT
-                        </p>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-                            {careerProfile.stats.filter((stat) => stat?.label || stat?.value).map((stat, index) => {
-                                const statColor = stat.color === "gold" ? "#FFD600" : stat.color === "role" ? rl : "rgba(255,255,255,0.88)";
-                                return (
-                                    <div key={`${stat.label}-${index}`} style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                                        <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.26)", marginBottom: 6 }}>{stat.label}</div>
-                                        <div style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: statColor }}>{stat.value || "-"}</div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {careerProfile.episodes?.length > 0 && (
-                    <div>
-                        <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
-                            CAREER HISTORY
-                        </p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {careerProfile.episodes.map((ep, i) => (
-                                <motion.div key={ep.id ?? i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                                    style={{ display: "flex", gap: 12, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                                        <div style={{ width: 20, height: 20, borderRadius: "50%", background: `${rl}18`, border: `1px solid ${rl}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 900, color: rl, fontFamily: "monospace" }}>{i + 1}</div>
-                                        {i < careerProfile.episodes.length - 1 && <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.06)" }} />}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                                            <p style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)", margin: 0 }}>{ep.role}</p>
-                                            {ep.isCurrent && <span style={{ fontSize: 8, fontFamily: "monospace", padding: "1px 6px", borderRadius: 4, background: `${rl}18`, color: rl, letterSpacing: "0.1em" }}>NOW</span>}
-                                        </div>
-                                        {ep.org && <p style={{ fontSize: 11, color: "rgba(255,255,255,0.44)", margin: "0 0 4px" }}>{ep.org}</p>}
-                                        <p style={{ fontSize: 10, fontFamily: "monospace", color: "rgba(255,255,255,0.25)", margin: 0 }}>{ep.period}</p>
-                                        {ep.desc ? <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.62)", margin: "8px 0 0", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{ep.desc}</p> : null}
-                                        {ep.tags?.length ? (
-                                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                                                {ep.tags.map((tag) => (
-                                                    <span key={tag} style={{ padding: "4px 8px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: "rgba(255,255,255,0.55)" }}>
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : null}
-                                        {ep.milestone && (
-                                            <p style={{ fontSize: 11, color: rl, margin: "6px 0 0", padding: "4px 8px", borderRadius: 6, background: `${rl}08`, border: `1px solid ${rl}18`, display: "inline-block" }}>⭐ {ep.milestone}</p>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {careerProfile.skills?.length > 0 && (
-                    <div>
-                        <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", margin: "0 0 10px" }}>
-                            SKILLS
-                        </p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            {careerProfile.skills.map((sk) => (
-                                <div key={sk.name}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                                        <span style={{ fontSize: 12, color: sk.isHighlight ? rl : "rgba(255,255,255,0.55)", fontWeight: sk.isHighlight ? 700 : 400 }}>
-                                            {sk.isHighlight && <span style={{ color: "#FFD600", marginRight: 4 }}>★</span>}{sk.name}
-                                        </span>
-                                        <span style={{ fontSize: 11, fontFamily: "monospace", color: "rgba(255,255,255,0.25)" }}>{sk.level}</span>
-                                    </div>
-                                    <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                                        <motion.div initial={{ width: 0 }} animate={{ width: `${sk.level}%` }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                            style={{ height: "100%", borderRadius: 99, background: sk.isHighlight ? `linear-gradient(90deg, #FFD600, rgba(255,214,0,0.35))` : `linear-gradient(90deg, ${rl}, ${rl}40)` }} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <CareerShowcase
+                    roleColor={rl}
+                    palette={{ surface: VP.surface, border: VP.border, text: VP.text, sub: VP.sub, roleColor: rl }}
+                    stats={careerProfile.stats}
+                    episodes={careerProfile.episodes}
+                    skills={careerProfile.skills}
+                />
 
                 {(careerProfile.cta_title || careerProfile.cta_sub || careerProfile.cta_btn || snsLinks.length > 0) && (
                     <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}22`, display: "flex", flexDirection: "column", gap: 12 }}>

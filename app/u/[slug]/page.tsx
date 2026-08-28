@@ -473,6 +473,23 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </section>
 
+                {/* About / Career / Expertise（Identity Hub — アイデンティティ直後の導入部） */}
+                <Expandable title={publicCareerLabel} summary={profile.sport ?? undefined}>
+                    <CareerSection
+                        roleColor={VP.neon}
+                        bio={profile.bio}
+                        sport={profile.sport}
+                        region={profile.region}
+                        prefecture={profile.prefecture}
+                        joinedAt={joinedAt}
+                        roleLabel={VP_ROLE_LABEL[profile.role]}
+                        cheerCount={profile.cheerCount ?? 0}
+                        isPublic={profile.isPublic}
+                        slug={slug}
+                        careerProfile={careerProfile}
+                    />
+                </Expandable>
+
                 {/* ② 熱量パネル（常時 — メッセージ1）。Bond数はNetworkに一本化 */}
                 <HeatPanel
                     slug={slug}
@@ -558,23 +575,6 @@ export default async function UserProfilePage({ params }: Props) {
                     supporters={supporters}
                 />
                 */}
-
-                {/* Career（段階的開示） */}
-                <Expandable title={publicCareerLabel} summary={profile.sport ?? undefined}>
-                    <CareerSection
-                        roleColor={VP.neon}
-                        bio={profile.bio}
-                        sport={profile.sport}
-                        region={profile.region}
-                        prefecture={profile.prefecture}
-                        joinedAt={joinedAt}
-                        roleLabel={VP_ROLE_LABEL[profile.role]}
-                        cheerCount={profile.cheerCount ?? 0}
-                        isPublic={profile.isPublic}
-                        slug={slug}
-                        careerProfile={careerProfile}
-                    />
-                </Expandable>
 
                 {/* Schedule（段階的開示 — 直近1件はヒーローのチップで既出） */}
                 {publicSchedules.length > 0 ? (

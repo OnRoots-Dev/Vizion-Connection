@@ -1,5 +1,6 @@
 "use client";
 // components/career-wizard/CareerWizardModal.tsx
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useCareerWizard, STEPS, PHASE_LABELS, TOTAL_STEPS } from "@/hooks/useCareerWizard";
@@ -53,6 +54,8 @@ export default function CareerWizardModal({
 
   useWizardAutoSave();
 
+  const [doneError, setDoneError] = useState("");
+
   const color = roleColor();
   const phase = currentPhase();
   const isCompleteStep = currentStepIndex === TOTAL_STEPS;
@@ -75,15 +78,22 @@ export default function CareerWizardModal({
     if (isLastContentStep) {
       const ok = await saveCareerToApi();
       if (!ok) return;
-      // オンボーディング完了をサーバーに通知
+      // オンボーディング完了をサーバーに通知。
+      // 失敗時はリロードせずエラーを表示（リロード→再オープンの無限ループ防止のため）。
       if (onboardingMode) {
         try {
-          await fetch("/api/onboarding/complete", {
+          const res = await fetch("/api/onboarding/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
           });
+          if (!res.ok) {
+            setDoneError("完了の保存に失敗しました。もう一度お試しください。");
+            return;
+          }
         } catch {
-          // ネットワークエラーでも照样完了扱い（次回ログインで再表示されるだけ）
+          setDoneError("ネットワークエラーが発生しました。もう一度お試しください。");
+          return;
         }
       }
       onCompleted?.();
@@ -290,7 +300,13 @@ export default function CareerWizardModal({
 
           {/* Footer */}
           {!isCompleteStep && (
-            <div className="relative z-10 px-5 pt-3 pb-5 flex-shrink-0 flex items-center gap-3"
+            <>
+              {doneError && (
+                <p className="relative z-10 mx-5 mb-1 text-center text-xs font-medium" style={{ color: "rgba(255,120,120,0.9)" }}>
+                  {doneError}
+                </p>
+              )}
+              <div className="relative z-10 px-5 pt-3 pb-5 flex-shrink-0 flex items-center gap-3"
               style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <button onClick={prevStep} disabled={isFirstStep}
                 className="flex items-center gap-1.5 px-4 py-3 rounded-xl border font-semibold text-[12px] transition-all disabled:opacity-20 disabled:pointer-events-none"
@@ -335,7 +351,8 @@ export default function CareerWizardModal({
                   </>
                 )}
               </motion.button>
-            </div>
+              </div>
+              </>
           )}
 
           {/* Episode sub-modal */}

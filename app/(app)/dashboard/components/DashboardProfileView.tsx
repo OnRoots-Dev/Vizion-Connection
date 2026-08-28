@@ -16,6 +16,7 @@ import ShareButtonClient from "@/components/profile/ShareButtonClient";
 import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { computeStreak } from "@/lib/pulse-stats";
+import { CareerShowcase } from "@/components/career/CareerShowcase";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
@@ -260,9 +261,13 @@ export function DashboardProfileView({
         <>
           {careerProfile?.tagline ? <div style={{ borderRadius: 18, border: `1px solid ${roleColor}28`, background: `${roleColor}10`, padding: "14px 16px", fontSize: 14, fontWeight: 800, color: roleColor }}>{careerProfile.tagline}</div> : null}
           {careerProfile?.bio_career ? <TextPanel text={careerProfile.bio_career} t={t} /> : null}
-          {careerStats.length > 0 ? <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>{careerStats.map((stat, i) => <FactCard key={`${stat.label}-${i}`} label={stat.label} value={stat.value || "-"} color={stat.color === "gold" ? "#FFD600" : stat.color === "role" ? roleColor : t.text} t={t} />)}</div> : null}
-          {careerEpisodes.length > 0 ? <div style={{ display: "grid", gap: 10 }}>{careerEpisodes.map((ep, i) => <EpisodeCard key={ep.id ?? i} episode={ep} roleColor={roleColor} t={t} />)}</div> : null}
-          {careerSkills.length > 0 ? <SkillPanel skills={careerSkills} roleColor={roleColor} t={t} /> : null}
+          <CareerShowcase
+            roleColor={roleColor}
+            palette={{ surface: t.surface, border: t.border, text: t.text, sub: t.sub, roleColor }}
+            stats={careerProfile?.stats}
+            episodes={careerProfile?.episodes}
+            skills={careerProfile?.skills}
+          />
         </>
       ) : (
         <EmptyPanel text="キャリアの公開内容はまだ未登録です。キャッチコピー、実績、スキルから先に入力しておくと公開プロフィールが締まります。" t={t} />
@@ -441,6 +446,10 @@ export function DashboardProfileView({
                 <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,210,0,0.52)" }}>Cheer</p>
                 <p style={{ margin: "4px 0 0", fontSize: 32, fontWeight: 900, lineHeight: 1, fontFamily: "monospace", color: "#FFD600" }}>{(profile.cheerCount ?? 0).toLocaleString()}</p>
               </div>
+              <div>
+                <p style={{ margin: 0, fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,255,255,0.42)" }}>Points</p>
+                <p style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, lineHeight: 1, fontFamily: "monospace", color: "rgba(255,255,255,0.85)" }}>{(profile.points ?? 0).toLocaleString()}</p>
+              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginLeft: isSingleColumn ? 0 : "auto", alignItems: isSingleColumn ? "flex-start" : "flex-end", minWidth: isSingleColumn ? "auto" : 280 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: isSingleColumn ? "flex-start" : "flex-end" }}>
                   {snsLinks.length > 0 ? (
@@ -551,6 +560,12 @@ export function DashboardProfileView({
               {(profile.cheerCount ?? 0).toLocaleString()}
             </p>
             <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>CHEER</p>
+          </div>
+          <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: "1px solid rgba(255,214,0,0.22)", background: "rgba(255,214,0,0.05)" }}>
+            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "#FFD600", lineHeight: 1 }}>
+              {(profile.points ?? 0).toLocaleString()}
+            </p>
+            <p style={{ margin: "6px 0 0", fontFamily: "monospace", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>POINTS</p>
           </div>
           <div style={{ textAlign: "center", padding: "12px 8px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
             <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
@@ -671,44 +686,6 @@ function PortfolioLine({ label, value, t }: { label: string; value: string; t: T
     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
       <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub, letterSpacing: "0.16em", textTransform: "uppercase" }}>{label}</span>
       <span style={{ fontSize: 12, fontWeight: 800, color: t.text, textAlign: "right" }}>{value}</span>
-    </div>
-  );
-}
-
-function EpisodeCard({ episode, roleColor, t }: { episode: NonNullable<CareerProfileRow["episodes"]>[number]; roleColor: string; t: ThemeColors }) {
-  return (
-    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "15px 16px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: t.text }}>{episode.role}</p>
-          <p style={{ margin: "5px 0 0", fontSize: 11, color: t.sub }}>{episode.org}</p>
-        </div>
-        <span style={{ padding: "4px 8px", borderRadius: 999, border: `1px solid ${t.border}`, background: `${roleColor}10`, color: roleColor, fontSize: 10, fontWeight: 800, fontFamily: "monospace" }}>{episode.period}</span>
-      </div>
-      {episode.desc ? <p style={{ margin: "10px 0 0", fontSize: 12, color: t.sub, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{episode.desc}</p> : null}
-      {episode.tags?.length ? <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>{episode.tags.map((tag) => <span key={tag} style={{ padding: "5px 9px", borderRadius: 999, border: `1px solid ${t.border}`, background: t.text === "#111111" ? "rgba(17,17,17,0.02)" : "rgba(255,255,255,0.02)", color: t.sub, fontSize: 10 }}>{tag}</span>)}</div> : null}
-      {episode.milestone ? <p style={{ margin: "10px 0 0", fontSize: 11, fontWeight: 800, color: roleColor }}>★ {episode.milestone}</p> : null}
-    </div>
-  );
-}
-
-function SkillPanel({ skills, roleColor, t }: { skills: NonNullable<CareerProfileRow["skills"]>; roleColor: string; t: ThemeColors }) {
-  return (
-    <div style={{ borderRadius: 18, border: `1px solid ${t.border}`, background: t.surface, padding: "16px 18px" }}>
-      <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Skills</p>
-      <div style={{ display: "grid", gap: 10 }}>
-        {skills.map((skill) => (
-          <div key={skill.name}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 5 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: skill.isHighlight ? roleColor : t.text }}>{skill.name}</span>
-              <span style={{ fontSize: 10, fontFamily: "monospace", color: t.sub }}>{skill.level}</span>
-            </div>
-            <div style={{ height: 6, borderRadius: 999, background: t.border, overflow: "hidden" }}>
-              <div style={{ width: `${skill.level}%`, height: "100%", borderRadius: 999, background: skill.isHighlight ? "linear-gradient(90deg,#FFD600,#FFD60088)" : `linear-gradient(90deg, ${roleColor}, ${roleColor}88)` }} />
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

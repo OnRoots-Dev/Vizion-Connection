@@ -23,17 +23,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (minLat >= maxLat || minLng >= maxLng) {
         return NextResponse.json({ success: false, error: "bboxの指定が不正です" }, { status: 400 });
     }
+    if (minLat < -90 || maxLat > 90 || minLng < -180 || maxLng > 180) {
+        return NextResponse.json({ success: false, error: "bboxの指定が不正です" }, { status: 400 });
+    }
     // 世界規模のクエリを防ぐ（MVPは日本国内想定の段階的取得）
     if (maxLat - minLat > 30 || maxLng - minLng > 40) {
         return NextResponse.json({ success: false, error: "範囲が広すぎます。ズームしてください" }, { status: 400 });
     }
 
+    // Existing callers without an explicit type retain the original Activity-only response.
+    const requestedType = sp.get("type") ?? "activity";
+    if (!["activity", "moment", "all"].includes(requestedType)) {
+        return NextResponse.json({ success: false, error: "typeの指定が不正です" }, { status: 400 });
+    }
     const activities = await listPublicMapActivities(
         { minLat, maxLat, minLng, maxLng },
         { limit: Math.min(Number(sp.get("limit")) || 200, 500) },
     );
-    // Existing callers without an explicit type retain the original Activity-only response.
-    const requestedType = sp.get("type") ?? "activity";
     const moments = requestedType === "activity" ? [] : await listPublicMapMoments(activities);
     const items = requestedType === "moment" ? moments : [...activities, ...moments];
 

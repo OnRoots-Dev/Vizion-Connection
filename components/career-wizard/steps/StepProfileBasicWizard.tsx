@@ -2,8 +2,11 @@
 
 import { Field, StepHeader, WizardInput, WizardSelect, WizardTextarea } from "@/components/career-wizard/WizardUI";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
+import { ROLE_CONFIG } from "@/types/career";
+import type { UserRole } from "@/types/career";
 
 export default function StepProfileBasicWizard() {
+  const role = useCareerWizard((s) => s.data.role) as UserRole | "";
   const displayName = useCareerWizard((s) => s.data.displayName);
   const bio = useCareerWizard((s) => s.data.bio);
   const region = useCareerWizard((s) => s.data.region);
@@ -16,12 +19,20 @@ export default function StepProfileBasicWizard() {
   const tiktok = useCareerWizard((s) => s.data.tiktok);
   const setField = useCareerWizard((s) => s.setField);
 
+  const cfg = ROLE_CONFIG[(role || "Athlete") as UserRole];
+  const isSportRole = role === "Athlete" || role === "Trainer";
+  const sportTitle = cfg.sportLabel; // 例：アスリート「競技・スポーツ」/ Business「業界・職種」/ Crew「応援・活動」
+  const stanceLabel =
+    role === "Business" ? "ビジネスステージ" :
+    role === "Crew" ? "関わり方" :
+    role === "Trainer" ? "提供スタイル" : "ポジション・スタイル";
+
   return (
     <div>
       <StepHeader
         eyebrow="PROFILE"
         title="プロフィール情報"
-        hint="基本情報を入力してください（あとで変更できます）"
+        hint={cfg ? `${cfg.labelJa}としての登録内容を入力してください（あとで変更できます）` : "基本情報を入力してください（あとで変更できます）"}
       />
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -119,36 +130,26 @@ export default function StepProfileBasicWizard() {
       </div>
 
       <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-        <p className="text-sm font-black text-white mb-3">競技・活動</p>
+        <p className="text-sm font-black text-white mb-3">{sportTitle}</p>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Field label="sportsCategory">
-            <WizardSelect value={sportsCategory} onChange={(v) => setField("sportsCategory", v)}>
-              <option value="">選択してください</option>
-              {["球技", "格闘技", "陸上", "水泳", "体操", "ウィンタースポーツ", "その他"].map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </WizardSelect>
-          </Field>
+          {isSportRole && (
+            <Field label="sportsCategory">
+              <WizardSelect value={sportsCategory} onChange={(v) => setField("sportsCategory", v)}>
+                <option value="">選択してください</option>
+                {["球技", "格闘技", "陸上", "水泳", "体操", "ウィンタースポーツ", "その他"].map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </WizardSelect>
+            </Field>
+          )}
 
           <Field label="sport">
             <WizardSelect value={sport} onChange={(v) => setField("sportProfile", v)}>
               <option value="">選択してください</option>
-              {[
-                "サッカー",
-                "野球",
-                "バスケットボール",
-                "バレーボール",
-                "テニス",
-                "ゴルフ",
-                "ラグビー",
-                "陸上",
-                "水泳",
-                "格闘技",
-                "その他",
-              ].map((v) => (
+              {cfg.sportOptions.map((v) => (
                 <option key={v} value={v}>
                   {v}
                 </option>
@@ -156,7 +157,7 @@ export default function StepProfileBasicWizard() {
             </WizardSelect>
           </Field>
 
-          <Field label="stance">
+          <Field label={stanceLabel}>
             <WizardSelect value={stance} onChange={(v) => setField("stance", v)}>
               <option value="">選択してください</option>
               {[

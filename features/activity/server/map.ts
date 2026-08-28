@@ -14,9 +14,12 @@ export interface MapActivityItem {
     author_slug: string | null;
     author_name: string | null;
     author_role: "Athlete" | "Trainer" | "Crew" | "Business" | "Admin" | null;
+    author_avatar_url: string | null;
+    author_sponsor_plan: "roots" | "signal" | "presence" | "legacy" | null;
     /** Activity または、位置を親Activityから引き継いだ公開Moment。 */
     entity_type: "activity" | "moment";
     image_url?: string | null;
+    comment_count?: number;
     place: {
         id: string;
         name: string;
@@ -47,7 +50,7 @@ export async function listPublicMapActivities(
         .select(
             `id,type,title,description,starts_at,status,place_id,user_id,
              place:places!inner(id,name,prefecture,latitude,longitude,precision,place_type),
-             owner:users!inner(slug,display_name,role,is_public,is_deleted)`,
+             owner:users!inner(slug,display_name,avatar_url,role,sponsor_plan,is_public,is_deleted)`,
         )
         .eq("visibility", "public")
         .eq("status", "planned") // 完了・中止はMapに載せない（段階的取得）
@@ -73,7 +76,7 @@ export async function listPublicMapActivities(
         user_id: number;
         place_id: string | null;
         place: MapActivityItem["place"] | null;
-        owner: { slug: string; display_name: string | null; role: MapActivityItem["author_role"]; is_public: boolean; is_deleted: boolean } | null;
+        owner: { slug: string; display_name: string | null; avatar_url: string | null; role: MapActivityItem["author_role"]; sponsor_plan: MapActivityItem["author_sponsor_plan"]; is_public: boolean; is_deleted: boolean } | null;
     };
 
     return ((data ?? []) as unknown as Row[])
@@ -89,6 +92,8 @@ export async function listPublicMapActivities(
             author_slug: row.owner!.slug,
             author_name: row.owner!.display_name,
             author_role: row.owner!.role,
+            author_avatar_url: row.owner!.avatar_url,
+            author_sponsor_plan: row.owner!.sponsor_plan,
             entity_type: "activity",
             place: row.place as NonNullable<Row["place"]>,
         }));
@@ -102,7 +107,7 @@ export async function listPublicMapMoments(activityItems: MapActivityItem[], lim
     const byActivity = new Map(activityItems.map((item) => [item.id, item]));
     const { data, error } = await supabaseServer
         .from("moments")
-        .select("id,activity_id,body,image_url,created_at,user_id,owner:users!inner(slug,display_name,role,is_public,is_deleted)")
+        .select("id,activity_id,body,image_url,comment_count,created_at,user_id,owner:users!inner(slug,display_name,avatar_url,role,sponsor_plan,is_public,is_deleted)")
         .eq("visibility", "public")
         .in("activity_id", activityIds)
         .order("created_at", { ascending: false })
@@ -114,8 +119,8 @@ export async function listPublicMapMoments(activityItems: MapActivityItem[], lim
     }
 
     type Row = {
-        id: string; activity_id: string; body: string; image_url: string | null; created_at: string; user_id: number;
-        owner: { slug: string; display_name: string | null; role: MapActivityItem["author_role"]; is_public: boolean; is_deleted: boolean } | null;
+        id: string; activity_id: string; body: string; image_url: string | null; comment_count: number; created_at: string; user_id: number;
+        owner: { slug: string; display_name: string | null; avatar_url: string | null; role: MapActivityItem["author_role"]; sponsor_plan: MapActivityItem["author_sponsor_plan"]; is_public: boolean; is_deleted: boolean } | null;
     };
     return ((data ?? []) as unknown as Row[]).flatMap((row) => {
         const activity = byActivity.get(row.activity_id);
@@ -131,8 +136,11 @@ export async function listPublicMapMoments(activityItems: MapActivityItem[], lim
             author_slug: row.owner.slug,
             author_name: row.owner.display_name,
             author_role: row.owner.role,
+            author_avatar_url: row.owner.avatar_url,
+            author_sponsor_plan: row.owner.sponsor_plan,
             entity_type: "moment" as const,
             image_url: row.image_url,
+            comment_count: row.comment_count,
         }];
     });
 }
