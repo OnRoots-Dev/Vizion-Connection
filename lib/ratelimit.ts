@@ -78,6 +78,11 @@ export const businessCompleteLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(20, "1 h"), prefix: "rl:business-complete",
 }), "business-complete");
 
+// Business Monetization P0（Hub / Locations / Campaigns）：1分に30回
+export const monetizeLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "rl:monetize",
+}), "monetize");
+
 // ミッション：1時間に5回
 export const missionLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(5, "1 h"), prefix: "rl:mission",

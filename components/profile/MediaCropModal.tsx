@@ -125,20 +125,11 @@ export default function MediaCropModal({
                             transition={{ type: "spring", stiffness: 260, damping: 26 }}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                            <div className="border-b border-white/10 px-4 py-3">
                                 <div className="min-w-0">
                                     <p className="m-0 font-mono text-[10px] font-extrabold uppercase tracking-[0.22em] text-white/35">{eyebrow}</p>
                                     <p className="m-0 text-[14px] font-black text-white">{title}</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    disabled={busy}
-                                    aria-label="閉じる"
-                                    className="rounded-xl border border-white/10 bg-transparent px-3 py-2 text-[12px] font-black text-white/70 disabled:opacity-60"
-                                >
-                                    キャンセル
-                                </button>
                             </div>
 
                             {/* クロップ領域 */}
@@ -204,12 +195,13 @@ export default function MediaCropModal({
                                     </div>
                                 ) : null}
 
-                                <div className="flex gap-2">
+                                {/* 確定ステップの操作はこの1行だけに集約する。狭い画面でも折返さず重ならない。 */}
+                                <div className="flex flex-nowrap items-stretch gap-2">
                                     <button
                                         type="button"
                                         onClick={onClose}
                                         disabled={busy}
-                                        className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-white/75 disabled:opacity-60"
+                                        className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm font-black text-white/75 disabled:opacity-60 sm:px-4"
                                     >
                                         キャンセル
                                     </button>
@@ -217,7 +209,7 @@ export default function MediaCropModal({
                                         type="button"
                                         onClick={() => void handleSave()}
                                         disabled={busy || !area || loading}
-                                        className="flex-1 rounded-xl px-4 py-3 text-sm font-black text-black disabled:opacity-60"
+                                        className="min-w-0 flex-1 rounded-xl px-3 py-3 text-sm font-black text-black disabled:opacity-60 sm:px-4"
                                         style={{ background: accentColor }}
                                     >
                                         {busy ? "保存中..." : "この画像にする"}
