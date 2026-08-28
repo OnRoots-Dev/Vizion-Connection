@@ -719,7 +719,7 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
 // scopeターゲティング・プラン優先順位・ローテーションはserver側で判定
 // （Clientから表示可否を迂回できない）。
 // ─────────────────────────────────────────────────────────────
-export interface PublicAd extends ActiveCampaignWithBusiness {}
+export type PublicAd = ActiveCampaignWithBusiness;
 
 const AD_PLAN_PRIORITY: Record<string, number> = {
   ENTERPRISE: 0,

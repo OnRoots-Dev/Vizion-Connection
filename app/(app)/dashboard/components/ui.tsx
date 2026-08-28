@@ -63,25 +63,11 @@ export function SectionCard({
                 boxShadow: card.boxShadowRest,
                 willChange: "transform, box-shadow",
             }}
-            // 出現: 直前の presentation から target へ（再ターゲット可能）
+            // 情報表示用コンテナはインタラクティブ操作をしないため、hover/press の浮き・拡大は付けない。
+            // （項目選択が必要な場合は呼び出し側で selectable な子要素を用意する）
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0, boxShadow: card.boxShadowRest }}
             transition={reduce ? fadeReduced : hoverSpring}
-            whileHover={
-                reduce
-                    ? undefined
-                    : {
-                          y: card.hoverY,
-                          scale: card.hoverScale,
-                          boxShadow: card.boxShadowHover,
-                      }
-            }
-            // hover 中の割込みも spring で現在値から戻る
-            whileTap={
-                reduce
-                    ? undefined
-                    : { y: Math.min(0, card.hoverY / 2), scale: INTERACTION.press.scale }
-            }
         >
             {accentColor && (
                 <div

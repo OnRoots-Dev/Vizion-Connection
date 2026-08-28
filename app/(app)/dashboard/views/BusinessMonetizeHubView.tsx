@@ -80,8 +80,14 @@ const inputStyle: React.CSSProperties = {
   outline: "none",
 };
 
-/** 全インタラクティブ要素にfocus-visibleリング（キーボード操作の可視化） */
-const focusRing = `:focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 2px; border-radius: 10px; }`;
+/** 全インタラクティブ要素にfocus-visibleリング（キーボード操作の可視化）+ 選択可能カードのhover状態 */
+const viewStyles = `
+:focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 2px; border-radius: 10px; }
+.vc-interactive { cursor: pointer; }
+.vc-interactive:not(:disabled):hover { border-color: ${ACCENT}55 !important; }
+.vc-interactive:not(:disabled):active { transform: translateY(1px); }
+.vc-interactive:disabled { opacity: 0.45; cursor: not-allowed !important; }
+`;
 
 /** Business店舗登録用の住所検索（Mapbox Geocodingを再利用）。緯度経度は自動設定される。 */
 function LocationGeocoder({
@@ -159,6 +165,126 @@ function LocationGeocoder({
   );
 }
 
+/** 広告メディア（画像・動画）のアップロードUI。URL直接入力はせず、ファイル選択→Storage→URLを返す。 */
+function MediaUploader({
+  kind,
+  value,
+  onChange,
+}: {
+  kind: "image" | "video";
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const isImage = kind === "image";
+  const accept = isImage ? "image/*" : "video/*";
+  const limitText = isImage ? "JPEG / PNG / WebP / GIF / AVIF（8MBまで）" : "MP4 / WebM / MOV（60MBまで）";
+
+  const upload = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("kind", kind);
+      fd.append("file", file);
+      const res = await fetch("/api/business-monetize/campaigns/upload", { method: "POST", body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success || typeof json.url !== "string") {
+        throw new Error(typeof json.error === "string" ? json.error : "アップロードに失敗しました");
+      }
+      onChange(json.url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "アップロードに失敗しました");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return;
+    void upload(file);
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={isImage ? "画像をアップロード" : "動画をアップロード"}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); onFile(e.dataTransfer.files?.[0]); }}
+        style={{
+          border: `1.5px dashed ${dragging ? ACCENT : "rgba(255,255,255,0.25)"}`,
+          borderRadius: 16,
+          padding: 18,
+          textAlign: "center",
+          background: dragging ? `${ACCENT}10` : "rgba(255,255,255,0.02)",
+          color: "rgba(255,255,255,0.6)",
+          fontSize: 12,
+          cursor: "pointer",
+        }}
+      >
+        {uploading ? (
+          <span style={{ color: ACCENT, fontWeight: 700 }}>{isImage ? "画像をアップロード中..." : "動画をアップロード中..."}</span>
+        ) : value ? (
+          <span style={{ color: "#3ddc97", fontWeight: 700 }}>✓ {isImage ? "画像" : "動画"}を選択済み（クリックで変更）</span>
+        ) : (
+          <>
+            <div style={{ fontWeight: 700, color: "#f0f0f5" }}>{isImage ? "画像を選択" : "動画を選択"}</div>
+            <div style={{ marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.45)" }}>{limitText}</div>
+            <div style={{ marginTop: 4, fontSize: 10, color: "rgba(255,255,255,0.35)" }}>クリックして選択、またはファイルをドラッグ＆ドロップ</div>
+          </>
+        )}
+        <input ref={inputRef} type="file" accept={accept} style={{ display: "none" }} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
+      </div>
+
+      {value ? (
+        <div style={{ display: "grid", gap: 6 }}>
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "#000" }}>
+            {isImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={value} alt="広告画像プレビュー" style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+            ) : (
+              <video src={value} controls muted playsInline style={{ width: "100%", maxHeight: 200, display: "block" }} />
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => { onChange(""); if (inputRef.current) inputRef.current.value = ""; }}
+            style={{ fontSize: 11, color: "#ff9a9a", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: "2px 0" }}
+          >
+            削除
+          </button>
+        </div>
+      ) : null}
+
+      {error ? <div style={{ fontSize: 11, color: "#ff9a9a" }}>{error}</div> : null}
+    </div>
+  );
+}
+
+/** 位置の視覚確認用：Mapbox Static Images API で座標周辺の地図画像を表示（座標の生値はUIに表示しない） */
+function StaticMapPreview({ lat, lng }: { lat: number; lng: number }) {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const src = token
+    ? `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+00BFA5(${lng},${lat})/${lng},${lat},16/640x260@2x?access_token=${encodeURIComponent(token)}`
+    : null;
+  if (!src) return null;
+  return (
+    <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="登録位置の地図" style={{ width: "100%", display: "block" }} />
+    </div>
+  );
+}
+
 function PlanCard({
   plan,
   current,
@@ -171,6 +297,7 @@ function PlanCard({
   return (
     <button
       type="button"
+      className="vc-interactive"
       onClick={() => onSelect(plan.id)}
       style={{
         width: "100%",
@@ -282,7 +409,7 @@ export function BusinessMonetizeHubView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <style>{focusRing}</style>
+      <style>{viewStyles}</style>
       <ViewHeader title="Business Monetize" sub="広告プラン・店舗・キャンペーンを一元管理" onBack={() => setView("home")} t={t} roleColor={ACCENT} />
 
       {error ? (
@@ -600,6 +727,9 @@ function LocationsSection({
   const [saving, setSaving] = useState(false);
   const [searchAddress, setSearchAddress] = useState("");
   const [hosting, setHosting] = useState(false);
+  const [postcode, setPostcode] = useState("");
+  const [zipLoading, setZipLoading] = useState(false);
+  const [zipError, setZipError] = useState<string | null>(null);
 
   const startEdit = (loc: BusinessLocationRecord) => {
     setEditingId(loc.id);
@@ -613,6 +743,8 @@ function LocationsSection({
     });
     setSearchAddress(loc.address ?? "");
     setCoords({ lat: loc.latitude, lng: loc.longitude });
+    setPostcode("");
+    setZipError(null);
     setShowForm(true);
   };
 
@@ -621,12 +753,43 @@ function LocationsSection({
     setEditingId(null);
     setSearchAddress("");
     setCoords(null);
+    setPostcode("");
+    setZipError(null);
     setShowForm(false);
   };
 
   const pick = (lat: number, lng: number, prefecture: string | null) => {
     setCoords({ lat, lng });
     if (prefecture) setForm((f) => ({ ...f, prefecture }));
+  };
+
+  // 郵便番号→都道府県・市区町村の自動補完（番地・建物はユーザーが追記）
+  const searchZipcode = async () => {
+    const digits = postcode.replace(/\D/g, "");
+    if (digits.length !== 7) {
+      setZipError("郵便番号は7桁（例: 2200000）で入力してください");
+      return;
+    }
+    setZipLoading(true);
+    setZipError(null);
+    try {
+      const res = await fetch(`/api/business-monetize/zipcode?zipcode=${digits}`, { cache: "no-store" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        throw new Error(typeof json.error === "string" ? json.error : "住所の検索に失敗しました");
+      }
+      const m = (json as { match?: { prefecture: string | null; city: string | null; town: string | null } }).match;
+      const cityPart = [m?.city, m?.town].filter(Boolean).join("");
+      setForm((f) => ({
+        ...f,
+        prefecture: m?.prefecture || f.prefecture,
+        address: cityPart ? (f.address && !f.address.includes(cityPart) ? `${cityPart}${f.address.slice(0, 40)}` : cityPart) : f.address,
+      }));
+    } catch (e) {
+      setZipError(e instanceof Error ? e.message : "住所の検索に失敗しました");
+    } finally {
+      setZipLoading(false);
+    }
   };
 
   const submit = async () => {
@@ -681,7 +844,7 @@ function LocationsSection({
               多店舗（親子）構造で店舗を登録します。住所検索で自動的にMap Pinの座標が設定されます。
             </p>
           </div>
-          <SecondaryButton onClick={() => { if (showForm) reset(); else { setForm(emptyLocationForm); setEditingId(null); setCoords(null); setSearchAddress(""); setShowForm(true); } }}>
+          <SecondaryButton onClick={() => { if (showForm) reset(); else { setForm(emptyLocationForm); setEditingId(null); setCoords(null); setSearchAddress(""); setPostcode(""); setZipError(null); setShowForm(true); } }}>
             {showForm ? "閉じる" : "店舗を追加"}
           </SecondaryButton>
         </div>
@@ -691,18 +854,17 @@ function LocationsSection({
         <SectionCard t={t} accentColor={ACCENT}>
           <SLabel text={editingId ? "Edit Location" : "New Location"} color={ACCENT} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10, marginTop: 12 }}>
-            <Field label="店舗名">
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} placeholder="例）Vizion 渋谷店" />
+            <Field label="① 郵便番号">
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={postcode} onChange={(e) => { setPostcode(e.target.value); setZipError(null); }} style={inputStyle} placeholder="例）2200000（7桁）" inputMode="numeric" />
+                <SecondaryButton onClick={() => void searchZipcode()} disabled={zipLoading} style={{ whiteSpace: "nowrap" }}>
+                  {zipLoading ? "検索中..." : "住所を検索"}
+                </SecondaryButton>
+              </div>
+              {zipError ? <div style={{ fontSize: 11, color: "#ff9a9a", marginTop: 4 }}>{zipError}</div> : null}
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>郵便番号から都道府県・市区町村を自動入力できます。番地などは次で微調整します。</div>
             </Field>
-            <Field label="住所（検索して位置を自動設定）">
-              <LocationGeocoder address={searchAddress} onAddress={(v) => { setSearchAddress(v); setForm((f) => ({ ...f, address: v })); }} onPick={pick} />
-              {coords ? (
-                <div style={{ fontSize: 11, color: "#3ddc97", marginTop: 4 }}>✓ 位置を設定しました（{coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}）</div>
-              ) : (
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>住所を入力し、候補から選択してください。</div>
-              )}
-            </Field>
-            <Field label="都道府県">
+            <Field label="② 都道府県">
               <select
                 value={form.prefecture}
                 onChange={(e) => setForm({ ...form, prefecture: e.target.value })}
@@ -714,6 +876,23 @@ function LocationsSection({
                 ))}
               </select>
             </Field>
+            <Field label="③ 市区町村・番地（住所から位置を自動設定）">
+              <LocationGeocoder address={searchAddress} onAddress={(v) => { setSearchAddress(v); setForm((f) => ({ ...f, address: v })); }} onPick={pick} />
+              {coords ? (
+                <div style={{ fontSize: 11, color: "#3ddc97", marginTop: 4 }}>✓ 位置を設定しました</div>
+              ) : (
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>住所を入力し、候補から選択してください。</div>
+              )}
+            </Field>
+            <Field label="④ 建物名・店舗名">
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={inputStyle} placeholder="例）Vizion 渋谷店 1F" />
+            </Field>
+            {coords ? (
+              <Field label="⑤ 地図上の位置確認">
+                <StaticMapPreview lat={coords.lat} lng={coords.lng} />
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>位置がずれている場合は、住所の候補を選び直すか③の住所で再検索してください。</div>
+              </Field>
+            ) : null}
             <Field label="営業時間">
               <input value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} style={inputStyle} />
             </Field>
@@ -1031,7 +1210,7 @@ function CampaignWizard({
           {CAMPAIGN_TYPES.map((ct) => {
             const allowed = allowedTypes.includes(ct.id);
             return (
-              <button key={ct.id} type="button" onClick={() => { setType(ct.id); setStep("creative"); }} disabled={!allowed}
+              <button key={ct.id} type="button" className="vc-interactive" onClick={() => { setType(ct.id); setStep("creative"); }} disabled={!allowed}
                 style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: 14, borderRadius: 14, border: `1px solid ${type === ct.id ? `${ACCENT}50` : "rgba(255,255,255,0.1)"}`, background: type === ct.id ? `${ACCENT}12` : "rgba(255,255,255,0.025)", color: "#f0f0f5", cursor: allowed ? "pointer" : "not-allowed", opacity: allowed ? 1 : 0.4 }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 800 }}>{ct.label}</div>
@@ -1053,9 +1232,13 @@ function CampaignWizard({
           <Field label="説明">
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} placeholder="広告本文" />
           </Field>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <Field label="画像URL"><input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} style={inputStyle} placeholder="https://..." /></Field>
-            <Field label="動画URL"><input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} style={inputStyle} placeholder="https://..." /></Field>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+            <Field label="広告画像">
+              <MediaUploader kind="image" value={imageUrl} onChange={setImageUrl} />
+            </Field>
+            <Field label="広告動画（任意）">
+              <MediaUploader kind="video" value={videoUrl} onChange={setVideoUrl} />
+            </Field>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <Field label="CTA文言"><input value={ctaText} onChange={(e) => setCtaText(e.target.value)} style={inputStyle} placeholder="詳しく見る" /></Field>
@@ -1121,13 +1304,29 @@ function CampaignWizard({
           </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "grid", gap: 12 }}>
           <div style={{ padding: 16, borderRadius: 16, border: `1px solid ${ACCENT}35`, background: `linear-gradient(145deg, ${ACCENT}12, rgba(255,255,255,0.02))` }}>
+            {(imageUrl || videoUrl) ? (
+              <div style={{ marginBottom: 12 }}>
+                {imageUrl ? (
+                  <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "#000" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imageUrl} alt="広告画像" style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }} />
+                  </div>
+                ) : null}
+                {videoUrl ? (
+                  <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "#000" }}>
+                    <video src={videoUrl} controls muted playsInline style={{ width: "100%", maxHeight: 220, display: "block" }} />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 14, fontWeight: 900, color: "#f0f0f5" }}>{title}</span>
               <TypeBadge type={type} />
             </div>
             {description ? <p style={{ margin: "8px 0 0", fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>{description}</p> : null}
+            {ctaText ? <div style={{ marginTop: 8, fontSize: 11, color: ACCENT, fontWeight: 700 }}>{ctaText}{ctaUrl ? `（${ctaUrl}）` : ""}</div> : null}
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
               <span>配信範囲: <b style={{ color: ACCENT }}>{AD_SCOPE_LABEL[scope]}</b>
                 {scope === "region" ? ` / ${regionBlock}` : scope === "half" ? ` / ${half}` : scope === "local" ? ` / ${prefecture}` : ""}
@@ -1135,8 +1334,11 @@ function CampaignWizard({
               <span>対象店舗: {locationTarget === "specific" ? locations.find((l) => l.id === locationId)?.name ?? "選択店舗" : "全店舗"}</span>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "space-between", marginTop: 6 }}>
-            <SecondaryButton onClick={() => setStep("scope")}>戻る</SecondaryButton>
+          <div style={{ display: "flex", gap: 10, justifyContent: "space-between", marginTop: 6, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <SecondaryButton onClick={() => setStep("creative")}>内容・メディアを変更</SecondaryButton>
+              <SecondaryButton onClick={() => setStep("scope")}>範囲を変更</SecondaryButton>
+            </div>
             <PrimaryButton onClick={() => void submit()} disabled={submitting}>{submitting ? "作成中..." : "下書きとして作成"}</PrimaryButton>
           </div>
         </div>
