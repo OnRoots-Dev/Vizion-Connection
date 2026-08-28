@@ -23,14 +23,13 @@ export const STEPS = [
   { id: "stats",         label: "数値実績",        phase: 1, skippable: true  },
   { id: "episodes",      label: "年表",            phase: 1, skippable: true  },
   { id: "skills",        label: "スキル",          phase: 2, skippable: true  },
-  { id: "contact",       label: "リンクボタン設定", phase: 2, skippable: true  },
-  { id: "career_media",  label: "キャリア画像",    phase: 2, skippable: true  },
+  { id: "contact",       label: "外部リンク",      phase: 2, skippable: true  },
   { id: "complete",      label: "完成",            phase: 2, skippable: false },
 ] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
 export const PHASE_LABELS = ["基本設定", "キャリア詳細", "スキル・仕上げ"];
-export const TOTAL_STEPS = STEPS.length - 1; // "complete" は index 8
+export const TOTAL_STEPS = STEPS.length - 1; // "complete" は最後の index
 
 // ─── Initial state ─────────────────────────────────────────
 

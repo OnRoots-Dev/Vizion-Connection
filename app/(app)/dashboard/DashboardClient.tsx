@@ -28,7 +28,6 @@ import { ContactView } from "./views/ContactView";
 import { CollectionsView } from "./views/CollectionsView";
 import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 import { Day0WelcomeModal } from "./components/Day0WelcomeModal";
-import { BottomNav } from "./components/bottom-nav/BottomNav";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
 import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
@@ -461,7 +460,7 @@ export default function DashboardClient({
                             </div>
                         )}
 
-                        <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(80px + env(safe-area-inset-bottom))" : "32px 24px" }}>
+                        <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(24px + env(safe-area-inset-bottom))" : "32px 24px" }}>
                             <AnimatePresence mode="wait">
                                 <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}
@@ -471,18 +470,6 @@ export default function DashboardClient({
                     </main>
 
                 </div>
-
-                {isMobile && (
-                    <BottomNav
-                        role={profile.role}
-                        view={view}
-                        setView={handleMenuSetView}
-                        t={t}
-                        theme={theme}
-                        roleColor={roleColor}
-                        notificationUnreadCount={notificationUnreadCount}
-                    />
-                )}
             </div>
         </>
     );

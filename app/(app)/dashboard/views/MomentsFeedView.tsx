@@ -31,6 +31,7 @@ export function MomentsFeedView({
     const [error, setError] = useState("");
     const [items, setItems] = useState<MomentFeedItem[]>([]);
     const [connections, setConnections] = useState<ConnectionListItem[]>([]);
+    const [scope, setScope] = useState<"mine" | "connections">("mine");
 
     const loadConnections = useCallback(async () => {
         try {
@@ -42,12 +43,14 @@ export function MomentsFeedView({
     }, []);
 
     const load = useCallback(
-        async (before?: string) => {
+        async (before?: string, nextScope = scope) => {
             if (before) setLoadingMore(true);
             else setLoading(true);
             setError("");
             try {
-                const q = before ? `?before=${encodeURIComponent(before)}&limit=20` : "?limit=20";
+                const params = new URLSearchParams({ scope: nextScope, limit: "20" });
+                if (before) params.set("before", before);
+                const q = `?${params}`;
                 const data = await apiGet<{ success: boolean; items: MomentFeedItem[] }>(`/api/moments${q}`);
                 setItems((prev) => (before ? [...prev, ...(data.items ?? [])] : data.items ?? []));
             } catch (e) {
@@ -57,7 +60,7 @@ export function MomentsFeedView({
                 setLoadingMore(false);
             }
         },
-        [],
+        [scope],
     );
 
     useEffect(() => {
@@ -78,7 +81,10 @@ export function MomentsFeedView({
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <ViewHeader title="Moments" sub="活動から生まれた発見のタイムライン" onBack={onBack} t={t} roleColor={roleColor} />
+            <ViewHeader title="Moments" sub="今伝えたいことを、Activityとともに共有" onBack={onBack} t={t} roleColor={roleColor} />
+            <div role="tablist" aria-label="Moment表示" style={{ display: "flex", gap: 8 }}>
+                {(["mine", "connections"] as const).map((tab) => <button key={tab} type="button" role="tab" aria-selected={scope === tab} onClick={() => { if (scope !== tab) setScope(tab); }} style={{ flex: 1, minHeight: 40, borderRadius: 10, border: scope === tab ? "none" : "1px solid rgba(255,255,255,0.14)", background: scope === tab ? roleColor : "rgba(255,255,255,0.05)", color: scope === tab ? "#050508" : "rgba(255,255,255,0.7)", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>{tab === "mine" ? "MY MOMENTS" : "CONNECTIONS"}</button>)}
+            </div>
 
             {/* Connection申請（承認待ち） */}
             {incomingPending.length > 0 ? (
@@ -117,8 +123,8 @@ export function MomentsFeedView({
                 <LoadingSkeleton media />
             ) : !error && items.length === 0 ? (
                 <FeedEmptyState
-                    title="まだ公開されたMomentがありません"
-                    description="Activityを作って、最初のMomentを公開してみましょう。"
+                    title={scope === "mine" ? "まだMomentがありません" : "ConnectionのMomentはまだありません"}
+                    description={scope === "mine" ? "Activityから、今伝えたいことをMomentとして共有しましょう。" : "Connectionすると、その人のMomentがここに表示されます。"}
                 />
             ) : (
                 <>

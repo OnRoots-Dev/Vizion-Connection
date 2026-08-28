@@ -6,10 +6,13 @@ import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { momentLimiter, getIp } from "@/lib/ratelimit";
 import { momentCreateSchema } from "@/features/moment/validation";
 import { createMoment, listPublicMoments } from "@/features/moment/server/moments";
+import { listVisibleMomentFeed } from "@/features/moment/server/moments";
+import { listMyConnections } from "@/features/connection/server/connections";
 
 const feedQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(50).optional(),
     before: z.string().datetime({ offset: true }).optional(),
+    scope: z.enum(["all", "mine", "connections"]).optional(),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -56,6 +59,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const user = await getSupabaseProfile();
     const parsed = feedQuerySchema.safeParse(Object.fromEntries(req.nextUrl.searchParams));
     const options = parsed.success ? parsed.data : {};
+
+    if (options.scope === "mine" || options.scope === "connections") {
+        if (!user) return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
+        const ownerIds = options.scope === "mine"
+            ? [user.id]
+            : (await listMyConnections(user.id)).filter((connection) => connection.status === "accepted" && connection.counterpart).map((connection) => connection.counterpart!.id);
+        const items = await listVisibleMomentFeed({ ownerIds, viewerId: user.id, includePrivate: options.scope === "mine", limit: options.limit, before: options.before });
+        return NextResponse.json({ success: true, items });
+    }
 
     const items = await listPublicMoments({
         limit: options.limit,

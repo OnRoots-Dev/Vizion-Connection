@@ -14,8 +14,8 @@ export default function StepContact() {
 
   return (
     <StepWrapper>
-      <StepHeader eyebrow="Step 10 / 11" title="リンクボタン設定"
-        hint="公開プロフィールに表示されるリンクセクションを設定します" />
+      <StepHeader eyebrow="Step 9 / 9" title="外部リンク"
+        hint="公開プロフィールに表示されるリンク・CTAセクションを設定します" />
       <Field label="CTAタイトル">
         <WizardInput value={data.ctaTitle} onChange={(v) => setField("ctaTitle", v)}
           placeholder={cfg.ctaTitlePlaceholder} maxLength={55} />

@@ -324,7 +324,6 @@ export function ProfileCardSection({
     profile,
     t,
     roleColor,
-    setView,
     referralUrl,
     referralCount,
     preloadQr = false,
@@ -371,6 +370,23 @@ export function ProfileCardSection({
     const [generated, setGenerated] = useState(!introAnimation);
     const [showScan, setShowScan] = useState(false);
     const [cheerModalOpen, setCheerModalOpen] = useState(false);
+    const [connectionCount, setConnectionCount] = useState(0);
+
+    useEffect(() => {
+        if (mode === "public") return;
+        let active = true;
+        fetch("/api/connections", { cache: "no-store" })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data: { success?: boolean; connections?: Array<{ status: string }> } | null) => {
+                if (!active || !data?.connections) return;
+                const count = data.connections.filter((c) => c.status === "accepted").length;
+                setConnectionCount(count);
+            })
+            .catch(() => {});
+        return () => {
+            active = false;
+        };
+    }, [mode]);
 
     useEffect(() => {
         if (!introAnimation) return;
@@ -459,22 +475,6 @@ export function ProfileCardSection({
                     <CardHeader
                         title="Profile Card"
                         color={rl}
-                        action={
-                            <div className="flex gap-[6px]">
-                                <span className="rounded-[20px] px-2 py-[3px] text-[9px] font-bold" style={{ background: `${rl}15`, color: rl, border: `1px solid ${rl}30` }}>{ROLE_LABEL[profile.role]}</span>
-                                {setView ? (
-                                    <button onClick={() => setView("profile")} className="flex cursor-pointer items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
-                                        <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                                        プロフィール表示
-                                    </button>
-                                ) : (
-                                    <a href={`/u/${profile.slug}`} className="flex items-center gap-1 rounded-[20px] px-[9px] py-[3px] text-[9px] font-extrabold no-underline" style={{ background: `${rl}12`, border: `1px solid ${rl}30`, color: rl }}>
-                                        <svg width={10} height={10} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                                        公開ページ
-                                    </a>
-                                )}
-                            </div>
-                        }
                     />
                 </div>
             )}
@@ -624,6 +624,10 @@ export function ProfileCardSection({
                                             <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={9} /></span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
                                             <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", color: "#FFD600" }}>{cheerCount}</span>
+                                            <span style={{ width: 1, height: 12, background: "rgba(255,255,255,0.14)", margin: "0 3px" }} />
+                                            <span style={{ display: "inline-flex", color: rl }} aria-hidden><svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21a3.25 3.25 0 003.25-3.25V15m3.25 3.25A3.25 3.25 0 007.5 21.25M13.25 6.75H4.5a2.25 2.25 0 012.25-2.25h6.5M13.25 6.75c.002-1.5 1.114-3 3.5-3 1.657 0 3 1.343 3 3 0 1.657-1.343 3-3 3-.315 0-.62-.04-.906-.116M13.25 6.75V12m-3.25 3.25a3.25 3.25 0 01-3.25-3.25V6" /></svg></span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Connect</span>
+                                            <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", color: rl }}>{connectionCount}</span>
                                         </div>
                                     </div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
@@ -648,7 +652,7 @@ export function ProfileCardSection({
                                         }}
                                     >
                                         <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.16em", color: "rgba(255,255,255,0.26)", textTransform: "uppercase" }}>
-                                            Account ID
+                                            Vizion ID
                                         </span>
                                         <span
                                             style={{
@@ -669,7 +673,7 @@ export function ProfileCardSection({
                                     </div>
                                 </div>
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
-                                    <NextImage src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
+                                    <NextImage src="/images/Vizion_Connection_logo-bk-cropped.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
                                 </div>
                             </div>
 
@@ -685,7 +689,7 @@ export function ProfileCardSection({
                                 )}
                                 <div style={{ position: "absolute", inset: 0, zIndex: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "14px 13px 16px" }}>
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
-                                        <NextImage src="/images/vizion-connection-logo-6-cropped.png" alt="Logo" width={120} height={30} style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
+                                        <NextImage src="/images/Vizion_Connection_logo-bk-cropped.png" alt="Logo" width={120} height={30} style={{ height: 30, width: "auto", opacity: 0.6, mixBlendMode: "lighten" }} />
                                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                                             <span style={{ width: 5, height: 5, borderRadius: "50%", background: rl, boxShadow: `0 0 5px ${rl}`, flexShrink: 0, display: "inline-block" }} />
                                             <span style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>{ROLE_LABEL[profile.role]}</span>

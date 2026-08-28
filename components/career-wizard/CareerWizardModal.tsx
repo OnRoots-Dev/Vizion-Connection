@@ -16,7 +16,6 @@ import StepStats     from "./steps/StepStats";
 import StepEpisodes  from "./steps/StepEpisodes";
 import StepSkills    from "./steps/StepSkills";
 import StepContact   from "./steps/StepContact";
-import StepCareerMediaWizard from "./steps/StepCareerMediaWizard";
 import StepComplete  from "./steps/StepComplete";
 
 const STEP_COMPONENTS = [
@@ -29,7 +28,6 @@ const STEP_COMPONENTS = [
   StepEpisodes,
   StepSkills,
   StepContact,
-  StepCareerMediaWizard,
   StepComplete,
 ];
 
@@ -106,7 +104,7 @@ export default function CareerWizardModal({
     ? "absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
     : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4";
 
-  const finalButtonLabel = onboardingMode ? "Pulseをはじめる" : "完成させる";
+  const finalButtonLabel = onboardingMode ? "プロフィールを完成" : "完成させる";
 
   if (contained) {
     return (

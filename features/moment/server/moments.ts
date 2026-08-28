@@ -405,3 +405,58 @@ export async function listVisibleMomentsByOwner(
     }
     return items;
 }
+
+/** Dashboard の My Moments / Connections 用。既存の可視性判定を必ず通す。 */
+export async function listVisibleMomentFeed({
+    ownerIds,
+    viewerId,
+    includePrivate = false,
+    limit = 20,
+    before,
+}: {
+    ownerIds: number[];
+    viewerId: number;
+    includePrivate?: boolean;
+    limit?: number;
+    before?: string;
+}): Promise<MomentFeedItem[]> {
+    const ids = [...new Set(ownerIds)].filter(Number.isFinite);
+    if (ids.length === 0) return [];
+    const safeLimit = Math.min(Math.max(limit, 1), 50);
+    let query = supabaseServer
+        .from("moments")
+        .select(`${MOMENT_COLUMNS}, author:users!inner(id,slug,display_name,avatar_url,is_public,is_deleted), activity:activities!left(id,visibility,place_id,title,type), place:activities!left(place_id, places(name,prefecture))`)
+        .in("user_id", ids)
+        .in("visibility", includePrivate ? ["public", "connections", "private"] : ["public", "connections"])
+        .order("created_at", { ascending: false })
+        .limit(safeLimit * 3);
+    if (before) query = query.lt("created_at", before);
+
+    const { data, error } = await query;
+    if (error) {
+        console.error("[listVisibleMomentFeed]", error);
+        return [];
+    }
+    type Row = MomentRecord & {
+        author: OwnerLite | null;
+        activity: { id: string; visibility: string; place_id: string | null; title: string | null; type: string } | null;
+        place: { places: { name: string; prefecture: string } | null } | null;
+    };
+    const visible: MomentFeedItem[] = [];
+    for (const row of (data ?? []) as unknown as Row[]) {
+        const result = await resolveMomentVisibility(row, viewerId);
+        if (!result.visible || !row.author) continue;
+        visible.push({
+            moment: { id: row.id, user_id: row.user_id, activity_id: row.activity_id, body: row.body, image_url: row.image_url, video_url: row.video_url, visibility: row.visibility, cheer_count: row.cheer_count, comment_count: row.comment_count, created_at: row.created_at, updated_at: row.updated_at },
+            author: { id: row.author.id, slug: row.author.slug, display_name: row.author.display_name, avatar_url: row.author.avatar_url },
+            activity: row.activity ? { id: row.activity.id, title: row.activity.title, type: row.activity.type } : null,
+            place: row.place?.places ? { id: row.activity?.place_id ?? "", name: row.place.places.name, prefecture: row.place.places.prefecture } : null,
+            cheered_by_me: false,
+        });
+        if (visible.length >= safeLimit) break;
+    }
+    if (visible.length === 0) return visible;
+    const { data: cheers } = await supabaseServer.from("moment_cheers").select("moment_id").eq("from_user_id", viewerId).in("moment_id", visible.map((item) => item.moment.id));
+    const cheered = new Set((cheers ?? []).map((row) => String((row as { moment_id?: string }).moment_id)));
+    return visible.map((item) => ({ ...item, cheered_by_me: cheered.has(item.moment.id) }));
+}

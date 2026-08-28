@@ -280,7 +280,7 @@ export default function RegisterForm() {
                     <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
                         VIZION CONNECTION
                     </p>
-                    <h1 className="text-2xl font-bold tracking-[-0.02em] text-white">Pulseをはじめる</h1>
+                    <h1 className="text-2xl font-bold tracking-[-0.02em] text-white">アカウントを作成する</h1>
                     <p className="text-sm leading-relaxed text-white/45">挑戦の記録が、信頼になる。</p>
                     {refSlug && (
                         <p className="mt-2 font-mono text-xs" style={{ color: "var(--electric)" }}>
@@ -537,7 +537,7 @@ export default function RegisterForm() {
                                     className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
-                                    登録してPulseをはじめる
+                                    登録を完了する
                                 </motion.button>
                             </div>
                         </motion.div>
@@ -555,7 +555,7 @@ export default function RegisterForm() {
                             transition={stepTr}
                         >
                             {submitting && (
-                                <AuthPulseLoader label="Pulse を準備しています…" />
+                                <AuthPulseLoader label="アカウントを作成しています…" />
                             )}
 
                             {!submitting && succeeded && (

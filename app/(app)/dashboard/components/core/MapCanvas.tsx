@@ -92,7 +92,7 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
 
             const map = new mapboxgl.Map({
                 container: containerRef.current!,
-                style: "mapbox://styles/mapbox/dark-v11",
+                style: "mapbox://styles/mapbox/light-v11",
                 center: initialCenter,
                 zoom: initialZoom,
                 attributionControl: true,
@@ -102,13 +102,13 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
             map.touchZoomRotate.disableRotation();
 
             map.on("load", () => {
-                // Keep the base map quiet: flat buildings, subdued water, no POI labels.
+                // Keep the base map calm and legible; overlays carry the brand contrast.
                 for (const layer of map.getStyle().layers ?? []) {
                     const sourceLayer = layer["source-layer"] ?? "";
                     if (layer.type === "fill-extrusion") map.setLayoutProperty(layer.id, "visibility", "none");
                     if (sourceLayer === "poi_label" || layer.id.includes("poi-label")) map.setLayoutProperty(layer.id, "visibility", "none");
                     if (layer.type === "fill" && (layer.id.includes("water") || sourceLayer === "water")) {
-                        map.setPaintProperty(layer.id, "fill-color", "#123d42");
+                        map.setPaintProperty(layer.id, "fill-color", "#b9e0e4");
                     }
                 }
 

@@ -92,15 +92,15 @@ export function RegionActivityCard({
                 </p>
                 <span
                     style={{
-                        marginLeft: "auto",
                         fontSize: 9,
                         fontWeight: 600,
                         letterSpacing: "0.1em",
                         color: "rgba(255,255,255,0.4)",
                         fontFamily: "'Space Mono', monospace",
+                        whiteSpace: "nowrap",
                     }}
                 >
-                    {region}
+                    · {region}
                 </span>
             </div>
 

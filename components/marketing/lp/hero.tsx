@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { VizMapPreview } from "./viz-map-preview";
 import { TextScramble } from "./text-scramble";
 import { ActivityCard } from "./activity-card";
+import { LiveStats } from "./live-stats";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 18 },
@@ -83,6 +84,9 @@ export function Hero() {
             企業・スポンサーの方へ
           </Link>
         </motion.div>
+
+        {/* 参加者ライブ集計（取得失敗時は非表示） */}
+        <LiveStats />
 
         {/* Product Visual: Map + Activity Card */}
         <div className="relative mt-12 md:mt-16">

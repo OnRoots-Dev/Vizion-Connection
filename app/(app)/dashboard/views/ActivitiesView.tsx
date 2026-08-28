@@ -125,7 +125,7 @@ export function ActivitiesView({
                 ends_at: fEnd ? new Date(fEnd).toISOString() : null,
                 place_id: fPlace?.id ?? null,
                 visibility: fVisibility,
-                tags: fTags.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean).slice(0, 5),
+                tags: fTags.split(/[,，、\s]+/).map((s) => s.trim().replace(/^#/, "")).filter(Boolean).slice(0, 5),
                 image_url: fImageUrl.trim() || null,
                 video_url: fVideoUrl.trim() || null,
             });
@@ -389,12 +389,15 @@ export function ActivitiesView({
                     </div>
 
                     <SLabel text="TAGS（最大5）" color={`${roleColor}aa`} />
-                    <input value={fTags} onChange={(e) => setFTags(e.target.value)} placeholder="陸上, 走り幅跳び" style={inputStyle} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <input value={fTags} onChange={(e) => setFTags(e.target.value)} placeholder="#training #running #football" style={inputStyle} />
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>空白またはカンマで区切って、最大5件まで追加できます。</span>
+                    </div>
 
                     {error ? <p role="alert" style={{ margin: 0, fontSize: 12, color: "rgba(255,120,120,0.9)" }}>{error}</p> : null}
 
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                        <PrimaryButton onClick={submit} disabled={submitting}>{submitting ? "保存中..." : "Activityを作成"}</PrimaryButton>
+                        <PrimaryButton onClick={submit} disabled={submitting}>{submitting ? <ProgressRing /> : "Activityを作成"}</PrimaryButton>
                         <SecondaryButton onClick={() => { setMode("list"); setError(""); }}>キャンセル</SecondaryButton>
                     </div>
                 </section>
@@ -466,6 +469,10 @@ function TypeBadge({ type, color }: { type: ActivityType; color: string }) {
             {TYPE_LABELS[type]}
         </span>
     );
+}
+
+function ProgressRing() {
+    return <span aria-label="保存中" role="status" style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(0,0,0,0.25)", borderTopColor: "#000", animation: "media-spin 0.8s linear infinite" }} />;
 }
 
 /** Activity フィードカード（自分だけのスポーツフィードの1件）。 */
@@ -575,6 +582,7 @@ function MomentComposerInline({
     const [visibility, setVisibility] = useState<"public" | "connections" | "private">("public");
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(false);
+    const [hasPosted, setHasPosted] = useState(false);
     const [error, setError] = useState("");
     const [uploading, setUploading] = useState<"image" | "video" | null>(null);
 
@@ -607,6 +615,7 @@ function MomentComposerInline({
                 activity_id: activityId,
             });
             setDone(true);
+            setHasPosted(true);
             setBody(""); setImageUrl(""); setVideoUrl("");
             setOpen(false);
             window.setTimeout(() => setDone(false), 2200);
@@ -630,15 +639,16 @@ function MomentComposerInline({
                 type="button"
                 whileTap={reduce ? undefined : { scale: 0.97 }}
                 onClick={() => setOpen((o) => !o)}
+                disabled={hasPosted}
                 style={{
                     minHeight: 44, borderRadius: 12, fontSize: 13, fontWeight: 900,
-                    letterSpacing: "0.02em", cursor: "pointer",
+                    letterSpacing: "0.02em", cursor: hasPosted ? "default" : "pointer", opacity: hasPosted ? 0.7 : 1,
                     background: `linear-gradient(135deg, ${roleColor}, #ffffffcc)`,
                     color: "#050508", border: "none",
                     boxShadow: `0 10px 26px ${roleColor}33`,
                 }}
             >
-                ★ Momentとして公開
+                {hasPosted ? "✓ Moment Posted" : "★ Momentとして公開"}
             </motion.button>
 
             <AnimatePresence>

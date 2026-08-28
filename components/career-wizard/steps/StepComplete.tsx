@@ -32,7 +32,7 @@ export default function StepComplete() {
   const ROLE_LABEL: Record<string, string> = {
     Athlete: "ATHLETE",
     Trainer: "TRAINER",
-    Members: "MEMBERS",
+    Crew: "CREW",
     Business: "BUSINESS",
     Admin: "ADMIN",
   };
@@ -388,14 +388,12 @@ export default function StepComplete() {
   const episodes = (data.episodes ?? []) as unknown as TimelineEpisode[];
   const skills = (data.skills ?? []) as unknown as Skill[];
 
-  const profileStepIndex = 1;
-  const profileMediaStepIndex = 2;
-  const careerBasicStepIndex = 3;
-  const careerBioStepIndex = 5;
-  const careerEpisodesStepIndex = 8;
-  const careerSkillsStepIndex = 9;
-  const careerCtaStepIndex = 10;
-  const careerMediaStepIndex = 11;
+  const profileStepIndex = 0;
+  const profileMediaStepIndex = 1;
+  const careerBioStepIndex = 4;
+  const careerEpisodesStepIndex = 6;
+  const careerSkillsStepIndex = 7;
+  const careerCtaStepIndex = 8;
 
   const profileSections: SectionProps[] = [
     {
@@ -467,7 +465,7 @@ export default function StepComplete() {
       title: "基本プロフィール",
       color,
       defaultOpen: true,
-      stepIndex: careerBasicStepIndex,
+      stepIndex: careerBioStepIndex,
       onEdit: goToStep,
       accent: true,
       rows: [
@@ -524,14 +522,6 @@ export default function StepComplete() {
         { label: "TikTok", value: data.snsTiktok },
         { label: "公開設定", value: visLabel },
       ].filter((r) => String(r.value ?? "").trim().length > 0),
-    },
-    {
-      icon: <ImageIcon size={12} />,
-      title: "キャリア画像",
-      color,
-      stepIndex: careerMediaStepIndex,
-      onEdit: goToStep,
-      rows: [{ label: "キャリア画像", value: data.careerImageUrl ? "設定済み" : "" }].filter((r) => String(r.value ?? "").trim().length > 0),
     },
   ];
 

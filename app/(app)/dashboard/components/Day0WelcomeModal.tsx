@@ -67,7 +67,7 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                             transition={{ delay: 0.25, duration: 0.4 }}
                             style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.3em", textTransform: "uppercase", color: "var(--pulse)" }}
                         >
-                            YOUR JOURNEY BEGINS
+                            WELCOME TO VIZION
                         </motion.p>
                         <motion.h2
                             initial={{ opacity: 0, y: 8 }}
@@ -75,7 +75,7 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                             transition={{ delay: 0.35, duration: 0.4 }}
                             style={{ margin: "0 0 12px", fontSize: 24, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}
                         >
-                            DAY 0 が始まりました
+                            ようこそ、Vizion Connectionへ
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0 }}
@@ -83,8 +83,8 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                             transition={{ delay: 0.45, duration: 0.4 }}
                             style={{ margin: "0 0 28px", fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.9 }}
                         >
-                            今日が、あなたの挑戦の原点です。<br />
-                            毎日のJourneyが、DAYカウントを積み上げます。
+                            あなたの挑戦の記録が、<br />
+                            応援と信頼につながっていきます。
                         </motion.p>
 
                         <motion.button
@@ -101,7 +101,7 @@ export function Day0WelcomeModal({ enabled }: { enabled: boolean }) {
                                 boxShadow: "0 0 24px var(--electric-glow)",
                             }}
                         >
-                            Pulseをはじめる
+                            はじめよう
                         </motion.button>
                     </motion.div>
                 </motion.div>

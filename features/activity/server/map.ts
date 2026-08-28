@@ -8,6 +8,7 @@ export interface MapActivityItem {
     type: string;
     title: string | null;
     description: string | null;
+    tags: string[];
     starts_at: string;
     status: string;
     user_id: number;
@@ -48,13 +49,15 @@ export async function listPublicMapActivities(
     const { data, error } = await supabaseServer
         .from("activities")
         .select(
-            `id,type,title,description,starts_at,status,place_id,user_id,
+            `id,type,title,description,tags,starts_at,created_at,status,place_id,user_id,
              place:places!inner(id,name,prefecture,latitude,longitude,precision,place_type),
              owner:users!inner(slug,display_name,avatar_url,role,sponsor_plan,is_public,is_deleted)`,
         )
         .eq("visibility", "public")
         .eq("status", "planned") // 完了・中止はMapに載せない（段階的取得）
-        .gte("starts_at", since)
+        // Viz Map は「これからの予定」ではなく、直近24時間に記録された活動だけを表示する。
+        // Activity Feed / Profile の履歴には影響しない。
+        .gte("created_at", since)
         .gte("places.latitude", bbox.minLat)
         .lte("places.latitude", bbox.maxLat)
         .gte("places.longitude", bbox.minLng)
@@ -71,7 +74,9 @@ export async function listPublicMapActivities(
         type: string;
         title: string | null;
         description: string | null;
+        tags: string[] | null;
         starts_at: string;
+        created_at: string;
         status: string;
         user_id: number;
         place_id: string | null;
@@ -86,6 +91,7 @@ export async function listPublicMapActivities(
             type: row.type,
             title: row.title,
             description: row.description,
+            tags: row.tags ?? [],
             starts_at: row.starts_at,
             status: row.status,
             user_id: row.user_id,
