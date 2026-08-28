@@ -8,6 +8,7 @@ import { MomentsSection } from "@/components/marketing/lp/moments-section";
 import { RoleInActionSection } from "@/components/marketing/lp/role-in-action";
 import { FinalCta } from "@/components/marketing/lp/final-cta";
 import { LpBackground } from "@/components/marketing/lp/lp-background";
+import { FAQSection } from "@/components/marketing/sections/FAQSection";
 
 export const metadata: Metadata = {
   title: "Vizion Connection — 積み重ねが、見える。応援が、届く。",
@@ -31,6 +32,7 @@ export default function MarketingHomePage() {
         <CoreLoopSection />
         <MomentsSection />
         <RoleInActionSection />
+        <FAQSection />
         <FinalCta />
       </main>
       <SiteFooter />

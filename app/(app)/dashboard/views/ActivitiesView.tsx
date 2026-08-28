@@ -16,6 +16,7 @@ import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
 import type { PlaceRecord } from "@/features/place/place";
 import type { ThemeColors } from "../types";
+import { SponsoredFeed } from "./SponsoredFeed";
 
 type ActivityWithPlace = ActivityRecord & {
     place?: Pick<PlaceRecord, "id" | "name" | "prefecture"> | null;
@@ -219,6 +220,8 @@ export function ActivitiesView({
             {mode === "list" ? (
                 <>
                     <PrimaryButton onClick={() => setMode("create")} disabled={loading}>+ Activity を作成</PrimaryButton>
+
+                    <SponsoredFeed t={t} />
 
                     {error ? (
                         <FeedErrorState message={error} onRetry={() => void load()} />
@@ -524,7 +527,7 @@ function ActivityFeedCard({
             {/* タイプ + タイトル */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <TypeBadge type={a.type} color={roleColor} />
-                <span style={{ fontSize: 14, fontWeight: 800, color: "#f0f0f5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                <span style={{ fontSize: 15, fontWeight: 800, color: "#f0f0f5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                     {a.title}
                 </span>
             </div>
@@ -533,7 +536,7 @@ function ActivityFeedCard({
             {a.description ? (
                 <div
                     style={{
-                        fontSize: 12.5, lineHeight: 1.55, color: "rgba(255,255,255,0.6)",
+                        fontSize: 12.5, lineHeight: 1.5, color: "rgba(255,255,255,0.68)",
                         whiteSpace: "pre-wrap", wordBreak: "break-word",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
@@ -545,8 +548,8 @@ function ActivityFeedCard({
                 </div>
             ) : null}
 
-            {/* Media: アスペクト比を保ったまま表示 */}
-            <MediaViewer imageUrl={a.image_url} videoUrl={a.video_url} alt="Activityの画像" maxHeight={260} />
+            {/* Media: テキストと同じ視線の高さに収め、フィードを圧迫しないよう調整 */}
+            <MediaViewer imageUrl={a.image_url} videoUrl={a.video_url} alt="Activityの画像" maxHeight={240} />
 
             {/* 時間・場所 */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>

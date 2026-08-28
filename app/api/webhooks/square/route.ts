@@ -9,6 +9,10 @@ import {
 } from "@/lib/supabase/business-orders";
 import { setUserSponsorPlanByEmail } from "@/lib/supabase/data/users.server";
 import { incrementAdSlotSold } from "@/lib/supabase/ad-slots";
+import {
+  activateAccountBySlug,
+  monetizePlanFromLegacyPlanId,
+} from "@/lib/supabase/business-monetize";
 import type { PlanId } from "@/features/business/types";
 
 const PROCESSED_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -165,6 +169,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const userUpdated = await setUserSponsorPlanByEmail(email, planId);
   if (!userUpdated) {
     return NextResponse.json({ success: false, error: "user_update_failed" }, { status: 500 });
+  }
+
+  // 新モネタイズP0: Business Accountを購入プランでactivateする。
+  // option注文は大体として既存IDで紐付け（order.slug must be the buying user's slug）。
+  const monetizePlan = monetizePlanFromLegacyPlanId(planId);
+  if (monetizePlan) {
+    const localPrefecture =
+      monetizePlan === "LOCAL" && order.region && order.region !== "全国"
+        ? order.region
+        : undefined;
+    const activated = await activateAccountBySlug(order.slug, monetizePlan, localPrefecture);
+    if (!activated) {
+      // 注文・sponsor_plan は完了済み。activation失敗はpayment idで再送が止まるため
+      // ログのみ（ad_slot更新と同じく非致命的。整合が取れない場合は管理者確認必要）。
+      console.warn("[square webhook] business_accounts activation failed", order.slug);
+    }
   }
 
   // ad_slots.sold +1

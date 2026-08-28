@@ -17,6 +17,7 @@ import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import { getSupabaseProfile } from "@/lib/auth/session";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
 import CareerSection from "./CareerSection";
+import PublicProfileTabs from "./PublicProfileTabs";
 import { getCollectorCount } from "@/lib/supabase/collections";
 import type { ProfileData } from "@/features/profile/types";
 import { getAdsForUser } from "@/lib/ads";
@@ -473,22 +474,43 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </section>
 
-                {/* About / Career / Expertise（Identity Hub — アイデンティティ直後の導入部） */}
-                <Expandable title={publicCareerLabel} summary={profile.sport ?? undefined}>
-                    <CareerSection
-                        roleColor={VP.neon}
-                        bio={profile.bio}
-                        sport={profile.sport}
-                        region={profile.region}
-                        prefecture={profile.prefecture}
-                        joinedAt={joinedAt}
-                        roleLabel={VP_ROLE_LABEL[profile.role]}
-                        cheerCount={profile.cheerCount ?? 0}
-                        isPublic={profile.isPublic}
-                        slug={slug}
-                        careerProfile={careerProfile}
-                    />
-                </Expandable>
+                {/* Profile / Career Tabs（Identity Hub — アイデンティティ直後の導入部） */}
+                <PublicProfileTabs
+                    roleColor={VP.neon}
+                    careerLabel={publicCareerLabel}
+                    profilePanel={
+                        <CareerSection
+                            roleColor={VP.neon}
+                            bio={profile.bio}
+                            sport={profile.sport}
+                            stance={profile.stance}
+                            region={profile.region}
+                            prefecture={profile.prefecture}
+                            joinedAt={joinedAt}
+                            roleLabel={VP_ROLE_LABEL[profile.role]}
+                            cheerCount={profile.cheerCount ?? 0}
+                            isPublic={profile.isPublic}
+                            slug={slug}
+                            careerProfile={careerProfile}
+                        />
+                    }
+                    careerPanel={
+                        <CareerSection
+                            roleColor={VP.neon}
+                            bio={profile.bio}
+                            sport={profile.sport}
+                            stance={profile.stance}
+                            region={profile.region}
+                            prefecture={profile.prefecture}
+                            joinedAt={joinedAt}
+                            roleLabel={VP_ROLE_LABEL[profile.role]}
+                            cheerCount={profile.cheerCount ?? 0}
+                            isPublic={profile.isPublic}
+                            slug={slug}
+                            careerProfile={careerProfile}
+                        />
+                    }
+                />
 
                 {/* ② 熱量パネル（常時 — メッセージ1）。Bond数はNetworkに一本化 */}
                 <HeatPanel

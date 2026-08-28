@@ -38,9 +38,10 @@ export function MediaFrame({
                 position: "relative",
                 width: "100%",
                 maxHeight,
+                aspectRatio: "16 / 10",
                 borderRadius: radius,
                 overflow: "hidden",
-                background: "#000",
+                background: "#09090d",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -59,9 +60,8 @@ export function MediaFrame({
                     onError={() => setLoaded(false)}
                     style={{
                         width: "100%",
-                        height: "auto",
-                        maxHeight,
-                        objectFit: "contain",
+                        height: "100%",
+                        objectFit: "cover",
                         display: "block",
                     }}
                     unoptimized
@@ -75,11 +75,10 @@ export function MediaFrame({
                     onLoadedData={() => setLoaded(true)}
                     style={{
                         width: "100%",
-                        height: "auto",
-                        maxHeight,
-                        objectFit: "contain",
+                        height: "100%",
+                        objectFit: "cover",
                         display: "block",
-                        background: "#000",
+                        background: "#09090d",
                     }}
                 />
             )}

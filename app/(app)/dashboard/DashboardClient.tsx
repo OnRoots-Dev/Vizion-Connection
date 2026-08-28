@@ -19,6 +19,7 @@ import { ReferralView } from "./views/ReferralView";
 import { MissionsView } from "./views/MissionsView";
 import { RoadmapView } from "./views/RoadmapView";
 import { BusinessView } from "./views/BusinessView";
+import { BusinessMonetizeHubView } from "./views/BusinessMonetizeHubView";
 import { SettingsView } from "./views/SettingsView";
 import type { AdItem } from "@/lib/ads-shared";
 import { NewsView } from "./views/NewsView";
@@ -113,11 +114,14 @@ export default function DashboardClient({
             name: profile.displayName ?? "",
             slug: profile.slug,
             sport: profile.sport,
+            sports: profile.sports,
             region: profile.region,
             prefecture: profile.prefecture,
+            location: profile.location,
             sportsCategory: profile.sportsCategory,
             stance: profile.stance,
             bio: profile.bio,
+            claim: profile.claim,
             displayName: profile.displayName,
             profileImageUrl: profile.profileImageUrl,
             avatarUrl: profile.avatarUrl,
@@ -340,7 +344,7 @@ export default function DashboardClient({
             case "card":
                 return <CardView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "profile":
-                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} careerProfile={careerProfileCache} onProfileRefresh={refreshProfile} onCareerRefresh={refreshCareerProfile} />;
+                return <DashboardProfileView profile={profile} t={t} roleColor={roleColor} onBack={goBack} careerProfile={careerProfileCache} onProfileRefresh={refreshProfile} onCareerRefresh={refreshCareerProfile} />;
             case "schedule":
                 return <ScheduleClient profile={profile} embedded onBack={goBack} t={t} roleColor={roleColor} />;
             case "news":
@@ -387,6 +391,8 @@ export default function DashboardClient({
                 return <RoadmapView t={t} roleColor={roleColor} setView={handleSetView} />;
             case "checkout":
                 return <CheckoutView t={t} roleColor={roleColor} setView={handleSetView} />;
+            case "monetize":
+                return <BusinessMonetizeHubView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} ads={ads} />;
             default:
                 return null;
         }

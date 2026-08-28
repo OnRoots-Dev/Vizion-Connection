@@ -4,6 +4,7 @@
 // this module MUST enforce ownership / plan / scope / status itself.
 
 import { supabaseServer as supabase } from "@/lib/supabase/server";
+import { findUserBySlug } from "@/lib/supabase/data/users.server";
 import type { ProfileRecord } from "@/lib/supabase/data/users.server";
 import type {
   AdScope,
@@ -180,6 +181,70 @@ export async function updateAccountPlan(
     .eq("id", data.user_id)
     .single();
   return mapAccount({ ...data, slug: user?.slug ?? "", display_name: user?.display_name ?? "" });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Payment → Activation（Square Webhook 決済完了から呼ばれる）
+// ─────────────────────────────────────────────────────────────
+/**
+ * LegacyプランID → 新モネタイズプランへ変換。
+ * 判断材料は金額一致（roots=LOCAL ¥30k / signal=FEATURED ¥100k /
+ * presence=PREMIUM ¥300k / legacy=ENTERPRISE 個別見積）。
+ */
+const LEGACY_PLAN_TO_MONETIZE: Record<string, BusinessMonetizePlan> = {
+  roots: "LOCAL",
+  signal: "FEATURED",
+  presence: "PREMIUM",
+  legacy: "ENTERPRISE",
+};
+
+export function monetizePlanFromLegacyPlanId(planId: string): BusinessMonetizePlan | null {
+  return LEGACY_PLAN_TO_MONETIZE[planId] ?? null;
+}
+
+/**
+ * Square決済COMPLETED後にBusiness Accountを有料プランでactivateする。
+ * 紐付けは既存IDで安全に行う（推測しない）:
+ *   order.slug → users.id → business_accounts.user_id
+ * 行が無ければ作成し、あれば更新する。取り得るPlan/statusの再設定は冪等
+ * （二重activation・誤ったplan変更を起こさない）。
+ */
+export async function activateAccountBySlug(
+  slug: string,
+  plan: BusinessMonetizePlan,
+  primaryPrefecture?: string | null,
+): Promise<boolean> {
+  if (!isMonetizePlan(plan)) return false;
+  const user = await findUserBySlug(slug);
+  if (!user) return false;
+
+  const { data: existing, error: findError } = await supabase
+    .from("business_accounts")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (findError) return false;
+
+  if (existing) {
+    const patch: Record<string, unknown> = { plan, status: "active" };
+    if (primaryPrefecture) patch.primary_prefecture = primaryPrefecture;
+    const { error } = await supabase
+      .from("business_accounts")
+      .update(patch)
+      .eq("id", existing.id)
+      .eq("user_id", user.id);
+    return !error;
+  }
+
+  const { error: insertError } = await supabase
+    .from("business_accounts")
+    .insert({
+      user_id: user.id,
+      plan,
+      status: "active",
+      primary_prefecture: primaryPrefecture ?? null,
+    });
+  return !insertError;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -392,7 +457,7 @@ export async function createCampaign(
       scope: input.scope,
       region_block: input.regionBlock ?? null,
       half: input.half ?? null,
-      prefecture: input.prefecture ?? input.locationTarget === "specific" || account.primaryPrefecture ? (account.primaryPrefecture ?? null) : null,
+      prefecture: input.prefecture ?? (input.locationTarget === "specific" || account.primaryPrefecture ? (account.primaryPrefecture ?? null) : null),
       location_target: input.locationTarget,
       location_id: input.locationId ?? null,
       creative,
@@ -633,7 +698,6 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
     const user = acc ? userMap.get(acc.user_id) : undefined;
     const loc = row.location_id ? locationMap.get(String(row.location_id)) : undefined;
 
-    const creative = (row.creative as Record<string, unknown>) ?? {};
     results.push({
       ...mapCampaign(row),
       business: {
@@ -665,12 +729,6 @@ export async function listBusinessMapPins(): Promise<
     .from("business_locations")
     .select("account_id, name, prefecture, latitude, longitude")
     .in("account_id", accountIds);
-  const uniqueAccounts = new Set(accountIds);
-  const prefectureMap = new Map<string, string>();
-  for (const l of locations ?? []) {
-    uniqueAccounts.add(String(l.account_id));
-    prefectureMap.set(String(l.account_id), String(l.prefecture));
-  }
 
   const userIds = accounts.map((a) => Number(a.user_id));
   const userMap = new Map<number, { slug: string; display_name: string }>();
@@ -683,11 +741,6 @@ export async function listBusinessMapPins(): Promise<
     for (const u of users ?? []) {
       userMap.set(Number(u.id), { slug: String(u.slug), display_name: String(u.display_name ?? u.slug) });
     }
-  }
-
-  const accountByUser = new Map<number, string>();
-  for (const a of accounts) {
-    accountByUser.set(Number(a.user_id), String(a.id));
   }
 
   const pins: { slug: string; displayName: string; plan: BusinessMonetizePlan; latitude: number; longitude: number; locationName: string; prefecture: string }[] = [];

@@ -42,6 +42,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     bio: user.bio ?? undefined,
                     region: user.region ?? undefined,
                     prefecture: user.prefecture ?? undefined,
+                    location: user.location ?? undefined,
                     sportsCategory: user.sportsCategory ?? undefined,
                     stance: user.stance ?? undefined,
                     claim: user.claim ?? undefined,

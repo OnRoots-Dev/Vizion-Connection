@@ -12,6 +12,7 @@ interface CareerSectionProps {
     roleColor: string;
     bio?: string | null;
     sport?: string | null;
+    stance?: string | null;
     region?: string | null;
     prefecture?: string | null;
     joinedAt: string;
@@ -37,6 +38,7 @@ export default function CareerSection({
     roleColor: rl,
     bio,
     sport,
+    stance,
     region,
     prefecture,
     joinedAt,
@@ -142,6 +144,7 @@ export default function CareerSection({
                     {tab === "career" && (
                         <CareerTab
                             role={role} rl={rl} slug={slug}
+                            bio={bio} sport={sport} stance={stance}
                             careerProfile={careerProfile ?? null}
                         />
                     )}
@@ -187,8 +190,9 @@ function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, chee
     );
 }
 
-function CareerTab({ role, rl, slug, careerProfile }: {
+function CareerTab({ role, rl, slug, bio, sport, stance, careerProfile }: {
     role: Role; rl: string; slug: string;
+    bio?: string | null; sport?: string | null; stance?: string | null;
     careerProfile: CareerProfileRow | null;
 }) {
     const snsLinks = [
@@ -260,12 +264,44 @@ function CareerTab({ role, rl, slug, careerProfile }: {
 
     if (role === "CREW") return (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}20` }}>
-                <p style={{ fontSize: 12, fontWeight: 800, color: rl, margin: "0 0 6px" }}>応援ページ</p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.7 }}>
-                    コレクト・ランキング機能は準備中です。<br />まずはアスリートのプロフィールを見てみよう！
-                </p>
-            </div>
+            {careerProfile?.tagline ? (
+                <div style={{ padding: "16px", borderRadius: 14, background: `${rl}08`, border: `1px solid ${rl}20` }}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1.6 }}>
+                        &quot;{careerProfile.tagline}&quot;
+                    </p>
+                </div>
+            ) : null}
+            {bio ? (
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.75 }}>{bio}</p>
+            ) : null}
+            {sport ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: `${rl}15`, color: rl, border: `1px solid ${rl}30` }}>
+                        {sport}
+                    </span>
+                </div>
+            ) : null}
+            {stance ? (
+                <div>
+                    <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", margin: "0 0 6px" }}>関わり方</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {stance.split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
+                            <span key={s} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 8, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.08)" }}>{s}</span>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+            {(careerProfile?.episodes?.length ?? 0) > 0 ? (
+                <div>
+                    <p style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", margin: "0 0 8px" }}>コミュニティ</p>
+                    {careerProfile!.episodes.map((ep) => (
+                        <div key={ep.id} style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 6 }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", margin: 0 }}>{ep.org || ep.role}</p>
+                            {ep.desc ? <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "4px 0 0" }}>{ep.desc}</p> : null}
+                        </div>
+                    ))}
+                </div>
+            ) : null}
         </div>
     );
 

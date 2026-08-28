@@ -548,11 +548,13 @@ export default function StepComplete() {
         </motion.div>
 
         <motion.h2 {...fadeUp(0.08)} className="text-[22px] font-black tracking-[-0.035em] mb-2">
-          キャリアページが完成！
+          プロフィールが完成！
         </motion.h2>
 
         <motion.p {...fadeUp(0.16)} className="text-[12.5px] leading-relaxed" style={{ color: "rgba(255,255,255,0.36)" }}>
-          プロフィールに反映されました。<br />
+          {data.role === "Business"
+            ? "ビジネスプロフィールに反映されました。"
+            : "プロフィールに反映されました。"}<br />
           ダッシュボードからいつでも編集できます。
         </motion.p>
 

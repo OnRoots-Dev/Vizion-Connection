@@ -13,6 +13,7 @@ import { apiGet, ApiError } from "@/lib/api/core-client";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
 import type { ThemeColors } from "../types";
+import { SponsoredFeed } from "./SponsoredFeed";
 
 export function MomentsFeedView({
     profile,
@@ -114,6 +115,8 @@ export function MomentsFeedView({
                     ))}
                 </section>
             ) : null}
+
+            <SponsoredFeed t={t} />
 
             {error ? (
                 <FeedErrorState message={error} onRetry={() => void load()} />

@@ -96,10 +96,10 @@ export function MomentCard({
                 background: "#111118",
                 border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 16,
-                padding: "14px 16px",
+                padding: "13px 14px 12px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 12,
+                gap: 10,
             }}
         >
             {/* Creator / Vizion ID */}
@@ -155,12 +155,13 @@ export function MomentCard({
             {/* 場所・時刻（CreatorHeader 下のメタ） */}
             <div
                 style={{
-                    marginTop: -4,
+                    marginTop: -2,
                     fontSize: 11,
                     color: "rgba(255,255,255,0.45)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
+                    lineHeight: 1.3,
                 }}
             >
                 <span>{new Date(item.moment.created_at).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
@@ -174,8 +175,8 @@ export function MomentCard({
                     style={{
                         margin: 0,
                         fontSize: 14,
-                        lineHeight: 1.65,
-                        color: "rgba(255,255,255,0.92)",
+                        lineHeight: 1.55,
+                        color: "rgba(255,255,255,0.88)",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-word",
                     }}
@@ -184,12 +185,12 @@ export function MomentCard({
                 </p>
             ) : null}
 
-            {/* Media: アスペクト比を保ったまま表示 */}
+            {/* Media: テキストとのバランスを崩さないよう、上部に寄せてコンパクトに表示 */}
             <MediaViewer
                 imageUrl={item.moment.image_url}
                 videoUrl={item.moment.video_url}
                 alt="Momentの画像"
-                maxHeight={420}
+                maxHeight={320}
             />
 
             {/* Location Link（Viz Map 導線） */}

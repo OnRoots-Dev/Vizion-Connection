@@ -53,11 +53,28 @@ export interface CareerWizardState {
   instagram: string;
   xUrl: string;
   tiktok: string;
+  youtube: string;
+  website: string;
   profileImageUrl: string;
   avatarUrl: string;
   isPublic: boolean;
+  /** users.claim — public tagline quote */
+  claim: string;
+  /** users.location — city / area / favorite place */
+  location: string;
+  /** users.sports[] — multi-value (crew interests, trainer targets, etc.) */
+  sports: string[];
 
   careerImageUrl: string;
+
+  /** Business onboarding — saved via business-monetize locations API */
+  businessLocationName: string;
+  businessAddress: string;
+  businessLatitude: string;
+  businessLongitude: string;
+  businessHours: string;
+  businessPhone: string;
+  businessWebsite: string;
 
   // ── career_profiles テーブルへ保存
   tagline: string;

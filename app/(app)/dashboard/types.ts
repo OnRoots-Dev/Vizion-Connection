@@ -35,7 +35,8 @@ export type DashboardView =
     | "checkout"
     | "activities"
     | "moments"
-    | "viz_map";
+    | "viz_map"
+    | "monetize";
 
 export interface ThemeColors {
     bg: string;

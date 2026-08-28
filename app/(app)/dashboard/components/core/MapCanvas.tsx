@@ -110,6 +110,10 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
                     if (layer.type === "fill" && (layer.id.includes("water") || sourceLayer === "water")) {
                         map.setPaintProperty(layer.id, "fill-color", "#b9e0e4");
                     }
+                    // Set map labels to Japanese
+                    if (layer.type === "symbol" && (sourceLayer === "place_label" || sourceLayer === "road_label" || sourceLayer === "waterway_label" || sourceLayer === "natural_label" || sourceLayer === "poi_label")) {
+                        map.setLayoutProperty(layer.id, "text-field", ["coalesce", ["get", "name_ja"], ["get", "name"]]);
+                    }
                 }
 
                 map.addSource("viz-points", {
@@ -203,7 +207,8 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
 
     if (!token) return <div role="alert" className="flex h-full min-h-[420px] items-center justify-center bg-[#111118] p-6 text-center text-sm text-white/60">NEXT_PUBLIC_MAPBOX_TOKEN が未設定のためViz Mapを表示できません。</div>;
 
-    return <div className="relative h-full w-full overflow-hidden bg-[#0c0c14]"><div ref={containerRef} role="application" aria-label="Viz Map" className="h-full w-full" />{loading ? <div className="absolute left-4 top-4 rounded-full border border-[color:var(--vc-accent-border)] bg-black/70 px-3 py-1 font-mono text-[10px] text-[color:var(--vc-accent)]">Loading</div> : null}</div>;
+    void loading;
+    return <div className="relative h-full w-full overflow-hidden bg-[#0c0c14]"><div ref={containerRef} role="application" aria-label="Viz Map" className="h-full w-full" /></div>;
 }
 
 export type { MapBBox };

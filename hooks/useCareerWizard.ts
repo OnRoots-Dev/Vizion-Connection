@@ -1,5 +1,5 @@
-// hooks/useCareerWizard.ts
 "use client";
+// hooks/useCareerWizard.ts — Role-based Profile Onboarding store
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -11,37 +11,24 @@ import type {
   UserRole,
 } from "@/types/career";
 import { ROLE_CONFIG } from "@/types/career";
+import {
+  getPhaseLabelsForRole,
+  getStepsForRole,
+  type WizardStepMeta,
+} from "@/lib/career-wizard/flows";
 
-// ─── Step definitions ──────────────────────────────────────
-
-export const STEPS = [
-  { id: "profile_basic", label: "プロフィール情報", phase: 0, skippable: false },
-  { id: "profile_media", label: "プロフィール画像", phase: 0, skippable: true },
-  { id: "tagline",       label: "キャッチコピー",   phase: 0, skippable: true  },
-  { id: "location",      label: "活動拠点",        phase: 0, skippable: true  },
-  { id: "bio",           label: "自己紹介",        phase: 1, skippable: true  },
-  { id: "stats",         label: "数値実績",        phase: 1, skippable: true  },
-  { id: "episodes",      label: "年表",            phase: 1, skippable: true  },
-  { id: "skills",        label: "スキル",          phase: 2, skippable: true  },
-  { id: "contact",       label: "外部リンク",      phase: 2, skippable: true  },
-  { id: "complete",      label: "完成",            phase: 2, skippable: false },
-] as const;
-
-export type StepId = (typeof STEPS)[number]["id"];
-export const PHASE_LABELS = ["基本設定", "キャリア詳細", "スキル・仕上げ"];
-export const TOTAL_STEPS = STEPS.length - 1; // "complete" は最後の index
+export type { WizardStepMeta };
+export { getStepsForRole, getPhaseLabelsForRole };
 
 // ─── Initial state ─────────────────────────────────────────
 
 const INITIAL_DATA: CareerWizardState = {
-  // users テーブルから読み込む
   role: "",
   name: "",
   slug: "",
   sport: "",
   existingRegion: "",
 
-  // profile（編集対象）
   displayName: "",
   bio: "",
   region: "",
@@ -52,13 +39,25 @@ const INITIAL_DATA: CareerWizardState = {
   instagram: "",
   xUrl: "",
   tiktok: "",
+  youtube: "",
+  website: "",
   profileImageUrl: "",
   avatarUrl: "",
   isPublic: true,
+  claim: "",
+  location: "",
+  sports: [],
 
   careerImageUrl: "",
 
-  // career_profiles テーブルへ保存
+  businessLocationName: "",
+  businessAddress: "",
+  businessLatitude: "",
+  businessLongitude: "",
+  businessHours: "",
+  businessPhone: "",
+  businessWebsite: "",
+
   tagline: "",
   bioCareer: "",
   countryCode: "JP",
@@ -79,6 +78,21 @@ const INITIAL_DATA: CareerWizardState = {
   visibility: "public",
 };
 
+function applyRoleDefaults(role: UserRole, prev: CareerWizardState): Partial<CareerWizardState> {
+  const cfg = ROLE_CONFIG[role];
+  const skills: CareerSkill[] = cfg.skills.map((s) => ({
+    name: s.name,
+    level: s.defaultLevel,
+    isHighlight: s.highlight ?? false,
+  }));
+  const stats = cfg.stats.map((s) => ({
+    value: "",
+    label: s.label,
+    color: s.color,
+  }));
+  return { role, stats, skills };
+}
+
 // ─── Store type ────────────────────────────────────────────
 
 interface WizardStore {
@@ -90,26 +104,32 @@ interface WizardStore {
   editingEpisode: CareerEpisode | null;
   isEpisodeModalOpen: boolean;
 
-  // Navigation
+  getSteps: () => WizardStepMeta[];
+  getTotalSteps: () => number;
+  getCurrentStep: () => WizardStepMeta | undefined;
+
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (i: number) => void;
   skipStep: () => void;
 
-  // Data setters
   setField: <K extends keyof CareerWizardState>(k: K, v: CareerWizardState[K]) => void;
-  setRole: (role: UserRole) => void;
   setStat: (i: number, key: "value" | "label", v: string) => void;
+  toggleSportsItem: (item: string) => void;
+
   initFromUser: (user: {
     role: UserRole;
     name: string;
     slug: string;
     sport?: string;
+    sports?: string[];
     region?: string;
     prefecture?: string;
+    location?: string;
     sportsCategory?: string;
     stance?: string;
     bio?: string;
+    claim?: string;
     displayName?: string;
     profileImageUrl?: string;
     avatarUrl?: string | null;
@@ -117,6 +137,7 @@ interface WizardStore {
     instagram?: string;
     xUrl?: string;
     tiktok?: string;
+    website?: string;
   }) => void;
   initFromCareerProfile: (cp: {
     tagline?: string | null;
@@ -135,26 +156,23 @@ interface WizardStore {
     visibility?: "public" | "members" | "private";
   }) => void;
 
-  // Episodes
   openNewEpisode: () => void;
   openEditEpisode: (id: string) => void;
   closeEpisodeModal: () => void;
   saveEpisode: (ep: Omit<CareerEpisode, "id">) => void;
   deleteEpisode: (id: string) => void;
 
-  // Skills
   setSkillLevel: (name: string, level: number) => void;
   toggleSkillHighlight: (name: string) => void;
   addSkill: (name: string) => void;
   removeSkill: (name: string) => void;
 
-  // Persistence
   saveProfileToApi: () => Promise<boolean>;
   saveCareerToApi: () => Promise<boolean>;
+  saveBusinessLocationToApi: () => Promise<boolean>;
   saveToApi: () => Promise<boolean>;
   resetWizard: () => void;
 
-  // Computed
   progressPct: () => number;
   currentPhase: () => number;
   roleColor: () => string;
@@ -174,41 +192,30 @@ export const useCareerWizard = create<WizardStore>()(
         editingEpisode: null,
         isEpisodeModalOpen: false,
 
-        // ── Navigation ────────────────────────────────
+        getSteps: () => getStepsForRole(get().data.role as UserRole | ""),
+        getTotalSteps: () => {
+          const steps = get().getSteps();
+          return Math.max(steps.length - 1, 1);
+        },
+        getCurrentStep: () => get().getSteps()[get().currentStepIndex],
+
         nextStep: () => {
+          const steps = get().getSteps();
           const i = get().currentStepIndex;
-          if (i < STEPS.length - 1) set({ currentStepIndex: i + 1 });
+          if (i < steps.length - 1) set({ currentStepIndex: i + 1 });
         },
         prevStep: () => {
           const i = get().currentStepIndex;
           if (i > 0) set({ currentStepIndex: i - 1 });
         },
         goToStep: (i) => {
-          if (i >= 0 && i < STEPS.length) set({ currentStepIndex: i });
+          const steps = get().getSteps();
+          if (i >= 0 && i < steps.length) set({ currentStepIndex: i });
         },
         skipStep: () => get().nextStep(),
 
-        // ── Data setters ──────────────────────────────
         setField: (k, v) =>
           set((s) => ({ data: { ...s.data, [k]: v } })),
-
-        setRole: (role) => {
-          const cfg = ROLE_CONFIG[role];
-          // ロール変更時にデフォルトスキル・statsをセット
-          const skills: CareerSkill[] = cfg.skills.map((s) => ({
-            name: s.name,
-            level: s.defaultLevel,
-            isHighlight: s.highlight ?? false,
-          }));
-          const stats = cfg.stats.map((s) => ({
-            value: "",
-            label: s.label,
-            color: s.color,
-          }));
-          set((prev) => ({
-            data: { ...prev.data, role, stats, skills },
-          }));
-        },
 
         setStat: (i, key, v) =>
           set((s) => {
@@ -217,60 +224,75 @@ export const useCareerWizard = create<WizardStore>()(
             return { data: { ...s.data, stats } };
           }),
 
-        // usersテーブルのデータを読み込む（読み取り専用）
+        toggleSportsItem: (item) =>
+          set((s) => {
+            const sports = s.data.sports.includes(item)
+              ? s.data.sports.filter((x) => x !== item)
+              : [...s.data.sports, item];
+            return { data: { ...s.data, sports } };
+          }),
+
         initFromUser: (user) =>
-          set((s) => ({
-            data: {
-              ...s.data,
-              role: user.role,
-              name: user.name,
-              slug: user.slug,
-              sport: user.sport ?? "",
-              existingRegion: user.region ?? "",
-              displayName: user.displayName ?? user.name,
-              bio: user.bio ?? "",
-              region: user.region ?? "",
-              prefecture: user.prefecture ?? "",
-              sportsCategory: user.sportsCategory ?? "",
-              sportProfile: user.sport ?? "",
-              stance: user.stance ?? "",
-              instagram: user.instagram ?? "",
-              xUrl: user.xUrl ?? "",
-              tiktok: user.tiktok ?? "",
-              profileImageUrl: user.profileImageUrl ?? "",
-              avatarUrl: user.avatarUrl ?? "",
-              isPublic: user.isPublic !== false,
+          set((s) => {
+            const roleDefaults = applyRoleDefaults(user.role, s.data);
+            const tagline = user.claim ?? s.data.tagline;
+            return {
+              currentStepIndex: 0,
+              data: {
+                ...s.data,
+                ...roleDefaults,
+                role: user.role,
+                name: user.name,
+                slug: user.slug,
+                sport: user.sport ?? "",
+                existingRegion: user.region ?? "",
+                displayName: user.displayName ?? user.name,
+                bio: user.bio ?? "",
+                region: user.region ?? "",
+                prefecture: user.prefecture ?? "",
+                location: user.location ?? "",
+                sportsCategory: user.sportsCategory ?? "",
+                sportProfile: user.sport ?? "",
+                stance: user.stance ?? "",
+                claim: user.claim ?? "",
+                sports: user.sports ?? [],
+                instagram: user.instagram ?? "",
+                xUrl: user.xUrl ?? "",
+                tiktok: user.tiktok ?? "",
+                website: user.website ?? "",
+                profileImageUrl: user.profileImageUrl ?? "",
+                avatarUrl: user.avatarUrl ?? "",
+                isPublic: user.isPublic !== false,
+                tagline: tagline,
+                snsX: user.xUrl ?? "",
+                snsInstagram: user.instagram ?? "",
+                snsTiktok: user.tiktok ?? "",
+              },
+            };
+          }),
 
-              // career側にも SNS を反映（公開ページのCTA用）
-              snsX: user.xUrl ?? "",
-              snsInstagram: user.instagram ?? "",
-              snsTiktok: user.tiktok ?? "",
-            },
-          })),
-
-        // career_profilesテーブルのデータを読み込む
         initFromCareerProfile: (cp) =>
           set((s) => ({
             data: {
               ...s.data,
-              tagline:     cp.tagline      ?? s.data.tagline,
-              bioCareer:   cp.bio_career   ?? s.data.bioCareer,
+              tagline: cp.tagline ?? s.data.tagline,
+              claim: cp.tagline ?? s.data.claim,
+              bioCareer: cp.bio_career ?? s.data.bioCareer,
               countryCode: cp.country_code ?? s.data.countryCode,
               countryName: cp.country_name ?? s.data.countryName,
-              stats:       cp.stats        ?? s.data.stats,
-              episodes:    cp.episodes     ?? s.data.episodes,
-              skills:      cp.skills       ?? s.data.skills,
-              ctaTitle:    cp.cta_title    ?? s.data.ctaTitle,
-              ctaSub:      cp.cta_sub      ?? s.data.ctaSub,
-              ctaBtn:      cp.cta_btn      ?? s.data.ctaBtn,
-              snsX:        cp.sns_x        ?? s.data.snsX,
+              stats: cp.stats ?? s.data.stats,
+              episodes: cp.episodes ?? s.data.episodes,
+              skills: cp.skills ?? s.data.skills,
+              ctaTitle: cp.cta_title ?? s.data.ctaTitle,
+              ctaSub: cp.cta_sub ?? s.data.ctaSub,
+              ctaBtn: cp.cta_btn ?? s.data.ctaBtn,
+              snsX: cp.sns_x ?? s.data.snsX,
               snsInstagram: cp.sns_instagram ?? s.data.snsInstagram,
-              snsTiktok:   cp.sns_tiktok   ?? s.data.snsTiktok,
-              visibility:  cp.visibility   ?? s.data.visibility,
+              snsTiktok: cp.sns_tiktok ?? s.data.snsTiktok,
+              visibility: cp.visibility ?? s.data.visibility,
             },
           })),
 
-        // ── Episodes ──────────────────────────────────
         openNewEpisode: () =>
           set({
             editingEpisode: {
@@ -311,7 +333,6 @@ export const useCareerWizard = create<WizardStore>()(
             },
           })),
 
-        // ── Skills ────────────────────────────────────
         setSkillLevel: (name, level) =>
           set((s) => ({
             data: {
@@ -355,11 +376,11 @@ export const useCareerWizard = create<WizardStore>()(
             },
           })),
 
-        // ── API保存 ───────────────────────────────────
         saveProfileToApi: async () => {
           set({ isSaving: true, saveError: null });
           try {
             const { data } = get();
+            const tagline = data.tagline || data.claim;
 
             const profileRes = await fetch("/api/profile/save", {
               method: "POST",
@@ -369,12 +390,15 @@ export const useCareerWizard = create<WizardStore>()(
                 bio: data.bio,
                 region: data.region,
                 prefecture: data.prefecture,
+                location: data.location,
                 sportsCategory: data.sportsCategory,
-                sport: data.sportProfile,
+                sport: data.sportProfile || data.sport,
+                sports: data.sports,
                 stance: data.stance,
-                instagram: data.instagram,
-                xUrl: data.xUrl,
-                tiktok: data.tiktok,
+                claim: tagline,
+                instagram: data.instagram || data.snsInstagram,
+                xUrl: data.xUrl || data.snsX,
+                tiktok: data.tiktok || data.snsTiktok,
                 profileImageUrl: data.profileImageUrl,
                 avatarUrl: data.avatarUrl,
                 isPublic: data.isPublic,
@@ -383,10 +407,9 @@ export const useCareerWizard = create<WizardStore>()(
 
             if (!profileRes.ok) {
               const err = await profileRes.json().catch(() => ({}));
-              set({ saveError: (err as any)?.error ?? "プロフィールの保存に失敗しました" });
+              set({ saveError: (err as { error?: string })?.error ?? "プロフィールの保存に失敗しました" });
               return false;
             }
-
             return true;
           } catch (e) {
             console.error("[saveProfileToApi]", e);
@@ -401,37 +424,77 @@ export const useCareerWizard = create<WizardStore>()(
           set({ isSaving: true, saveError: null });
           try {
             const { data } = get();
+            const tagline = data.tagline || data.claim;
 
             const res = await fetch("/api/career-profile", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                tagline:      data.tagline,
-                bioCareer:    data.bioCareer,
-                countryCode:  data.countryCode,
-                countryName:  data.countryName,
-                stats:        data.stats,
-                episodes:     data.episodes,
-                skills:       data.skills,
-                ctaTitle:     data.ctaTitle,
-                ctaSub:       data.ctaSub,
-                ctaBtn:       data.ctaBtn,
-                snsX:         data.snsX,
-                snsInstagram: data.snsInstagram,
-                snsTiktok:    data.snsTiktok,
-                visibility:   data.visibility,
+                tagline,
+                bioCareer: data.bioCareer || data.bio,
+                countryCode: data.countryCode,
+                countryName: data.countryName || data.prefecture || data.region,
+                stats: data.stats.filter((s) => s.color !== "gold" || s.value),
+                episodes: data.episodes,
+                skills: data.skills,
+                ctaTitle: data.ctaTitle,
+                ctaSub: data.ctaSub,
+                ctaBtn: data.ctaBtn,
+                snsX: data.snsX || data.xUrl,
+                snsInstagram: data.snsInstagram || data.instagram,
+                snsTiktok: data.snsTiktok || data.tiktok,
+                visibility: data.visibility,
               }),
             });
 
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
-              set({ saveError: (err as any)?.error ?? "保存に失敗しました" });
+              set({ saveError: (err as { error?: string })?.error ?? "保存に失敗しました" });
               return false;
             }
-
             return true;
           } catch (e) {
             console.error("[saveCareerToApi]", e);
+            set({ saveError: "ネットワークエラーが発生しました" });
+            return false;
+          } finally {
+            set({ isSaving: false });
+          }
+        },
+
+        saveBusinessLocationToApi: async () => {
+          const { data } = get();
+          if (data.role !== "Business") return true;
+          const lat = parseFloat(data.businessLatitude);
+          const lng = parseFloat(data.businessLongitude);
+          if (!data.businessLocationName.trim() || !data.prefecture.trim() || Number.isNaN(lat) || Number.isNaN(lng)) {
+            return true; // skip if incomplete (non-blocking for other roles' code path)
+          }
+
+          set({ isSaving: true, saveError: null });
+          try {
+            const res = await fetch("/api/business-monetize/locations", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: data.businessLocationName,
+                prefecture: data.prefecture,
+                address: data.businessAddress || null,
+                latitude: lat,
+                longitude: lng,
+                hours: data.businessHours || null,
+                phone: data.businessPhone || null,
+                website: data.businessWebsite || data.website || null,
+              }),
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              set({ saveError: (err as { error?: string })?.error ?? "店舗情報の保存に失敗しました" });
+              return false;
+            }
+            return true;
+          } catch (e) {
+            console.error("[saveBusinessLocationToApi]", e);
             set({ saveError: "ネットワークエラーが発生しました" });
             return false;
           } finally {
@@ -443,27 +506,29 @@ export const useCareerWizard = create<WizardStore>()(
           const okProfile = await get().saveProfileToApi();
           if (!okProfile) return false;
           const okCareer = await get().saveCareerToApi();
-          return okCareer;
+          if (!okCareer) return false;
+          const okBiz = await get().saveBusinessLocationToApi();
+          return okBiz;
         },
 
         resetWizard: () =>
           set({ data: INITIAL_DATA, currentStepIndex: 0, saveError: null }),
 
-        // ── Computed ──────────────────────────────────
-        progressPct: () =>
-          Math.round((get().currentStepIndex / TOTAL_STEPS) * 100),
+        progressPct: () => {
+          const total = get().getTotalSteps();
+          return Math.round((get().currentStepIndex / total) * 100);
+        },
         currentPhase: () =>
-          STEPS[get().currentStepIndex]?.phase ?? 0,
+          get().getCurrentStep()?.phase ?? 0,
         roleColor: () => {
           const r = get().data.role as UserRole | "";
           return r ? (ROLE_CONFIG[r]?.color ?? "#C1272D") : "#C1272D";
         },
         isCurrentStepSkippable: () =>
-          STEPS[get().currentStepIndex]?.skippable ?? false,
+          get().getCurrentStep()?.skippable ?? false,
       }),
       {
-        name: "vizion-career-draft", // localStorage key
-        // UIステートは永続化しない、データのみ
+        name: "vizion-career-draft",
         partialize: (s) => ({
           data: s.data,
           currentStepIndex: s.currentStepIndex,
@@ -474,4 +539,7 @@ export const useCareerWizard = create<WizardStore>()(
   )
 );
 
-
+/** @deprecated Use getStepsForRole(role) — kept for backward compat during migration */
+export const STEPS = getStepsForRole("Athlete");
+export const PHASE_LABELS = getPhaseLabelsForRole("Athlete");
+export const TOTAL_STEPS = STEPS.length - 1;

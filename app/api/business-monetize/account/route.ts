@@ -8,7 +8,7 @@ import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { monetizeLimiter, getIp } from "@/lib/ratelimit";
 import { z } from "zod";
-import { getSupabaseProfile } from "@/lib/auth/session";
+import { requireAdminProfile } from "@/lib/auth/require-admin-session";
 import { isMonetizePlan } from "@/features/business-monetize/constants";
 
 const planUpdateSchema = z.object({
@@ -41,9 +41,7 @@ export async function PATCH(req: NextRequest) {
   if (!limited) return NextResponse.json({ success: false, error: "しばらく時間をおいてから再度お試しください" }, { status: 429 });
 
   try {
-    const admin = await getSupabaseProfile();
-    if (!admin) return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
-    if (admin.role !== "Admin") return NextResponse.json({ success: false, error: "管理権限が必要です" }, { status: 403 });
+    await requireAdminProfile();
     let body: unknown;
     try {
       body = await readLimitedJson(req);
@@ -62,9 +60,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const url = new URL(req.url);
-    const accountId = url.pathname.split("/").filter(Boolean).at(-2) === "account"
-      ? url.searchParams.get("accountId")
-      : null;
+    const accountId = url.searchParams.get("accountId");
     if (!accountId) {
       return NextResponse.json({ success: false, error: "accountIdが必要です" }, { status: 400 });
     }
@@ -76,6 +72,9 @@ export async function PATCH(req: NextRequest) {
     });
     return NextResponse.json({ success: true, account });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "UNKNOWN";
+    if (message === "UNAUTHORIZED") return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
+    if (message === "FORBIDDEN" || message === "FORBIDDEN_EMAIL") return NextResponse.json({ success: false, error: "管理権限が必要です" }, { status: 403 });
     return NextResponse.json({ success: false, error: "アカウント更新に失敗しました" }, { status: 500 });
   }
 }

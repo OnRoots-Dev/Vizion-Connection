@@ -2,69 +2,26 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { INTERACTION } from "@/lib/design/tokens";
+import { User, Briefcase } from "lucide-react";
 
-type TabId = "profile" | "career" | "schedule";
-
-interface PulseStats {
-    journeyCount: number;
-    streakDays: number;
-    cheerCount: number;
-    bondCount: number;
-}
-
-function PulseStatItem({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
-    return (
-        <div
-            style={{
-                textAlign: "center",
-                padding: "12px 8px",
-                borderRadius: INTERACTION.radius.card,
-                border: "1px solid rgba(255,255,255,0.07)",
-                background: "rgba(255,255,255,0.02)",
-                boxShadow: INTERACTION.hover.shadow.rest,
-            }}
-        >
-            <p style={{ margin: 0, fontFamily: "monospace", fontSize: 22, fontWeight: 900, color: "var(--electric)", lineHeight: 1 }}>
-                {value.toLocaleString()}{suffix ?? ""}
-            </p>
-            <p
-                style={{
-                    margin: "6px 0 0",
-                    fontFamily: "monospace",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.2em",
-                    color: "var(--muted-foreground)",
-                }}
-            >
-                {label}
-            </p>
-        </div>
-    );
-}
+type TabId = "profile" | "career";
 
 export default function PublicProfileTabs({
     roleColor,
     careerLabel,
     profilePanel,
     careerPanel,
-    schedulePanel,
-    pulseStats,
 }: {
     roleColor: string;
     careerLabel: string;
     profilePanel: ReactNode;
     careerPanel: ReactNode;
-    schedulePanel: ReactNode;
-    pulseStats?: PulseStats;
 }) {
     const [activeTab, setActiveTab] = useState<TabId>("profile");
 
     useEffect(() => {
         const syncTabFromHash = () => {
             const hash = window.location.hash.replace("#", "").toLowerCase();
-            if (hash === "schedule") { setActiveTab("schedule"); return; }
             if (hash === "career") { setActiveTab("career"); return; }
             if (hash === "profile") setActiveTab("profile");
         };
@@ -74,10 +31,9 @@ export default function PublicProfileTabs({
         return () => window.removeEventListener("hashchange", syncTabFromHash);
     }, []);
 
-    const tabs: { id: TabId; label: string }[] = [
-        { id: "profile", label: "Profile" },
-        { id: "career", label: careerLabel },
-        { id: "schedule", label: "Schedule" },
+    const tabs: { id: TabId; label: string; icon: any }[] = [
+        { id: "profile", label: "Profile", icon: User },
+        { id: "career", label: careerLabel, icon: Briefcase },
     ];
 
     return (
@@ -94,7 +50,7 @@ export default function PublicProfileTabs({
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                     gap: 0,
                     padding: 6,
                     borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -103,6 +59,7 @@ export default function PublicProfileTabs({
             >
                 {tabs.map((tab) => {
                     const active = activeTab === tab.id;
+                    const Icon = tab.icon;
                     return (
                         <button
                             key={tab.id}
@@ -112,20 +69,24 @@ export default function PublicProfileTabs({
                                 window.history.replaceState(null, "", `#${tab.id}`);
                             }}
                             style={{
-                                minHeight: 46,
+                                minHeight: 48,
                                 padding: "0 12px",
                                 borderRadius: 14,
                                 border: "none",
                                 background: active ? `${roleColor}16` : "transparent",
                                 color: active ? roleColor : "rgba(255,255,255,0.42)",
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: 800,
                                 letterSpacing: "0.08em",
                                 cursor: "pointer",
                                 transition: "all 0.18s ease",
                                 boxShadow: active ? `inset 0 0 0 1px ${roleColor}24` : "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
                             }}
                         >
+                            <Icon size={16} />
                             {tab.label}
                         </button>
                     );
@@ -133,21 +94,8 @@ export default function PublicProfileTabs({
             </div>
 
             <div style={{ padding: 20 }}>
-                {activeTab === "profile" ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {pulseStats ? (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 10 }}>
-                                <PulseStatItem label="JOURNEY" value={pulseStats.journeyCount} />
-                                <PulseStatItem label="STREAK" value={pulseStats.streakDays} suffix="日" />
-                                <PulseStatItem label="CHEER" value={pulseStats.cheerCount} />
-                                <PulseStatItem label="Bond" value={pulseStats.bondCount} />
-                            </div>
-                        ) : null}
-                        {profilePanel}
-                    </div>
-                ) : null}
+                {activeTab === "profile" ? profilePanel : null}
                 {activeTab === "career" ? careerPanel : null}
-                {activeTab === "schedule" ? schedulePanel : null}
             </div>
         </section>
     );
