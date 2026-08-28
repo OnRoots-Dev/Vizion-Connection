@@ -7,9 +7,9 @@ interface ActivityCardProps {
   athlete?: string;
   sport?: string;
   location?: string;
-  distance?: string;
-  time?: string;
-  pace?: string;
+  activity?: string;
+  schedule?: string;
+  connections?: string;
   cheers?: number;
   comments?: number;
   delay?: number;
@@ -17,11 +17,11 @@ interface ActivityCardProps {
 
 export function ActivityCard({
   athlete = "YUKI TANAKA",
-  sport = "RUNNING",
+  sport = "TRAINING",
   location = "YOKOHAMA",
-  distance = "5.82",
-  time = "32:41",
-  pace = "5:37",
+  activity = "12",
+  schedule = "3",
+  connections = "9",
   cheers = 24,
   comments = 12,
   delay = 0,
@@ -56,9 +56,9 @@ export function ActivityCard({
 
       {/* Metrics */}
       <div className="grid grid-cols-3 border-b border-white/[0.06]">
-        <MetricCell label="DISTANCE" value={distance} unit="km" />
-        <MetricCell label="TIME" value={time} unit="" border />
-        <MetricCell label="PACE" value={pace} unit="/km" />
+        <MetricCell label="ACTIVITY" value={activity} unit="" />
+        <MetricCell label="SCHEDULE" value={schedule} unit="" border />
+        <MetricCell label="CONN." value={connections} unit="" />
       </div>
 
       {/* Mini Map Placeholder */}

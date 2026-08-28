@@ -5,7 +5,9 @@ export type NotificationType =
   | "business_checkout_submitted"
   | "mission_reward_granted"
   | "news"
-  | "bond";
+  | "bond"
+  | "activity_created"
+  | "moment_created";
 
 interface NotificationRow {
   id: number;

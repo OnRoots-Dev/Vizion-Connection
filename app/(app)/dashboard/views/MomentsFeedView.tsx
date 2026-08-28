@@ -5,6 +5,7 @@
 // Connectionはフィード単位で一括取得し、カードへ状態を渡す（N+1回避）。
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ViewHeader, ViewLoader } from "../components/ui";
 import { MomentCard } from "../components/core/MomentCard";
 import { ConnectionButton } from "../components/core/ConnectionButton";
@@ -27,12 +28,22 @@ export function MomentsFeedView({
     onBack: () => void;
 }) {
     const viewerId = Number(profile.id);
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState("");
     const [items, setItems] = useState<MomentFeedItem[]>([]);
     const [connections, setConnections] = useState<ConnectionListItem[]>([]);
     const [scope, setScope] = useState<"mine" | "connections">("mine");
+    const [highlightMomentId, setHighlightMomentId] = useState<string | null>(null);
+
+    // クエリパラメータからmomentIdを取得してハイライト
+    useEffect(() => {
+        const momentId = searchParams.get("momentId");
+        if (momentId) {
+            setHighlightMomentId(momentId);
+        }
+    }, [searchParams]);
 
     const loadConnections = useCallback(async () => {
         try {
@@ -140,6 +151,7 @@ export function MomentsFeedView({
                             t={t}
                             connection={connectionFor(item.moment.user_id)}
                             onConnectionChanged={loadConnections}
+                            highlight={item.moment.id === highlightMomentId}
                         />
                     ))}
                     {oldest ? (

@@ -661,11 +661,11 @@ export function ProfileCardSection({
                                                 fontSize: "clamp(12px, 3.0vw, 17px)",
                                                 fontWeight: 950,
                                                 letterSpacing: "clamp(0.06em, 0.5vw, 0.16em)",
-                                                color: "var(--electric)",
-                                                opacity: 0.7,
+                                                color: "rgba(180, 180, 190, 0.9)",
+                                                opacity: 1,
                                                 whiteSpace: "nowrap",
-                                                textShadow: "0 1px 0 rgba(255,255,255,0.42), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.62)",
-                                                filter: "drop-shadow(0 0 10px rgba(0,0,0,0.28))",
+                                                textShadow: "0 1px 0 rgba(255,255,255,0.12), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.42)",
+                                                filter: "drop-shadow(0 0 8px rgba(0,0,0,0.18))",
                                             }}
                                         >
                                             {vzId}

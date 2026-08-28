@@ -6,6 +6,7 @@
 // Activity は継続して行う活動の Core Data。Moment のような他人への SNS Feed ではない。
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton } from "../components/ui";
 import { BottomSheet } from "../components/core/BottomSheet";
@@ -16,7 +17,7 @@ import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
 import type { PlaceRecord } from "@/features/place/place";
 import type { ThemeColors } from "../types";
-import { SponsoredFeed } from "./SponsoredFeed";
+import { BusinessAdBanner } from "./BusinessAdBanner";
 
 type ActivityWithPlace = ActivityRecord & {
     place?: Pick<PlaceRecord, "id" | "name" | "prefecture"> | null;
@@ -70,6 +71,7 @@ export function ActivitiesView({
     onBack: () => void;
 }) {
     const reduce = useReducedMotion();
+    const searchParams = useSearchParams();
     const allowedTypes = (TYPES_BY_ROLE[profile.role as keyof typeof TYPES_BY_ROLE] ?? TYPES_BY_ROLE.Athlete) as readonly ActivityType[];
 
     const [loading, setLoading] = useState(true);
@@ -77,6 +79,15 @@ export function ActivitiesView({
     const [items, setItems] = useState<ActivityWithPlace[]>([]);
     const [mode, setMode] = useState<"list" | "create" | "detail">("list");
     const [detailId, setDetailId] = useState<string | null>(null);
+
+    // クエリパラメータからactivityIdを取得して詳細表示
+    useEffect(() => {
+        const activityId = searchParams.get("activityId");
+        if (activityId) {
+            setDetailId(activityId);
+            setMode("detail");
+        }
+    }, [searchParams]);
 
     // form state
     const [fType, setFType] = useState<ActivityType>(allowedTypes[0]);
@@ -221,7 +232,7 @@ export function ActivitiesView({
                 <>
                     <PrimaryButton onClick={() => setMode("create")} disabled={loading}>+ Activity を作成</PrimaryButton>
 
-                    <SponsoredFeed t={t} />
+                    <BusinessAdBanner t={t} />
 
                     {error ? (
                         <FeedErrorState message={error} onRetry={() => void load()} />

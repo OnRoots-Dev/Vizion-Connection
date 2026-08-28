@@ -17,7 +17,7 @@ type InlineAd = {
 
 interface NotificationItem {
   id: number;
-  type: "cheer_received" | "business_checkout_submitted" | "mission_reward_granted";
+  type: "cheer_received" | "business_checkout_submitted" | "mission_reward_granted" | "activity_created" | "moment_created";
   title: string;
   body: string;
   actorSlug: string | null;
@@ -58,6 +58,8 @@ const TYPE_LABEL: Record<NotificationItem["type"], string> = {
   cheer_received: "Cheer",
   business_checkout_submitted: "Business",
   mission_reward_granted: "Missions",
+  activity_created: "Activity",
+  moment_created: "Moment",
 };
 
 function formatDate(value: string): string {

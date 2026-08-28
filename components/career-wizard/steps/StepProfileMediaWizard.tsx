@@ -102,9 +102,13 @@ export default function StepProfileMediaWizard() {
         hint="プロフィール画像とアバター画像をアップロードできます（最大5MB）"
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4">
         <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">プロフィール画像</p>
+              <p className="mt-1 text-sm leading-relaxed text-white/60">カード背景・プロフィールのヒーロー画像です。</p>
+            </div>
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
               {profileImageUrl ? (
                 <Image
@@ -117,10 +121,6 @@ export default function StepProfileMediaWizard() {
               ) : (
                 <div className="text-xs font-semibold text-white/30">No Image</div>
               )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-black text-white">プロフィール画像</p>
-              <p className="mt-1 text-sm text-white/60">カード背景・プロフィールのヒーロー画像です。</p>
             </div>
           </div>
 
@@ -174,7 +174,11 @@ export default function StepProfileMediaWizard() {
         </div>
 
         <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">アバター画像</p>
+              <p className="mt-1 text-sm leading-relaxed text-white/60">アイコンとして表示される写真です。</p>
+            </div>
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/20">
               {avatarUrl ? (
                 <Image
@@ -187,10 +191,6 @@ export default function StepProfileMediaWizard() {
               ) : (
                 <div className="text-xs font-semibold text-white/30">No Image</div>
               )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-black text-white">アバター画像</p>
-              <p className="mt-1 text-sm text-white/60">アイコンとして表示される写真です。</p>
             </div>
           </div>
 

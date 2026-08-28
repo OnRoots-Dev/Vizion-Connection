@@ -5,6 +5,7 @@ import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { activityLimiter, getIp } from "@/lib/ratelimit";
 import { activityCreateSchema, assertActivityTypeAllowed } from "@/features/activity/validation";
 import { createActivity, listMyActivities } from "@/features/activity/server/activities";
+import { notifyActivityCreated } from "@/lib/notifications/create-notification";
 
 const createSchema = activityCreateSchema;
 
@@ -45,6 +46,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     try {
         const activity = await createActivity(user.id, parsed.data);
+        // Activity作成通知を送信
+        await notifyActivityCreated({
+            slug: user.slug,
+            activityId: activity.id,
+            title: activity.title || "新しいActivity",
+        });
         return NextResponse.json({ success: true, activity });
     } catch (e) {
         console.error("[activities/POST]", e instanceof Error ? e.message : e);

@@ -10,11 +10,11 @@ import type { LucideIcon } from "lucide-react";
 import { TextScramble } from "./text-scramble";
 
 const STEPS: { icon: LucideIcon; title: string; ja: string; desc: string }[] = [
-  { icon: Activity, title: "Activity", ja: "記録", desc: "練習・試合・イベントを場所と一緒に記録" },
-  { icon: MapPin, title: "Place", ja: "場所", desc: "活動の舞台が地図に座標を持つ" },
-  { icon: Camera, title: "Moment", ja: "公開", desc: "成果の瞬間を写真と共に公開" },
-  { icon: Heart, title: "Cheer / Connection", ja: "反応・つながり", desc: "応援とコメントが届き、人が繋がる" },
-  { icon: Map, title: "Viz Map", ja: "発見", desc: "マップから新しい人・場所・活動に出会う" },
+  { icon: Activity, title: "Activity", ja: "記録", desc: "練習・試合・イベントを簡単に残す" },
+  { icon: MapPin, title: "Profile", ja: "見える化", desc: "経歴・場所・公開範囲がプロフィールに反映される" },
+  { icon: Camera, title: "Moment", ja: "共有", desc: "成果や想いを写真や言葉で伝える" },
+  { icon: Heart, title: "Cheer / Connection", ja: "応援", desc: "応援とコメントが信頼の関係になる" },
+  { icon: Map, title: "Viz Map", ja: "発見", desc: "地域や興味のある人・活動に出会う" },
 ];
 
 export function CoreLoopSection() {
@@ -37,8 +37,8 @@ export function CoreLoopSection() {
             ひとつの行動が、循環しはじめる。
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-[1.9] text-white/60">
-            記録した活動は場所を持ち、Momentとして公開され、応援とつながりを生み、マップで再発見される。
-            このループそのものが、Vizion Connectionの使い方です。
+            活動を記録し、自分の姿を見せて、参加者と関わり、応援や発信につなげる。
+            その循環が、Vizion Connectionの基本ループです。
           </p>
         </motion.div>
 
@@ -75,7 +75,7 @@ export function CoreLoopSection() {
           transition={{ delay: 0.4 }}
           className="mt-6 text-center font-mono text-[11px] tracking-[0.14em] text-white/35"
         >
-          LOOP → ACTIVITY → PLACE → MOMENT → CHEER → MAP → …
+          LOOP → ACTIVITY → PROFILE → MOMENT → CHEER → MAP → …
         </motion.p>
       </div>
     </section>

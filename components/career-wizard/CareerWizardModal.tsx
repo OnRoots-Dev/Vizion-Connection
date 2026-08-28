@@ -7,10 +7,15 @@ import {
   useCareerWizard,
   getPhaseLabelsForRole,
 } from "@/hooks/useCareerWizard";
-import { useWizardAutoSave } from "@/hooks/useWizardAutoSave";
 import EpisodeSubModal from "./EpisodeSubModal";
 import { getStepComponent } from "./stepRegistry";
 import type { UserRole } from "@/types/career";
+import type { WizardStepId } from "@/lib/career-wizard/flows";
+
+function StepRenderer({ stepId }: { stepId: WizardStepId }) {
+  const StepComponent = getStepComponent(stepId);
+  return <StepComponent />;
+}
 
 export default function CareerWizardModal({
   onClose,
@@ -26,13 +31,11 @@ export default function CareerWizardModal({
 }) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
-    data, isSaving, saveError, saveProfileToApi, saveCareerToApi, saveBusinessLocationToApi,
+    data, isSaving, saveError, saveToApi,
     isEpisodeModalOpen,
     progressPct, currentPhase, roleColor, isCurrentStepSkippable,
     getSteps, getTotalSteps, getCurrentStep,
   } = useCareerWizard();
-
-  useWizardAutoSave();
 
   const [doneError, setDoneError] = useState("");
 
@@ -48,28 +51,11 @@ export default function CareerWizardModal({
   const canSkip = isCurrentStepSkippable();
   const pct = progressPct();
 
-  const StepComponent = currentStep ? getStepComponent(currentStep.id) : getStepComponent("complete");
-
   const handleNext = async () => {
-    if (currentStep?.id === "media") {
-      const ok = await saveProfileToApi();
-      if (!ok) return;
-    }
-
-    if (currentStep?.id === "business_location") {
-      const ok = await saveBusinessLocationToApi();
-      if (!ok) return;
-    }
+    const ok = await saveToApi();
+    if (!ok) return;
 
     if (isLastContentStep) {
-      const okProfile = await saveProfileToApi();
-      if (!okProfile) return;
-      const okCareer = await saveCareerToApi();
-      if (!okCareer) return;
-      if (data.role === "Business") {
-        const okBiz = await saveBusinessLocationToApi();
-        if (!okBiz) return;
-      }
       if (onboardingMode) {
         try {
           const res = await fetch("/api/onboarding/complete", {
@@ -191,7 +177,7 @@ export default function CareerWizardModal({
         <motion.div key={currentStepIndex}
           initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
-          <StepComponent />
+          <StepRenderer stepId={currentStep?.id ?? "complete"} />
         </motion.div>
       </AnimatePresence>
     </div>
@@ -224,7 +210,7 @@ export default function CareerWizardModal({
             background: "#0c0c16",
             border: "1px solid rgba(255,255,255,0.07)",
             borderRadius: "28px",
-            maxHeight: "92dvh",
+            height: "min(92dvh, 760px)",
           }}
           initial={{ y: 80, opacity: 0, scale: 0.96 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}

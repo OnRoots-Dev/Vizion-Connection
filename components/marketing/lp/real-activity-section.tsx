@@ -30,8 +30,8 @@ export function RealActivitySection() {
             実際に使うと、こうなる。
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[13px] leading-relaxed text-white/55">
-            Activityを記録すると、場所が地図に座標を持ち、
-            Cheerが届き、あなたの歩みが可視化される。
+            活動の記録がプロフィールに残り、参加者と支援者、企業が自然に関わり始める。
+            その関わりが、信頼と発信のきっかけになります。
           </p>
         </motion.div>
 
@@ -99,12 +99,12 @@ export function RealActivitySection() {
             >
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="font-[family-name:var(--font-bebas)] text-2xl leading-none text-[var(--vc-accent)]">5.82</p>
-                  <p className="mt-1 text-[8px] uppercase tracking-wider text-white/30">KM TODAY</p>
+                  <p className="font-[family-name:var(--font-bebas)] text-2xl leading-none text-[var(--vc-accent)]">12</p>
+                  <p className="mt-1 text-[8px] uppercase tracking-wider text-white/30">ACTIVITY</p>
                 </div>
                 <div>
-                  <p className="font-[family-name:var(--font-bebas)] text-2xl leading-none text-white">32:41</p>
-                  <p className="mt-1 text-[8px] uppercase tracking-wider text-white/30">ACTIVE TIME</p>
+                  <p className="font-[family-name:var(--font-bebas)] text-2xl leading-none text-white">3</p>
+                  <p className="mt-1 text-[8px] uppercase tracking-wider text-white/30">SCHEDULE</p>
                 </div>
                 <div>
                   <p className="font-[family-name:var(--font-bebas)] text-2xl leading-none text-[var(--vc-accent)]">24</p>

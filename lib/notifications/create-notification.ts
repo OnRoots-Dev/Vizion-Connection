@@ -59,3 +59,38 @@ export async function notifyMissionRewardGranted(params: {
     },
   });
 }
+
+export async function notifyActivityCreated(params: {
+  slug: string;
+  activityId: string;
+  title: string;
+}): Promise<void> {
+  await createNotification({
+    recipientSlug: params.slug,
+    type: "activity_created",
+    title: "Activityを作成しました",
+    body: params.title || "新しいActivity",
+    linkUrl: `/dashboard?view=activities&activityId=${params.activityId}`,
+    payload: {
+      activityId: params.activityId,
+    },
+  });
+}
+
+export async function notifyMomentCreated(params: {
+  slug: string;
+  momentId: string;
+  activityTitle: string;
+}): Promise<void> {
+  await createNotification({
+    recipientSlug: params.slug,
+    type: "moment_created",
+    title: "Momentを作成しました",
+    body: `Activity: ${params.activityTitle}`,
+    linkUrl: `/dashboard?view=moments&momentId=${params.momentId}`,
+    payload: {
+      momentId: params.momentId,
+      activityId: params.activityTitle,
+    },
+  });
+}

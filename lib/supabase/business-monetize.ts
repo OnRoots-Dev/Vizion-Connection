@@ -23,6 +23,8 @@ import {
   isScopeAllowedForPlan,
   getAllowedCampaignTypes,
   PLAN_TO_SCOPE,
+  regionBlockForPrefecture,
+  halfRegionForBlock,
 } from "@/features/business-monetize/constants";
 
 type AccountRow = Record<string, unknown>;
@@ -710,6 +712,87 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
     });
   }
   return results;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 広告（バナー等）配信：active Campaign × active有料Businessのみ。
+// scopeターゲティング・プラン優先順位・ローテーションはserver側で判定
+// （Clientから表示可否を迂回できない）。
+// ─────────────────────────────────────────────────────────────
+export interface PublicAd extends ActiveCampaignWithBusiness {}
+
+const AD_PLAN_PRIORITY: Record<string, number> = {
+  ENTERPRISE: 0,
+  PREMIUM: 1,
+  FEATURED: 2,
+  LOCAL: 3,
+};
+
+/** ローテーション用シード。1時間単位で先頭広告を変え、同一プラン内の独占を防ぐ。 */
+function adRotationHour(): number {
+  return Math.floor(Date.now() / 3_600_000);
+}
+
+/**
+ * 表示対象の広告（active Campaign）を返す。
+ * @param prefecture 閲覧者の都道府県（server側で解決済み）。nullならnational系のみ。
+ *   - national (ENTERPRISE): 常時
+ *   - half (PREMIUM)      : 閲覧者の東/西日本ブロックと一致
+ *   - region (FEATURED)   : 閲覧者の地方ブロックと一致
+ *   - local (LOCAL)       : 閲覧者の都道府県と一致
+ * 優先順位: ENTERPRISE > PREMIUM > FEATURED > LOCAL。
+ * 同一プラン内は時間ベースでローテーションし、特定Businessが先頭を独占しない。
+ * 未購入 / 期限切れ / 無効（status!=='active'）Businessは表示対象外。
+ */
+export async function listPublicAds(options?: { prefecture?: string | null; limit?: number }): Promise<PublicAd[]> {
+  const prefecture = options?.prefecture ?? null;
+  const limit = Math.min(Math.max(options?.limit ?? 10, 1), 20);
+
+  const campaigns = await listPublicCampaigns({ prefecture: null, limit: 50 });
+  if (campaigns.length === 0) return [];
+
+  // TASK8: 有効な有料Plan（active）のみ。FREE / inactive（期限切れ・無効）は除外。
+  const eligible = campaigns.filter((c) => {
+    if (c.business.status !== "active") return false;
+    return c.business.plan === "LOCAL" || c.business.plan === "FEATURED" || c.business.plan === "PREMIUM" || c.business.plan === "ENTERPRISE";
+  });
+  if (eligible.length === 0) return [];
+
+  // TASK10: scopeターゲティング（既存のprefecture→region→halfチェーンを再利用）。
+  const block = prefecture ? regionBlockForPrefecture(prefecture) : null;
+  const half = block ? halfRegionForBlock(block) : null;
+  const scoped = eligible.filter((c) => {
+    switch (c.scope) {
+      case "national":
+        return true;
+      case "half":
+        return Boolean(prefecture && c.half && half && c.half === half);
+      case "region":
+        return Boolean(prefecture && c.regionBlock && block && c.regionBlock === block);
+      case "local":
+        return Boolean(prefecture && c.prefecture === prefecture);
+      default:
+        return false;
+    }
+  });
+  if (scoped.length === 0) return [];
+
+  // TASK9: プラン優先順位で安定ソート → プラン毎に時間ベースでローテーション。
+  const sorted = [...scoped].sort((a, b) => (AD_PLAN_PRIORITY[a.business.plan] ?? 9) - (AD_PLAN_PRIORITY[b.business.plan] ?? 9));
+  const grouped = new Map<string, PublicAd[]>();
+  for (const ad of sorted) {
+    const arr = grouped.get(ad.business.plan) ?? [];
+    arr.push(ad);
+    grouped.set(ad.business.plan, arr);
+  }
+  const result: PublicAd[] = [];
+  for (const plan of ["ENTERPRISE", "PREMIUM", "FEATURED", "LOCAL"]) {
+    const group = grouped.get(plan);
+    if (!group || group.length === 0) continue;
+    const offset = adRotationHour() % group.length;
+    result.push(...group.slice(offset), ...group.slice(0, offset));
+  }
+  return result.slice(0, limit);
 }
 
 /** Map Pin描画用：有料Business（LOCAL以上）の全ての実店舗座標を返す。 */

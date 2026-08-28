@@ -197,7 +197,7 @@ export function DashboardProfileView({
             @{profile.slug}{profile.region ? ` · ${profile.region}` : ""}
           </p>
           {serialDisplay ? (
-            <p style={{ margin: "10px 0 0", fontFamily: "monospace", fontWeight: 900, letterSpacing: "0.22em", fontSize: 18, lineHeight: 1, color: "rgba(255,255,255,0.9)", textShadow: `0 0 14px ${roleColor}55, 0 0 40px rgba(0,0,0,0.55)` }}>
+            <p style={{ margin: "10px 0 0", fontFamily: "monospace", fontWeight: 900, letterSpacing: "0.22em", fontSize: 18, lineHeight: 1, color: "rgba(180, 180, 190, 0.9)", textShadow: `0 0 12px rgba(255,255,255,0.08), 0 0 28px rgba(0,0,0,0.4)` }}>
               {serialDisplay}
             </p>
           ) : null}

@@ -8,6 +8,8 @@ import { momentCreateSchema } from "@/features/moment/validation";
 import { createMoment, listPublicMoments } from "@/features/moment/server/moments";
 import { listVisibleMomentFeed } from "@/features/moment/server/moments";
 import { listMyConnections } from "@/features/connection/server/connections";
+import { notifyMomentCreated } from "@/lib/notifications/create-notification";
+import { getOwnedActivity } from "@/features/activity/server/activities";
 
 const feedQuerySchema = z.object({
     limit: z.coerce.number().int().min(1).max(50).optional(),
@@ -47,6 +49,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     try {
         const moment = await createMoment(user.id, parsed.data);
+        // Activityのタイトルを取得して通知を送信
+        if (moment.activity_id) {
+            const activity = await getOwnedActivity(user.id, moment.activity_id);
+            if (activity && activity.title) {
+                await notifyMomentCreated({
+                    slug: user.slug,
+                    momentId: moment.id,
+                    activityTitle: activity.title,
+                });
+            }
+        }
         return NextResponse.json({ success: true, moment });
     } catch (e) {
         console.error("[moments/POST]", e instanceof Error ? e.message : e);

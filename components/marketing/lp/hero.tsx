@@ -36,7 +36,7 @@ export function Hero() {
           {...(anim ?? fadeUp(0))}
           className="mx-auto w-fit rounded-full border border-lime/35 bg-lime/[0.07] px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] text-lime"
         >
-          <TextScramble text="SPORTS ACTIVITY, VISIBLE" delay={200} duration={500} />
+          <TextScramble text="SPORTS COMMUNITY + DISCOVERY" delay={200} duration={500} />
         </motion.p>
 
         <motion.h1
@@ -44,9 +44,9 @@ export function Hero() {
           className="mx-auto mt-6 max-w-3xl text-balance font-[family-name:var(--font-bebas)] text-white leading-[1.05] tracking-wide"
           style={{ fontSize: "clamp(2.8rem, 7vw, 5rem)" }}
         >
-          積み重ねが、<span className="text-lime">見える</span>。
+          スポーツに<span className="text-lime">関わる</span>、
           <br />
-          応援が、<span className="text-lime">届く</span>。
+          その<span className="text-lime">場</span>が、つながる。
         </motion.h1>
 
         <motion.p
@@ -54,9 +54,9 @@ export function Hero() {
           className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-white/75"
           style={{ fontSize: "var(--text-body)" }}
         >
-          アスリート・トレーナー・ファン・ビジネス。
-          スポーツに関わるすべての活動をひとつのマップに。
-          <span className="text-white">日々の記録が、あなたの証明になる。</span>
+          Vizion Connection は、アスリート・トレーナー・ファン・企業が
+          <span className="text-white">活動を可視化し、参加し、応援し、自社の魅力を伝える</span>
+          ことができるスポーツの接点です。
         </motion.p>
 
         <motion.div
@@ -108,11 +108,11 @@ export function Hero() {
           >
             <ActivityCard
               athlete="YUKI TANAKA"
-              sport="RUNNING"
+              sport="TRAINING"
               location="YOKOHAMA"
-              distance="5.82"
-              time="32:41"
-              pace="5:37"
+              activity="12"
+              schedule="3"
+              connections="9"
               cheers={24}
               comments={12}
               delay={0}

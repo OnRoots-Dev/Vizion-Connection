@@ -17,48 +17,68 @@ export default function BusinessCompleteClient() {
   useEffect(() => {
     let cancelled = false;
 
-    async function run() {
-      try {
-        const res = await fetch("/api/business-checkout/complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: "{}",
-        });
-        const data = (await res.json()) as {
-          success?: boolean;
-          planName?: string | null;
-          error?: string;
-        };
+    // 1回の完了確認。completed → "success" / 反映待ち → "pending" / 失敗 → "error"
+    async function attempt(): Promise<"success" | "pending" | "error"> {
+      const res = await fetch("/api/business-checkout/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      const data = (await res.json()) as {
+        success?: boolean;
+        planName?: string | null;
+        pending?: boolean;
+        error?: string;
+      };
 
+      if (res.ok && data.success) {
+        setState("success");
+        setPlanName(data.planName ?? null);
+        setMessage("お支払いが完了し、Businessプランを有効化しました。");
+        return "success";
+      }
+
+      // webhook が非同期反映中の pending（HTTP 202 / pending:true）。
+      // エラー扱いせず、正常な待機状態として扱う。
+      if (res.status === 202 || data.pending === true) {
+        return "pending";
+      }
+
+      setState("error");
+      setMessage(data.error ?? "完了処理に失敗しました。サポートへお問い合わせください。");
+      return "error";
+    }
+
+    async function run() {
+      const MAX_TRIES = 5;
+      const DELAY_MS = 2000;
+
+      for (let i = 0; i < MAX_TRIES; i++) {
         if (cancelled) return;
 
-        if (res.ok && data.success) {
-          setState("success");
-          setPlanName(data.planName ?? null);
-          setMessage("お支払いが完了し、Businessプランを有効化しました。");
-          return;
-        }
+        const result = await attempt();
+        if (result !== "pending") return;
 
-        // webhook が先に完了済み / まだ pending の場合
-        if (res.status === 404) {
+        if (i < MAX_TRIES - 1) {
+          // まだ反映待ち。短時間待って再確認する。
+          setMessage("決済を確認しています…（反映まで数十秒かかることがあります）");
+          await new Promise((r) => setTimeout(r, DELAY_MS));
+        } else {
+          // 全試行後も pending。受付済みとして正常に待機を継続できる導線を出す。
           setState("pending");
           setMessage(
             "決済は受け付けました。反映まで数十秒かかることがあります。ダッシュボードでプラン状態をご確認ください。",
           );
-          return;
-        }
-
-        setState("error");
-        setMessage(data.error ?? "完了処理に失敗しました。サポートへお問い合わせください。");
-      } catch {
-        if (!cancelled) {
-          setState("error");
-          setMessage("通信エラーが発生しました。");
         }
       }
     }
 
-    void run();
+    run().catch(() => {
+      if (!cancelled) {
+        setState("error");
+        setMessage("通信エラーが発生しました。");
+      }
+    });
     return () => {
       cancelled = true;
     };

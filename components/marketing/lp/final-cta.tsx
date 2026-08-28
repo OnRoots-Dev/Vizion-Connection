@@ -28,10 +28,10 @@ export function FinalCta() {
           <TextScramble text="JOIN THE MAP" delay={100} duration={400} />
         </p>
         <h2 className="mt-4 text-balance font-[family-name:var(--font-bebas)] text-4xl font-normal tracking-wide text-white md:text-5xl">
-          あなたの一歩を、地図に灯そう。
+          参加して、関わって、あなたの姿を届けよう。
         </h2>
         <p className="mx-auto mt-5 max-w-md leading-[1.9] text-white/65">
-          登録は無料。まずは自分の活動をひとつ、記録してみることから始まります。
+          登録は無料。プロフィール、活動記録、スケジュール、応援をひとつにまとめて、仲間や企業との関わりを生み出します。
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link

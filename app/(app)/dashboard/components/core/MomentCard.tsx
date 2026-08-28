@@ -39,6 +39,7 @@ export function MomentCard({
     t,
     connection,
     onConnectionChanged,
+    highlight = false,
 }: {
     item: MomentFeedItem;
     viewerId: number | null;
@@ -46,6 +47,7 @@ export function MomentCard({
     t: ThemeColors;
     connection?: { state: "none" | "outgoing" | "incoming" | "accepted"; id: string | null };
     onConnectionChanged?: () => void;
+    highlight?: boolean;
 }) {
     const reduce = useReducedMotion();
     const isOwn = viewerId != null && viewerId === item.moment.user_id;

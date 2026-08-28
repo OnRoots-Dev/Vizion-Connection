@@ -70,24 +70,35 @@ export function LiveStats() {
   const fmt = (n: number) => n.toLocaleString("ja-JP");
 
   return (
-    <div
-      aria-live="polite"
-      className="mx-auto mt-7 flex max-w-3xl flex-wrap items-center justify-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em] text-white/45"
-    >
-      <div className="rounded-full border border-white/10 bg-white/3 px-4 py-2">
-        <span className="text-lime">{fmt(stats.memberCount)}</span>
-        <span className="ml-2 text-white/60">registered</span>
+    <div aria-live="polite" className="mx-auto mt-8 w-full max-w-5xl">
+      <div className="flex flex-col items-center justify-center gap-5 text-center text-white md:flex-row md:items-end md:gap-10">
+        <div className="flex items-end gap-3 md:gap-4">
+          <span className="font-mono text-[clamp(2.5rem,6vw,5.5rem)] font-black leading-none tracking-[-0.08em] text-[#d7ff5b]">
+            {fmt(stats.memberCount)}
+          </span>
+          <span className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/60 md:text-[11px]">
+            registered
+          </span>
+        </div>
+
+        <div className="hidden h-12 w-px bg-white/10 md:block" aria-hidden="true" />
+
+        <div className="flex items-end gap-3 md:gap-4">
+          <span className="font-mono text-[clamp(2.3rem,5.2vw,4.8rem)] font-black leading-none tracking-[-0.08em] text-white">
+            {businessRemaining == null ? "--" : fmt(businessRemaining)}
+          </span>
+          <span className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-white/60 md:text-[11px]">
+            business slots left
+          </span>
+        </div>
       </div>
-      <div className="rounded-full border border-lime/25 bg-lime/[0.06] px-4 py-2">
-        <span className="text-lime">{businessRemaining == null ? "--" : fmt(businessRemaining)}</span>
-        <span className="ml-2 text-white/60">business slots left</span>
-      </div>
-      <div className="hidden rounded-full border border-white/10 bg-white/3 px-4 py-2 md:inline-flex">
-        <span className="text-white/80">ATHLETE {fmt(stats.athletes)}</span>
-        <span className="mx-2 text-white/25">/</span>
-        <span className="text-white/80">TRAINER {fmt(stats.trainers)}</span>
-        <span className="mx-2 text-white/25">/</span>
-        <span className="text-white/80">FAN {fmt(stats.crew)}</span>
+
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-[0.22em] text-white/45 md:text-[11px]">
+        <span>athlete {fmt(stats.athletes)}</span>
+        <span className="text-white/20">·</span>
+        <span>trainer {fmt(stats.trainers)}</span>
+        <span className="text-white/20">·</span>
+        <span>crew {fmt(stats.crew)}</span>
       </div>
     </div>
   );

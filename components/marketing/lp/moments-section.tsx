@@ -27,8 +27,8 @@ export function MomentsSection() {
             人と人が、つながる。
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[13px] leading-relaxed text-white/55">
-            Activityに対してConnectorが応える。応援は記録に残り、
-            新しいつながりが生まれる。
+            応援はその場の反応ではなく、活動への参加と信頼のきっかけとして残る。
+            その声が、次の関わりや発信につながる。
           </p>
         </motion.div>
 
@@ -36,21 +36,21 @@ export function MomentsSection() {
           <CheerCard
             name="SATO YUKI"
             role="Athlete"
-            message="いい走りだった！次のレースも期待してる"
+            message="今週の練習の内容が伝わってくる。良い変化を感じる。"
             timeAgo="30min"
             delay={0.1}
           />
           <CheerCard
             name="WATANABE AKI"
             role="Trainer"
-            message="フォーム改善が顕著。次のレベルは確実に近い"
+            message="次のセッションに向けて、計画がしっかり見えてる。"
             timeAgo="2h"
             delay={0.2}
           />
           <CheerCard
             name="KATO RYO"
             role="Crew"
-            message="毎日の積み重ねがすごい。いつも応援してる！"
+            message="プロフィール更新の意図が伝わってきて、応援しやすい。"
             timeAgo="5h"
             delay={0.3}
           />

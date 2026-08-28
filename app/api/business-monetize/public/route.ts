@@ -5,7 +5,8 @@
 // 認証不要（anonでも可能だが、認証済みなら視聴者情報も取れる）。
 
 import { NextRequest, NextResponse } from "next/server";
-import { listPublicCampaigns, listBusinessMapPins } from "@/lib/supabase/business-monetize";
+import { listPublicCampaigns, listBusinessMapPins, listPublicAds } from "@/lib/supabase/business-monetize";
+import { getSupabaseProfile } from "@/lib/auth/session";
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,6 +22,14 @@ export async function GET(req: NextRequest) {
     if (mode === "campaigns") {
       const campaigns = await listPublicCampaigns({ prefecture: prefecture || null, limit });
       return NextResponse.json({ success: true, campaigns });
+    }
+    if (mode === "ads") {
+      // scopeターゲティング用の閲覧者都道府県はserver側のセッションから解決する
+      // （Client指定を信用しない = Client側で表示可否を迂回できない）。
+      const profile = await getSupabaseProfile();
+      const viewerPrefecture = profile?.prefecture ?? null;
+      const ads = await listPublicAds({ prefecture: viewerPrefecture, limit });
+      return NextResponse.json({ success: true, ads });
     }
 
     const [campaigns, pins] = await Promise.all([
