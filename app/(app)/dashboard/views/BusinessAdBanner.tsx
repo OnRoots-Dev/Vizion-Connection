@@ -23,6 +23,7 @@ type PublicAd = {
     title: string;
     description?: string | null;
     imageUrl?: string | null;
+    videoUrl?: string | null;
     ctaText?: string | null;
     ctaUrl?: string | null;
   };
@@ -130,6 +131,16 @@ export function BusinessAdBanner({
                   {ad.type === "activity" ? "ACTIVITY広告" : "MOMENT広告"} · {SCOPE_LABEL[ad.scope]}
                 </span>
               </div>
+              {ad.creative.imageUrl ? (
+                <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "#000" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={ad.creative.imageUrl} alt={ad.creative.title || ad.name} style={{ width: "100%", maxHeight: 160, objectFit: "cover", display: "block" }} />
+                </div>
+              ) : ad.creative.videoUrl ? (
+                <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", background: "#000" }}>
+                  <video src={ad.creative.videoUrl} muted playsInline controls style={{ width: "100%", maxHeight: 180, display: "block" }} />
+                </div>
+              ) : null}
               <span style={{ fontSize: 13, fontWeight: 900, color: "#f0f0f5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {ad.creative.title || ad.name}
               </span>

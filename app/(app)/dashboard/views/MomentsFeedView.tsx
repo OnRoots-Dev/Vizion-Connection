@@ -14,7 +14,10 @@ import { apiGet, ApiError } from "@/lib/api/core-client";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
 import type { ThemeColors } from "../types";
-import { SponsoredFeed } from "./SponsoredFeed";
+import { SponsoredAdCard, type PublicAd } from "./SponsoredFeed";
+
+/** Momentフィードに広告を挿入する間隔（何件の通常Momentごとに1件広告を挟むか）。 */
+const AD_INSERT_INTERVAL = 3;
 
 export function MomentsFeedView({
     profile,
@@ -36,6 +39,17 @@ export function MomentsFeedView({
     const [connections, setConnections] = useState<ConnectionListItem[]>([]);
     const [scope, setScope] = useState<"mine" | "connections">("mine");
     const [highlightMomentId, setHighlightMomentId] = useState<string | null>(null);
+    const [ads, setAds] = useState<PublicAd[]>([]);
+
+    // 広告はフィードとは独立に1回だけ取得（挿入位置はMoment件数に基づいて決める）
+    useEffect(() => {
+        let cancelled = false;
+        fetch("/api/business-monetize/public?mode=ads", { cache: "no-store" })
+            .then((res) => res.json().catch(() => ({})))
+            .then((json) => { if (!cancelled && json?.success) setAds((json.ads as PublicAd[]) ?? []); })
+            .catch(() => { if (!cancelled) setAds([]); });
+        return () => { cancelled = true; };
+    }, []);
 
     // クエリパラメータからmomentIdを取得してハイライト
     useEffect(() => {
@@ -127,8 +141,6 @@ export function MomentsFeedView({
                 </section>
             ) : null}
 
-            <SponsoredFeed t={t} />
-
             {error ? (
                 <FeedErrorState message={error} onRetry={() => void load()} />
             ) : null}
@@ -142,18 +154,24 @@ export function MomentsFeedView({
                 />
             ) : (
                 <>
-                    {items.map((item) => (
-                        <MomentCard
-                            key={item.moment.id}
-                            item={item}
-                            viewerId={Number.isFinite(viewerId) ? viewerId : null}
-                            roleColor={roleColor}
-                            t={t}
-                            connection={connectionFor(item.moment.user_id)}
-                            onConnectionChanged={loadConnections}
-                            highlight={item.moment.id === highlightMomentId}
-                        />
-                    ))}
+                    {items.map((item, i) => {
+                        const showAd = ads.length > 0 && (i + 1) % AD_INSERT_INTERVAL === 0;
+                        const ad = showAd ? ads[Math.floor(i / AD_INSERT_INTERVAL) % ads.length] : null;
+                        return (
+                            <div key={item.moment.id} style={{ display: "contents" }}>
+                                {ad ? <SponsoredAdCard ad={ad} /> : null}
+                                <MomentCard
+                                    item={item}
+                                    viewerId={Number.isFinite(viewerId) ? viewerId : null}
+                                    roleColor={roleColor}
+                                    t={t}
+                                    connection={connectionFor(item.moment.user_id)}
+                                    onConnectionChanged={loadConnections}
+                                    highlight={item.moment.id === highlightMomentId}
+                                />
+                            </div>
+                        );
+                    })}
                     {oldest ? (
                         loadingMore ? (
                             <ViewLoader t={t} />
