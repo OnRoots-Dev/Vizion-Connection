@@ -41,7 +41,7 @@ export function getPrimaryItems(): NavItem[] {
         { id: "home",       label: "Home",      icon: ICONS.home,      target: { kind: "view", view: "home" } },
         { id: "activities", label: "Activity",  icon: ICONS.activities, target: { kind: "view", view: "activities" } },
         { id: "moments",    label: "Moments",   icon: ICONS.moments,   target: { kind: "view", view: "moments" } },
-        { id: "journey",    label: "Journey",   icon: ICONS.journey,   target: { kind: "view", view: "journey" } },
+        // MY Journeyは非表示（ダッシュボード上は表示させない）
         { id: "viz_map",    label: "Viz Map",   icon: ICONS.map,       target: { kind: "view", view: "viz_map" } },
         { id: "schedule",   label: "Schedule",  icon: ICONS.schedule,  target: { kind: "route", href: "/schedule" } },
         { id: "settings",   label: "Settings",  icon: ICONS.settings,  target: { kind: "view", view: "settings" } },

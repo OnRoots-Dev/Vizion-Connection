@@ -84,7 +84,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     // MVP外のため封印（config/mvp-scope.ts）: pulse, timeline
                     { type: "item", id: "activities", label: "Activities", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
                     { type: "item", id: "moments", label: "Moments", icon: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9" },
-                    { type: "item", id: "journey", label: "Journey", icon: "M6 12h.008v.008H6V12zm.75-4.5a3 3 0 113 3 3 3 0 01-3-3zm9 3a3 3 0 11-3 3 3 3 0 013-3zm-6 4.5h.008v.008H9.75v-.008zm8.25 3h.008v.008H18v-.008zM18 12a6 6 0 10-12 0c0 3.314 2.686 6 6 6s6-2.686 6-6z" },
+                    // MY Journeyは非表示（ダッシュボード上は表示させない）
                     { type: "item", id: "viz_map", label: "Viz Map", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
                     ...(profile.role === "Business" || profile.role === "Admin"
                         ? [{ type: "item" as const, id: "monetize" as const, label: "Business Hub", icon: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.31M21 12a9 9 0 11-18 0 9 9 0 0118 0z" }]
