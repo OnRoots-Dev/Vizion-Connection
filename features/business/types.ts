@@ -45,7 +45,8 @@ export interface BusinessOrderInput {
     planId: PlanId;
     planName: string;
     amount: number;
-    squareLink: string;
+    /** Payment Link 生成前に注文を作るため、原則後から setBusinessOrderSquareLink で反映する */
+    squareLink?: string;
     region?: string | null;
 }
 
@@ -62,5 +63,5 @@ export interface BusinessOrderRecord {
 }
 
 export type CreateCheckoutResult =
-    | { success: true; squareUrl: string; planName: string }
+    | { success: true; squareUrl: string; planName: string; orderId: string }
     | { success: false; error: string };

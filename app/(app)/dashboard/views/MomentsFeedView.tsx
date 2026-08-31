@@ -13,12 +13,11 @@ import { LoadingSkeleton, FeedEmptyState, FeedErrorState } from "../components/f
 import { apiGet, ApiError } from "@/lib/api/core-client";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
-import type { ThemeColors } from "../types";
+import type { ThemeColors, DashboardView } from "../types";
 import { SponsoredAdCard, type PublicAd } from "./SponsoredFeed";
 
 /** Momentフィードに広告を挿入する間隔（何件の通常Momentごとに1件広告を挟むか）。 */
 const AD_INSERT_INTERVAL = 3;
-
 export function MomentsFeedView({
     profile,
     t,
@@ -40,6 +39,16 @@ export function MomentsFeedView({
     const [scope, setScope] = useState<"mine" | "connections">("mine");
     const [highlightMomentId, setHighlightMomentId] = useState<string | null>(null);
     const [ads, setAds] = useState<PublicAd[]>([]);
+    const [desktop, setDesktop] = useState(false);
+
+    // デスクトップのみ右側補助ナビ（左右レール構成）。モバイルでは表示しない。
+    useEffect(() => {
+        const mq = window.matchMedia("(min-width: 1280px)");
+        const check = () => setDesktop(mq.matches);
+        check();
+        mq.addEventListener("change", check);
+        return () => mq.removeEventListener("change", check);
+    }, []);
 
     // 広告はフィードとは独立に1回だけ取得（挿入位置はMoment件数に基づいて決める）
     useEffect(() => {
@@ -106,7 +115,8 @@ export function MomentsFeedView({
     const incomingPending = connections.filter((c) => c.status === "pending" && c.direction === "incoming");
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, minWidth: 0 }}>
             <ViewHeader title="Moments" sub="今伝えたいことを、Activityとともに共有" onBack={onBack} t={t} roleColor={roleColor} />
             <div role="tablist" aria-label="Moment表示" style={{ display: "flex", gap: 8 }}>
                 {(["mine", "connections"] as const).map((tab) => <button key={tab} type="button" role="tab" aria-selected={scope === tab} onClick={() => { if (scope !== tab) setScope(tab); }} style={{ flex: 1, minHeight: 40, borderRadius: 10, border: scope === tab ? "none" : "1px solid rgba(255,255,255,0.14)", background: scope === tab ? roleColor : "rgba(255,255,255,0.05)", color: scope === tab ? "#050508" : "rgba(255,255,255,0.7)", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>{tab === "mine" ? "MY MOMENTS" : "CONNECTIONS"}</button>)}
@@ -191,6 +201,58 @@ export function MomentsFeedView({
                     ) : null}
                 </>
             )}
+            </div>
+
+            {desktop && defineMomentsSideRail(roleColor, t)}
         </div>
+    );
+}
+
+/** デスクトップ右側補助ナビ（Threads風の情報設計）。
+ *  既存ナビ（左Sidebar）とは二重化せず、補助コンテンツのみ。
+ *  モバイルでは非表示（matchMedia で制御）。 */
+function defineMomentsSideRail(roleColor: string, t: ThemeColors) {
+    const links: { id: DashboardView; label: string; sub: string; icon: string }[] = [
+        { id: "home", label: "おすすめ", sub: "あなたのダッシュボード", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
+        { id: "activities", label: "アクティビティ", sub: "実際の活動・取り組み", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
+        { id: "journey", label: "Journey", sub: "1週間の積み上げ", icon: "M6 12h.008v.008H6V12zm.75-4.5a3 3 0 113 3 3 3 0 01-3-3zm9 3a3 3 0 11-3 3 3 3 0 013-3zm-6 4.5h.008v.008H9.75v-.008zm8.25 3h.008v.008H18v-.008zM18 12a6 6 0 10-12 0c0 3.314 2.686 6 6 6s6-2.686 6-6z" },
+        { id: "viz_map", label: "Neighbor", sub: "地域のアクティビティ", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
+    ];
+
+    return (
+        <aside aria-label="補助ナビゲーション" style={{ width: 232, flexShrink: 0, position: "sticky", top: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, padding: 14, display: "flex", flexDirection: "column", gap: 4 }}>
+                <p style={{ margin: "0 0 8px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>DISCOVER</p>
+                {links.map((l) => (
+                    <a
+                        key={l.id}
+                        href={`/dashboard?view=${l.id}`}
+                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 8px", borderRadius: 10, textDecoration: "none", color: "rgba(255,255,255,0.75)", fontWeight: 600, fontSize: 12, transition: "background 0.15s", background: "transparent" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                        <svg width={14} height={14} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d={l.icon} />
+                        </svg>
+                        <span style={{ flex: 1 }}>{l.label}</span>
+                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{l.sub}</span>
+                    </a>
+                ))}
+            </div>
+
+            <div style={{ borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, padding: 14 }}>
+                <p style={{ margin: "0 0 8px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>TRENDING ACTIVITY</p>
+                <p style={{ margin: 0, fontSize: 11, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>
+                    ActivityやMomentを投稿すると、ここに盛り上がりが表示されます。地図（Viz Map）から地域のアクティビティも探せます。
+                </p>
+            </div>
+
+            <div style={{ borderRadius: 14, border: `1px solid ${t.border}`, background: t.surface, padding: 14 }}>
+                <p style={{ margin: "0 0 8px", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>ROUTE</p>
+                <p style={{ margin: 0, fontSize: 11, lineHeight: 1.7, color: "rgba(255,255,255,0.55)" }}>
+                    Moment → Activity → Cheer / Comment → Profile → Connection → Journey。あなたの活動の軌跡がここに繋がります。
+                </p>
+            </div>
+        </aside>
     );
 }

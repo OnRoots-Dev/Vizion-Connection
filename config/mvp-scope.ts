@@ -8,7 +8,6 @@ import type { DashboardView } from "@/app/(app)/dashboard/types";
 
 /** ダッシュボードSPA内で封印するビュー（ナビ非表示＋setView遮断） */
 export const SEALED_DASHBOARD_VIEWS: ReadonlySet<DashboardView> = new Set([
-    "journey",
     "timeline",
     "discovery",
     "news",
@@ -47,7 +46,6 @@ export const SEALED_TOP_LEVEL_PATHS: readonly string[] = [
 
 /** 封印対象の書き込み系APIプレフィックス（route handlerで403返却） */
 export const SEALED_API_PREFIXES: readonly string[] = [
-    "/api/journey",
     "/api/bond",
     "/api/instand",
     "/api/pulse/score",

@@ -1,7 +1,7 @@
 // lib/supabase/business-orders.ts
 import { supabaseServer as supabase } from "./server";
 
-// 注文作成
+// 注文作成（作成した注文の id を返す。失敗時は null）
 export async function createBusinessOrder(params: {
     email: string;
     slug: string;
@@ -11,8 +11,8 @@ export async function createBusinessOrder(params: {
     status: string;
     squareLink?: string;
     region?: string | null;
-}): Promise<boolean> {
-    const { error } = await supabase
+}): Promise<string | null> {
+    const { data, error } = await supabase
         .from("business_orders")
         .insert({
             email: params.email,
@@ -23,8 +23,64 @@ export async function createBusinessOrder(params: {
             status: params.status,
             square_link: params.squareLink ?? null,
             region: params.region ?? null,
-        });
-    if (error) { console.error("[createBusinessOrder]", error); return false; }
+        })
+        .select("id")
+        .single();
+    if (error) { console.error("[createBusinessOrder]", error.code); return null; }
+    return data ? String(data.id) : null;
+}
+
+/** 指定した注文を1件取得（戻りURLの order パラメータからの照会用） */
+export async function findBusinessOrderById(id: string): Promise<{
+    id: string;
+    email: string;
+    slug: string;
+    status: string;
+    planId: string;
+    planName: string;
+    amount: number;
+    /** roots: 都道府県名 / 全国プラン: 全国 */
+    region: string | null;
+} | null> {
+    const { data, error } = await supabase
+        .from("business_orders")
+        .select("id, email, slug, status, plan_id, plan_name, amount, region")
+        .eq("id", id)
+        .maybeSingle();
+    if (error) {
+        console.error("[findBusinessOrderById]", error.code);
+        return null;
+    }
+    if (!data) return null;
+    return {
+        id: String(data.id),
+        email: String(data.email),
+        slug: String(data.slug),
+        status: String(data.status),
+        planId: String(data.plan_id),
+        planName: String(data.plan_name),
+        amount: Number(data.amount) || 0,
+        region: data.region != null ? String(data.region) : null,
+    };
+}
+
+/** 注文ステータスを更新（Payment Link生成失敗時などの後始末に使う） */
+export async function setBusinessOrderStatus(id: string, status: "pending" | "completed" | "failed"): Promise<boolean> {
+    const { error } = await supabase
+        .from("business_orders")
+        .update({ status })
+        .eq("id", id);
+    if (error) { console.error("[setBusinessOrderStatus]", error.code); return false; }
+    return true;
+}
+
+/** Payment Link 生成後に注文へ square_link を記録する */
+export async function setBusinessOrderSquareLink(id: string, squareLink: string): Promise<boolean> {
+    const { error } = await supabase
+        .from("business_orders")
+        .update({ square_link: squareLink })
+        .eq("id", id);
+    if (error) { console.error("[setBusinessOrderSquareLink]", error.code); return false; }
     return true;
 }
 
@@ -150,12 +206,34 @@ export async function findLatestIncompleteOrderByEmail(email: string): Promise<{
     } : null;
 }
 
+/**
+ * 注文を completed に遷移させる（冪等）。
+ * - "completed": 今回 pending → completed に遷移した（副作用を実行すべき）
+ * - "already"  : 既に completed（重複・再送。副作用は実行しない）
+ * - "missing"  : 指定IDの注文が無い
+ * - "error"    : DBエラー（再送を促す）
+ * 同一注文を何度呼んでも安全（Redis が無くても DB 状態から冪等に判定できる）。
+ */
+export type CompleteOrderResult = "completed" | "already" | "missing" | "error";
+
 export async function markBusinessOrderCompletedById(params: {
     id: string;
     planId: string;
     planName: string;
-}): Promise<boolean> {
-    const { data, error } = await supabase
+}): Promise<CompleteOrderResult> {
+    const { data: current, error: findError } = await supabase
+        .from("business_orders")
+        .select("id, status")
+        .eq("id", params.id)
+        .maybeSingle();
+    if (findError) {
+        console.error("[markBusinessOrderCompletedById.find]", findError.code);
+        return "error";
+    }
+    if (!current) return "missing";
+    if (current.status === "completed") return "already";
+
+    const { data: updated, error: updateError } = await supabase
         .from("business_orders")
         .update({
             status: "completed",
@@ -163,14 +241,22 @@ export async function markBusinessOrderCompletedById(params: {
             plan_name: params.planName,
         })
         .eq("id", params.id)
-        .neq("status", "completed")
-        .select("id")
+        .eq("status", "pending")
+        .select("id, status")
         .maybeSingle();
 
-    if (error || !data) {
-        console.error("[markBusinessOrderCompletedById]", error);
-        return false;
+    if (updateError) {
+        console.error("[markBusinessOrderCompletedById.update]", updateError.code);
+        return "error";
     }
-
-    return true;
+    if (!updated) {
+        // 競合（他リクエストが同時に完了済み）: 再確認して冪等に判定
+        const { data: recheck } = await supabase
+            .from("business_orders")
+            .select("status")
+            .eq("id", params.id)
+            .maybeSingle();
+        return recheck?.status === "completed" ? "already" : "error";
+    }
+    return "completed";
 }

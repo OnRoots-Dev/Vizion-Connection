@@ -24,6 +24,7 @@ interface Props {
     /** Search result selection only: pan the existing map without recreating it. */
     focusPoint?: Pick<MapPoint, "latitude" | "longitude"> | null;
     onSelect?: (id: string) => void;
+    onClusterSelect?: (points: MapPoint[]) => void;
     onClearSelection?: () => void;
     onViewportChange?: (bbox: MapBBox, zoom: number) => void;
     loading?: boolean;
@@ -35,20 +36,27 @@ const LAST_LOCATION_KEY = "viz-map:last-location:v1";
 
 function markerGlyph(kind?: string): string {
     switch (kind) {
-        case "training": return "≋";
-        case "practice": return "ϟ";
+        case "activity": return "◉";
+        case "moment": return "◌";
+        case "athlete": return "△";
+        case "trainer": return "▣";
+        case "crew": return "◆";
+        case "business": return "■";
+        case "event": return "◇";
+        case "training": return "△";
+        case "practice": return "◌";
         case "match": return "★";
-        case "competition": return "♜";
-        case "event": return "□";
+        case "competition": return "◆";
         default: return "•";
     }
 }
 
-export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSelection, onViewportChange, loading }: Props) {
+export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterSelect, onClearSelection, onViewportChange, loading }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<import("mapbox-gl").Map | null>(null);
     const dataRef = useRef<{ points: MapPoint[]; selectedId?: string | null }>({ points, selectedId });
     const selectRef = useRef(onSelect);
+    const clusterSelectRef = useRef(onClusterSelect);
     const clearRef = useRef(onClearSelection);
     const viewportRef = useRef(onViewportChange);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
@@ -59,6 +67,7 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
 
     dataRef.current = { points, selectedId };
     selectRef.current = onSelect;
+    clusterSelectRef.current = onClusterSelect;
     clearRef.current = onClearSelection;
     viewportRef.current = onViewportChange;
 
@@ -125,18 +134,28 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
                     clusterMaxZoom: 14,
                 });
                 const source = "viz-points";
-                map.addLayer({ id: "viz-cluster-large", type: "circle", source, filter: [">=", ["get", "point_count"], 50], paint: { "circle-color": CLUSTER_COLOR, "circle-radius": 26, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.95, "circle-radius-transition": { duration: 150 } } });
-                map.addLayer({ id: "viz-cluster-medium", type: "circle", source, filter: ["all", [">=", ["get", "point_count"], 2], ["<", ["get", "point_count"], 50]], paint: { "circle-color": CLUSTER_COLOR, "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.95, "circle-radius-transition": { duration: 150 } } });
-                map.addLayer({ id: "viz-cluster-count", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 12 }, paint: { "text-color": "#ffffff" } });
+                map.addLayer({ id: "viz-cluster-large", type: "circle", source, filter: [">=", ["get", "point_count"], 50], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 26, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-cluster-medium", type: "circle", source, filter: ["all", [">=", ["get", "point_count"], 2], ["<", ["get", "point_count"], 50]], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-cluster-count", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 12, "text-allow-overlap": true }, paint: { "text-color": "#ffffff" } });
+                map.addLayer({ id: "viz-cluster-type", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["coalesce", ["get", "dominant_short"], ""], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 8, "text-allow-overlap": true, "text-offset": [0, 1.3] }, paint: { "text-color": "#f8fafc" } });
                 map.addLayer({ id: "viz-activity-ring", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": "rgba(200,232,0,0)", "circle-radius": ["case", ["==", ["get", "id"], ""], 0, 0], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5, "circle-opacity": 0, "circle-radius-transition": { duration: 150 }, "circle-opacity-transition": { duration: 150 } } });
                 map.addLayer({ id: "viz-activity-circle", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["coalesce", ["get", "pc"], "#64748B"], "circle-radius": ["coalesce", ["get", "ps"], 10], "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-radius-transition": { duration: 150 } } });
                 map.addLayer({ id: "viz-activity-icon", type: "symbol", source, filter: ["!", ["has", "point_count"]], layout: { "text-field": ["get", "glyph"], "text-font": ["Arial Unicode MS Regular"], "text-size": 14, "text-allow-overlap": true }, paint: { "text-color": "#050508" } });
 
                 const expandCluster = (e: import("mapbox-gl").MapLayerMouseEvent) => {
                     const feature = map.queryRenderedFeatures(e.point, { layers: ["viz-cluster-large", "viz-cluster-medium"] })[0] as unknown as { properties?: { cluster_id?: number }; geometry?: { type: string; coordinates: [number, number] } } | undefined;
-                    if (!feature) return;
-                    const src = map.getSource(source) as import("mapbox-gl").GeoJSONSource & { getClusterExpansionZoom: (id: number, cb: (error: Error | null, zoom: number) => void) => void };
-                    src.getClusterExpansionZoom(Number(feature.properties?.cluster_id), (_error, zoom) => {
+                    if (!feature || feature.properties?.cluster_id == null) return;
+                    const src = map.getSource(source) as import("mapbox-gl").GeoJSONSource & { getClusterExpansionZoom: (id: number, cb: (error: Error | null, zoom: number) => void) => void; getClusterLeaves: (id: number, limit: number, offset: number, cb: (error: Error | null, leaves: Array<{ properties?: { id?: string; kind?: string; category?: string } }>) => void) => void; };
+                    src.getClusterLeaves(Number(feature.properties.cluster_id), 200, 0, (_error, leaves) => {
+                        const clusterPoints = (leaves ?? [])
+                            .map((leaf) => {
+                                const id = String(leaf.properties?.id ?? "");
+                                return dataRef.current.points.find((point) => point.id === id) ?? null;
+                            })
+                            .filter((point): point is MapPoint => Boolean(point));
+                        if (clusterPoints.length > 0) clusterSelectRef.current?.(clusterPoints);
+                    });
+                    src.getClusterExpansionZoom(Number(feature.properties.cluster_id), (_error, zoom) => {
                         map.easeTo({ center: feature.geometry?.type === "Point" ? feature.geometry.coordinates : map.getCenter(), zoom: zoom ?? map.getZoom(), duration: 420, essential: true });
                     });
                 };
@@ -184,7 +203,25 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClearSel
         const map = mapRef.current;
         const src = map?.getSource("viz-points") as import("mapbox-gl").GeoJSONSource | undefined;
         if (!map || !src) return;
-        src.setData({ type: "FeatureCollection", features: dataRef.current.points.map((point) => ({ type: "Feature" as const, geometry: { type: "Point" as const, coordinates: [point.longitude, point.latitude] }, properties: { id: point.id, label: point.label, kind: point.kind ?? "other", pc: point.color ?? "#64748B", ps: point.size ?? 10, glyph: markerGlyph(point.kind) } })) } as unknown as Parameters<import("mapbox-gl").GeoJSONSource["setData"]>[0]);
+        const features = dataRef.current.points.map((point) => {
+            const kind = point.kind ?? point.category ?? "activity";
+            return {
+                type: "Feature" as const,
+                geometry: { type: "Point" as const, coordinates: [point.longitude, point.latitude] },
+                properties: {
+                    id: point.id,
+                    label: point.label,
+                    kind,
+                    category: point.category ?? kind,
+                    dominant_color: point.color ?? CLUSTER_COLOR,
+                    dominant_short: String(point.category ?? kind).slice(0, 3).toUpperCase(),
+                    pc: point.color ?? "#64748B",
+                    ps: point.size ?? 10,
+                    glyph: markerGlyph(kind),
+                },
+            };
+        });
+        src.setData({ type: "FeatureCollection", features } as any);
         const selected = dataRef.current.selectedId ?? "";
         const selectionChanged = prevSelectedRef.current !== selected;
         prevSelectedRef.current = selected;

@@ -8,10 +8,13 @@ import {
 } from "@/features/business/constants";
 import { saveBusinessOrder } from "@/features/business/server/save-order";
 import type { PlanId, CreateCheckoutResult } from "@/features/business/types";
+import { env } from "@/lib/env";
 import { getAdSlot } from "@/lib/supabase/ad-slots";
+import {
+  setBusinessOrderSquareLink,
+  setBusinessOrderStatus,
+} from "@/lib/supabase/business-orders";
 import { createSquarePaymentLink } from "@/lib/square/payment-links";
-
-const COMPLETE_REDIRECT_URL = "https://app.vizion-connection.jp/business/complete";
 
 interface CreateCheckoutInput {
   planId: PlanId;
@@ -77,38 +80,52 @@ export async function createCheckout(
       ? `地域プラン - ${slotPrefecture}`
       : `${plan.name.replace(/^[^\p{L}\p{N}]+/u, "").trim() || plan.id} - 全国`;
 
-  // payment_note: webhook 照合用（email 等の PII は載せない）
-  const paymentNote = `vc:${planId}:${slotPrefecture}:${slug}`.slice(0, 500);
+  // 1) pending 注文を先に作成（戻りURL・noteに注文IDを埋めるため）。
+  //    「最新のcompleted注文」を成功判定に使わない注文単位の追跡が前提。
+  let orderId: string;
+  try {
+    const order = await saveBusinessOrder(
+      {
+        email,
+        slug,
+        planId: plan.id,
+        planName: plan.name,
+        amount: plan.amount,
+        region: slotPrefecture,
+      },
+      "pending",
+    );
+    orderId = order.id;
+  } catch {
+    return { success: false, error: "注文を開始できませんでした。時間をおいて再度お試しください。" };
+  }
+
+  // 2) Square Payment Link（戻りURL・noteに注文IDを含め、注文と決済を一意に関連付ける）
+  const redirectUrl = `${env.NEXT_PUBLIC_BASE_URL}/business/complete?order=${orderId}`;
+  // payment_note: webhook 照合用（email 等の PII は載せない）。末尾に注文IDを付与。
+  const paymentNote = `vc:${planId}:${slotPrefecture}:${slug}:${orderId}`.slice(0, 500);
 
   const link = await createSquarePaymentLink({
     name: displayName,
     amountYen: plan.amount,
-    redirectUrl: COMPLETE_REDIRECT_URL,
+    redirectUrl,
     paymentNote,
   });
 
   if (!link.success) {
+    // リンク生成失敗: pending のまま残すと後続の誤マッチングを招くため失敗扱いにする
+    await setBusinessOrderStatus(orderId, "failed").catch(() => {});
     return { success: false, error: link.error };
   }
 
-  // region カラムに都道府県 or 全国を保存（ad_slots 突合用）
-  await saveBusinessOrder(
-    {
-      email,
-      slug,
-      planId: plan.id,
-      planName: plan.name,
-      amount: plan.amount,
-      squareLink: link.url,
-      region: slotPrefecture,
-    },
-    "pending",
-  );
+  // 3) 注文へ square_link を記録（記録失敗は購入の可否に影響させない）
+  await setBusinessOrderSquareLink(orderId, link.url).catch(() => {});
 
   return {
     success: true,
     squareUrl: link.url,
     planName: plan.name,
+    orderId,
   };
 }
 

@@ -25,6 +25,8 @@ import {
   PLAN_TO_SCOPE,
   regionBlockForPrefecture,
   halfRegionForBlock,
+  BUSINESS_PAID_PLANS,
+  isPublicBusinessEligible,
 } from "@/features/business-monetize/constants";
 
 type AccountRow = Record<string, unknown>;
@@ -657,7 +659,9 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
     const { data: accounts } = await supabase
       .from("business_accounts")
       .select("id, user_id, plan, status")
-      .in("id", accountIds);
+      .in("id", accountIds)
+      .in("status", ["active"])
+      .in("plan", [...BUSINESS_PAID_PLANS]);
     for (const a of accounts ?? []) {
       accountMap.set(String(a.id), { user_id: Number(a.user_id), plan: String(a.plan), status: String(a.status) });
     }
@@ -697,6 +701,8 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
   for (const row of data) {
     const accountId = String(row.account_id);
     const acc = accountMap.get(accountId);
+    // 公開対象は active + 有料プランのみ。該当しないアカウントは除外（二重防御）。
+    if (!acc || !isPublicBusinessEligible(acc.status, acc.plan)) continue;
     const user = acc ? userMap.get(acc.user_id) : undefined;
     const loc = row.location_id ? locationMap.get(String(row.location_id)) : undefined;
 
@@ -705,8 +711,8 @@ export async function listPublicCampaigns(options?: { prefecture?: string | null
       business: {
         slug: user?.slug ?? "",
         displayName: user?.display_name ?? "",
-        plan: isMonetizePlan(acc?.plan) ? acc.plan : "FREE",
-        status: (String(acc?.status ?? "free") as BusinessMonetizeStatus) ?? "free",
+        plan: isMonetizePlan(acc.plan) ? acc.plan : "FREE",
+        status: (String(acc.status ?? "free") as BusinessMonetizeStatus) ?? "free",
       },
       location: loc ?? null,
     });
@@ -752,10 +758,7 @@ export async function listPublicAds(options?: { prefecture?: string | null; limi
   if (campaigns.length === 0) return [];
 
   // TASK8: 有効な有料Plan（active）のみ。FREE / inactive（期限切れ・無効）は除外。
-  const eligible = campaigns.filter((c) => {
-    if (c.business.status !== "active") return false;
-    return c.business.plan === "LOCAL" || c.business.plan === "FEATURED" || c.business.plan === "PREMIUM" || c.business.plan === "ENTERPRISE";
-  });
+  const eligible = campaigns.filter((c) => isPublicBusinessEligible(c.business.status, c.business.plan));
   if (eligible.length === 0) return [];
 
   // TASK10: scopeターゲティング（既存のprefecture→region→halfチェーンを再利用）。
@@ -807,7 +810,8 @@ export async function listBusinessMapPins(): Promise<
   const { data: accounts, error: accountError } = await supabase
     .from("business_accounts")
     .select("id, user_id, plan")
-    .in("plan", ["LOCAL", "FEATURED", "PREMIUM", "ENTERPRISE"]);
+    .in("plan", [...BUSINESS_PAID_PLANS])
+    .eq("status", "active");
   if (accountError || !accounts) return [];
 
   const accountIds = accounts.map((a) => String(a.id));

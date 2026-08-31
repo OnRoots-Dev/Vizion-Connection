@@ -21,6 +21,10 @@ interface CareerSectionProps {
     isPublic?: boolean;
     slug: string;
     careerProfile?: CareerProfileRow | null;
+    /** 成立済みConnection（Connector）数 */
+    connectionCount?: number;
+    /** "info" = プロフィール概要のみ / "career" = Career詳細のみ / undefined = 内部タブで切替 */
+    mode?: "info" | "career";
 }
 
 type Role = "ATHLETE" | "TRAINER" | "CREW" | "BUSINESS";
@@ -46,6 +50,8 @@ export default function CareerSection({
     cheerCount,
     slug,
     careerProfile,
+    connectionCount,
+    mode,
 }: CareerSectionProps) {
     const role = roleLabel as Role;
     const [tab, setTab] = useState<"info" | "career">("info");
@@ -56,6 +62,59 @@ export default function CareerSection({
         CREW: "応援ページ",
         BUSINESS: "企業情報",
     };
+
+    const locked = mode ?? null;
+    const activeTab = locked ?? tab;
+
+    const content = (
+        <div style={{ padding: "22px 20px" }}>
+            {activeTab === "info" && (
+                <InfoTab
+                    rl={rl} bio={bio} sport={sport}
+                    region={region} prefecture={prefecture}
+                    joinedAt={joinedAt} roleLabel={roleLabel}
+                    cheerCount={cheerCount} connectionCount={connectionCount ?? 0}
+                />
+            )}
+            {activeTab === "career" && (
+                <CareerTab
+                    role={role} rl={rl} slug={slug}
+                    bio={bio} sport={sport} stance={stance}
+                    careerProfile={careerProfile ?? null}
+                />
+            )}
+        </div>
+    );
+
+    // lockモード（Profile/Careerとして分離表示）では内部タブバーを出さない
+    if (locked) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.02)",
+                    backdropFilter: "blur(12px)",
+                }}
+            >
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                        {content}
+                    </motion.div>
+                </AnimatePresence>
+            </motion.div>
+        );
+    }
 
     return (
         <motion.div
@@ -95,8 +154,8 @@ export default function CareerSection({
                             background: "none",
                             border: "none",
                             cursor: "pointer",
-                            color: tab === t.id ? rl : "rgba(255,255,255,0.3)",
-                            borderBottom: `2px solid ${tab === t.id ? rl : "transparent"}`,
+                            color: activeTab === t.id ? rl : "rgba(255,255,255,0.3)",
+                            borderBottom: `2px solid ${activeTab === t.id ? rl : "transparent"}`,
                             marginBottom: -1,
                             transition: "all 0.2s ease",
                             letterSpacing: "0.03em",
@@ -107,7 +166,7 @@ export default function CareerSection({
                             <path strokeLinecap="round" strokeLinejoin="round" d={t.icon} />
                         </svg>
                         {t.label}
-                        {tab === t.id && (
+                        {activeTab === t.id && (
                             <motion.div
                                 layoutId="career-tab-indicator"
                                 style={{
@@ -126,44 +185,30 @@ export default function CareerSection({
 
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={tab}
+                    key={activeTab}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ padding: "22px 20px" }}
                 >
-                    {tab === "info" && (
-                        <InfoTab
-                            rl={rl} bio={bio} sport={sport}
-                            region={region} prefecture={prefecture}
-                            joinedAt={joinedAt} roleLabel={roleLabel}
-                            cheerCount={cheerCount}
-                        />
-                    )}
-                    {tab === "career" && (
-                        <CareerTab
-                            role={role} rl={rl} slug={slug}
-                            bio={bio} sport={sport} stance={stance}
-                            careerProfile={careerProfile ?? null}
-                        />
-                    )}
+                    {content}
                 </motion.div>
             </AnimatePresence>
         </motion.div>
     );
 }
 
-function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, cheerCount }: {
+function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, cheerCount, connectionCount }: {
     rl: string; bio?: string | null; sport?: string | null;
     region?: string | null; prefecture?: string | null;
-    joinedAt: string; roleLabel: string; cheerCount: number;
+    joinedAt: string; roleLabel: string; cheerCount: number; connectionCount: number;
 }) {
     const items = [
         { label: "Role", value: roleLabel, color: rl },
         sport ? { label: "競技 / 職種", value: sport } : null,
         region ? { label: "エリア", value: `${region}${prefecture ? ` / ${prefecture}` : ""}` } : null,
         { label: "Cheer", value: cheerCount.toLocaleString(), color: "#FFD600" },
+        { label: "Connector", value: connectionCount.toLocaleString(), color: "#C8E800" },
         { label: "参加日", value: joinedAt },
     ].filter(Boolean) as { label: string; value: string; color?: string }[];
 

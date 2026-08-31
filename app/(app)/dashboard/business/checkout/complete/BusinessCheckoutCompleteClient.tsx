@@ -1,22 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 type CompleteState = "loading" | "pending" | "success" | "error";
 
-export default function BusinessCheckoutCompleteClient() {
+function BusinessCheckoutCompleteInner() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("order");
   const [state, setState] = useState<CompleteState>("loading");
   const [message, setMessage] = useState("決済完了を確認しています...");
 
   useEffect(() => {
     let active = true;
 
+    if (!orderId) {
+      setState("error");
+      setMessage("決済を開始した注文が見つかりません。プラン一覧から再度お試しください。");
+      return () => {
+        active = false;
+      };
+    }
+
     async function completeOrder(attempt = 0) {
       try {
         const res = await fetch("/api/business-checkout/complete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ orderId }),
         });
         const data = (await res.json()) as { success?: boolean; pending?: boolean; error?: string };
 
@@ -47,7 +59,7 @@ export default function BusinessCheckoutCompleteClient() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [orderId]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0B0B0F", color: "#e8eaf0", padding: "80px 24px" }}>
@@ -72,5 +84,13 @@ export default function BusinessCheckoutCompleteClient() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BusinessCheckoutCompleteClient() {
+  return (
+    <Suspense fallback={null}>
+      <BusinessCheckoutCompleteInner />
+    </Suspense>
   );
 }

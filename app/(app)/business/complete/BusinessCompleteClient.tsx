@@ -1,28 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type State = "loading" | "success" | "pending" | "error";
 
 /**
  * Square からの戻り。webhook が非同期で注文完了するため、
- * こちらでは pending 注文の完了 API を試行しつつ成功メッセージを表示する。
+ * こちらでは「この注文（?order=xxxx）の完了」を試行しつつ成功メッセージを表示する。
+ * 過去・他ユーザー・最新の completed 注文を成功根拠にしない。
  */
 export default function BusinessCompleteClient() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("order");
   const [state, setState] = useState<State>("loading");
   const [planName, setPlanName] = useState<string | null>(null);
   const [message, setMessage] = useState("決済結果を確認しています…");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    // 1回の完了確認。completed → "success" / 反映待ち → "pending" / 失敗 → "error"
-    async function attempt(): Promise<"success" | "pending" | "error"> {
+  const attempt = useCallback(
+    async (): Promise<"success" | "pending" | "error"> => {
       const res = await fetch("/api/business-checkout/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: "{}",
+        body: JSON.stringify({ orderId }),
       });
       const data = (await res.json()) as {
         success?: boolean;
@@ -47,8 +48,22 @@ export default function BusinessCompleteClient() {
       setState("error");
       setMessage(data.error ?? "完了処理に失敗しました。サポートへお問い合わせください。");
       return "error";
+    },
+    [orderId],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!orderId) {
+      setState("error");
+      setMessage("決済情報が見つかりません。プラン一覧から再度お試しください。");
+      return () => {
+        cancelled = true;
+      };
     }
 
+    // 1回の完了確認。completed → "success" / 反映待ち → "pending" / 失敗 → "error"
     async function run() {
       const MAX_TRIES = 5;
       const DELAY_MS = 2000;
@@ -82,7 +97,7 @@ export default function BusinessCompleteClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt, orderId]);
 
   return (
     <main

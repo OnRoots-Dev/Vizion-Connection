@@ -8,18 +8,17 @@ export async function saveBusinessOrder(
     status: "pending" | "completed" | "failed"
 ): Promise<BusinessOrderRecord> {
 
-    const ok = await createBusinessOrder({
+    const orderId = await createBusinessOrder({
         ...input,
         status,
     });
 
-    if (!ok) {
+    if (!orderId) {
         throw new Error("Business order creation failed");
     }
 
-    // createBusinessOrder が boolean しか返さないため
-    // 仮の BusinessOrderRecord を生成して返す
     return {
+        id: orderId,
         email: input.email,
         slug: input.slug,
         planId: input.planId,
@@ -27,5 +26,6 @@ export async function saveBusinessOrder(
         amount: input.amount,
         status,
         squareLink: input.squareLink ?? null,
+        createdAt: "",
     } as BusinessOrderRecord;
 }

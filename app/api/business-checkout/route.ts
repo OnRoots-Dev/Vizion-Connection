@@ -98,6 +98,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       success: true,
       squareUrl: result.squareUrl,
       planName: result.planName,
+      orderId: result.orderId,
     });
   } catch (err) {
     console.error("[POST /api/business-checkout]", err instanceof Error ? err.message : "error");

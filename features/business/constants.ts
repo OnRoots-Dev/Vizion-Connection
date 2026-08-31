@@ -12,7 +12,18 @@ export const BUSINESS_REGIONS = [
     { id: "kyushu_okinawa", label: "九州・沖縄" },
 ] as const;
 
-/** キャンペーン: 1ヶ月分の料金で合計4ヶ月（1ヶ月＋ボーナス3ヶ月） */
+/** Launch Campaign: 2026-08-31 12:00〜21:00 JST */
+export const LAUNCH_CAMPAIGN = {
+    start: "2026-08-31T12:00:00+09:00",
+    end: "2026-08-31T21:00:00+09:00",
+    extendedThrough: "2026-12-31",
+    periodLabel: "キャンペーン価格で2026年末まで掲載可能",
+    periodShort: "2026年末まで掲載",
+    dateRange: "2026年8月31日 12:00〜21:00 (JST)",
+    autoRenewNote: "2026年末までの利用期間終了後は、解約の申し出がない限り同額で自動継続されます。",
+} as const;
+
+/** キャンペーン: 1ヶ月分の料金で合計4ヶ月（1ヶ月＋ボーナス3ヶ月） - 通常キャンペーン用 */
 export const BUSINESS_CAMPAIGN = {
     periodLabel: "1ヶ月分の料金で合計4ヶ月利用可能（1ヶ月＋ボーナス3ヶ月）",
     periodShort: "4ヶ月利用（1ヶ月料金＋ボーナス3ヶ月）",
@@ -89,7 +100,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "都道府県・市区町村単位でターゲット表示",
             "同エリアのユーザーのDiscovery・Profileに掲載",
             "コンテンツカード形式（PRバッジ付き）",
-            BUSINESS_CAMPAIGN.periodLabel,
+            LAUNCH_CAMPAIGN.periodLabel,
             "掲載枠は在庫（ad_slots）に連動",
         ],
     },
@@ -106,7 +117,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "地方区分単位でターゲット表示（関西・東海など）",
             "該当地方ユーザーのHub・Discoveryに掲載",
             "コンテンツカード形式（キャッチコピー付き）",
-            BUSINESS_CAMPAIGN.periodLabel,
+            LAUNCH_CAMPAIGN.periodLabel,
             "掲載枠は在庫（ad_slots）に連動",
         ],
     },
@@ -124,7 +135,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "全ロールのHub・Discoveryに掲載",
             "PEAK MOMENT・MILESTONE通知での露出",
             "効果測定ダッシュボード（日次更新）",
-            BUSINESS_CAMPAIGN.periodLabel,
+            LAUNCH_CAMPAIGN.periodLabel,
             "掲載枠は在庫（ad_slots）に連動",
         ],
     },
@@ -144,7 +155,7 @@ const PLANS_BASE: Omit<BusinessPlan, "squareUrl">[] = [
             "リアルタイム効果測定ダッシュボード",
             "専任担当者による月次戦略MTG",
             "Legacyパートナー認定バッジ",
-            BUSINESS_CAMPAIGN.periodLabel,
+            LAUNCH_CAMPAIGN.periodLabel,
             "掲載枠は在庫（ad_slots）に連動",
         ],
     },

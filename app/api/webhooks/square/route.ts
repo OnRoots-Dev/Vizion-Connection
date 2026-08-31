@@ -4,6 +4,7 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { upstashRedis } from "@/lib/upstash-redis";
 import {
+  findBusinessOrderById,
   findLatestIncompleteOrderByEmail,
   markBusinessOrderCompletedById,
 } from "@/lib/supabase/business-orders";
@@ -52,25 +53,40 @@ function verifySquareSignature(signature: string | null, body: string): boolean 
   }
 }
 
-/** payment.note: vc:planId:prefecture:slug */
+/**
+ * payment.note: vc:planId:prefecture:slug[:orderId]
+ * - 現行形式: 末尾に注文ID（ビジネス_orders.id）を持つ
+ * - 旧形式(vc:planId:prefecture:slug): 注文IDなし（過去に発行したPayment Link）
+ */
 function parsePaymentNote(note: string | undefined): {
   planId: PlanId | null;
   prefecture: string | null;
   slug: string | null;
+  orderId: string | null;
 } {
   if (!note || !note.startsWith("vc:")) {
-    return { planId: null, prefecture: null, slug: null };
+    return { planId: null, prefecture: null, slug: null, orderId: null };
   }
   const parts = note.split(":");
-  if (parts.length < 4) return { planId: null, prefecture: null, slug: null };
+  if (parts.length < 4) return { planId: null, prefecture: null, slug: null, orderId: null };
   const planId = parts[1] as PlanId;
   if (!["roots", "signal", "presence", "legacy"].includes(planId)) {
-    return { planId: null, prefecture: null, slug: null };
+    return { planId: null, prefecture: null, slug: null, orderId: null };
+  }
+  // 現在形は orderId が末尾。旧形式は slug が末尾。slug 内の ':' は全体に含める。
+  if (parts.length >= 5) {
+    return {
+      planId,
+      prefecture: parts[2] || null,
+      slug: parts.slice(3, parts.length - 1).join(":") || null,
+      orderId: parts[parts.length - 1] || null,
+    };
   }
   return {
     planId,
     prefecture: parts[2] || null,
     slug: parts.slice(3).join(":") || null,
+    orderId: null,
   };
 }
 
@@ -127,9 +143,45 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ success: true, skipped: true });
   }
 
-  const order = await findLatestIncompleteOrderByEmail(email);
+  /**
+   * note / 金額 / 通貨はサーバーで発行したpending注文と完全一致が必要。
+   * 署名付きSquare payloadでも、別商品の支払いを別の注文に充当させない。
+   */
+  const matchesOrder = (o: {
+    slug: string;
+    planId: string;
+    region: string | null;
+    amount: number;
+  }): boolean =>
+    Boolean(
+      noteMeta.planId &&
+        noteMeta.planId === o.planId &&
+        noteMeta.slug === o.slug &&
+        noteMeta.prefecture !== null &&
+        noteMeta.prefecture === o.region &&
+        payment.total_money.currency === "JPY" &&
+        payment.total_money.amount === o.amount,
+    );
+
+  // 注文解決: 現在形の note は注文IDで一意に特定（誤った注文・過去の注文に充当しない）。
+  // Redis 失効後の再送・旧形式の場合は email の最新 pending 注文へフォールバック。
+  let order:
+    | (Awaited<ReturnType<typeof findLatestIncompleteOrderByEmail>> & { status: string })
+    | null = null;
+  if (noteMeta.orderId) {
+    const byId = await findBusinessOrderById(noteMeta.orderId);
+    if (byId && byId.email === email && matchesOrder(byId)) {
+      order = byId;
+    }
+  }
   if (!order) {
-    console.warn("[square webhook] order not found", payment.id);
+    const byEmail = await findLatestIncompleteOrderByEmail(email);
+    if (byEmail && matchesOrder(byEmail)) {
+      order = byEmail;
+    }
+  }
+  if (!order) {
+    console.warn("[square webhook] no matching pending order", payment.id);
     return NextResponse.json({ success: true, skipped: true });
   }
 
@@ -139,31 +191,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ? noteMeta.planId
       : "roots";
   const planName = order.planName || planId;
-  // 署名付きSquare payloadでも、別商品の支払いをこの注文に充当させない。
-  // note / 金額 / 通貨はサーバーで発行したpending注文と完全一致が必要。
-  if (
-    !noteMeta.planId ||
-    noteMeta.planId !== order.planId ||
-    noteMeta.slug !== order.slug ||
-    noteMeta.prefecture !== order.region ||
-    payment.total_money.currency !== "JPY" ||
-    payment.total_money.amount !== order.amount
-  ) {
-    console.warn("[square webhook] payment does not match pending order", payment.id);
-    return NextResponse.json({ success: true, skipped: true });
-  }
   const slotPrefecture =
     order.region ||
     noteMeta.prefecture ||
     (planId === "roots" ? null : "全国");
 
-  const orderUpdated = await markBusinessOrderCompletedById({
+  /**
+   * 冪等な注文完了。同じイベントが何度届いても安全に成功扱いできる：
+   * - completed（今回遷移）: 副作用（sponsor_plan / activation / ad_slot）を実行
+   * - already（既に完了済み）: 重複・再送。二重加算せず no-op / 200
+   * - missing: 注文が消えている → 安全な no-op / 200
+   * - error: DB障害 → 500（Squareに再送させる）
+   */
+  const orderResult = await markBusinessOrderCompletedById({
     id: order.id,
     planId,
     planName,
   });
-  if (!orderUpdated) {
+  if (orderResult === "error") {
     return NextResponse.json({ success: false, error: "order_update_failed" }, { status: 500 });
+  }
+  if (orderResult === "already" || orderResult === "missing") {
+    return NextResponse.json({ success: true, orderId: order.id, duplicate: orderResult === "already" });
   }
 
   const userUpdated = await setUserSponsorPlanByEmail(email, planId);
@@ -187,7 +236,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
   }
 
-  // ad_slots.sold +1
+  // ad_slots.sold +1（"completed"遷移時のみ。重複・再送では実行しない＝二重加算防止）
   if (slotPrefecture) {
     const slotResult = await incrementAdSlotSold(slotPrefecture, planId);
     if (!slotResult.success) {

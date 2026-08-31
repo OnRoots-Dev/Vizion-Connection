@@ -5,6 +5,7 @@
 import type {
   AdScope,
   BusinessMonetizePlan,
+  BusinessMonetizeStatus,
   CampaignType,
   HalfRegion,
   RegionBlockId,
@@ -97,6 +98,17 @@ export const MONETIZE_PLANS: readonly MonetizePlanDef[] = [
 ];
 
 export const MONETIZE_PLAN_IDS = MONETIZE_PLANS.map((p) => p.id);
+
+/** 公開配信（広告・Map Pin）の対象になる有料プラン。FREEは除外。 */
+export const BUSINESS_PAID_PLANS: readonly BusinessMonetizePlan[] = ["LOCAL", "FEATURED", "PREMIUM", "ENTERPRISE"];
+
+/** 公開配信可能か（status === 'active' && 有料プラン）。公開判定の単一ソース。 */
+export function isPublicBusinessEligible(
+  status: BusinessMonetizeStatus | string | null | undefined,
+  plan: BusinessMonetizePlan | string | null | undefined,
+): boolean {
+  return status === "active" && typeof plan === "string" && (BUSINESS_PAID_PLANS as readonly string[]).includes(plan);
+}
 
 export function getMonetizePlan(id: BusinessMonetizePlan | string | null | undefined): MonetizePlanDef | null {
   if (!id) return null;

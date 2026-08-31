@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireBusinessProfile } from "@/lib/auth/require-business-session";
 import { getBusinessHubAnalytics } from "@/lib/supabase/business-hub";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const profile = await requireBusinessProfile();
-    const analytics = await getBusinessHubAnalytics(profile);
+    const searchParams = req.nextUrl.searchParams;
+    const daysParam = searchParams.get("days");
+    const days = daysParam ? parseInt(daysParam, 10) : 7;
+    const analytics = await getBusinessHubAnalytics(profile, days);
     return NextResponse.json({ success: true, analytics });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN";

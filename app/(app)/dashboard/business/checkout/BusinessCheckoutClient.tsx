@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  BUSINESS_CAMPAIGN,
+  LAUNCH_CAMPAIGN,
   PREFECTURES_BY_BUSINESS_REGION,
   type BusinessRegionId,
 } from "@/features/business/constants";
@@ -184,11 +184,11 @@ export default function BusinessCheckoutClient({
               プランを選んで申し込みボタンを押すと、Square の安全な決済ページへ移動します
             </p>
             <p className="mt-3 max-w-2xl text-[.75rem] font-light leading-[1.8] text-[#7a8494]">
-              {BUSINESS_CAMPAIGN.periodLabel}
+              {LAUNCH_CAMPAIGN.periodLabel}
               <br />
-              キャンペーン期間：{BUSINESS_CAMPAIGN.dateRange}
+              キャンペーン期間：{LAUNCH_CAMPAIGN.dateRange}
               <br />
-              {BUSINESS_CAMPAIGN.autoRenewNote}
+              {LAUNCH_CAMPAIGN.autoRenewNote}
             </p>
           </div>
 

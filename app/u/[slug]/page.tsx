@@ -12,6 +12,7 @@ import { env } from "@/lib/env";
 import CheerButtonClient from "./CheerButtonClient";
 import { getCareerProfile } from "@/lib/supabase/career-profiles";
 import CollectButtonClient from "./CollectButtonClient";
+import ConnectionButtonClient from "./ConnectionButtonClient";
 import { FoundingMemberBadge, EarlyPartnerBadge } from "@/components/ui/FoundingMemberBadge";
 import PrivateProfilePage from "@/components/ui/PrivateProfilePage";
 import { getSupabaseProfile } from "@/lib/auth/session";
@@ -207,6 +208,16 @@ export default async function UserProfilePage({ params }: Props) {
               listVisibleMomentsByOwner(ownerUserId, viewerUserId, 3),
           ])
         : [[], []];
+
+    // Connector 数（Connection成立＝accepted件数）。MVPの関係モデル。
+    const connectorCount = Number.isFinite(ownerUserId)
+        ? (await supabaseServer
+            .from("connections")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "accepted")
+            .or(`requester_id.eq.${ownerUserId},addressee_id.eq.${ownerUserId}`)
+            .then(({ count }) => count ?? 0))
+        : 0;
 
     // 閲覧者がこのプロフィールを Bond（観客席入り）しているか
     let isBonded = false;
@@ -440,6 +451,12 @@ export default async function UserProfilePage({ params }: Props) {
                         <div style={{ display: "flex", gap: 8, marginTop: 24, flexWrap: "wrap", alignItems: "center" }}>
                             <Link className="vp-cta vp-cta-primary" href={`/r/${slug}`}>Offer を送る</Link>
                             <a className="vp-cta vp-cta-ghost" href="#cheer">Cheer する</a>
+                            {!isOwn ? (
+                                <ConnectionButtonClient
+                                    ownerId={Number.isFinite(ownerUserId) ? ownerUserId : null}
+                                    ownerSlug={slug}
+                                />
+                            ) : null}
                             {snsLinks.length > 0 ? (
                                 <span style={{ display: "flex", gap: 8, marginLeft: 4 }}>
                                     {snsLinks.map(s => (
@@ -480,6 +497,7 @@ export default async function UserProfilePage({ params }: Props) {
                     careerLabel={publicCareerLabel}
                     profilePanel={
                         <CareerSection
+                            mode="info"
                             roleColor={VP.neon}
                             bio={profile.bio}
                             sport={profile.sport}
@@ -489,6 +507,7 @@ export default async function UserProfilePage({ params }: Props) {
                             joinedAt={joinedAt}
                             roleLabel={VP_ROLE_LABEL[profile.role]}
                             cheerCount={profile.cheerCount ?? 0}
+                            connectionCount={connectorCount}
                             isPublic={profile.isPublic}
                             slug={slug}
                             careerProfile={careerProfile}
@@ -496,6 +515,7 @@ export default async function UserProfilePage({ params }: Props) {
                     }
                     careerPanel={
                         <CareerSection
+                            mode="career"
                             roleColor={VP.neon}
                             bio={profile.bio}
                             sport={profile.sport}

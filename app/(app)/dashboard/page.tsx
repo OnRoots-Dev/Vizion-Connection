@@ -16,6 +16,7 @@ function resolveInitialView(view?: string): DashboardView {
         "hub",
         "collections",
         "journey",
+        "timeline",
         "portfolio",
         "card",
         "profile",
@@ -32,6 +33,9 @@ function resolveInitialView(view?: string): DashboardView {
         "settings",
         "action_history",
         "missions",
+        "activities",
+        "moments",
+        "viz_map",
     ];
     return allowed.includes(view as DashboardView) ? (view as DashboardView) : "home";
 }

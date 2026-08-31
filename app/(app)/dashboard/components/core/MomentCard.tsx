@@ -106,7 +106,13 @@ export function MomentCard({
         >
             {/* Creator / Vizion ID */}
             <header style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                    role={item.author ? "link" : undefined}
+                    tabIndex={item.author ? 0 : undefined}
+                    onClick={item.author ? (e) => { window.location.href = `/u/${item.author!.slug}`; e.stopPropagation(); } : undefined}
+                    onKeyDown={item.author ? (e) => { if (e.key === "Enter") window.location.href = `/u/${item.author!.slug}`; } : undefined}
+                    style={{ flex: 1, minWidth: 0, cursor: item.author ? "pointer" : "default" }}
+                >
                     <CreatorHeader user={authorUser} color={roleColor} avatarSize={38} />
                 </div>
                 {!isOwn && connection && item.author ? (
@@ -124,7 +130,8 @@ export function MomentCard({
 
             {/* 起源Activity（Momentは「ただの投稿」ではないことを示す） */}
             {item.activity ? (
-                <div
+                <a
+                    href={`/dashboard?view=activities&activityId=${item.activity.id}`}
                     style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -135,6 +142,16 @@ export function MomentCard({
                         borderRadius: 999,
                         background: `${roleColor}12`,
                         border: `1px solid ${roleColor}30`,
+                        textDecoration: "none",
+                        transition: "filter 0.15s, transform 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.filter = "brightness(1.2)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.filter = "brightness(1)";
+                        e.currentTarget.style.transform = "translateY(0)";
                     }}
                 >
                     <span aria-hidden style={{ fontSize: 9 }}>★</span>
@@ -151,7 +168,7 @@ export function MomentCard({
                     >
                         {item.activity.title ?? item.activity.type}
                     </span>
-                </div>
+                </a>
             ) : null}
 
             {/* 場所・時刻（CreatorHeader 下のメタ） */}

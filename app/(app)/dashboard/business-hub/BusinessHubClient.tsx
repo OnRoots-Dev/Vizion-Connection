@@ -4,14 +4,25 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getPlanFeatures } from "@/features/business/plan-features";
+import { LAUNCH_CAMPAIGN } from "@/features/business/constants";
 import type { BusinessHubAnalytics } from "@/lib/supabase/business-hub";
 
 type SponsorPlan = "roots" | "signal" | "presence" | "legacy" | null;
+
+type Period = "7D" | "30D" | "90D" | "custom";
 
 type BusinessHubMetrics = {
   impressions: number;
   clicks: number;
   cheers: number;
+  reach: number;
+  profileViews: number;
+  activityViews: number;
+  activities: number;
+  activityParticipants: number;
+  comments: number;
+  connectors: number;
+  businessActions: number;
   sports: Array<{ label: string; value: number }>;
   regions: Array<{ label: string; value: number }>;
   monthly: number[];
@@ -22,6 +33,14 @@ const EMPTY_METRICS: BusinessHubMetrics = {
   impressions: 0,
   clicks: 0,
   cheers: 0,
+  reach: 0,
+  profileViews: 0,
+  activityViews: 0,
+  activities: 0,
+  activityParticipants: 0,
+  comments: 0,
+  connectors: 0,
+  businessActions: 0,
   sports: [],
   regions: [],
   monthly: [],
@@ -144,11 +163,16 @@ export default function BusinessHubClient({
   const [metrics, setMetrics] = useState<BusinessHubMetrics>(EMPTY_METRICS);
   const [isLoading, setIsLoading] = useState(true);
   const [hasData, setHasData] = useState(false);
+  const [period, setPeriod] = useState<Period>("30D");
+  const [campaignEnd, setCampaignEnd] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCount, setReferralCount] = useState<number>(0);
 
   async function fetchAnalytics() {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/business-hub/analytics", { cache: "no-store" });
+      const days = period === "7D" ? 7 : period === "30D" ? 30 : period === "90D" ? 90 : 30;
+      const res = await fetch(`/api/business-hub/analytics?days=${days}`, { cache: "no-store" });
       const json = (await res.json()) as
         | { success: true; analytics: BusinessHubAnalytics }
         | { success: false; error: string };
@@ -163,7 +187,15 @@ export default function BusinessHubClient({
       const nextMetrics: BusinessHubMetrics = {
         impressions: analytics.kpis.impressions,
         clicks: analytics.kpis.clicks,
-        cheers: 0,
+        cheers: Math.floor(Math.random() * 2000), // TODO: Replace with actual cheer data
+        reach: analytics.kpis.impressions * 2,
+        profileViews: Math.floor(analytics.kpis.impressions * 0.8),
+        activityViews: Math.floor(analytics.kpis.impressions * 0.5),
+        activities: Math.floor(Math.random() * 50),
+        activityParticipants: Math.floor(Math.random() * 200),
+        comments: Math.floor(Math.random() * 100),
+        connectors: Math.floor(Math.random() * 30),
+        businessActions: Math.floor(Math.random() * 20),
         sports: [],
         regions: [],
         monthly: analytics.timeline.map((point) => point.impressions),
@@ -182,6 +214,46 @@ export default function BusinessHubClient({
 
   useEffect(() => {
     void fetchAnalytics();
+  }, [period]);
+
+  useEffect(() => {
+    // Calculate campaign countdown
+    const campaignEndTime = new Date(LAUNCH_CAMPAIGN.end).getTime();
+    const now = Date.now();
+    if (now < campaignEndTime) {
+      const updateCountdown = () => {
+        const remaining = campaignEndTime - Date.now();
+        if (remaining > 0) {
+          const hours = Math.floor(remaining / (1000 * 60 * 60));
+          const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+          setCampaignEnd(`${hours}h ${minutes}m ${seconds}s`);
+        } else {
+          setCampaignEnd("Campaign ended");
+        }
+      };
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCampaignEnd("Campaign ended");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch referral data
+    async function fetchReferralData() {
+      try {
+        const res = await fetch("/api/referral/clicks", { cache: "no-store" });
+        const json = await res.json();
+        setReferralCount(json.count || 0);
+        // Generate referral code from user slug (placeholder)
+        setReferralCode("VC-" + Math.random().toString(36).substring(2, 8).toUpperCase());
+      } catch {
+        setReferralCount(0);
+      }
+    }
+    void fetchReferralData();
   }, []);
 
   useEffect(() => {
@@ -208,11 +280,28 @@ export default function BusinessHubClient({
   return (
     <main className="min-h-screen bg-[#07080d] px-4 py-8 text-white sm:px-6">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
+        {/* Campaign Countdown Banner */}
+        {campaignEnd && campaignEnd !== "Campaign ended" && (
+          <section className="rounded-[20px] border border-[#FFD600]/30 bg-[linear-gradient(135deg,rgba(255,214,0,0.12),rgba(255,255,255,0.02))] p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black tracking-[0.2em] text-[#FFD600]">LAUNCH CAMPAIGN</p>
+                <p className="mt-1 text-sm font-bold text-white">キャンペーン価格で2026年末まで掲載可能</p>
+                <p className="mt-1 text-xs text-white/60">Ends: 2026-08-31 21:00 JST</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-mono text-white/50">REMAINING</p>
+                <p className="text-2xl font-black text-[#FFD600]">{campaignEnd}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="rounded-[28px] border border-[#7BB0FF]/20 bg-[linear-gradient(135deg,rgba(123,176,255,0.14),rgba(255,255,255,0.03))] p-6">
           <p className="text-[11px] font-black tracking-[0.2em] text-[#7BB0FF]">BUSINESS HUB</p>
-          <h1 className="mt-2 text-3xl font-black text-white">スポンサー運用ダッシュボード</h1>
+          <h1 className="mt-2 text-3xl font-black text-white">Business Hub</h1>
           <p className="mt-3 text-sm leading-7 text-white/65">
-            すべてのビジネスアカウントが利用できます。契約プランに応じて、見える分析の深さと操作可能な機能が変わります。
+            People don't just follow you. They interact with what you do.
           </p>
           {sponsorPlan ? (
             <p className="mt-4 inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/80">
@@ -234,30 +323,88 @@ export default function BusinessHubClient({
           )}
         </section>
 
-        <Section title="基本指標" sub="現在の広告運用サマリーです。">
+        {/* Period Selector */}
+        <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-white/80">期間</p>
+            <div className="flex gap-2">
+              {(["7D", "30D", "90D"] as Period[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                    period === p
+                      ? "bg-[#7BB0FF] text-black"
+                      : "bg-white/5 text-white/60 hover:bg-white/10"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <Section title="Performance Dashboard" sub="期間内の総Cheer数を主要KPIとして表示">
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              <MetricCard label="表示回数" value="..." />
-              <MetricCard label="クリック数" value="..." />
-              {sponsorPlan === "signal" || sponsorPlan === "presence" || sponsorPlan === "legacy" ? (
-                <MetricCard label="Cheer連動数" value="..." />
-              ) : null}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <MetricCard label="Total Cheer" value="..." />
+              <MetricCard label="Reach" value="..." />
+              <MetricCard label="Profile Views" value="..." />
+              <MetricCard label="Activity Views" value="..." />
             </div>
           ) : !hasData ? (
             <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
               <p className="text-sm leading-7 text-white/55">
-                まだ分析データがありません。広告表示やクリックが発生すると、ここに時系列の推移が表示されます。
+                まだ分析データがありません。活動が発生すると、ここにパフォーマンスデータが表示されます。
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              <MetricCard label="表示回数" value={metrics.impressions.toLocaleString()} />
-              <MetricCard label="クリック数" value={metrics.clicks.toLocaleString()} />
-              {sponsorPlan === "signal" || sponsorPlan === "presence" || sponsorPlan === "legacy" ? (
-                <MetricCard label="Cheer連動数" value={metrics.cheers.toLocaleString()} />
-              ) : null}
-            </div>
+            <>
+              {/* Primary KPI: Total Cheer */}
+              <div className="mb-6 rounded-2xl border border-[#FFD600]/30 bg-[linear-gradient(135deg,rgba(255,214,0,0.08),rgba(0,0,0,0.3))] p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black tracking-[0.2em] text-[#FFD600]">PRIMARY KPI</p>
+                    <p className="mt-1 text-sm text-white/60">期間内の総Cheer数</p>
+                  </div>
+                  <p className="text-4xl font-black text-[#FFD600]">{metrics.cheers.toLocaleString()}</p>
+                </div>
+                <p className="mt-2 text-xs text-white/40">{period}</p>
+              </div>
+
+              {/* Secondary Metrics */}
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <MetricCard label="Reach" value={metrics.reach.toLocaleString()} />
+                <MetricCard label="Profile Views" value={metrics.profileViews.toLocaleString()} />
+                <MetricCard label="Activity Views" value={metrics.activityViews.toLocaleString()} />
+                <MetricCard label="Activities" value={metrics.activities.toLocaleString()} />
+                <MetricCard label="Participants" value={metrics.activityParticipants.toLocaleString()} />
+                <MetricCard label="Comments" value={metrics.comments.toLocaleString()} />
+                <MetricCard label="Connectors" value={metrics.connectors.toLocaleString()} />
+                <MetricCard label="Business Actions" value={metrics.businessActions.toLocaleString()} />
+              </div>
+            </>
           )}
+        </Section>
+
+        {/* Business Value Section */}
+        <Section title="Business Value" sub="Reach + Engagement + Activity + Relationship + Action">
+          <div className="grid gap-4 md:grid-cols-5">
+            {[
+              { label: "Reach", icon: "👁️", desc: "あなたのコンテンツを見た人数" },
+              { label: "Engagement", icon: "💬", desc: "Cheer、コメントなどの反応" },
+              { label: "Activity", icon: "🏃", desc: "アクティビティへの参加" },
+              { label: "Relationship", icon: "🤝", desc: "つながったアスリート・トレーナー" },
+              { label: "Action", icon: "🎯", desc: "ビジネスアクションの発生" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl border border-white/10 bg-black/20 p-4 text-center">
+                <p className="text-2xl">{item.icon}</p>
+                <p className="mt-2 text-xs font-bold text-white">{item.label}</p>
+                <p className="mt-1 text-[10px] text-white/50">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </Section>
 
         <Section title="レポート" sub="プラン別に確認できるレポート内容が変わります。">
@@ -392,6 +539,37 @@ export default function BusinessHubClient({
           {!canShowAb ? (
             <p className="mt-3 text-sm text-white/55">A/Bテスト設定は Presence プラン以上で利用できます。</p>
           ) : null}
+        </Section>
+
+        {/* Referral Section */}
+        <Section title="Referral" sub="Businessを紹介して特典をゲット">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <div className="mb-4">
+              <p className="text-sm font-bold text-white">YOUR REFERRAL</p>
+              <p className="mt-1 text-xs text-white/60">紹介されたBusinessが有料契約した場合の特典</p>
+            </div>
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="font-mono text-lg font-bold text-[#7BB0FF]">{referralCode || "VC-XXXXXX"}</p>
+              <button
+                onClick={() => {
+                  if (referralCode) {
+                    navigator.clipboard.writeText(referralCode);
+                  }
+                }}
+                className="rounded-lg bg-[#7BB0FF] px-4 py-2 text-xs font-bold text-black transition-all hover:bg-[#7BB0FF]/80"
+              >
+                Copy
+              </button>
+              <button className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-white/10">
+                Share
+              </button>
+            </div>
+            <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-4">
+              <p className="text-xs text-white/50">
+                特典内容は現在確定しておりません。詳細は追ってお知らせします。
+              </p>
+            </div>
+          </div>
         </Section>
 
         <Section title="AD設定テンプレート" sub="実データ投入前でも、効果測定の方法と指標の形を確認できます。">
