@@ -14,6 +14,38 @@ import { calcDayCount } from "@/lib/day-count";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { IconStreak } from "@/lib/design/icons";
 
+// 今週のActivity（Weekly）のレスポンス型
+type WeeklyActivity = {
+    id: string;
+    type: string;
+    title: string | null;
+    starts_at: string;
+    ends_at: string | null;
+    status: string;
+    visibility: string;
+    place: { id: string; name: string; prefecture: string } | null;
+    participants: Array<{ user_slug: string | null; user_display_name: string | null }>;
+};
+type WeeklyPayload = {
+    success: boolean;
+    weekStart: string;
+    weekEnd: string;
+    activities: WeeklyActivity[];
+    counts: { total: number; completed: number; byType: Record<string, number> };
+};
+
+const WEEKLY_TYPE_LABELS: Record<string, string> = {
+    practice: "練習", training: "トレーニング", match: "試合", competition: "大会",
+    event: "イベント", coaching: "コーチング", session: "セッション", workshop: "ワークショップ",
+    watching: "観戦", supporting: "サポート", participation: "参加", other: "その他",
+};
+const WEEKLY_STATUS_LABELS: Record<string, string> = {
+    planned: "予定", completed: "完了", cancelled: "中止",
+};
+const WEEKLY_STATUS_COLOR: Record<string, string> = {
+    planned: "#FFB454", completed: "#32D278", cancelled: "#FF5C7A",
+};
+
 // 連続記録（PULSE）日数を JST 基準で算出（journeys から）
 
 function getJourneyPlaceholder(role: string): string {
@@ -266,6 +298,36 @@ export function MyJourneyView({
   }, [weekKeys]);
 
   const selectedLog = useMemo(() => logMap.get(selectedDayKey) ?? null, [logMap, selectedDayKey]);
+
+  // ==== Weekly（今週のActivity）====
+  const [weekly, setWeekly] = useState<WeeklyPayload | null>(null);
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+
+  const loadWeekly = useCallback(async () => {
+    setWeeklyLoading(true);
+    // 表示中週のJST範囲（月曜00:00 +09:00 〜 翌月曜00:00 +09:00）
+    const start = `${formatDateKeyJst(weekStart)}T00:00:00+09:00`;
+    const end = `${formatDateKeyJst(addDays(weekStart, 7))}T00:00:00+09:00`;
+    try {
+      const res = await fetch(
+        `/api/journey/weekly?weekStart=${encodeURIComponent(start)}&weekEnd=${encodeURIComponent(end)}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) {
+        setWeekly(null);
+        return;
+      }
+      setWeekly((await res.json()) as WeeklyPayload);
+    } catch {
+      setWeekly(null);
+    } finally {
+      setWeeklyLoading(false);
+    }
+  }, [weekStart]);
+
+  useEffect(() => {
+    void loadWeekly();
+  }, [loadWeekly]);
 
   const weekNav = (
     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -851,6 +913,87 @@ export function MyJourneyView({
           })()}
         </SectionCard>
       </div>
+
+      <SectionCard t={t} accentColor={roleColor}>
+        <CardHeader
+          title="This Week — 今週の活動"
+          meta={<p style={{ margin: 0, fontSize: 12, color: t.sub, lineHeight: 1.7 }}>この週（月曜〜日曜）に記録した Activity をまとめて確認できます。</p>}
+          action={weekNav}
+        />
+
+        {weeklyLoading ? (
+          <p style={{ margin: 0, fontSize: 12, color: t.sub }}>今週のActivityを読み込み中...</p>
+        ) : weekly && weekly.activities.length > 0 ? (
+          <div style={{ display: "grid", gap: 12 }}>
+            {/* 集計 */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
+              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>今週のActivity</p>
+                <p style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 900, color: t.text }}>{weekly.counts.total}<span style={{ fontSize: 12, color: t.sub }}> 件</span></p>
+              </div>
+              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>完了</p>
+                <p style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 900, color: WEEKLY_STATUS_COLOR.completed }}>{weekly.counts.completed}<span style={{ fontSize: 12, color: t.sub }}> 件</span></p>
+              </div>
+              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>種別</p>
+                <p style={{ margin: "4px 0 0", fontSize: 13, fontWeight: 800, color: t.text, lineHeight: 1.6 }}>
+                  {Object.entries(weekly.counts.byType).map(([type, n]) => `${WEEKLY_TYPE_LABELS[type] ?? type}×${n}`).join("  ") || "—"}
+                </p>
+              </div>
+            </div>
+
+            {/* 一覧 */}
+            <div style={{ display: "grid", gap: 8 }}>
+              {weekly.activities.map((a) => {
+                const sc = WEEKLY_STATUS_COLOR[a.status] ?? "rgba(255,255,255,0.5)";
+                return (
+                  <div
+                    key={a.id}
+                    style={{
+                      display: "flex", flexDirection: "column", gap: 6,
+                      padding: "12px 14px", borderRadius: 12,
+                      border: `1px solid ${a.status === "completed" ? WEEKLY_STATUS_COLOR.completed + "44" : t.border}`,
+                      background: a.status === "completed" ? "rgba(50,210,120,0.05)" : "rgba(255,255,255,0.02)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: `${roleColor}16`, color: roleColor, border: `1px solid ${roleColor}30` }}>
+                        {WEEKLY_TYPE_LABELS[a.type] ?? a.type}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: t.text, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {a.title ?? "（タイトルなし）"}
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: sc }}>{WEEKLY_STATUS_LABELS[a.status] ?? a.status}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: t.sub, flexWrap: "wrap" }}>
+                      <span>🗓 {new Date(a.starts_at).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                      {a.place ? (
+                        <>
+                          <span aria-hidden style={{ opacity: 0.5 }}>•</span>
+                          <span>📍 {a.place.name}（{a.place.prefecture}）</span>
+                        </>
+                      ) : null}
+                    </div>
+                    {a.participants.length > 0 ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: t.text }}>
+                        <span style={{ color: t.sub }}>Together:</span>
+                        <span style={{ fontWeight: 700 }}>
+                          {a.participants.map((p) => p.user_display_name ?? p.user_slug ?? "ユーザー").join(", ")}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <p style={{ margin: 0, fontSize: 12, color: t.sub }}>
+            {weekRangeLabel} に記録した Activity はまだありません。
+          </p>
+        )}
+      </SectionCard>
 
       <SectionCard t={t} accentColor="#C8E800">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>

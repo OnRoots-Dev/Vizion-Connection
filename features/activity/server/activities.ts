@@ -3,10 +3,17 @@
 // supabaseServer は RLS をバイパスするため、可視性判定はこの層で DB の
 // can_view_activity / can_view_moment と同じ規則を必ず再実装する。
 import { supabaseServer } from "@/lib/supabase/server";
-import type { ActivityRecord, CreateActivityInput, UpdateActivityInput } from "../types";
+import type {
+    ActivityCommentRecord,
+    ActivityParticipantRecord,
+    ActivityParticipantStatus,
+    ActivityRecord,
+    CreateActivityInput,
+    UpdateActivityInput,
+} from "../types";
 
 const SELECT_COLUMNS =
-    "id,user_id,type,title,description,starts_at,ends_at,place_id,visibility,tags,status,image_url,video_url,created_at,updated_at";
+    "id,user_id,type,title,description,starts_at,ends_at,place_id,visibility,tags,status,image_url,video_url,cheer_count,comment_count,created_at,updated_at";
 
 export interface OwnerProfileLite {
     id: number;
@@ -170,6 +177,255 @@ export async function getOwnedActivity(actorId: number, id: string): Promise<Act
         .eq("user_id", actorId)
         .maybeSingle();
     return (data as unknown as ActivityRecord) ?? null;
+}
+
+/** 単一参照（可視性ゲート付き）。可視でない場合は null。 */
+export async function getVisibleActivity(
+    activityId: string,
+    viewerUserId: number | null,
+): Promise<ActivityRecord | null> {
+    const { data } = await supabaseServer
+        .from("activities")
+        .select(SELECT_COLUMNS)
+        .eq("id", activityId)
+        .maybeSingle();
+    if (!data) return null;
+    const { visible } = await resolveActivityVisibility(
+        data as unknown as ActivityRecord,
+        viewerUserId,
+    );
+    return visible ? (data as unknown as ActivityRecord) : null;
+}
+
+// ------------------------------------------------------------
+// comments（activity_comments）— moment_comments と同パターン
+// ------------------------------------------------------------
+export async function addActivityComment(
+    actorId: number,
+    activityId: string,
+    body: string,
+): Promise<ActivityCommentRecord> {
+    const { data, error } = await supabaseServer
+        .from("activity_comments")
+        .insert({ activity_id: activityId, user_id: actorId, body })
+        .select("id,activity_id,user_id,body,created_at")
+        .single();
+    if (error || !data) {
+        console.error("[addActivityComment]", error);
+        throw new Error("コメントの保存に失敗しました");
+    }
+    await syncActivityCommentCount(activityId);
+    return data as unknown as ActivityCommentRecord;
+}
+
+export async function listActivityComments(
+    activityId: string,
+    limit = 100,
+): Promise<(ActivityCommentRecord & { author_slug: string | null; author_display_name: string | null })[]> {
+    const { data, error } = await supabaseServer
+        .from("activity_comments")
+        .select(
+            `id,activity_id,user_id,body,created_at,
+             author:users(id,slug,display_name)`,
+        )
+        .eq("activity_id", activityId)
+        .order("created_at", { ascending: true })
+        .limit(limit);
+
+    if (error) {
+        console.error("[listActivityComments]", error);
+        return [];
+    }
+    type Row = ActivityCommentRecord & { author: { slug: string; display_name: string | null } | null };
+    return ((data ?? []) as unknown as Row[]).map((row) => ({
+        id: row.id,
+        activity_id: row.activity_id,
+        user_id: row.user_id,
+        body: row.body,
+        created_at: row.created_at,
+        author_slug: row.author?.slug ?? null,
+        author_display_name: row.author?.display_name ?? null,
+    }));
+}
+
+export async function deleteActivityComment(
+    actorId: number,
+    activityId: string,
+    commentId: string,
+): Promise<{ deleted: boolean }> {
+    const { data, error } = await supabaseServer
+        .from("activity_comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("activity_id", activityId)
+        .eq("user_id", actorId)
+        .select("id");
+    if (error) {
+        console.error("[deleteActivityComment]", error);
+        throw new Error("削除に失敗しました");
+    }
+    if (!data || data.length === 0) return { deleted: false };
+    await syncActivityCommentCount(activityId);
+    return { deleted: true };
+}
+
+async function syncActivityCommentCount(activityId: string): Promise<void> {
+    const { count } = await supabaseServer
+        .from("activity_comments")
+        .select("*", { count: "exact", head: true })
+        .eq("activity_id", activityId);
+    await supabaseServer.from("activities").update({ comment_count: count ?? 0 }).eq("id", activityId);
+}
+
+// ------------------------------------------------------------
+// cheers（activity_cheers）— moment_cheers と同パターン（user→activity）
+// ------------------------------------------------------------
+export async function toggleActivityCheer(
+    actorId: number,
+    activityId: string,
+): Promise<{ cheered: boolean; cheer_count: number }> {
+    const { data: existing } = await supabaseServer
+        .from("activity_cheers")
+        .select("id")
+        .eq("activity_id", activityId)
+        .eq("from_user_id", actorId)
+        .maybeSingle();
+
+    let cheered: boolean;
+    if (existing) {
+        const { error } = await supabaseServer
+            .from("activity_cheers")
+            .delete()
+            .eq("id", existing.id)
+            .eq("from_user_id", actorId);
+        if (error) {
+            console.error("[toggleActivityCheer:remove]", error);
+            throw new Error("Cheerの解除に失敗しました");
+        }
+        cheered = false;
+    } else {
+        const { error } = await supabaseServer
+            .from("activity_cheers")
+            .insert({ activity_id: activityId, from_user_id: actorId });
+        if (error) {
+            console.error("[toggleActivityCheer:insert]", error);
+            throw new Error("Cheerに失敗しました");
+        }
+        cheered = true;
+    }
+
+    const { count } = await supabaseServer
+        .from("activity_cheers")
+        .select("*", { count: "exact", head: true })
+        .eq("activity_id", activityId);
+
+    await supabaseServer.from("activities").update({ cheer_count: count ?? 0 }).eq("id", activityId);
+    return { cheered, cheer_count: count ?? 0 };
+}
+
+// ------------------------------------------------------------
+// Together Activity（activity_participants）— Connection とは独立
+// ------------------------------------------------------------
+export async function listActivityParticipants(
+    activityId: string,
+): Promise<(ActivityParticipantRecord & { user_slug: string | null; user_display_name: string | null })[]> {
+    const { data, error } = await supabaseServer
+        .from("activity_participants")
+        .select(
+            `id,activity_id,user_id,status,role,invited_by,created_at,updated_at,
+             participant:users(id,slug,display_name)`,
+        )
+        .eq("activity_id", activityId)
+        .order("created_at", { ascending: true });
+
+    if (error) {
+        console.error("[listActivityParticipants]", error);
+        return [];
+    }
+    type Row = ActivityParticipantRecord & {
+        participant: { slug: string; display_name: string | null } | null;
+    };
+    return ((data ?? []) as unknown as Row[]).map((row) => ({
+        id: row.id,
+        activity_id: row.activity_id,
+        user_id: row.user_id,
+        status: row.status,
+        role: row.role,
+        invited_by: row.invited_by,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        user_slug: row.participant?.slug ?? null,
+        user_display_name: row.participant?.display_name ?? null,
+    }));
+}
+
+export interface ParticipantState {
+    status: ActivityParticipantStatus | null;
+}
+
+/** ログインユーザーの、あるActivityへの参加状態（無ければ null）。 */
+export async function getParticipantState(
+    actorId: number,
+    activityId: string,
+): Promise<ParticipantState> {
+    const { data } = await supabaseServer
+        .from("activity_participants")
+        .select("status")
+        .eq("activity_id", activityId)
+        .eq("user_id", actorId)
+        .maybeSingle();
+    return { status: (data?.status as ActivityParticipantStatus | undefined) ?? null };
+}
+
+/** 参加申請（Together 参加を希望する）。同一Activityに重複は不可（unique制約）。 */
+export async function applyParticipant(
+    actorId: number,
+    activityId: string,
+    role?: string | null,
+): Promise<ActivityParticipantRecord | null> {
+    const { data, error } = await supabaseServer
+        .from("activity_participants")
+        .insert({
+            activity_id: activityId,
+            user_id: actorId,
+            status: "pending",
+            role: role ?? null,
+            invited_by: actorId,
+        })
+        .select("id,activity_id,user_id,status,role,invited_by,created_at,updated_at")
+        .single();
+    if (error) {
+        console.error("[applyParticipant]", error);
+        return null;
+    }
+    return data as unknown as ActivityParticipantRecord;
+}
+
+/**
+ * Activity オーナーが参加申請に応答（Accept / Decline）。
+ * オーナースコープは WHERE に直接指定（RLS バイパス対策）。
+ */
+export async function respondParticipant(
+    ownerId: number,
+    activityId: string,
+    userId: number,
+    status: "accepted" | "declined",
+): Promise<ActivityParticipantRecord | null> {
+    const owned = await getOwnedActivity(ownerId, activityId);
+    if (!owned) return null;
+
+    const { data, error } = await supabaseServer
+        .from("activity_participants")
+        .update({ status })
+        .eq("activity_id", activityId)
+        .eq("user_id", userId)
+        .select("id,activity_id,user_id,status,role,invited_by,created_at,updated_at")
+        .maybeSingle();
+    if (error) {
+        console.error("[respondParticipant]", error);
+        return null;
+    }
+    return (data as unknown as ActivityParticipantRecord) ?? null;
 }
 
 /**

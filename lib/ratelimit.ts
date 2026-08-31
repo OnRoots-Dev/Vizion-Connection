@@ -161,6 +161,21 @@ export const momentCheerLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:moment-cheer",
 }), "moment-cheer");
 
+// Activity Cheer：1分に20回
+export const activityCheerLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:activity-cheer",
+}), "activity-cheer");
+
+// Activity コメント：1分に10回
+export const activityCommentLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:activity-comment",
+}), "activity-comment");
+
+// Activity Together 参加 / 応答：1分に20回
+export const activityParticipantLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:activity-participant",
+}), "activity-participant");
+
 // Connection申請/承認/解除：1分に10回
 export const connectionLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:connection",

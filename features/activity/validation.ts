@@ -26,6 +26,30 @@ export const activityCreateSchema = z
 
 export const activityUpdateSchema = activityCreateSchema.partial().strict();
 
+/** Activity コメント投稿スキーマ（momentCommentCreateSchema と同型）。 */
+export const activityCommentCreateSchema = z
+    .object({
+        body: z.string().trim().min(1, "コメントを入力してください").max(300, "300文字以内で入力してください"),
+    })
+    .strict();
+
+/** Together Activity 参加申請スキーマ（空オブジェクトのみ許可）。 */
+export const activityParticipantApplySchema = z.object({}).strict();
+
+/** Together Activity 応答（Accept / Decline）。 */
+export const activityParticipantRespondSchema = z
+    .object({
+        status: z.enum(["accepted", "declined"]),
+    })
+    .strict();
+
+/** Together Activity 参加者の任意ロール（招待側が設定）。 */
+export const activityParticipantRoleSchema = z
+    .object({
+        role: z.string().trim().max(30, "役割は30文字以内で入力してください").nullable().optional(),
+    })
+    .strict();
+
 // Role × Activity Type マトリクス（仕様 §11）。DB ではなくアプリ層で強制する。
 export function assertActivityTypeAllowed(role: UserRole, type: ActivityType): boolean {
     return ACTIVITY_TYPES_BY_ROLE[role]?.includes(type) ?? false;

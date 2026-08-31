@@ -59,6 +59,32 @@ export interface ActivityRecord {
     status: ActivityStatus;
     image_url: string | null;
     video_url: string | null;
+    cheer_count: number;
+    comment_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+/** Activity への文脈付きコメント（1行）。moment_comments と同型。 */
+export interface ActivityCommentRecord {
+    id: string;
+    activity_id: string;
+    user_id: number;
+    body: string;
+    created_at: string;
+}
+
+/** Together Activity 参加状態（pending -> accepted / declined）。Connection とは独立。 */
+export const ACTIVITY_PARTICIPANT_STATUSES = ["pending", "accepted", "declined"] as const;
+export type ActivityParticipantStatus = (typeof ACTIVITY_PARTICIPANT_STATUSES)[number];
+
+export interface ActivityParticipantRecord {
+    id: string;
+    activity_id: string;
+    user_id: number;
+    status: ActivityParticipantStatus;
+    role: string | null;
+    invited_by: number;
     created_at: string;
     updated_at: string;
 }

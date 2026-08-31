@@ -11,7 +11,9 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton } from "../components/ui";
 import { BottomSheet } from "../components/core/BottomSheet";
 import { PlacePicker } from "../components/core/PlacePicker";
-import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia } from "../components/feed";
+import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia, CheerButton, CommentButton } from "../components/feed";
+import { ActivityCommentsSheet } from "../components/core/ActivityCommentsSheet";
+import { ActivityTogetherPanel } from "../components/core/ActivityTogetherPanel";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
@@ -103,6 +105,71 @@ export function ActivitiesView({
     const [mediaUploading, setMediaUploading] = useState<"image" | "video" | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [successFlash, setSuccessFlash] = useState(false);
+
+    // Activity Cheer / Comment のローカル状態（activities の cheer_count/comment_count を拡張）
+    const [reactions, setReactions] = useState<Record<string, { cheered: boolean; cheer_count: number; comment_count: number }>>({});
+    const [cheerBusy, setCheerBusy] = useState<Record<string, boolean>>({});
+    const [commentsOpen, setCommentsOpen] = useState(false);
+    const [commentsActivityId, setCommentsActivityId] = useState<string | null>(null);
+
+    function getReaction(a: ActivityWithPlace) {
+        return reactions[a.id] ?? { cheered: false, cheer_count: a.cheer_count ?? 0, comment_count: a.comment_count ?? 0 };
+    }
+
+    async function toggleCheer(a: ActivityWithPlace) {
+        if (cheerBusy[a.id]) return;
+        const current = getReaction(a);
+        setCheerBusy((s) => ({ ...s, [a.id]: true }));
+        const prev = current;
+        // 楽観的更新
+        setReactions((s) => ({
+            ...s,
+            [a.id]: { ...current, cheered: !current.cheered, cheer_count: current.cheer_count + (current.cheered ? -1 : 1) },
+        }));
+        try {
+            const data = await apiSend<{ success: boolean; cheered: boolean; cheer_count: number }>(
+                `/api/activities/${a.id}/cheer`,
+                "POST",
+            );
+            setReactions((s) => ({
+                ...s,
+                [a.id]: { ...(s[a.id] ?? prev), cheered: data.cheered, cheer_count: data.cheer_count },
+            }));
+        } catch (e) {
+            setReactions((s) => ({ ...s, [a.id]: prev }));
+            setError(e instanceof ApiError ? e.message : "Cheerできませんでした");
+        } finally {
+            setCheerBusy((s) => ({ ...s, [a.id]: false }));
+        }
+    }
+
+    function openComments(a: ActivityWithPlace) {
+        setCommentsActivityId(a.id);
+        setCommentsOpen(true);
+    }
+
+    async function closeComments() {
+        setCommentsOpen(false);
+        // コメント数を静かに再同期（loading を点滅させない）
+        try {
+            const data = await apiGet<{ success: boolean; activities: ActivityWithPlace[] }>("/api/activities");
+            const fresh = data.activities ?? [];
+            setReactions((s) => {
+                const next = { ...s };
+                for (const a of fresh) {
+                    next[a.id] = {
+                        ...(next[a.id] ?? { cheered: false, cheer_count: a.cheer_count ?? 0, comment_count: a.comment_count ?? 0 }),
+                        cheer_count: a.cheer_count ?? 0,
+                        comment_count: a.comment_count ?? 0,
+                    };
+                }
+                return next;
+            });
+        } catch {
+            /* 同期失敗時は既存の状態を維持 */
+        }
+    }
+
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -262,6 +329,10 @@ export function ActivitiesView({
                                     setMode("detail");
                                 }}
                                 reduce={reduce}
+                                reaction={getReaction(latest!)}
+                                cheerBusy={!!cheerBusy[latest!.id]}
+                                onToggleCheer={() => void toggleCheer(latest!)}
+                                onOpenComments={() => openComments(latest!)}
                             />
 
                             {/* Past Activity */}
@@ -278,6 +349,10 @@ export function ActivitiesView({
                                                 setMode("detail");
                                             }}
                                             reduce={reduce}
+                                            reaction={getReaction(a)}
+                                            cheerBusy={!!cheerBusy[a.id]}
+                                            onToggleCheer={() => void toggleCheer(a)}
+                                            onOpenComments={() => openComments(a)}
                                         />
                                     ))}
                                 </>
@@ -452,6 +527,26 @@ export function ActivitiesView({
 
                             <MomentComposerInline activityId={a.id} activityTitle={a.title ?? ""} roleColor={roleColor} onPublished={load} />
 
+                            {/* 反応（Cheer / Comment） */}
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <CheerButton
+                                    cheered={getReaction(a).cheered}
+                                    count={getReaction(a).cheer_count}
+                                    disabled={!!cheerBusy[a.id]}
+                                    onToggle={() => void toggleCheer(a)}
+                                    color={roleColor}
+                                    size="lg"
+                                />
+                                <CommentButton count={getReaction(a).comment_count} onClick={() => openComments(a)} size="lg" />
+                            </div>
+
+                            {/* Together Activity（一緒に活動した人） */}
+                            <ActivityTogetherPanel
+                                activityId={a.id}
+                                isOwner={a.user_id === Number(profile.id)}
+                                accentColor={roleColor}
+                            />
+
                             <div style={{ display: "flex", gap: 8, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12 }}>
                                 {a.status !== "completed" ? (
                                     <SecondaryButton onClick={() => changeStatus(a.id, "completed")}>完了にする</SecondaryButton>
@@ -465,6 +560,15 @@ export function ActivitiesView({
                     );
                 })()}
             </BottomSheet>
+
+            {/* Activityコメントシート */}
+            <ActivityCommentsSheet
+                open={commentsOpen}
+                activityId={commentsActivityId ?? ""}
+                viewerId={Number(profile.id)}
+                t={t}
+                onClose={() => void closeComments()}
+            />
         </div>
     );
 }
@@ -495,18 +599,33 @@ function ActivityFeedCard({
     roleColor,
     onOpen,
     reduce,
+    reaction,
+    cheerBusy,
+    onToggleCheer,
+    onOpenComments,
 }: {
     activity: ActivityWithPlace;
     roleColor: string;
     onOpen: () => void;
     reduce: boolean | null;
+    reaction: { cheered: boolean; cheer_count: number; comment_count: number };
+    cheerBusy: boolean;
+    onToggleCheer: () => void;
+    onOpenComments: () => void;
 }) {
     const statusColor = STATUS_COLOR[a.status] ?? "rgba(255,255,255,0.5)";
     return (
-        <motion.button
-            type="button"
-            whileTap={reduce ? undefined : { scale: 0.985 }}
+        <motion.article
+            role="button"
+            tabIndex={0}
             onClick={onOpen}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onOpen();
+                }
+            }}
+            whileTap={reduce ? undefined : { scale: 0.99 }}
             style={{
                 textAlign: "left", cursor: "pointer",
                 background: "#111118", border: "1px solid rgba(255,255,255,0.08)",
@@ -572,7 +691,23 @@ function ActivityFeedCard({
                     </>
                 ) : null}
             </div>
-        </motion.button>
+
+            {/* アクション行（Cheer / Comment） */}
+            <div
+                style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+            >
+                <CheerButton
+                    cheered={reaction.cheered}
+                    count={reaction.cheer_count}
+                    disabled={cheerBusy}
+                    onToggle={onToggleCheer}
+                    color={roleColor}
+                />
+                <CommentButton count={reaction.comment_count} onClick={onOpenComments} />
+            </div>
+        </motion.article>
     );
 }
 
