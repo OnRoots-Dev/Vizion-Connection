@@ -78,22 +78,40 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
     const navSections = useMemo<NavSection[]>(() => {
         const sections: NavSection[] = [
             {
-                group: "MAIN",
+                group: "WORLD",
                 items: [
                     { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
-                    // MVP外のため封印（config/mvp-scope.ts）: pulse, timeline
-                    { type: "item", id: "activities", label: "Activities", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
                     { type: "item", id: "moments", label: "Moments", icon: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9" },
-                    // MY Journeyは非表示（ダッシュボード上は表示させない）
-                    { type: "item", id: "viz_map", label: "Viz Map", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
-                    ...(profile.role === "Business" || profile.role === "Admin"
-                        ? [{ type: "item" as const, id: "monetize" as const, label: "Business Hub", icon: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.31M21 12a9 9 0 11-18 0 9 9 0 0118 0z" }]
-                        : []),
-                    // MVP外のため封印: discovery, hub（役割ハブ）
+                    // MVP外のため封印（config/mvp-scope.ts）: pulse, timeline
+                ],
+            },
+            {
+                group: "ACTIVITY",
+                items: [
+                    { type: "item", id: "activities", label: "Activities", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
+                ],
+            },
+            {
+                group: "PEOPLE",
+                items: [
                     { type: "item", id: "profile", label: "Profile", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21c-2.676 0-5.216-.584-7.499-1.632z" },
                     { type: "external", id: "schedule", label: "Schedule", icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5", href: "/schedule" },
                 ],
             },
+            {
+                group: "MAP",
+                items: [
+                    // MY Journeyは非表示（ダッシュボード上は表示させない）
+                    { type: "item", id: "viz_map", label: "Viz Map", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
+                ],
+            },
+            // MVP外のため封印: discovery, hub（役割ハブ）
+            ...(profile.role === "Business" || profile.role === "Admin"
+                ? [{
+                    group: "BUSINESS",
+                    items: [{ type: "item" as const, id: "monetize" as const, label: "Business Hub", icon: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.31M21 12a9 9 0 11-18 0 9 9 0 0118 0z" }],
+                } as NavSection]
+                : []),
         ];
 
         return sections;

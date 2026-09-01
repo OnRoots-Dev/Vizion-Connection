@@ -51,6 +51,49 @@ function toLocalInput(iso?: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/**
+ * Activity Detail 冒頭の通常/募集中 CTA 分岐（定員フィールドは無いため人数のみ）。
+ * - completed: 実績表示（I DID THIS / 一緒に活動した人数）。参加ボタンなし。
+ * - planned:   募集中表示（REQUEST TO JOIN は下の TogetherPanel が提供）。
+ * - cancelled: 中止のミュート表示。
+ * 参加人数は /api/activities/[id]/participants の accepted 数から動的集計。
+ */
+function DetailCtaBanner({ status, isOwner, roleColor }: { status: string; isOwner: boolean; roleColor: string }) {
+    if (status === "cancelled") {
+        return (
+            <div style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", color: STATUS_COLOR.cancelled }}>CANCELLED · 中止</p>
+                <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>このActivityは中止されました。</p>
+            </div>
+        );
+    }
+    const completed = status === "completed";
+    return (
+        <div
+            style={{
+                display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                padding: "12px 14px", borderRadius: 12,
+                border: `1px solid ${completed ? "rgba(50,210,120,0.4)" : "rgba(255,255,255,0.12)"}`,
+                background: completed ? "rgba(50,210,120,0.07)" : "rgba(255,255,255,0.03)",
+            }}
+        >
+            <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: "0.02em", color: completed ? STATUS_COLOR.completed : "#fff" }}>
+                {completed ? "I DID THIS" : "JOIN ME · 募集中"}
+            </span>
+            {!completed && !isOwner ? (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>参加するには下の REQUEST TO JOIN から申請してください。</span>
+            ) : null}
+            {!completed && isOwner ? (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>募集は公開済み。参加希望は下の Together で承認できます。</span>
+            ) : null}
+            <span style={{ marginLeft: "auto", fontSize: 11, color: roleColor, fontWeight: 700, fontFamily: "monospace" }}>
+                {completed ? "TOGETHER 実績" : "人数は Together に表示"}
+            </span>
+        </div>
+    );
+}
+
+
 function formatDate(iso: string): string {
     const d = new Date(iso);
     return d.toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" });
@@ -81,6 +124,8 @@ export function ActivitiesView({
     const [items, setItems] = useState<ActivityWithPlace[]>([]);
     const [mode, setMode] = useState<"list" | "create" | "detail">("list");
     const [detailId, setDetailId] = useState<string | null>(null);
+    // 他者の可視Activity（自分の items に無い場合に取得）。募集中ActivityのDetail表示用。
+    const [visibleActivity, setVisibleActivity] = useState<ActivityWithPlace | null>(null);
 
     // クエリパラメータからactivityIdを取得して詳細表示
     useEffect(() => {
@@ -90,6 +135,27 @@ export function ActivitiesView({
             setMode("detail");
         }
     }, [searchParams]);
+
+    // Detail対象が自分の items に無い場合（他者の公開・募集中Activity）は可視一件取得する。
+    useEffect(() => {
+        if (mode !== "detail") return;
+        if (!detailId) return;
+        if (items.some((x) => x.id === detailId)) {
+            setVisibleActivity(null);
+            return;
+        }
+        let cancelled = false;
+        apiGet<{ success: boolean; activity?: ActivityWithPlace }>(`/api/activities/${detailId}`)
+            .then((data) => {
+                if (!cancelled && data.activity) setVisibleActivity(data.activity);
+            })
+            .catch(() => {
+                if (!cancelled) setVisibleActivity(null);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [mode, detailId, items]);
 
     // form state
     const [fType, setFType] = useState<ActivityType>(allowedTypes[0]);
@@ -495,8 +561,9 @@ export function ActivitiesView({
             {/* 詳細（ボトムシート） */}
             <BottomSheet open={mode === "detail"} onClose={() => setMode("list")} title="ACTIVITY DETAIL" t={t}>
                 {(() => {
-                    const a = items.find((x) => x.id === detailId);
+                    const a = items.find((x) => x.id === detailId) ?? visibleActivity;
                     if (!a) return null;
+                    const isOwner = a.user_id === Number(profile.id);
                     return (
                         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -507,6 +574,15 @@ export function ActivitiesView({
                             </div>
 
                             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#f0f0f5" }}>{a.title}</h3>
+                            {isOwner ? null : (
+                                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                                    @{profile.slug} から見た「募集中」のActivityです。参加は下の Together から申請できます。
+                                </p>
+                            )}
+
+                            {/* 通常 / 募集中 CTA 分岐（status ベース。定員フィールドは無いため人数のみ） */}
+                            <DetailCtaBanner status={a.status} isOwner={isOwner} roleColor={roleColor} />
+
                             {a.description ? (
                                 <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.75)" }}>{a.description}</p>
                             ) : null}
@@ -525,7 +601,9 @@ export function ActivitiesView({
                                 ) : null}
                             </div>
 
-                            <MomentComposerInline activityId={a.id} activityTitle={a.title ?? ""} roleColor={roleColor} onPublished={load} />
+                            {isOwner ? (
+                                <MomentComposerInline activityId={a.id} activityTitle={a.title ?? ""} roleColor={roleColor} onPublished={load} />
+                            ) : null}
 
                             {/* 反応（Cheer / Comment） */}
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -540,22 +618,24 @@ export function ActivitiesView({
                                 <CommentButton count={getReaction(a).comment_count} onClick={() => openComments(a)} size="lg" />
                             </div>
 
-                            {/* Together Activity（一緒に活動した人） */}
+                            {/* Together Activity（一緒に活動した人 / 参加申請） */}
                             <ActivityTogetherPanel
                                 activityId={a.id}
-                                isOwner={a.user_id === Number(profile.id)}
+                                isOwner={isOwner}
                                 accentColor={roleColor}
                             />
 
-                            <div style={{ display: "flex", gap: 8, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12 }}>
-                                {a.status !== "completed" ? (
-                                    <SecondaryButton onClick={() => changeStatus(a.id, "completed")}>完了にする</SecondaryButton>
-                                ) : null}
-                                {a.status !== "cancelled" ? (
-                                    <DangerButton onClick={() => changeStatus(a.id, "cancelled")}>中止</DangerButton>
-                                ) : null}
-                                <DangerButton onClick={() => remove(a.id)}>削除</DangerButton>
-                            </div>
+                            {isOwner ? (
+                                <div style={{ display: "flex", gap: 8, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12 }}>
+                                    {a.status !== "completed" ? (
+                                        <SecondaryButton onClick={() => changeStatus(a.id, "completed")}>完了にする</SecondaryButton>
+                                    ) : null}
+                                    {a.status !== "cancelled" ? (
+                                        <DangerButton onClick={() => changeStatus(a.id, "cancelled")}>中止</DangerButton>
+                                    ) : null}
+                                    <DangerButton onClick={() => remove(a.id)}>削除</DangerButton>
+                                </div>
+                            ) : null}
                         </div>
                     );
                 })()}

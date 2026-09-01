@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { ThemeColors } from "../DashboardClient";
@@ -70,11 +70,31 @@ export function DashboardProfileView({
   const [isPublic, setIsPublic] = useState(canPublish ? profile.isPublic !== false : false);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
+  const [togetherCount, setTogetherCount] = useState(0);
+
+  // Profile の TOGETHER カウント（activity_participants accepted の動的集計・読み取り専用）
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/activities/together-count", { method: "GET" })
+      .then((res) => res.json().catch(() => ({})))
+      .then((json) => {
+        if (!cancelled && typeof json?.count === "number") setTogetherCount(json.count);
+      })
+      .catch(() => {
+        if (!cancelled) setTogetherCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
   const { initFromUser, initFromCareerProfile } = useCareerWizard();
 
   const profileFacts = [
     { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
     { label: "Cheer", value: String(profile.cheerCount ?? 0), color: "#FFD600" },
+    { label: "Together", value: String(togetherCount), color: roleColor },
     profile.sport ? { label: "Sport / Job", value: profile.sport } : null,
     profile.region ? { label: "Area", value: profile.region } : null,
     profile.prefecture ? { label: "Prefecture", value: profile.prefecture } : null,

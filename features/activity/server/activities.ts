@@ -333,7 +333,7 @@ export async function listActivityParticipants(
         .from("activity_participants")
         .select(
             `id,activity_id,user_id,status,role,invited_by,created_at,updated_at,
-             participant:users(id,slug,display_name)`,
+             participant:users!activity_participants_user_id_fkey(id,slug,display_name)`,
         )
         .eq("activity_id", activityId)
         .order("created_at", { ascending: true });

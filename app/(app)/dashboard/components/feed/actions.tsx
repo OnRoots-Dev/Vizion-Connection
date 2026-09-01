@@ -5,9 +5,10 @@
 // Cheer は toggle（楽観的更新 + 失敗時ロールバック）、Comment はカウント表示のボタン。
 
 import React from "react";
-import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { MOTION, TAP_SCALE } from "@/lib/design/tokens";
 import { IconCheer } from "@/lib/design/icons";
+import { CheerBurst } from "@/components/ui/CheerBurst";
 
 /** 楽観的 Cheer トグルボタン。busy 中は押下不可。 */
 export function CheerButton({
@@ -27,6 +28,12 @@ export function CheerButton({
 }) {
     const reduce = useReducedMotion();
     const [burst, setBurst] = React.useState(0);
+
+    React.useEffect(() => {
+        if (!burst) return;
+        const t = window.setTimeout(() => setBurst(0), 1000);
+        return () => window.clearTimeout(t);
+    }, [burst]);
 
     function handle() {
         if (disabled) return;
@@ -76,30 +83,8 @@ export function CheerButton({
             </span>
             {count.toLocaleString()}
 
-            {/* 成功フィードバックのバースト */}
-            <AnimatePresence>
-                {burst && !reduce ? (
-                    <motion.span
-                        key={`burst-${burst}`}
-                        initial={{ opacity: 0.9, scale: 0.6 }}
-                        animate={{ opacity: 0, scale: 1.7 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                        aria-hidden
-                        style={{
-                            position: "absolute",
-                            left: 14,
-                            top: "50%",
-                            width: height,
-                            height: height,
-                            transform: "translateY(-50%)",
-                            borderRadius: "50%",
-                            pointerEvents: "none",
-                            boxShadow: `0 0 28px ${color}`,
-                        }}
-                    />
-                ) : null}
-            </AnimatePresence>
+            {/* 成功フィードバックのバースト（プロフィールと共通の星＋リング演出） */}
+            <CheerBurst trigger={burst} color={color} />
         </motion.button>
     );
 }

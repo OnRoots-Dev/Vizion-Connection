@@ -2,6 +2,7 @@
 
 // Viz Map rendering core. Mapbox GL JS is kept client-only because it needs window.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { CLUSTER_COLOR } from "./mapTypes";
 import type { MapBBox, PinCategory } from "./mapTypes";
@@ -62,6 +63,10 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
     // 直前の選択ID。変化した時だけパルス演出を行う（データ更新のたびに全ピンが点滅するのを防ぐ）。
     const prevSelectedRef = useRef<string>("");
+    // 募集中Activity Pinの常時パルスを駆動するタイマー（Mapboxのpaint遷移で呼吸させる）。
+    const pulseTimerRef = useRef<number | null>(null);
+    const pulsePhaseRef = useRef(false);
+    const reduceMotion = useReducedMotion();
     const [ready, setReady] = useState(false);
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -139,6 +144,10 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
                 map.addLayer({ id: "viz-cluster-count", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 12, "text-allow-overlap": true }, paint: { "text-color": "#ffffff" } });
                 map.addLayer({ id: "viz-cluster-type", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["coalesce", ["get", "dominant_short"], ""], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 8, "text-allow-overlap": true, "text-offset": [0, 1.3] }, paint: { "text-color": "#f8fafc" } });
                 map.addLayer({ id: "viz-activity-ring", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": "rgba(200,232,0,0)", "circle-radius": ["case", ["==", ["get", "id"], ""], 0, 0], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5, "circle-opacity": 0, "circle-radius-transition": { duration: 150 }, "circle-opacity-transition": { duration: 150 } } });
+                // 募集中（Viz Mapに載るのは常に planned=募集中）のActivity Pinだけに、
+                // ゆっくり「呼吸」するハローを常時描画して、地図上での存在感を出す。
+                // Mapboxのpaint遷移で駆動するため setData や RAFループは使わない。
+                map.addLayer({ id: "viz-activity-pulse", type: "circle", source, filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "category"], "activity"]], paint: { "circle-color": ["get", "pc"], "circle-radius": 14, "circle-opacity": 0.24, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1, "circle-radius-transition": { duration: 1400 }, "circle-opacity-transition": { duration: 1400 } } });
                 map.addLayer({ id: "viz-activity-circle", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["coalesce", ["get", "pc"], "#64748B"], "circle-radius": ["coalesce", ["get", "ps"], 10], "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-radius-transition": { duration: 150 } } });
                 map.addLayer({ id: "viz-activity-icon", type: "symbol", source, filter: ["!", ["has", "point_count"]], layout: { "text-field": ["get", "glyph"], "text-font": ["Arial Unicode MS Regular"], "text-size": 14, "text-allow-overlap": true }, paint: { "text-color": "#050508" } });
 
@@ -198,6 +207,28 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
             setReady(false);
         };
     }, [emitViewport, token]);
+
+    // 募集中Activity Pinの常時パルス。Mapboxのpaint遷移(1400ms)に合わせて
+    // circle-radius / circle-opacity を交互に切り替えて「呼吸」させる。
+    // 選択パルスと違い、ここは地図上で再帰的に存在を知らせるための常時アニメ。
+    // データの setData は行わない（パフォーマンス維持）。
+    useEffect(() => {
+        if (!ready || reduceMotion) return;
+        const map = mapRef.current;
+        if (!map) return;
+        const apply = (phase: boolean) => {
+            map.setPaintProperty("viz-activity-pulse", "circle-radius", phase ? 24 : 14);
+            map.setPaintProperty("viz-activity-pulse", "circle-opacity", phase ? 0.05 : 0.24);
+        };
+        apply(pulsePhaseRef.current);
+        pulseTimerRef.current = window.setInterval(() => {
+            pulsePhaseRef.current = !pulsePhaseRef.current;
+            apply(pulsePhaseRef.current);
+        }, 1400);
+        return () => {
+            if (pulseTimerRef.current !== null) { window.clearInterval(pulseTimerRef.current); pulseTimerRef.current = null; }
+        };
+    }, [ready, reduceMotion]);
 
     const syncData = useCallback(() => {
         const map = mapRef.current;

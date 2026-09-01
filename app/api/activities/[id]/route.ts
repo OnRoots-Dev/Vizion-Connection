@@ -1,11 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
+import { supabaseServer } from "@/lib/supabase/server";
 import { validateCSRF } from "@/lib/security/csrf";
 import { activityLimiter, getIp } from "@/lib/ratelimit";
 import { activityUpdateSchema, assertActivityTypeAllowed } from "@/features/activity/validation";
-import { deleteActivity, updateActivity } from "@/features/activity/server/activities";
+import { deleteActivity, updateActivity, getVisibleActivity } from "@/features/activity/server/activities";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * 単一Activityの可視取得（読み取り専用）。
+ * 閲覧者の可視性ルール（getVisibleActivity）で判定。他者の公開・募集中Activityも
+ * Detail表示できるようにするための入口。書き込みは行わない。
+ * PII は author の slug/display_name 程度で、通常の公開Activity表示と同じ扱い。
+ */
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+    const user = await getSupabaseProfile();
+    const { id } = await params;
+    if (!UUID_RE.test(id)) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+
+    const activity = await getVisibleActivity(id, user?.id ?? null);
+    if (!activity) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+
+    let place: { id: string; name: string; prefecture: string } | null = null;
+    if (activity.place_id) {
+        const { data } = await supabaseServer
+            .from("places")
+            .select("id,name,prefecture")
+            .eq("id", activity.place_id)
+            .maybeSingle<{ id: string; name: string; prefecture: string }>();
+        place = data ?? null;
+    }
+    return NextResponse.json({ success: true, activity: { ...activity, place } });
+}
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse> {
     const csrfError = validateCSRF(req);

@@ -5,9 +5,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { MOTION, TAP_SCALE } from "@/lib/design/tokens";
 import { IconCheer } from "@/lib/design/icons";
+import { CheerBurst } from "./CheerBurst";
 
 interface Props {
     slug: string;
@@ -17,8 +18,6 @@ interface Props {
     showCommentBox?: boolean;
     onCheer?: (newCount: number) => void;
 }
-
-const PARTICLES = [0, 45, 90, 135, 180, 225, 270, 315]; // 放射角（deg）
 
 export default function CheerButton({
     slug,
@@ -181,56 +180,8 @@ export default function CheerButton({
                     </>
                 )}
 
-                {/* 送信成功 — 星パーティクル放射バースト＋リング衝撃波 */}
-                <AnimatePresence>
-                    {burst && !reduceMotion ? (
-                        <motion.span
-                            key={`burst-${burst}`}
-                            initial={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-                            aria-hidden
-                        >
-                            <motion.span
-                                initial={{ opacity: 0.9, scale: 0.7 }}
-                                animate={{ opacity: 0, scale: 1.7 }}
-                                transition={{ duration: 0.7, ease: "easeOut" }}
-                                style={{
-                                    position: "absolute", inset: 0, borderRadius: 16,
-                                    border: `2px solid ${roleColor}`,
-                                    boxShadow: `0 0 28px ${roleColor}88`,
-                                }}
-                            />
-                            {PARTICLES.map((deg, i) => {
-                                const rad = (deg * Math.PI) / 180;
-                                const dist = 46 + (i % 2) * 16;
-                                return (
-                                    <motion.span
-                                        key={deg}
-                                        initial={{ opacity: 1, x: 0, y: 0, scale: 0.5, rotate: 0 }}
-                                        animate={{
-                                            opacity: [1, 1, 0],
-                                            x: Math.cos(rad) * dist,
-                                            y: Math.sin(rad) * dist,
-                                            scale: [0.5, 1.1, 0.8],
-                                            rotate: deg > 180 ? -90 : 90,
-                                        }}
-                                        transition={{ duration: 0.75, delay: i * 0.02, ease: "easeOut" }}
-                                        style={{
-                                            position: "absolute", left: "50%", top: "50%",
-                                            marginLeft: -7, marginTop: -7,
-                                            color: i % 2 === 0 ? roleColor : "#FFD600",
-                                            filter: `drop-shadow(0 0 6px ${roleColor})`,
-                                            display: "inline-flex",
-                                        }}
-                                    >
-                                        <IconCheer size={14} />
-                                    </motion.span>
-                                );
-                            })}
-                        </motion.span>
-                    ) : null}
-                </AnimatePresence>
+                {/* 送信成功 — 星パーティクル放射バースト＋リング衝撃波（共通演出） */}
+                <CheerBurst trigger={burst} color={roleColor} />
             </motion.button>
             <style>{`
                 @keyframes cheerShine {
