@@ -41,7 +41,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const { data, error } = await supabaseServer
         .from("activities")
         .select(
-            `id,type,title,starts_at,ends_at,status,visibility,
+            `id,type,title,starts_at,ends_at,status,visibility,cheer_count,comment_count,
              place:places!left(id,name,prefecture)`,
         )
         .eq("user_id", user.id)
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const rows = (data ?? []) as unknown as Array<{
         id: string; type: string; title: string | null; starts_at: string; ends_at: string | null;
-        status: string; visibility: string;
+        status: string; visibility: string; cheer_count: number | null; comment_count: number | null;
         place: { id: string; name: string; prefecture: string } | null;
     }>;
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
             try {
                 const { data: parts } = await supabaseServer
                     .from("activity_participants")
-                    .select("participant:users(id,slug,display_name)")
+                    .select("participant:users!activity_participants_user_id_fkey(id,slug,display_name)")
                     .eq("activity_id", r.id)
                     .eq("status", "accepted");
                 if (parts) {
@@ -86,6 +86,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
                 ends_at: r.ends_at,
                 status: r.status,
                 visibility: r.visibility,
+                cheer_count: r.cheer_count ?? 0,
+                comment_count: r.comment_count ?? 0,
                 place: r.place,
                 participants,
             };
@@ -95,8 +97,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const total = activities.length;
     const completed = activities.filter((a) => a.status === "completed").length;
     const byType: Record<string, number> = {};
+    let cheers = 0;
+    let comments = 0;
+    let together = 0;
     for (const a of activities) {
         byType[a.type] = (byType[a.type] ?? 0) + 1;
+        cheers += a.cheer_count;
+        comments += a.comment_count;
+        together += a.participants.length;
     }
 
     return NextResponse.json({
@@ -104,6 +112,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         weekStart,
         weekEnd,
         activities,
-        counts: { total, completed, byType },
+        counts: { total, completed, byType, cheers, comments, together },
     });
 }

@@ -1003,15 +1003,17 @@ export function BusinessMonetizeHubView({
   const [adSlot, setAdSlot] = useState<{ seats: number; soldCount: number; remaining: number; soldOut: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cheers, setCheers] = useState<number>(0);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [accRes, locRes, campRes] = await Promise.all([
+      const [accRes, locRes, campRes, anaRes] = await Promise.all([
         fetch("/api/business-monetize/account", { cache: "no-store" }),
         fetch("/api/business-monetize/locations", { cache: "no-store" }),
         fetch("/api/business-monetize/campaigns", { cache: "no-store" }),
+        fetch("/api/business-hub/analytics", { cache: "no-store" }).catch(() => null),
       ]);
       const acc = await accRes.json().catch(() => ({}));
       const loc = await locRes.json().catch(() => ({}));
@@ -1023,6 +1025,7 @@ export function BusinessMonetizeHubView({
       setAdSlot(acc.adSlot ?? null);
       setLocations(loc.locations ?? []);
       setCampaigns(camp.campaigns ?? []);
+      setCheers(anaRes && anaRes.ok ? ((await anaRes.json().catch(() => ({}))).analytics?.kpis?.cheers ?? 0) : 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み込みに失敗しました");
     } finally {
@@ -1092,6 +1095,7 @@ export function BusinessMonetizeHubView({
                 activeCampaigns={activeCampaigns}
                 locations={locations}
                 campaigns={campaigns}
+                cheers={cheers}
                 t={t}
                 onUpgrade={() => setTab("plans")}
                 onGoLocations={() => setTab("locations")}
@@ -1137,6 +1141,7 @@ function OverviewSection({
   activeCampaigns,
   locations,
   campaigns,
+  cheers,
   t,
   onUpgrade,
   onGoLocations,
@@ -1150,6 +1155,7 @@ function OverviewSection({
   activeCampaigns: number;
   locations: BusinessLocationRecord[];
   campaigns: CampaignRecord[];
+  cheers: number;
   t: ThemeColors;
   onUpgrade: () => void;
   onGoLocations: () => void;
@@ -1278,8 +1284,29 @@ function OverviewSection({
 
       <Stag index={2}>
         <SectionCard t={t} accentColor={ACCENT}>
-          <Kick text="Stats" />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginTop: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <Kick text="Stats" />
+            <InfoChip>期間内の総Cheer</InfoChip>
+          </div>
+          {/* Primary KPI: TOTAL CHEER */}
+          <div
+            style={{
+              display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16,
+              marginTop: 14,
+              padding: "22px 24px", borderRadius: 20,
+              border: "1px solid rgba(255,214,0,0.38)",
+              background: "linear-gradient(135deg, rgba(255,214,0,0.11), rgba(255,255,255,0.02))",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.22em", color: "#FFD600", textTransform: "uppercase", fontFamily: "monospace" }}>TOTAL CHEER</div>
+              <div style={{ marginTop: 6, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>この期間にあなたのブランドへ届いたCheerの総数</div>
+            </div>
+            <div style={{ fontSize: 46, fontWeight: 900, lineHeight: 1, color: "#FFD600", letterSpacing: "0.02em" }}>
+              {Intl.NumberFormat("ja-JP").format(cheers)}
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginTop: 14 }}>
             <StatTile label="店舗" value={locations.length} />
             <StatTile label="キャンペーン" value={campaigns.length} />
             <StatTile label="配信中" value={activeCampaigns} />

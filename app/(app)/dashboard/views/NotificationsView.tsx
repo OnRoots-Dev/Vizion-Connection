@@ -5,6 +5,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+import type { NotificationType } from "@/lib/notifications/types";
 
 type InlineAd = {
   id: string;
@@ -17,7 +18,7 @@ type InlineAd = {
 
 interface NotificationItem {
   id: number;
-  type: "cheer_received" | "business_checkout_submitted" | "mission_reward_granted" | "activity_created" | "moment_created";
+  type: NotificationType;
   title: string;
   body: string;
   actorSlug: string | null;
@@ -60,7 +61,29 @@ const TYPE_LABEL: Record<NotificationItem["type"], string> = {
   mission_reward_granted: "Missions",
   activity_created: "Activity",
   moment_created: "Moment",
+  bond: "Relation",
+  news: "News",
 };
+
+function actionFor(item: NotificationItem): { label: string; href: string } | null {
+  if (!item.linkUrl) return null;
+  switch (item.type) {
+    case "activity_created":
+      return { label: "Activityを見る", href: item.linkUrl };
+    case "moment_created":
+      return { label: "Momentを見る", href: item.linkUrl };
+    case "business_checkout_submitted":
+      return { label: "申込状況", href: item.linkUrl };
+    case "mission_reward_granted":
+      return { label: "報酬を見る", href: item.linkUrl };
+    case "cheer_received":
+      return { label: "プロフィールへ", href: item.linkUrl };
+    case "bond":
+      return { label: "プロフィールへ", href: item.linkUrl };
+    case "news":
+      return { label: "記事を見る", href: item.linkUrl };
+  }
+}
 
 function formatDate(value: string): string {
   const d = new Date(value);
@@ -328,14 +351,28 @@ export function NotificationsView({
                   )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  {item.linkUrl && (
-                    <a
-                      href={item.linkUrl}
-                      style={{ fontSize: 11, color: "#C8E800", textDecoration: "none", whiteSpace: "nowrap" }}
-                    >
-                      開く
-                    </a>
-                  )}
+                  {(() => {
+                    const action = actionFor(item);
+                    if (!action) return null;
+                    return (
+                      <a
+                        href={action.href}
+                        className="notif-action"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#000",
+                          background: "#C8E800",
+                          textDecoration: "none",
+                          whiteSpace: "nowrap",
+                          borderRadius: 999,
+                          padding: "6px 12px",
+                        }}
+                      >
+                        {action.label}
+                      </a>
+                    );
+                  })()}
                   {!item.isRead && (
                     <button
                       onClick={() => markOneRead(item.id)}

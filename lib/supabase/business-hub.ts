@@ -12,6 +12,7 @@ type AnalyticsPoint = {
 
 export type BusinessHubAnalytics = {
   kpis: {
+    cheers: number;
     impressions: number;
     clicks: number;
     conversions: number;
@@ -109,6 +110,14 @@ export async function getBusinessHubAnalytics(profile: ProfileRecord, days = 7):
   const fromDate = startOfDay(new Date());
   fromDate.setDate(fromDate.getDate() - (days - 1));
 
+  const { count: cheersCount, error: cheersError } = await supabaseServer
+    .from("cheers")
+    .select("id", { count: "exact", head: true })
+    .eq("to_slug", profile.slug)
+    .gte("created_at", fromDate.toISOString());
+
+  const cheers = cheersError ? 0 : (cheersCount ?? 0);
+
   const { data, error } = await supabaseServer
     .from("ad_events")
     .select("event_type, revenue_amount, occurred_at")
@@ -119,7 +128,7 @@ export async function getBusinessHubAnalytics(profile: ProfileRecord, days = 7):
   if (error) {
     console.error("[getBusinessHubAnalytics]", error);
     return {
-      kpis: { impressions: 0, clicks: 0, conversions: 0, sales: 0, ctr: 0, cvr: 0 },
+      kpis: { cheers: 0, impressions: 0, clicks: 0, conversions: 0, sales: 0, ctr: 0, cvr: 0 },
       timeline: Array.from({ length: days }, (_, index) => {
         const date = new Date(fromDate);
         date.setDate(date.getDate() + index);
@@ -160,6 +169,7 @@ export async function getBusinessHubAnalytics(profile: ProfileRecord, days = 7):
 
   return {
     kpis: {
+      cheers,
       impressions,
       clicks,
       conversions,

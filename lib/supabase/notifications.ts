@@ -1,13 +1,7 @@
 import { supabaseServer as supabase } from "./server";
+import type { NotificationType } from "@/lib/notifications/types";
 
-export type NotificationType =
-  | "cheer_received"
-  | "business_checkout_submitted"
-  | "mission_reward_granted"
-  | "news"
-  | "bond"
-  | "activity_created"
-  | "moment_created";
+export type { NotificationType };
 
 interface NotificationRow {
   id: number;

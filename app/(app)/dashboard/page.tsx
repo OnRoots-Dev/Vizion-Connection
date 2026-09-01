@@ -36,6 +36,7 @@ function resolveInitialView(view?: string): DashboardView {
         "activities",
         "moments",
         "viz_map",
+        "monetize",
     ];
     return allowed.includes(view as DashboardView) ? (view as DashboardView) : "home";
 }

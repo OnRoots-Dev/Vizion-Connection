@@ -18,10 +18,7 @@ export const SEALED_DASHBOARD_VIEWS: ReadonlySet<DashboardView> = new Set([
     "offers",
     "action_history",
     "missions",
-    "business",
-    "hub",
     "cheer_graph",
-    "notifications",
     "admin_posts",
     "admin_ads",
 ]);

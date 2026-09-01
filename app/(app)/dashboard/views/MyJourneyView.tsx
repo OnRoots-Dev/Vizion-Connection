@@ -23,6 +23,8 @@ type WeeklyActivity = {
     ends_at: string | null;
     status: string;
     visibility: string;
+    cheer_count: number;
+    comment_count: number;
     place: { id: string; name: string; prefecture: string } | null;
     participants: Array<{ user_slug: string | null; user_display_name: string | null }>;
 };
@@ -31,7 +33,7 @@ type WeeklyPayload = {
     weekStart: string;
     weekEnd: string;
     activities: WeeklyActivity[];
-    counts: { total: number; completed: number; byType: Record<string, number> };
+    counts: { total: number; completed: number; byType: Record<string, number>; cheers: number; comments: number; together: number };
 };
 
 const WEEKLY_TYPE_LABELS: Record<string, string> = {
@@ -925,22 +927,55 @@ export function MyJourneyView({
           <p style={{ margin: 0, fontSize: 12, color: t.sub }}>今週のActivityを読み込み中...</p>
         ) : weekly && weekly.activities.length > 0 ? (
           <div style={{ display: "grid", gap: 12 }}>
-            {/* 集計 */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10 }}>
-              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
-                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>今週のActivity</p>
-                <p style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 900, color: t.text }}>{weekly.counts.total}<span style={{ fontSize: 12, color: t.sub }}> 件</span></p>
-              </div>
-              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
-                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>完了</p>
-                <p style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 900, color: WEEKLY_STATUS_COLOR.completed }}>{weekly.counts.completed}<span style={{ fontSize: 12, color: t.sub }}> 件</span></p>
-              </div>
-              <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
-                <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>種別</p>
-                <p style={{ margin: "4px 0 0", fontSize: 13, fontWeight: 800, color: t.text, lineHeight: 1.6 }}>
-                  {Object.entries(weekly.counts.byType).map(([type, n]) => `${WEEKLY_TYPE_LABELS[type] ?? type}×${n}`).join("  ") || "—"}
-                </p>
-              </div>
+            {/* 達成度ヘッダー */}
+            {(() => {
+              const rate = weekly.counts.total > 0 ? weekly.counts.completed / weekly.counts.total : 0;
+              const isPerfect = weekly.counts.total > 0 && rate >= 1;
+              return (
+                <div
+                  style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                    padding: "14px 16px", borderRadius: 16,
+                    border: `1px solid ${isPerfect ? WEEKLY_STATUS_COLOR.completed + "66" : t.border}`,
+                    background: isPerfect ? "rgba(50,210,120,0.08)" : "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 10, color: t.sub, fontFamily: "monospace", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                      WEEKLY ACHIEVEMENT
+                    </p>
+                    <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 900, color: isPerfect ? WEEKLY_STATUS_COLOR.completed : t.text }}>
+                      {isPerfect ? "GREAT WEEK 🔥" : `${Math.round(rate * 100)}%`}
+                    </p>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: t.sub, textAlign: "right", lineHeight: 1.7 }}>
+                    {weekly.counts.completed} / {weekly.counts.total} 完了
+                  </p>
+                </div>
+              );
+            })()}
+
+            {/* スコアボード */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
+              {[
+                { label: "ACTIVITIES", value: weekly.counts.total, color: t.text },
+                { label: "CHEER", value: weekly.counts.cheers, color: "#FFD600" },
+                { label: "COMMENTS", value: weekly.counts.comments, color: "#7BB0FF" },
+                { label: "TOGETHER", value: weekly.counts.together, color: "#1D9E75" },
+              ].map((s) => (
+                <div key={s.label} style={{ padding: "12px 10px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: 26, fontWeight: 900, lineHeight: 1, color: s.color }}>{s.value}</p>
+                  <p style={{ margin: "6px 0 0", fontSize: 8, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em" }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 種別 */}
+            <div style={{ padding: "12px 14px", borderRadius: 12, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.02)" }}>
+              <p style={{ margin: 0, fontSize: 9, color: t.sub, fontFamily: "monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>種別</p>
+              <p style={{ margin: "6px 0 0", fontSize: 13, fontWeight: 800, color: t.text, lineHeight: 1.6 }}>
+                {Object.entries(weekly.counts.byType).map(([type, n]) => `${WEEKLY_TYPE_LABELS[type] ?? type}×${n}`).join("  ") || "—"}
+              </p>
             </div>
 
             {/* 一覧 */}
@@ -993,6 +1028,14 @@ export function MyJourneyView({
             {weekRangeLabel} に記録した Activity はまだありません。
           </p>
         )}
+
+        <button
+          type="button"
+          onClick={() => setView("activities")}
+          style={{ marginTop: 4, border: `1px solid ${roleColor}` , borderRadius: 14, padding: "16px 16px", width: "100%", background: roleColor, color: "#000", fontWeight: 900, fontSize: 14, cursor: "pointer", letterSpacing: "0.06em", boxShadow: `0 10px 32px ${roleColor}55` }}
+        >
+          FIND NEXT ACTIVITY → 次の活動を探す・募集を見る
+        </button>
       </SectionCard>
 
       <SectionCard t={t} accentColor="#C8E800">

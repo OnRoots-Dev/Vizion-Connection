@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader, ViewLoader } from "@/app/(app)/dashboard/components/ui";
+import type { NotificationType } from "@/lib/notifications/types";
 
 type NotificationItem = {
     id: number;
-    type: "cheer_received" | "business_checkout_submitted" | "mission_reward_granted";
+    type: NotificationType;
     title: string;
     body: string;
     actorSlug: string | null;
@@ -23,10 +24,14 @@ type NotificationsResponse = {
     hasMore?: boolean;
 };
 
-const TYPE_LABEL: Record<NotificationItem["type"], string> = {
+const TYPE_LABEL: Record<NotificationType, string> = {
     cheer_received: "Cheer",
     business_checkout_submitted: "Business",
     mission_reward_granted: "Mission",
+    activity_created: "Activity",
+    moment_created: "Moment",
+    bond: "Relation",
+    news: "News",
 };
 
 function formatDate(value: string) {
