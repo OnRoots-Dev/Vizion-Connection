@@ -1,4 +1,5 @@
 "use client";
+"use no memo"; // React Compiler memoizes store getter calls (getCurrentStep/progressPct/isCurrentStepSkippable) by function identity; without this, step transitions never re-render past the basic step.
 // components/career-wizard/CareerWizardModal.tsx
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
