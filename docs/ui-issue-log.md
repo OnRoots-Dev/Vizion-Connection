@@ -41,3 +41,8 @@
 - [x] [TokenViolation] RegisterForm/ResetPasswordForm の `vc-auth-input` (hardcoded rgba) → `controlStyle` (token `--vc-*`)に移行
 - [x] [Duplication] ResetPasswordForm のフォーカス状態管理(emailFocused/passwordFocused/confirmFocused + motion.div wrapper) → Input内部処理に統合、状態3件削除
 
+### Round 3 着手前の目視確認（Phase 1 Home再設計関連・要確認）
+
+- [ ] [Copy/IA] Dashboard 画面上部に「Dashboard」等のタイトルが未表示。Phase 1のHome再設計で意図的に外したものか、漏れかは要確認（Round 3では対応せず記録のみ）
+- [ ] [IA] Schedule / Viz Map は他のビューと異なりサイドバーが表示されず、独立した別ページのように見える。IA上の意図的な扱いか、リデザイン適用漏れかは要確認（Round 3では対応せず記録のみ）
+- [x] [Overlap] Viz Map: 右下の地図拡大縮小ボタンに Createボタンが重なっていた。Hit-testで zoom-out の中心が Create に覆われ操作不能（Playwright click タイムアウト）を確認 → Create を `bottom-6`→`bottom-28`（地上112px）へ移動し zoom コントロール上部へ退避 + z-index 10→60 で解消（Round 3 対応）

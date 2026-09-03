@@ -199,12 +199,12 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             </section>
 
             {/* ═══ 4. YOUR ACTIVITY ═══（控えめ） */}
-            {upcoming.length > 0 && (
-                <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
-                        <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>全て →</button>
-                    </div>
+            <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
+                    <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>全て →</button>
+                </div>
+                {upcoming.length > 0 ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         {upcoming.map((a, i) => (
                             <button key={i} type="button" onClick={() => setView("activities")} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", cursor: "pointer", textAlign: "left", color: "#f0f0f5" }}>
@@ -218,8 +218,13 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                             </button>
                         ))}
                     </div>
-                </section>
-            )}
+                ) : (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
+                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>まだ予定がありません。Activityに参加してみましょう</p>
+                        <button type="button" onClick={() => setView("activities")} style={{ flexShrink: 0, background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "8px 12px", fontSize: 11, fontWeight: 800, color: "#f0f0f5", cursor: "pointer" }}>Activityを見る</button>
+                    </div>
+                )}
+            </section>
 
             {/* ═══ 5. SOCIAL ═══ */}
             <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
