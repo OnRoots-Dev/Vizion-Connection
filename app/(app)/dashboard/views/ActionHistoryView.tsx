@@ -32,6 +32,7 @@ const TYPE_LABEL: Record<NotificationType, string> = {
     moment_created: "Moment",
     bond: "Relation",
     news: "News",
+    connection_accepted: "Connection",
 };
 
 function formatDate(value: string) {

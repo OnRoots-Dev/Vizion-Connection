@@ -94,3 +94,22 @@ export async function notifyMomentCreated(params: {
     },
   });
 }
+
+export async function notifyConnectionAccepted(params: {
+  requesterSlug: string;
+  acceptorSlug: string;
+  acceptorName: string | null;
+}): Promise<void> {
+  const acceptorLabel = params.acceptorName?.trim() ? params.acceptorName.trim() : `@${params.acceptorSlug}`;
+  await createNotification({
+    recipientSlug: params.requesterSlug,
+    actorSlug: params.acceptorSlug,
+    type: "connection_accepted",
+    title: "Connectionが承認されました",
+    body: `${acceptorLabel}さんがあなたのConnection申請を承認しました`,
+    linkUrl: `/u/${params.acceptorSlug}`,
+    payload: {
+      acceptorSlug: params.acceptorSlug,
+    },
+  });
+}

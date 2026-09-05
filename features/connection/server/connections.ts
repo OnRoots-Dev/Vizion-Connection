@@ -1,5 +1,6 @@
 // features/connection/server/connections.ts
 import { supabaseServer } from "@/lib/supabase/server";
+import { notifyConnectionAccepted } from "@/lib/notifications/create-notification";
 import type { ConnectionListItem, ConnectionRecord, ConnectionStatus } from "../types";
 
 const SELECT_COLUMNS = "id,requester_id,addressee_id,status,created_at,updated_at";
@@ -59,7 +60,7 @@ export async function acceptConnection(actorId: number, connectionId: string): P
         .eq("id", connectionId)
         .eq("addressee_id", actorId)
         .eq("status", "pending")
-        .select("id");
+        .select("id, requester_id, addressee_id");
 
     if (error) {
         console.error("[acceptConnection]", error);
@@ -68,7 +69,40 @@ export async function acceptConnection(actorId: number, connectionId: string): P
     if (!data || data.length === 0) {
         return { ok: false, reason: "承認できる申請が見つかりません" };
     }
+
+    await notifyAcceptor(connectionId);
+
     return { ok: true };
+}
+
+async function notifyAcceptor(connectionId: string): Promise<void> {
+    // requester（申請者A）へ「承認された」通知を発行（失敗しても承認自体は成功扱い）。
+    const { data } = await supabaseServer
+        .from("connections")
+        .select(
+            `requester:users!connections_requester_id_fkey(slug),
+             addressee:users!connections_addressee_id_fkey(slug, display_name)`,
+        )
+        .eq("id", connectionId)
+        .maybeSingle<{
+            requester: { slug: string } | null;
+            addressee: { slug: string; display_name: string | null } | null;
+        }>();
+
+    if (!data?.requester?.slug || !data?.addressee?.slug) {
+        console.error("[acceptConnection] notify skipped: user rows missing", connectionId);
+        return;
+    }
+
+    try {
+        await notifyConnectionAccepted({
+            requesterSlug: data.requester.slug,
+            acceptorSlug: data.addressee.slug,
+            acceptorName: data.addressee.display_name,
+        });
+    } catch (e) {
+        console.error("[acceptConnection] notification failed", e);
+    }
 }
 
 /** pending のまま取り消し / accepted の解除も含め、当事者なら削除できる。 */

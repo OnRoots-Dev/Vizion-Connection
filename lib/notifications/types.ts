@@ -9,4 +9,5 @@ export type NotificationType =
   | "news"
   | "bond"
   | "activity_created"
-  | "moment_created";
+  | "moment_created"
+  | "connection_accepted";

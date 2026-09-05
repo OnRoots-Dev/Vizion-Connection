@@ -63,6 +63,7 @@ const TYPE_LABEL: Record<NotificationItem["type"], string> = {
   moment_created: "Moment",
   bond: "Relation",
   news: "News",
+  connection_accepted: "Connection",
 };
 
 function actionFor(item: NotificationItem): { label: string; href: string } | null {
@@ -79,6 +80,8 @@ function actionFor(item: NotificationItem): { label: string; href: string } | nu
     case "cheer_received":
       return { label: "プロフィールへ", href: item.linkUrl };
     case "bond":
+      return { label: "プロフィールへ", href: item.linkUrl };
+    case "connection_accepted":
       return { label: "プロフィールへ", href: item.linkUrl };
     case "news":
       return { label: "記事を見る", href: item.linkUrl };
