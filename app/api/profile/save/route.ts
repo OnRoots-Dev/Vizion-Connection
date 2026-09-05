@@ -63,10 +63,15 @@ export async function POST(req: NextRequest) {
     });
 
     // DB 更新が成功したときのみ、置き換えられた旧アセットを purge（dry-run 既定で実削除なし）。
-    if (ok) {
-        await cleanupReplacedImage(user.slug, user.avatarUrl, body.avatarUrl);
-        await cleanupReplacedImage(user.slug, user.profileImageUrl, body.profileImageUrl);
+    if (!ok) {
+        return NextResponse.json(
+            { ok: false, error: "プロフィールの保存に失敗しました" },
+            { status: 500 },
+        );
     }
+
+    await cleanupReplacedImage(user.slug, user.avatarUrl, body.avatarUrl);
+    await cleanupReplacedImage(user.slug, user.profileImageUrl, body.profileImageUrl);
 
     const hasProfileDetails = Boolean(body.bio || body.sport || body.region);
     if (hasProfileDetails) {
