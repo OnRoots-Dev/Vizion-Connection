@@ -10,4 +10,5 @@ export type NotificationType =
   | "bond"
   | "activity_created"
   | "moment_created"
-  | "connection_accepted";
+  | "connection_accepted"
+  | "connection_requested";

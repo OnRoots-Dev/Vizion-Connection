@@ -1,6 +1,6 @@
 // features/connection/server/connections.ts
 import { supabaseServer } from "@/lib/supabase/server";
-import { notifyConnectionAccepted } from "@/lib/notifications/create-notification";
+import { notifyConnectionAccepted, notifyConnectionRequested } from "@/lib/notifications/create-notification";
 import type { ConnectionListItem, ConnectionRecord, ConnectionStatus } from "../types";
 
 const SELECT_COLUMNS = "id,requester_id,addressee_id,status,created_at,updated_at";
@@ -41,15 +41,47 @@ export async function requestConnection(
         return { ok: false, reason: "相手から申請が届いています。承認してください" };
     }
 
-    const { error } = await supabaseServer
+    const { data: inserted, error } = await supabaseServer
         .from("connections")
-        .insert({ requester_id: actorId, addressee_id: target.id });
+        .insert({ requester_id: actorId, addressee_id: target.id })
+        .select("id")
+        .single<{ id: string }>();
 
-    if (error) {
-        console.error("[requestConnection]", error);
+    if (error || !inserted) {
+        if (error) console.error("[requestConnection]", error);
         return { ok: false, reason: "申請に失敗しました" };
     }
+
+    await notifyRequesterRequested(inserted.id, actorId, target.id);
+
     return { ok: true };
+}
+
+async function notifyRequesterRequested(connectionId: string, requesterId: number, addresseeId: number): Promise<void> {
+    // 受信側（addressee B）へ「申請が届いた」通知を発行（失敗しても申請自体は成功扱い）。
+    const { data: userRows } = await supabaseServer
+        .from("users")
+        .select("id, slug, display_name")
+        .in("id", [requesterId, addresseeId])
+        .returns<{ id: number; slug: string | null; display_name: string | null }[]>();
+
+    const requester = userRows?.find((u) => u.id === requesterId);
+    const addressee = userRows?.find((u) => u.id === addresseeId);
+    if (!requester?.slug || !addressee?.slug) {
+        console.error("[requestConnection] notify skipped: user rows missing", connectionId);
+        return;
+    }
+
+    try {
+        await notifyConnectionRequested({
+            recipientSlug: addressee.slug,
+            requesterSlug: requester.slug,
+            requesterName: requester.display_name,
+            connectionId,
+        });
+    } catch (e) {
+        console.error("[requestConnection] notification failed", e);
+    }
 }
 
 export async function acceptConnection(actorId: number, connectionId: string): Promise<RequestResult> {

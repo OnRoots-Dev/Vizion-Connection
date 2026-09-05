@@ -95,6 +95,27 @@ export async function notifyMomentCreated(params: {
   });
 }
 
+export async function notifyConnectionRequested(params: {
+  recipientSlug: string;
+  requesterSlug: string;
+  requesterName: string | null;
+  connectionId: string;
+}): Promise<void> {
+  const requesterLabel = params.requesterName?.trim() ? params.requesterName.trim() : `@${params.requesterSlug}`;
+  await createNotification({
+    recipientSlug: params.recipientSlug,
+    actorSlug: params.requesterSlug,
+    type: "connection_requested",
+    title: "Connection申請が届いています",
+    body: `${requesterLabel}さんからConnection申請が届いています`,
+    linkUrl: `/u/${params.requesterSlug}`,
+    payload: {
+      requesterSlug: params.requesterSlug,
+      connectionId: params.connectionId,
+    },
+  });
+}
+
 export async function notifyConnectionAccepted(params: {
   requesterSlug: string;
   acceptorSlug: string;

@@ -5,6 +5,7 @@ import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
+import { apiSend } from "@/lib/api/core-client";
 import type { NotificationType } from "@/lib/notifications/types";
 
 type InlineAd = {
@@ -64,6 +65,7 @@ const TYPE_LABEL: Record<NotificationItem["type"], string> = {
   bond: "Relation",
   news: "News",
   connection_accepted: "Connection",
+  connection_requested: "Connection",
 };
 
 function actionFor(item: NotificationItem): { label: string; href: string } | null {
@@ -82,6 +84,8 @@ function actionFor(item: NotificationItem): { label: string; href: string } | nu
     case "bond":
       return { label: "プロフィールへ", href: item.linkUrl };
     case "connection_accepted":
+      return { label: "プロフィールへ", href: item.linkUrl };
+    case "connection_requested":
       return { label: "プロフィールへ", href: item.linkUrl };
     case "news":
       return { label: "記事を見る", href: item.linkUrl };
@@ -121,12 +125,74 @@ export function NotificationsView({
 
   const [ads, setAds] = useState<InlineAd[]>([]);
 
+  type ConnResolution = "pending" | "accepted" | "removed";
+  const [connStatus, setConnStatus] = useState<Record<string, ConnResolution>>({});
+  const [busyId, setBusyId] = useState<number | null>(null);
+
   useEffect(() => {
     fetch("/api/ads", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setAds(Array.isArray(data?.ads) ? data.ads : []))
       .catch(() => setAds([]));
   }, []);
+
+  useEffect(() => {
+    fetch("/api/connections", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        const list = Array.isArray(data?.connections) ? data.connections : [];
+        const map: Record<string, ConnResolution> = {};
+        for (const c of list as Array<{ id?: unknown; status?: unknown }>) {
+          if (typeof c.id === "string" && (c.status === "pending" || c.status === "accepted")) {
+            map[c.id] = c.status;
+          }
+        }
+        setConnStatus(map);
+      })
+      .catch(() => setConnStatus({}));
+  }, []);
+
+  function resolutionFor(item: NotificationItem): ConnResolution | null {
+    if (item.type !== "connection_requested") return null;
+    const connectionId = item.payload.connectionId;
+    if (typeof connectionId !== "string") return null;
+    return connStatus[connectionId] ?? "pending";
+  }
+
+  const handleConnectionAction = useCallback(
+    async (item: NotificationItem, action: "accept" | "reject") => {
+      const connectionId = item.payload.connectionId;
+      if (typeof connectionId !== "string") return;
+      setBusyId(item.id);
+      setError("");
+      try {
+        if (action === "accept") {
+          await apiSend(`/api/connections/${connectionId}`, "POST");
+        } else {
+          await apiSend(`/api/connections/${connectionId}`, "DELETE");
+        }
+        setConnStatus((prev) => ({ ...prev, [connectionId]: action === "accept" ? "accepted" : "removed" }));
+        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isRead: true } : i)));
+        firstPageCache = null;
+        try {
+          const res = await fetch("/api/notifications/read", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notificationIds: [item.id] }),
+          });
+          const data = (await res.json()) as MarkReadResponse;
+          if (data.success) onUnreadCountChange(data.unreadCount ?? 0);
+        } catch {
+          /* 既読同期の失敗は画面状態を壊さない */
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "操作に失敗しました");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [onUnreadCountChange],
+  );
 
   const unreadInList = useMemo(() => items.filter((i) => !i.isRead).length, [items]);
 
@@ -396,6 +462,68 @@ export function NotificationsView({
                   )}
                 </div>
                 </div>
+                {(() => {
+                  const status = resolutionFor(item);
+                  if (!status) return null;
+                  if (status === "accepted") {
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#C8E800", border: "1px solid rgba(200,232,0,0.35)", borderRadius: 999, padding: "5px 14px", whiteSpace: "nowrap" }}>
+                          承認済み
+                        </span>
+                      </div>
+                    );
+                  }
+                  if (status === "removed") {
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: t.sub, border: `1px solid ${t.border}`, borderRadius: 999, padding: "5px 14px", whiteSpace: "nowrap" }}>
+                          破棄済み
+                        </span>
+                      </div>
+                    );
+                  }
+                  const busy = busyId === item.id;
+                  return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => handleConnectionAction(item, "accept")}
+                        disabled={busy}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: "#000",
+                          background: "#C8E800",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "8px 18px",
+                          cursor: busy ? "wait" : "pointer",
+                          opacity: busy ? 0.6 : 1,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {busy ? "処理中..." : "承認する"}
+                      </button>
+                      <button
+                        onClick={() => handleConnectionAction(item, "reject")}
+                        disabled={busy}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: t.sub,
+                          background: "transparent",
+                          border: `1px solid ${t.border}`,
+                          borderRadius: 8,
+                          padding: "8px 18px",
+                          cursor: busy ? "wait" : "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        破棄する
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             </SectionCard>
           ))}
