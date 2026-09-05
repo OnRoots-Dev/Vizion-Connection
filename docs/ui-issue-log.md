@@ -43,8 +43,10 @@
 
 ### Round 3 着手前の目視確認（Phase 1 Home再設計関連・要確認）
 
-- [ ] [Copy/IA] Dashboard 画面上部に「Dashboard」等のタイトルが未表示。Phase 1のHome再設計で意図的に外したものか、漏れかは要確認（Round 3では対応せず記録のみ）
-- [ ] [IA] Schedule / Viz Map は他のビューと異なりサイドバーが表示されず、独立した別ページのように見える。IA上の意図的な扱いか、リデザイン適用漏れかは要確認（Round 3では対応せず記録のみ）
+- [x] [Copy/IA] Dashboard 画面上部に「Dashboard」等のタイトルが未表示。Phase 1のHome再設計（World Entrance化）で意図的に挨拶・タイトルを外した仕様（`HomeView.tsx` 冒頭コメント: 管理画面ではなく「世界で今何が起きているか」を最前面に出す情報階層。デスクトップは見出し無し・モバイルはロゴバー）→ 対応不要・仕様どおり
+- [x] [IA] Schedule / Viz Map は他のビューと異なりサイドバーが表示されず、独立した別ページのように見える。両方とも意図的設計を確認 → 対応不要
+  - Schedule: Sidebar が `type:"external"` で `/schedule`（`app/schedule/page.tsx`、DashboardClient外のスタンドアロンページ）へ導線。/pulse /timeline /news-rooms と並ぶアプリ系トップレベルページ扱い
+  - Viz Map: `fixed inset-0 z-50` の全画面イマーシブ表示（`createPortal` to document.body + body overflow lock、`VizMapView.tsx:77,122`）。地図に集中させるためサイドバーごと覆う設計
 - [x] [Overlap] Viz Map: 右下の地図拡大縮小ボタンに Createボタンが重なっていた。Hit-testで zoom-out の中心が Create に覆われ操作不能（Playwright click タイムアウト）を確認 → Create を `bottom-6`→`bottom-28`（地上112px）へ移動し zoom コントロール上部へ退避 + z-index 10→60 で解消（Round 3 対応）
 
 ## 機能拡張候補（新機能追加として記録。対応時期は別途判断）
