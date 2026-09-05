@@ -46,3 +46,7 @@
 - [ ] [Copy/IA] Dashboard 画面上部に「Dashboard」等のタイトルが未表示。Phase 1のHome再設計で意図的に外したものか、漏れかは要確認（Round 3では対応せず記録のみ）
 - [ ] [IA] Schedule / Viz Map は他のビューと異なりサイドバーが表示されず、独立した別ページのように見える。IA上の意図的な扱いか、リデザイン適用漏れかは要確認（Round 3では対応せず記録のみ）
 - [x] [Overlap] Viz Map: 右下の地図拡大縮小ボタンに Createボタンが重なっていた。Hit-testで zoom-out の中心が Create に覆われ操作不能（Playwright click タイムアウト）を確認 → Create を `bottom-6`→`bottom-28`（地上112px）へ移動し zoom コントロール上部へ退避 + z-index 10→60 で解消（Round 3 対応）
+
+## 機能拡張候補（新機能追加として記録。対応時期は別途判断）
+
+- [ ] [Feature] Connection の Accept 時に requester（申請者）へ「承諾された」通知が届かない。通知インフラ自体は既存（`notifications` テーブル + `lib/supabase/notifications.ts` の `createNotification` + `app/api/notifications/*`）が、`features/connection/server/connections.ts` の `acceptConnection`/`requestConnection` は通知行を作成しない。ホーム LIVE 表示（`app/(app)/dashboard/views/HomeView.tsx`）も `pending + incoming` のみ対応で、requester は相手の `/u/[slug]` を開くまで承認されたことに気づけない（Round 5 本番検証で確認）。対応時は connection フローに `createNotification` を組み込む（受け側承認で requester へ通知）＋ UI 側に read 表示が必要。

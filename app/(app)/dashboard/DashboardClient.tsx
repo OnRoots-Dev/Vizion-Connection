@@ -463,7 +463,16 @@ export default function DashboardClient({
                                     <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
                                 </button>
                                 <Image src="/images/vizion-connection-logo-6-cropped.png" alt="Vizion" width={160} height={42} priority style={{ height: 42, width: "auto" }} />
-                                <div style={{ width: 20 }} />
+                                <button type="button" aria-label="Notifications" title="Notifications" onClick={() => handleMenuSetView("notifications")} style={{ position: "relative", background: "none", border: "none", color: t.text, cursor: "pointer", padding: 4 }}>
+                                    <svg width={20} height={20} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75v-.7V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                    </svg>
+                                    {notificationUnreadCount > 0 && (
+                                        <span style={{ position: "absolute", top: -2, right: -4, minWidth: 16, height: 16, padding: "0 4px", borderRadius: 999, background: "#C8E800", color: "#0B0B0F", fontSize: 9, fontWeight: 900, lineHeight: "16px", textAlign: "center" }}>
+                                            {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                                        </span>
+                                    )}
+                                </button>
                             </div>
                         )}
 

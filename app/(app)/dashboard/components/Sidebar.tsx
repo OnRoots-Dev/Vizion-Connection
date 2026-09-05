@@ -82,6 +82,7 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                 items: [
                     { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
                     { type: "item", id: "moments", label: "Moments", icon: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9" },
+                    { type: "item", id: "notifications", label: "Notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0", badge: "notifications" },
                     // MVP外のため封印（config/mvp-scope.ts）: pulse, timeline
                 ],
             },
