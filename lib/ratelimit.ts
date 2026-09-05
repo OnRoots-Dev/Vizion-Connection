@@ -63,6 +63,11 @@ export const profileLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:profile",
 }), "profile");
 
+// キャリアプロフィール保存：1分に10回
+export const careerProfileLimiter = safe(new Ratelimit({
+    redis, limiter: Ratelimit.slidingWindow(10, "1 m"), prefix: "rl:career-profile",
+}), "career-profile");
+
 // スケジュール作成/更新/削除：1分に20回
 export const scheduleLimiter = safe(new Ratelimit({
     redis, limiter: Ratelimit.slidingWindow(20, "1 m"), prefix: "rl:schedule",

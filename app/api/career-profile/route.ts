@@ -4,6 +4,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseProfile } from "@/lib/auth/session";
+import { careerProfileLimiter, getIp } from "@/lib/ratelimit";
+import { validateCSRF } from "@/lib/security/csrf";
 import { getMyCareerProfile, saveMyCareerProfile } from "@/features/career-profile/server/career-service";
 
 // ────────────────────────────────────────────────────────────
@@ -72,12 +74,6 @@ const bodySchema = z
 // ────────────────────────────────────────────────────────────
 // 共通ヘルパー
 
-function originAllowed(req: NextRequest): boolean {
-  const origin = req.headers.get("origin");
-  if (!origin) return false;
-  return origin === req.nextUrl.origin;
-}
-
 async function readLimitedJson(req: NextRequest): Promise<unknown> {
   const lengthHeader = req.headers.get("content-length");
   if (lengthHeader && Number(lengthHeader) > MAX_BODY_BYTES) {
@@ -109,8 +105,12 @@ export async function GET(): Promise<NextResponse> {
 // ── POST: 保存（upsert） ──────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  if (!originAllowed(req)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const csrfError = validateCSRF(req);
+  if (csrfError) return csrfError as unknown as NextResponse;
+
+  const { success } = await careerProfileLimiter.limit(getIp(req));
+  if (!success) {
+    return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
   }
 
   const session = await getSupabaseProfile();
