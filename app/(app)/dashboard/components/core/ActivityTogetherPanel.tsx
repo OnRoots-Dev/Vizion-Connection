@@ -6,10 +6,11 @@
 //   - Activity オーナー: 参加申請の Accept / Decline を実行できる。
 //   - 参加希望者: 参加申請を出し、自分の申請状態を確認できる。
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityParticipantRecord, ActivityParticipantStatus } from "@/features/activity/types";
+import { SettleBurst } from "@/components/ui/SettleBurst";
 
 const STATUS_LABELS: Record<ActivityParticipantStatus, string> = {
     pending: "申請中",
@@ -44,6 +45,9 @@ export function ActivityTogetherPanel({
     const [actionBusy, setActionBusy] = useState(false);
     const [error, setError] = useState("");
     const [flash, setFlash] = useState("");
+    const [settleTick, setSettleTick] = useState(0);
+    const prevAcceptedRef = useRef(0);
+    const acceptedFirstRef = useRef(true);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -110,8 +114,21 @@ export function ActivityTogetherPanel({
     const pending = participants.filter((p) => p.status === "pending");
     const declined = participants.filter((p) => p.status === "declined");
 
+    // Together成立（accepted数が増えた瞬間）に一度だけ控えめな演出を再生。
+    // 初回描画時の既存acceptedには反応しない。
+    useEffect(() => {
+        const n = accepted.length;
+        if (acceptedFirstRef.current) {
+            acceptedFirstRef.current = false;
+        } else if (n > prevAcceptedRef.current) {
+            setSettleTick((t) => t + 1);
+        }
+        prevAcceptedRef.current = n;
+    }, [accepted.length]);
+
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, position: "relative" }}>
+            <SettleBurst trigger={settleTick} color="#32D278" />
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 12, fontWeight: 800, color: "#f0f0f5", letterSpacing: "0.02em" }}>
                     TOGETHER <span style={{ color: accentColor }}>一緒に活動した人</span>

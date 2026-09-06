@@ -20,6 +20,7 @@ import type { ThemeColors } from "../types";
 import { springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 import { INTERACTION, RADIUS, cardSurfaceTokens } from "@/lib/design/tokens";
+import { TextScramble } from "@/components/ui/TextScramble";
 
 /** 押下 spring — INTERACTION.press.transition の正 */
 const pressSpring: Transition = { ...INTERACTION.press.transition };
@@ -263,7 +264,7 @@ export function ViewHeader({
                         transition={reduce ? fadeReduced : springSnap}
                     >
                         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#f0f0f5", letterSpacing: "-0.01em" }}>
-                            {title}
+                            <TextScramble text={title} delay={80} />
                         </h2>
                         <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{sub}</p>
                     </motion.div>
@@ -284,7 +285,7 @@ export function ViewLoader({ t }: { t: ThemeColors }) {
                 fontSize: 12,
             }}
         >
-            読み込み中...
+            <TextScramble text="読み込み中..." delay={150} duration={500} />
         </div>
     );
 }

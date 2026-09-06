@@ -7,6 +7,7 @@ import { SkeletonList } from "@/components/ui/skeleton/SkeletonList";
 import AdCard from "@/app/(app)/news-rooms/components/AdCard";
 import { apiSend } from "@/lib/api/core-client";
 import type { NotificationType } from "@/lib/notifications/types";
+import { SettleBurst } from "@/components/ui/SettleBurst";
 
 type InlineAd = {
   id: string;
@@ -128,6 +129,8 @@ export function NotificationsView({
   type ConnResolution = "pending" | "accepted" | "removed";
   const [connStatus, setConnStatus] = useState<Record<string, ConnResolution>>({});
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [settleId, setSettleId] = useState<number | null>(null);
+  const [settleTick, setSettleTick] = useState(0);
 
   useEffect(() => {
     fetch("/api/ads", { cache: "no-store" })
@@ -174,6 +177,11 @@ export function NotificationsView({
         setConnStatus((prev) => ({ ...prev, [connectionId]: action === "accept" ? "accepted" : "removed" }));
         setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, isRead: true } : i)));
         firstPageCache = null;
+        if (action === "accept") {
+          setSettleId(item.id);
+          setSettleTick((t) => t + 1);
+          window.setTimeout(() => setSettleId((cur) => (cur === item.id ? null : cur)), 900);
+        }
         try {
           const res = await fetch("/api/notifications/read", {
             method: "POST",
@@ -467,10 +475,11 @@ export function NotificationsView({
                   if (!status) return null;
                   if (status === "accepted") {
                     return (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 11, fontWeight: 700, color: "#C8E800", border: "1px solid rgba(200,232,0,0.35)", borderRadius: 999, padding: "5px 14px", whiteSpace: "nowrap" }}>
                           承認済み
                         </span>
+                        <SettleBurst trigger={settleId === item.id ? settleTick : 0} />
                       </div>
                     );
                   }

@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ViewHeader, SLabel, PrimaryButton, SecondaryButton, DangerButton } from "../components/ui";
 import { BottomSheet } from "../components/core/BottomSheet";
+import { SheetReveal } from "@/components/ui/SheetReveal";
 import { PlacePicker } from "../components/core/PlacePicker";
 import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia, CheerButton, CommentButton } from "../components/feed";
 import { ActivityCommentsSheet } from "../components/core/ActivityCommentsSheet";
@@ -565,6 +566,7 @@ export function ActivitiesView({
                     if (!a) return null;
                     const isOwner = a.user_id === Number(profile.id);
                     return (
+                        <SheetReveal key={detailId ?? "detail"}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <TypeBadge type={a.type} color={roleColor} />
@@ -637,6 +639,7 @@ export function ActivitiesView({
                                 </div>
                             ) : null}
                         </div>
+                        </SheetReveal>
                     );
                 })()}
             </BottomSheet>

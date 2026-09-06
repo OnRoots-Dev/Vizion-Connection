@@ -38,6 +38,7 @@ import {
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/states";
 import { useToast } from "@/components/ui/toast";
+import { TextScramble } from "@/components/ui/TextScramble";
 import { springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import type { AdItem } from "@/lib/ads-shared";
 import type {
@@ -1303,7 +1304,7 @@ function OverviewSection({
               <div style={{ marginTop: 6, fontSize: 11, color: "rgba(255,255,255,0.55)" }}>この期間にあなたのブランドへ届いたCheerの総数</div>
             </div>
             <div style={{ fontSize: 46, fontWeight: 900, lineHeight: 1, color: "#FFD600", letterSpacing: "0.02em" }}>
-              {Intl.NumberFormat("ja-JP").format(cheers)}
+              <TextScramble text={Intl.NumberFormat("ja-JP").format(cheers)} delay={150} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginTop: 14 }}>

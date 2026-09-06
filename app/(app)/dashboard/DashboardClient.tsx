@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardProfileView } from "./components/DashboardProfileView";
 import { THEME_MAP, ROLE_COLOR } from "./types";
@@ -83,6 +83,7 @@ export default function DashboardClient({
     showDay0Welcome?: boolean;
 }) {
     const [profile, setProfile] = useState<ProfileData>(initialProfile);
+    const reduceMotion = useReducedMotion();
     const [referralCount] = useState(initialReferralCount);
     const [view, setView] = useState<DashboardView>(
         isSealedDashboardView(initialView) ? "home" : initialView,
@@ -478,7 +479,7 @@ export default function DashboardClient({
 
                         <div ref={contentRef} style={{ flex: 1, maxWidth: 860, width: "100%", margin: "0 auto", padding: isMobile ? "16px 12px calc(92px + env(safe-area-inset-bottom))" : "32px 24px" }}>
                             <AnimatePresence mode="wait">
-                                <motion.div key={view} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
+                                <motion.div key={view} initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
                                     {renderView()}
                                 </motion.div>
                             </AnimatePresence>

@@ -13,6 +13,7 @@ import { computeStreak } from "@/lib/pulse-stats";
 import { calcDayCount } from "@/lib/day-count";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { IconStreak } from "@/lib/design/icons";
+import { TextScramble } from "@/components/ui/TextScramble";
 
 // 今週のActivity（Weekly）のレスポンス型
 type WeeklyActivity = {
@@ -945,7 +946,7 @@ export function MyJourneyView({
                       WEEKLY ACHIEVEMENT
                     </p>
                     <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 900, color: isPerfect ? WEEKLY_STATUS_COLOR.completed : t.text }}>
-                      {isPerfect ? "GREAT WEEK 🔥" : `${Math.round(rate * 100)}%`}
+                      {isPerfect ? "GREAT WEEK 🔥" : <TextScramble text={`${Math.round(rate * 100)}%`} delay={200} />}
                     </p>
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: t.sub, textAlign: "right", lineHeight: 1.7 }}>
@@ -964,7 +965,9 @@ export function MyJourneyView({
                 { label: "TOGETHER", value: weekly.counts.together, color: "#1D9E75" },
               ].map((s) => (
                 <div key={s.label} style={{ padding: "12px 10px", borderRadius: 14, border: `1px solid ${t.border}`, background: "rgba(255,255,255,0.03)", textAlign: "center" }}>
-                  <p style={{ margin: 0, fontSize: 26, fontWeight: 900, lineHeight: 1, color: s.color }}>{s.value}</p>
+                  <p style={{ margin: 0, fontSize: 26, fontWeight: 900, lineHeight: 1, color: s.color }}>
+                    <TextScramble text={String(s.value)} delay={120} />
+                  </p>
                   <p style={{ margin: "6px 0 0", fontSize: 8, color: t.sub, fontFamily: "monospace", letterSpacing: "0.14em" }}>{s.label}</p>
                 </div>
               ))}
