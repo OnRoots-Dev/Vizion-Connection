@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 import { HubAdPanel } from "@/app/(app)/dashboard/components/HubAdPanel";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import type { TrainerHubClient, TrainerHubSession, TrainerHubSummary } from "@/lib/supabase/trainer-hub";
+import type { TrainerHubSession, TrainerHubSummary } from "@/lib/supabase/trainer-hub";
 import type { AdItem } from "@/lib/ads-shared";
 
 const numberFormatter = new Intl.NumberFormat("ja-JP");

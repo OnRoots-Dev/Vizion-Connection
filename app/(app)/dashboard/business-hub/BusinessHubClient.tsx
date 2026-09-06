@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getPlanFeatures } from "@/features/business/plan-features";
 import { LAUNCH_CAMPAIGN } from "@/features/business/constants";
@@ -166,7 +165,7 @@ export default function BusinessHubClient({
   const [period, setPeriod] = useState<Period>("30D");
   const [campaignEnd, setCampaignEnd] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
-  const [referralCount, setReferralCount] = useState<number>(0);
+  const [, setReferralCount] = useState<number>(0);
 
   async function fetchAnalytics() {
     setIsLoading(true);
@@ -301,7 +300,7 @@ export default function BusinessHubClient({
           <p className="text-[11px] font-black tracking-[0.2em] text-[#7BB0FF]">BUSINESS HUB</p>
           <h1 className="mt-2 text-3xl font-black text-white">Business Hub</h1>
           <p className="mt-3 text-sm leading-7 text-white/65">
-            People don't just follow you. They interact with what you do.
+            People don&apos;t just follow you. They interact with what you do.
           </p>
           {sponsorPlan ? (
             <p className="mt-4 inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/80">

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ActionPill, CardHeader, SectionCard, SLabel, ViewHeader, PulseIndicator } from "@/app/(app)/dashboard/components/ui";
+import { ActionPill, CardHeader, SectionCard, ViewHeader, PulseIndicator } from "@/app/(app)/dashboard/components/ui";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import type { ProfileData } from "@/features/profile/types";
 import type { DailyLog } from "@/features/daily-log/types";
@@ -164,7 +164,7 @@ export function MyJourneyView({
 
   // TIMELINE シェアモーダル（記録済み Journey は is_public なら既に Timeline 表示済み）
   const [showShareModal, setShowShareModal] = useState(false);
-  const [todayJourneyId, setTodayJourneyId] = useState<string | null>(null);
+  const [, setTodayJourneyId] = useState<string | null>(null);
   const [streakDays, setStreakDays] = useState<number>(0);
   const [sharePosting, setSharePosting] = useState(false);
   const [shareCompleted, setShareCompleted] = useState(false);
@@ -203,19 +203,6 @@ export function MyJourneyView({
     });
   }
 
-  const startEditing = useCallback(() => {
-    setContent("");
-    setConditionScore(null);
-    setActiveTemplate(null);
-    setIsEditing(true);
-    setSuccessModalOpen(false);
-    requestAnimationFrame(() => {
-      const el = document.getElementById("myjourney-entry");
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
-      (el as HTMLTextAreaElement | null)?.focus?.();
-    });
-  }, []);
-
   function cancelEditing() {
     setIsEditing(false);
     setContent("");
@@ -245,23 +232,8 @@ export function MyJourneyView({
     [profile.day0Date, logs],
   );
 
-  const weeklyStats = useMemo(
-    () =>
-      Array.from({ length: 4 }, (_, index) => {
-        const slice = monthDays.slice(index * 7, index * 7 + 7);
-        const total = slice.reduce((sum, day) => sum + (logMap.get(day)?.condition_score ?? 0), 0);
-        const count = slice.filter((day) => logMap.has(day)).length;
-        return {
-          label: `W${index + 1}`,
-          count,
-          avg: count > 0 ? total / count : 0,
-        };
-      }),
-    [logMap, monthDays],
-  );
-
   const [weekOffset, setWeekOffset] = useState(0);
-  const [weekExpanded, setWeekExpanded] = useState(false);
+  const [, setWeekExpanded] = useState(false);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -277,16 +249,6 @@ export function MyJourneyView({
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
   const weekKeys = useMemo(() => weekDays.map((d) => formatDateKeyJst(d)), [weekDays]);
   const weekRangeLabel = useMemo(() => formatRangeJst(weekStart, addDays(weekStart, 7)), [weekStart]);
-
-  const weekLogs = useMemo(
-    () =>
-      weekKeys
-        .map((k) => logMap.get(k))
-        .filter((v): v is NonNullable<typeof v> => Boolean(v))
-        .slice()
-        .sort((a, b) => String(b.log_date).localeCompare(String(a.log_date))),
-    [logMap, weekKeys],
-  );
 
   const [selectedDayKey, setSelectedDayKey] = useState<string>(() => getTodayString());
 

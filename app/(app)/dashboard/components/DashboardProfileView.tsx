@@ -11,7 +11,7 @@ import CareerWizardModal from "@/components/career-wizard/CareerWizardModal";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import Image from "next/image";
 import { CareerShowcase } from "@/components/career/CareerShowcase";
-import { User, Briefcase, Settings, ExternalLink } from "lucide-react";
+import { User, Briefcase, ExternalLink } from "lucide-react";
 
 const ROLE_LABEL: Record<string, string> = {
   Athlete: "ATHLETE", Trainer: "TRAINER", Crew: "CREW", Business: "BUSINESS", Admin: "ADMIN",
@@ -89,7 +89,7 @@ export function DashboardProfileView({
   }, []);
 
 
-  const { initFromUser, initFromCareerProfile } = useCareerWizard();
+  useCareerWizard();
 
   const profileFacts = [
     { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },

@@ -4,17 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/features/profile/types";
 import type { EventType, Schedule, ScheduleCategory } from "@/types/schedule";
-import { CATEGORY_CONFIG, EVENT_TYPE_CONFIG } from "@/types/schedule";
+import { EVENT_TYPE_CONFIG } from "@/types/schedule";
 import EventModal from "@/components/schedule/EventModal";
 import type { ThemeColors } from "@/app/(app)/dashboard/types";
 import { SLabel, SectionCard, ViewHeader } from "@/app/(app)/dashboard/components/ui";
 
 import FullCalendar from "@fullcalendar/react";
 import type { DatesSetArg, EventClickArg, EventDropArg, EventInput } from "@fullcalendar/core";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
-import interactionPlugin, { type DateClickArg, type EventResizeDoneArg } from "@fullcalendar/interaction";
+import type { DateClickArg, EventResizeDoneArg } from "@fullcalendar/interaction";
 import type { EventContentArg } from "@fullcalendar/core";
 import EventBlock from "@/components/schedule/EventBlock";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
@@ -31,9 +28,6 @@ function toLocalDatetimeValue(d: Date) {
   const mi = pad2(d.getMinutes());
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 }
-
-const LOCK_ICON_PATH =
-  "M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 0h10.5A2.25 2.25 0 0119.5 12.75v6A2.25 2.25 0 0117.25 21h-10.5A2.25 2.25 0 014.5 18.75v-6A2.25 2.25 0 016.75 10.5z";
 
 type DraftSchedule = {
   id?: string;
@@ -184,10 +178,6 @@ export default function ScheduleClient({
       is_public: true,
     });
     setModalOpen(true);
-  };
-
-  const openCreateAtTime = (day: Date, hour: number) => {
-    openCreateAtSlot(day, hour, 0);
   };
 
   const openCreateAtSlot = (day: Date, hour: number, minute: number) => {

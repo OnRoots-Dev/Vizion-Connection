@@ -243,7 +243,6 @@ function base64IdFromUrl(url: string): string {
         return Buffer.from(url, "utf8").toString("base64");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const g: any = globalThis as any;
     if (typeof g.btoa === "function") {
         return g.btoa(url);

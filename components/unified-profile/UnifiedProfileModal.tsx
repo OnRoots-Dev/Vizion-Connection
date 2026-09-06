@@ -51,7 +51,6 @@ export default function UnifiedProfileModal({
   isOpen,
   onClose,
   user,
-  onCompleted,
 }: {
   isOpen: boolean;
   onClose: () => void;

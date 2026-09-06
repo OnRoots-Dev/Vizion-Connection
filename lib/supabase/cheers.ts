@@ -245,7 +245,7 @@ export async function getLatestCheers(toUserId: number, limit = 3): Promise<Late
                 createdAt: String(row.created_at ?? ""),
             };
         });
-    } catch (err) {
+    } catch {
         return [];
     }
 }

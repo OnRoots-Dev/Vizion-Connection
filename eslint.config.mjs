@@ -12,11 +12,24 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent/hook tooling scripts (CommonJS node scripts, not shipped code):
+    ".agents/**",
+    ".claude/**",
+    ".codex/**",
   ]),
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "react-hooks/set-state-in-effect": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 ]);

@@ -11,17 +11,6 @@ interface UserMissionProgressRow {
   completed_at: string | null;
 }
 
-interface MissionDefinitionRow {
-  id: string;
-  title: string;
-  description: string | null;
-  mission_type: MissionType;
-  required_action: string;
-  required_count: number;
-  point_reward: number;
-  is_active: boolean;
-}
-
 function parseUserId(userId: string): number {
   const parsed = Number(userId);
   if (!Number.isInteger(parsed) || parsed <= 0) {

@@ -4,7 +4,7 @@
 
 import { getPublicProfileBySlug } from "@/features/profile/server/get-profile-by-slug";
 import { supabaseServer } from "@/lib/supabase/server";
-import { calcDayCount, getJstDateKey } from "@/lib/day-count";
+import { calcDayCount } from "@/lib/day-count";
 import { computeStreak } from "@/lib/pulse-stats";
 import { env } from "@/lib/env";
 import { fetchBase64 } from "./og-data-service";

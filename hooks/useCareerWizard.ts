@@ -78,7 +78,7 @@ const INITIAL_DATA: CareerWizardState = {
   visibility: "public",
 };
 
-function applyRoleDefaults(role: UserRole, prev: CareerWizardState): Partial<CareerWizardState> {
+function applyRoleDefaults(role: UserRole, _prev: CareerWizardState): Partial<CareerWizardState> {
   const cfg = ROLE_CONFIG[role];
   const skills: CareerSkill[] = cfg.skills.map((s) => ({
     name: s.name,

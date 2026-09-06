@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BUSINESS_CAMPAIGN, BUSINESS_PLANS } from "@/features/business/constants";
 import { Header } from "@/components/layout/Header";
@@ -41,24 +40,6 @@ const TABLE_ROWS = [
 
 // セルの強調判定
 const isAccent = (v: string) => ["✓", "最優先", "優先"].includes(v);
-
-const REGION_COLORS = {
-  hokkaidoTohoku: "#00d2ff",
-  kanto: "#5ad7ff",
-  chubu: "#7c82ff",
-  kinki: "#a871ff",
-  chugokuShikoku: "#ff8bd6",
-  kyushuOkinawa: "#ff7a7a",
-};
-
-const REGION_LEGEND = [
-  { key: "hokkaidoTohoku", label: "北海道・東北" },
-  { key: "kanto", label: "関東" },
-  { key: "chubu", label: "中部" },
-  { key: "kinki", label: "近畿" },
-  { key: "chugokuShikoku", label: "中国・四国" },
-  { key: "kyushuOkinawa", label: "九州・沖縄" },
-] as const;
 
 type RootsRegionAvail = { id: string; label: string; seats: number; remaining: number; soldOut: boolean };
 type NationalTierAvail = { tier: string; prefecture: string; seats: number; remaining: number; soldOut: boolean };

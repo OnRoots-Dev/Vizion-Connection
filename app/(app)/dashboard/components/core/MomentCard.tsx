@@ -39,7 +39,6 @@ export function MomentCard({
     t,
     connection,
     onConnectionChanged,
-    highlight = false,
 }: {
     item: MomentFeedItem;
     viewerId: number | null;

@@ -28,7 +28,6 @@ const baseStyle: React.CSSProperties = {
 export function Chip({ selected = false, disabled, children, style, onFocus, onBlur, ...rest }: ChipProps) {
     const [focused, setFocused] = useState(false);
     // framer-motion と名前が衝突する DOM ハンドラは除外してから spread する
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { onAnimationStart, onDragStart, onDragEnd, onDrag, ...buttonProps } = rest;
     return (
         <motion.button

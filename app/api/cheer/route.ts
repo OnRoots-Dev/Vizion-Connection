@@ -15,11 +15,6 @@ const schema = z.object({
     comment: z.string().max(120).optional(),
 }).strict();
 
-interface RequestBody {
-    toSlug: string;
-    comment?: string;
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
         const csrfError = validateCSRF(req);

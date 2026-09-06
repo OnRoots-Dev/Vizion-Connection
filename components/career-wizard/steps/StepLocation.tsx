@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { COUNTRIES, COUNTRIES_BY_REGION, getCountryByCode } from "@/lib/countries";
-import { StepWrapper, StepHeader, Field, WizardInput } from "../WizardUI";
+import { StepWrapper, StepHeader, Field } from "../WizardUI";
 
 export default function StepLocation() {
   const { data, setField, roleColor } = useCareerWizard();

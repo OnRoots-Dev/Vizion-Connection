@@ -127,7 +127,6 @@ export async function getTrainerHubSummary(profile: ProfileRecord): Promise<Trai
     createdAt: String(review.created_at),
   }));
 
-  const completedClients = clientsList.filter((client) => client.status === "completed").length;
   const retainedClients = clientsList.filter((client) => client.sessionCount >= 2 || client.status === "active").length;
   const retentionBase = clientsList.length > 0 ? clientsList.length : 1;
   const averageRating = reviews.length > 0

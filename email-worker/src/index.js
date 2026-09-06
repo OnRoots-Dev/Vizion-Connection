@@ -116,7 +116,7 @@ function buildAutoReplyText() {
 	].join("\n");
 }
 
-export default {
+const emailWorker = {
 	async email(message, env) {
 		// Resendなど自動送信からのメールは無視して転送のみ
 		if (message.from.endsWith("@send.vizion-connection.jp") ||
@@ -144,3 +144,5 @@ export default {
 		await message.forward(FORWARD_TO);
 	},
 };
+
+export default emailWorker;

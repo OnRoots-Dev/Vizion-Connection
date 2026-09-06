@@ -115,7 +115,11 @@ export default function ShareButton({ slug, displayName, roleColor, profileUrl }
             await navigator.share(sd);
             setS1("done"); setTimeout(() => setS1("idle"), 2000);
         } catch (e) {
-            (e as Error).name === "AbortError" ? setS1("idle") : (setS1("error"), setTimeout(() => setS1("idle"), 2000));
+            if ((e as Error).name === "AbortError") {
+                setS1("idle");
+            } else {
+                setS1("error"); setTimeout(() => setS1("idle"), 2000);
+            }
         }
     }, [slug, displayName, url, s1]);
 

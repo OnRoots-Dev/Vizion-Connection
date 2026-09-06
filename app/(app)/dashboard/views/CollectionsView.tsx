@@ -261,7 +261,6 @@ export function CollectionsView({
                   card.role === "Crew" ? "#1A0F00" :
                   "#000A24";
 
-                const place = String((card as any).prefecture ?? card.region ?? "").trim();
                 const sport = String(card.sport ?? "").trim();
                 const roleLabel = card.role === "Athlete" ? "ATHLETE" : card.role === "Trainer" ? "TRAINER" : card.role === "Crew" ? "CREW" : "BUSINESS";
 

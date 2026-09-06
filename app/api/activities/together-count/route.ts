@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -8,7 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
  * DBカラムは追加せず、既存テーブルをその場で数える最小実装。
  * 返すのは数値のみ（PIIなし）。
  */
-export async function GET(_req: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
     const user = await getSupabaseProfile();
     if (!user) return NextResponse.json({ success: false, error: "ログインが必要です" }, { status: 401 });
 

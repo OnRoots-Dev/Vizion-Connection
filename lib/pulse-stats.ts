@@ -26,7 +26,7 @@ export function computeStreak(journeyDates: string[]): number {
   const today = getJstDateKey(new Date())
   const yesterday = getJstDateKey(new Date(Date.now() - 86400000))
 
-  let anchor: string | null = days.has(today) ? today : days.has(yesterday) ? yesterday : null
+  const anchor: string | null = days.has(today) ? today : days.has(yesterday) ? yesterday : null
   if (!anchor) return 0
 
   let count = 0

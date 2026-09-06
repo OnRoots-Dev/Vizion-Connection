@@ -10,7 +10,7 @@ import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/component
 const REFERRAL_LIMIT = 30;
 const POINTS_PER_REFERRAL = 500;
 
-export function ReferralView({ profile, referralUrl, referralCount, t, roleColor, setView }: {
+export function ReferralView({ referralUrl, referralCount, t, roleColor, setView }: {
     profile: ProfileData; referralUrl: string; referralCount: number;
     t: ThemeColors; roleColor: string; setView: (v: DashboardView) => void;
 }) {

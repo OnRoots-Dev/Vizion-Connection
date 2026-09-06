@@ -9,7 +9,6 @@ import { SectionCard, SLabel, ViewHeader } from "@/app/(app)/dashboard/component
 import { HubAdPanel } from "@/app/(app)/dashboard/components/HubAdPanel";
 import { getHubConfig } from "@/features/hub/config";
 import { MembersHubView } from "./MemberHubView";
-import { TrainerHubView } from "./TrainerHubView";
 import { AthleteHubView } from "./AthleteHubView";
 import type { AdItem } from "@/lib/ads-shared";
 
@@ -179,7 +178,6 @@ async function loadBusinessHub() {
 function GenericHubView({
     profile,
     t,
-    roleColor,
     setView,
     ads,
     canManageAdmin,
@@ -375,7 +373,6 @@ function AnalyticsChart({ analytics, t, accent }: { analytics: BusinessAnalytics
 export function BusinessHubView({
     profile,
     t,
-    roleColor,
     setView,
     ads: hubAds,
 }: {

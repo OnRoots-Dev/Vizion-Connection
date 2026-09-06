@@ -32,8 +32,7 @@ export default function CareerWizardModal({
 }) {
   const {
     currentStepIndex, nextStep, prevStep, skipStep,
-    data, isSaving, saveError, saveToApi,
-    isEpisodeModalOpen,
+    data, isSaving, saveToApi,
     progressPct, currentPhase, roleColor, isCurrentStepSkippable,
     getSteps, getTotalSteps, getCurrentStep,
   } = useCareerWizard();

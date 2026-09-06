@@ -88,11 +88,11 @@ export default function DashboardClient({
     const [view, setView] = useState<DashboardView>(
         isSealedDashboardView(initialView) ? "home" : initialView,
     );
-    const [viewHistory, setViewHistory] = useState<DashboardView[]>([]);
+    const [, setViewHistory] = useState<DashboardView[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
-    const [featuredNewsTop, setFeaturedNewsTop] = useState<DashboardNewsPost[]>([]);
+    const [, setFeaturedNewsTop] = useState<DashboardNewsPost[]>([]);
     const [selectedProfileSlug, setSelectedProfileSlug] = useState<string | null>(null);
 
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -306,15 +306,6 @@ export default function DashboardClient({
             return nextView;
         });
     }, [careerProfileCache, goBack, refreshCareerProfile]);
-
-    const handleProfileUpdate = useCallback(async (updated?: ProfileData) => {
-        if (updated) {
-            setProfile(updated);
-        } else {
-            await refreshProfile();
-        }
-        handleSetView("home");
-    }, [handleSetView, refreshProfile]);
 
     const renderView = () => {
         switch (view) {

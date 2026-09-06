@@ -42,7 +42,6 @@ import { getJstDateKey } from "@/lib/day-count";
 import StatusBar from "./components/StatusBar";
 import HeatPanel, { type HeatComment, type HeatSponsor } from "./components/HeatPanel";
 import MilestoneBadgeRow from "./components/MilestoneBadgeRow";
-import NetworkCard, { type NetworkSupporter } from "./components/NetworkCard";
 import TimelineStack, { type TimelineEntry } from "./components/TimelineStack";
 import Expandable from "./components/Expandable";
 import { IconArrowRight } from "@/lib/design/icons";
@@ -121,7 +120,7 @@ export default async function UserProfilePage({ params }: Props) {
         milestones,
         userMeta,
         previewJourneys,
-        bondingCount,
+        ,
         recentBondRows,
         cheerCommentRows,
     ] = await Promise.all([
@@ -219,18 +218,6 @@ export default async function UserProfilePage({ params }: Props) {
             .then(({ count }) => count ?? 0))
         : 0;
 
-    // 閲覧者がこのプロフィールを Bond（観客席入り）しているか
-    let isBonded = false;
-    if (viewerSlug && !isOwn) {
-        const { data: bondRow } = await supabaseServer
-            .from("user_follows")
-            .select("follower_slug")
-            .eq("follower_slug", viewerSlug)
-            .eq("target_slug", slug)
-            .maybeSingle();
-        isBonded = !!bondRow;
-    }
-
     // 直近サポーター＋コメント投稿者のユーザー情報をまとめて取得
     const lookupSlugs = Array.from(new Set([
         ...recentBondRows.map((r) => String(r.follower_slug)),
@@ -245,13 +232,6 @@ export default async function UserProfilePage({ params }: Props) {
             .eq("is_public", true)
         : { data: [] as Array<{ slug: string; display_name: string; avatar_url: string | null }> };
     const lookupMap = new Map((lookupUsers ?? []).map((u) => [String(u.slug), u]));
-
-    const supporters: NetworkSupporter[] = recentBondRows
-        .filter((r) => lookupMap.has(String(r.follower_slug)))
-        .map((r) => {
-            const u = lookupMap.get(String(r.follower_slug))!;
-            return { slug: String(u.slug), displayName: String(u.display_name), avatarUrl: u.avatar_url ? String(u.avatar_url) : null };
-        });
 
     const heatComments: HeatComment[] = cheerCommentRows.map((r) => ({
         id: String(r.id),
