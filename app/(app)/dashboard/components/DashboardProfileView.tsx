@@ -71,6 +71,8 @@ export function DashboardProfileView({
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
   const [togetherCount, setTogetherCount] = useState(0);
+  const [connectorCount, setConnectorCount] = useState(0);
+  const [activityCount, setActivityCount] = useState(0);
 
   // Profile の TOGETHER カウント（activity_participants accepted の動的集計・読み取り専用）
   useEffect(() => {
@@ -88,13 +90,47 @@ export function DashboardProfileView({
     };
   }, []);
 
+  // Connector（成立済みConnection）と Activities の件数も同様に動的集計してスコアボードに合わせる
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCounts() {
+      try {
+        const [connRes, actRes] = await Promise.all([
+          fetch("/api/connections", { method: "GET" }),
+          fetch("/api/activities", { method: "GET" }),
+        ]);
+        const connJson: unknown = await connRes.json().catch(() => ({}));
+        if (!cancelled) {
+          const list = (connJson as { connections?: Array<{ status: string }> })?.connections;
+          setConnectorCount(Array.isArray(list) ? list.filter((c) => c.status === "accepted").length : 0);
+        }
+        const actJson: unknown = await actRes.json().catch(() => ({}));
+        if (!cancelled) {
+          const acts = (actJson as { activities?: unknown[] })?.activities;
+          setActivityCount(Array.isArray(acts) ? acts.length : 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setConnectorCount(0);
+          setActivityCount(0);
+        }
+      }
+    }
+    void loadCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
 
   useCareerWizard();
 
   const profileFacts = [
     { label: "Role", value: ROLE_LABEL[profile.role] ?? profile.role, color: roleColor },
     { label: "Cheer", value: String(profile.cheerCount ?? 0), color: "#FFD600" },
+    { label: "Connector", value: String(connectorCount), color: roleColor },
     { label: "Together", value: String(togetherCount), color: roleColor },
+    { label: "Activities", value: String(activityCount), color: roleColor },
     profile.sport ? { label: "Sport / Job", value: profile.sport } : null,
     profile.region ? { label: "Area", value: profile.region } : null,
     profile.prefecture ? { label: "Prefecture", value: profile.prefecture } : null,

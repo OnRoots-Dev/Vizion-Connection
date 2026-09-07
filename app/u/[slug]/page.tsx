@@ -25,7 +25,6 @@ import { getAdsForUser } from "@/lib/ads";
 import { isLocalPlan } from "@/lib/ads-shared";
 import AdCard from "@/components/AdCard";
 import SponsorBadge from "@/components/SponsorBadge";
-import PublicProfileRealtime from "./PublicProfileRealtime";
 import { supabaseServer } from "@/lib/supabase/server";
 import { computeStreak } from "@/lib/pulse-stats";
 import { CATEGORY_CONFIG } from "@/types/schedule";
@@ -42,6 +41,7 @@ import { getJstDateKey } from "@/lib/day-count";
 import StatusBar from "./components/StatusBar";
 import HeatPanel, { type HeatComment, type HeatSponsor } from "./components/HeatPanel";
 import MilestoneBadgeRow from "./components/MilestoneBadgeRow";
+import Scoreboard from "./components/Scoreboard";
 import TimelineStack, { type TimelineEntry } from "./components/TimelineStack";
 import Expandable from "./components/Expandable";
 import { IconArrowRight } from "@/lib/design/icons";
@@ -218,6 +218,25 @@ export default async function UserProfilePage({ params }: Props) {
             .then(({ count }) => count ?? 0))
         : 0;
 
+    // Together 実績（活動参加 accepted 件数）＋ 活動実績数 — スコアボード用の動的集計。
+    // 活動数は閲覧者の可視性リストと同じフィルタ（owner は private も含む）。
+    const [togetherCount, visibleActivityCount] = Number.isFinite(ownerUserId)
+        ? await Promise.all([
+              supabaseServer
+                  .from("activity_participants")
+                  .select("id", { count: "exact", head: true })
+                  .eq("user_id", ownerUserId)
+                  .eq("status", "accepted")
+                  .then(({ count }) => count ?? 0),
+              supabaseServer
+                  .from("activities")
+                  .select("id", { count: "exact", head: true })
+                  .eq("user_id", ownerUserId)
+                  .in("visibility", ["public", "connections", ...(viewerUserId === ownerUserId ? ["private" as const] : [])])
+                  .then(({ count }) => count ?? 0),
+          ])
+        : [0, 0];
+
     // 直近サポーター＋コメント投稿者のユーザー情報をまとめて取得
     const lookupSlugs = Array.from(new Set([
         ...recentBondRows.map((r) => String(r.follower_slug)),
@@ -311,7 +330,6 @@ export default async function UserProfilePage({ params }: Props) {
 
     return (
         <div style={{ minHeight: "100vh", background: VP.bg, color: VP.text, overflowX: "hidden", fontFamily: VP_BODY_FONT }}>
-            <PublicProfileRealtime slug={slug} />
             <style>{`
                 *, *::before, *::after { box-sizing: border-box; }
                 a { color: inherit; text-decoration: none; }
@@ -471,6 +489,14 @@ export default async function UserProfilePage({ params }: Props) {
                     </div>
                 </section>
 
+                {/* スコアボード（実績集計 — Cheer / Connector / Activities / Together） */}
+                <Scoreboard
+                    cheerCount={profile.cheerCount ?? 0}
+                    connectorCount={connectorCount}
+                    activityCount={visibleActivityCount}
+                    togetherCount={togetherCount}
+                />
+
                 {/* Profile / Career Tabs（Identity Hub — アイデンティティ直後の導入部） */}
                 <PublicProfileTabs
                     roleColor={VP.neon}
@@ -521,36 +547,51 @@ export default async function UserProfilePage({ params }: Props) {
                     planBadge={profile.sponsorPlan ? <SponsorBadge plan={profile.sponsorPlan} prominent /> : null}
                 />
 
+                {/* Recent Activity — Core Loop（Activity / Moment）を上位表示。
+                    可視性ルールに従い、閲覧者に見えるものだけを出す。0件時は空状態。 */}
+                {profileActivities.length > 0 || profileMoments.length > 0 ? (
+                    <section aria-label="Recent Activity" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                        {profileActivities.length > 0 ? (
+                            <section aria-label="Activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                <h2 style={vpSectionTitle}>Activity</h2>
+                                <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                                    {profileActivities.map((a) => (
+                                        <ProfileActivityRow key={a.id} activity={a} />
+                                    ))}
+                                </div>
+                            </section>
+                        ) : null}
+                        {profileMoments.length > 0 ? (
+                            <section aria-label="Moment" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                                <h2 style={vpSectionTitle}>Moment</h2>
+                                <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+                                    {profileMoments.map((m) => (
+                                        <ProfileMomentRow key={m.moment.id} item={m} />
+                                    ))}
+                                </div>
+                            </section>
+                        ) : null}
+                    </section>
+                ) : (
+                    <section aria-label="Recent Activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <h2 style={vpSectionTitle}>Recent Activity</h2>
+                        <div style={{ ...vpPanel, padding: "28px 16px", textAlign: "center" }}>
+                            <p style={{ margin: 0, fontSize: 13, color: VP.sub, lineHeight: 1.8 }}>
+                                まだ公開された活動記録がありません。
+                            </p>
+                            <p style={{ margin: "4px 0 0", fontSize: 11, color: VP.faint, lineHeight: 1.7 }}>
+                                Activity や Moment を公開すると、ここに直近の活動が表示されます。
+                            </p>
+                        </div>
+                    </section>
+                )}
+
                 {/* ⑤ タイムライン（常時 — メッセージ2「積み重ね」。直近3件） */}
                 <TimelineStack
                     entries={timelineEntries}
                     mode="preview"
                     viewAllHref={`/u/${slug}/portfolio`}
                 />
-
-                {/* Core Loop: Activity（可視性ルールに従い、閲覧者に見えるもののみ） */}
-                {profileActivities.length > 0 ? (
-                    <section aria-label="Activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <h2 style={vpSectionTitle}>Activity</h2>
-                        <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-                            {profileActivities.map((a) => (
-                                <ProfileActivityRow key={a.id} activity={a} />
-                            ))}
-                        </div>
-                    </section>
-                ) : null}
-
-                {/* Core Loop: Moment（親Activityの可視性を継承） */}
-                {profileMoments.length > 0 ? (
-                    <section aria-label="Moment" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <h2 style={vpSectionTitle}>Moment</h2>
-                        <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
-                            {profileMoments.map((m) => (
-                                <ProfileMomentRow key={m.moment.id} item={m} />
-                            ))}
-                        </div>
-                    </section>
-                ) : null}
 
                 {/* Cheer / Collect（主要アクション — 常時） */}
                 <section id="cheer" aria-label="応援" style={{ scrollMarginTop: 90 }}>

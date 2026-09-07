@@ -47,10 +47,10 @@ export default function CareerSection({
     prefecture,
     joinedAt,
     roleLabel,
-    cheerCount,
+    cheerCount: _cheerCount,
     slug,
     careerProfile,
-    connectionCount,
+    connectionCount: _connectionCount,
     mode,
 }: CareerSectionProps) {
     const role = roleLabel as Role;
@@ -73,7 +73,6 @@ export default function CareerSection({
                     rl={rl} bio={bio} sport={sport}
                     region={region} prefecture={prefecture}
                     joinedAt={joinedAt} roleLabel={roleLabel}
-                    cheerCount={cheerCount} connectionCount={connectionCount ?? 0}
                 />
             )}
             {activeTab === "career" && (
@@ -198,17 +197,15 @@ export default function CareerSection({
     );
 }
 
-function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel, cheerCount, connectionCount }: {
+function InfoTab({ rl, bio, sport, region, prefecture, joinedAt, roleLabel }: {
     rl: string; bio?: string | null; sport?: string | null;
     region?: string | null; prefecture?: string | null;
-    joinedAt: string; roleLabel: string; cheerCount: number; connectionCount: number;
+    joinedAt: string; roleLabel: string;
 }) {
     const items = [
         { label: "Role", value: roleLabel, color: rl },
         sport ? { label: "競技 / 職種", value: sport } : null,
         region ? { label: "エリア", value: `${region}${prefecture ? ` / ${prefecture}` : ""}` } : null,
-        { label: "Cheer", value: cheerCount.toLocaleString(), color: "#FFD600" },
-        { label: "Connector", value: connectionCount.toLocaleString(), color: "#C8E800" },
         { label: "参加日", value: joinedAt },
     ].filter(Boolean) as { label: string; value: string; color?: string }[];
 
