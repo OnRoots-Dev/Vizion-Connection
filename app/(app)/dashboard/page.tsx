@@ -9,6 +9,9 @@ import type { DashboardView } from "./types";
 export const dynamic = "force-dynamic";
 
 function resolveInitialView(view?: string): DashboardView {
+    // Map-First化: 省略キー "map" は正規ビュー "viz_map" に正規化する。
+    // （config/map-first.ts の DEFAULT_DASHBOARD_VIEW が URL に埋める値）
+    const normalizedView = view === "map" ? ("viz_map" as const) : view;
     const allowed: DashboardView[] = [
         "home",
         "contact",
@@ -38,7 +41,9 @@ function resolveInitialView(view?: string): DashboardView {
         "viz_map",
         "monetize",
     ];
-    return allowed.includes(view as DashboardView) ? (view as DashboardView) : "home";
+    return allowed.includes(normalizedView as DashboardView)
+        ? (normalizedView as DashboardView)
+        : "home";
 }
 
 export default async function DashboardPage({

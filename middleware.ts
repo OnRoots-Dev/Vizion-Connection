@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMiddlewareClient } from "@/lib/supabase/middleware-client";
 import { findSealedTopLevelPath, isSealedApiPath } from "@/config/mvp-scope";
+import { DEFAULT_DASHBOARD_PATH } from "@/config/map-first";
 
 // 認証が必要なパス
 const PROTECTED_PATHS = [
@@ -164,13 +165,14 @@ export async function middleware(req: NextRequest) {
     }
 
     // ログイン済みで /login・/register へ来た場合:
-    // メール認証直後の新規が dashboard に落ちるのを防ぐため、直接 /dashboard へ送る。
+    // メール認証直後の新規がデフォルト遷移先（Map）に落ちるのを防ぐため、直接遷移させる。
     // CareerWizardModal が初回ユーザーに自動表示される。
     const isAuthPath = AUTH_PATHS.some((p) => pathname.startsWith(p));
     if (isAuthPath && session) {
         const dashboardUrl = req.nextUrl.clone();
-        dashboardUrl.pathname = "/dashboard";
-        dashboardUrl.search = "";
+        const defaultEntry = new URL(DEFAULT_DASHBOARD_PATH, req.nextUrl.origin);
+        dashboardUrl.pathname = defaultEntry.pathname;
+        dashboardUrl.search = defaultEntry.search;
         return applyCors(req, NextResponse.redirect(dashboardUrl));
     }
 

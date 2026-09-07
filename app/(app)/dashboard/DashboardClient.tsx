@@ -27,6 +27,7 @@ import { VoiceLabView } from "./views/VoiceLabView";
 import { NotificationsView } from "./views/NotificationsView";
 import { ContactView } from "./views/ContactView";
 import { CollectionsView } from "./views/CollectionsView";
+import { DEFAULT_DASHBOARD_PATH } from "@/config/map-first";
 import { ProfilePreviewModal } from "./components/ProfilePreviewModal";
 import { Day0WelcomeModal } from "./components/Day0WelcomeModal";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
@@ -420,7 +421,8 @@ export default function DashboardClient({
                         onClose={() => setShowOnboardingWizard(false)}
                         onCompleted={() => {
                             setShowOnboardingWizard(false);
-                            window.location.reload();
+                            // オンボーディング完了後はデフォルト遷移先（Map）へ再遷移する。
+                            window.location.assign(DEFAULT_DASHBOARD_PATH);
                         }}
                     />
                 )}

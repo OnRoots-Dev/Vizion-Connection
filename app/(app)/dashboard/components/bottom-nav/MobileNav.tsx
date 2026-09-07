@@ -3,6 +3,7 @@
 // dashboard/components/bottom-nav/MobileNav.tsx
 // WORLD 最適化モバイルナビ — 5項目固定（中央 CREATE 持ち上げ）。
 //   HOME / MOMENT / CREATE(中央+) / MAP / YOU
+// 並び順は変えない。MAP のみ「視覚的な起点」として常時アクセント強調（featured）する。
 // 中央 CREATE は ActionSheet を開き、既存の活動導線へ遷移（機能は追加しない）。
 
 import { useState } from "react";
@@ -11,7 +12,7 @@ import type { DashboardView, ThemeColors } from "../../types";
 
 const ACCENT = "#C8E800";
 
-const ITEMS: { id: string; label: string; view: DashboardView; icon: string }[] = [
+const ITEMS: { id: string; label: string; view: DashboardView; icon: string; featured?: boolean }[] = [
     {
         id: "home", label: "HOME", view: "home",
         icon: "M3 10.5 12 3l9 7.5M5 8.5V21h5v-6h4v6h5V8.5",
@@ -21,7 +22,7 @@ const ITEMS: { id: string; label: string; view: DashboardView; icon: string }[] 
         icon: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
     },
     {
-        id: "map", label: "MAP", view: "viz_map",
+        id: "map", label: "MAP", view: "viz_map", featured: true,
         icon: "M9 20l-6-3V4l6 3m0 13 6-3M9 20V7m6 10 6-3V4l-6 3m0 10V7m-6 0 6-3",
     },
     {
@@ -78,6 +79,7 @@ export function MobileNav({ view, setView, t }: {
             >
                 {ITEMS.map((item) => {
                     const active = isCurrent(item.view);
+                    const featured = item.featured === true;
                     return (
                         <motion.button
                             key={item.id}
@@ -91,8 +93,8 @@ export function MobileNav({ view, setView, t }: {
                                 flex: 1, display: "flex", flexDirection: "column",
                                 alignItems: "center", justifyContent: "center", gap: 3,
                                 background: "none", border: "none", cursor: "pointer",
-                                padding: "9px 0", color: active ? ACCENT : t.sub,
-                                opacity: active ? 1 : 0.75, minWidth: 0, position: "relative",
+                                padding: "9px 0", color: active ? ACCENT : featured ? ACCENT : t.sub,
+                                opacity: active ? 1 : featured ? 1 : 0.75, minWidth: 0, position: "relative",
                             }}
                         >
                             <span style={{ position: "relative", display: "inline-flex" }}>
@@ -105,11 +107,29 @@ export function MobileNav({ view, setView, t }: {
                                         }}
                                     />
                                 )}
-                                <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.1 : 1.7} strokeLinecap="round" strokeLinejoin="round" style={{ position: "relative" }}>
+                                {/* Map-First化: MAP は非選択時もアクセントリングで起点を強調 */}
+                                {!active && featured && (
+                                    <span
+                                        style={{
+                                            position: "absolute", inset: -7, borderRadius: 999,
+                                            background: `${ACCENT}14`, border: `1px solid ${ACCENT}38`,
+                                        }}
+                                    />
+                                )}
+                                <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active || featured ? 2.1 : 1.7} strokeLinecap="round" strokeLinejoin="round" style={{ position: "relative" }}>
                                     <path d={item.icon} />
                                 </svg>
+                                {!active && featured && (
+                                    <span
+                                        style={{
+                                            position: "absolute", top: -9, right: -9,
+                                            width: 6, height: 6, borderRadius: "50%",
+                                            background: ACCENT, boxShadow: `0 0 8px ${ACCENT}`,
+                                        }}
+                                    />
+                                )}
                             </span>
-                            <span style={{ fontSize: 9, fontWeight: active ? 800 : 600, letterSpacing: "0.05em", lineHeight: 1 }}>
+                            <span style={{ fontSize: 9, fontWeight: active || featured ? 800 : 600, letterSpacing: "0.05em", lineHeight: 1 }}>
                                 {item.label}
                             </span>
                         </motion.button>

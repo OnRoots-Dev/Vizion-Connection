@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { EyeIcon } from "@/components/auth/EyeIcon";
+import { DEFAULT_DASHBOARD_PATH } from "@/config/map-first";
 import { springDefault, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 import { Field, Input } from "@/components/ui/field";
@@ -25,7 +26,7 @@ function InlinePulseSpinner() {
 
 export default function LoginForm() {
     const searchParams = useSearchParams();
-    const redirectTo = searchParams.get("redirect") ?? "/dashboard";
+    const redirectTo = searchParams.get("redirect") ?? DEFAULT_DASHBOARD_PATH;
     const confirmError = searchParams.get("error") === "confirmation_failed";
     const reduce = useReducedMotion();
     const press = reduce ? undefined : { scale: PRESS_SCALE };
@@ -62,15 +63,16 @@ export default function LoginForm() {
                 setLoading(false);
                 return;
             }
-            // 初回ログイン含め、未完了ユーザーは必ず /dashboard へ遷移する。
-            // DashboardClient が CareerWizardModal（プロフィール・キャリア登録）を自動表示する。
+            // 初回ログイン含め、未完了ユーザーは必ずデフォルト遷移先（Map）へ遷移する。
+            // DashboardClient が CareerWizardModal（プロフィール・キャリア登録）を自動表示し、
+            // 完了後も同じ遷移先（Map）へ再遷移する。
             // 完了済みユーザーのみ redirect パラメータを尊重する。
             const targetPath =
                 !data.isOnboardingComplete
-                    ? "/dashboard"
+                    ? DEFAULT_DASHBOARD_PATH
                     : redirectTo.startsWith("/")
                         ? redirectTo
-                        : "/dashboard";
+                        : DEFAULT_DASHBOARD_PATH;
             const appBase = process.env.NEXT_PUBLIC_APP_BASE_URL || "https://app.vizion-connection.jp";
             window.location.assign(appBase + targetPath);
         } catch {
