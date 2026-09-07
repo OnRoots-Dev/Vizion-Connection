@@ -51,6 +51,13 @@ export default function BusinessPage() {
   const [rootsRegions, setRootsRegions] = useState<RootsRegionAvail[]>([]);
   const [nationalTiers, setNationalTiers] = useState<NationalTierAvail[]>([]);
   const [planAvail, setPlanAvail] = useState<Record<string, PlanAvail>>({});
+  const [refSlug, setRefSlug] = useState("");
+
+  useEffect(() => {
+    // ?ref=<紹介slug> を /register へ伝播する。登録後も紹介元が記録されるようにする。
+    const q = new URLSearchParams(window.location.search).get("ref");
+    if (q) setRefSlug(q);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -499,7 +506,7 @@ export default function BusinessPage() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <a
-                    href={`/register?role=Business${selectedPlan ? `&plan=${selectedPlan}` : ""}${selectedPlan ? `&redirect=${encodeURIComponent(`/dashboard/business/checkout?plan=${selectedPlan}`)}` : ""}`}
+                    href={`/register?role=Business${refSlug ? `&ref=${encodeURIComponent(refSlug)}` : ""}${selectedPlan ? `&plan=${selectedPlan}` : ""}${selectedPlan ? `&redirect=${encodeURIComponent(`/dashboard/business/checkout?plan=${selectedPlan}`)}` : ""}`}
                     style={{
                       display: "block",
                       padding: "14px 24px",
