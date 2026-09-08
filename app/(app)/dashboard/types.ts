@@ -13,7 +13,6 @@ export type DashboardView =
     | "admin_posts"
     | "admin_ads"
     | "collections"
-    | "journey"
     | "timeline"
     | "portfolio"
     | "card"

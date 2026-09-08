@@ -164,7 +164,7 @@ export default function TimelineClient({ currentUserSlug }: { currentUserSlug?: 
               最初のJourneyを記録しましょう
             </p>
             <Link
-              href="/dashboard?view=journey"
+              href="/dashboard?view=activities"
               className="mt-7 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-wider text-[var(--surface-1)] transition hover:opacity-90"
             >
               Journeyへ

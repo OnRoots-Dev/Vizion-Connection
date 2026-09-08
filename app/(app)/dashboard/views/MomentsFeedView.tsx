@@ -215,7 +215,6 @@ function defineMomentsSideRail(roleColor: string, t: ThemeColors) {
     const links: { id: DashboardView; label: string; sub: string; icon: string }[] = [
         { id: "home", label: "おすすめ", sub: "あなたのダッシュボード", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
         { id: "activities", label: "アクティビティ", sub: "実際の活動・取り組み", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
-        { id: "journey", label: "Journey", sub: "1週間の積み上げ", icon: "M6 12h.008v.008H6V12zm.75-4.5a3 3 0 113 3 3 3 0 01-3-3zm9 3a3 3 0 11-3 3 3 3 0 013-3zm-6 4.5h.008v.008H9.75v-.008zm8.25 3h.008v.008H18v-.008zM18 12a6 6 0 10-12 0c0 3.314 2.686 6 6 6s6-2.686 6-6z" },
         { id: "viz_map", label: "Neighbor", sub: "地域のアクティビティ", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
     ];
 

@@ -170,7 +170,7 @@ export default function PulseClient() {
             あなたのPulseを刻み始めよう
           </h1>
           <Link
-            href="/dashboard?view=journey"
+            href="/dashboard?view=activities"
             className="mt-8 rounded-lg bg-[var(--electric)] px-6 py-3 font-display text-sm uppercase tracking-[0.18em] text-[var(--surface-1)]"
           >
             最初のJourneyを記録する
@@ -276,7 +276,7 @@ export default function PulseClient() {
 
           {isStalled ? (
             <Link
-              href="/dashboard?view=journey"
+              href="/dashboard?view=activities"
               className="mt-3 rounded-lg bg-[var(--electric)] px-5 py-3 font-display text-sm uppercase tracking-[0.16em] text-[var(--surface-1)]"
             >
               今日のJourneyを記録する

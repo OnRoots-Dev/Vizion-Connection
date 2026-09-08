@@ -18,7 +18,6 @@ function resolveInitialView(view?: string): DashboardView {
         "notifications",
         "hub",
         "collections",
-        "journey",
         "timeline",
         "portfolio",
         "card",
