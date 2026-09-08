@@ -225,10 +225,10 @@ export default function RegisterForm() {
                 return;
             }
             setSucceeded(true);
-            const next = redirectTo
-                ? `/login?redirect=${encodeURIComponent(redirectTo)}`
-                : "/login";
-            setTimeout(() => router.push(next), 1600);
+            // 登録後は確認メール待機画面（/thanks?type=verify）へ遷移する。
+            // メール内リンクには redirectTo が保持され、認証後に /thanks?type=verified から続行される。
+            // 未認証のまま /login へ飛ばすとログイン失敗の原因になるため、ここでは /login へ直接遷移しない。
+            setTimeout(() => router.push("/thanks?type=verify"), 1600);
         } catch {
             setError("通信エラーが発生しました");
             setDirection(-1);
@@ -560,8 +560,8 @@ export default function RegisterForm() {
 
                             {!submitting && succeeded && (
                                 <AuthSuccessMark
-                                    title="登録を受け付けました"
-                                    subtitle="認証メールをご確認ください。移動します…"
+                                    title="確認メールを送信しました"
+                                    subtitle="メール内のリンクから本登録を完了してください。"
                                 />
                             )}
 
