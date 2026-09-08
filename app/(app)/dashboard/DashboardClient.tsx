@@ -36,7 +36,6 @@ import { useCareerWizard } from "@/hooks/useCareerWizard";
 import { AdminPostsView } from "./views/admin/AdminPostsView";
 import AdminAdsView from "./views/admin/AdminAdsView";
 import { OffersView } from "./views/OffersView";
-import { MyJourneyView } from "./views/MyJourneyView";
 import { PortfolioView } from "./views/PortfolioView";
 import ScheduleClient from "@/app/schedule/ScheduleClient";
 import { ActionHistoryView } from "./views/ActionHistoryView";
@@ -316,8 +315,6 @@ export default function DashboardClient({
                 return <ContactView t={t} roleColor={roleColor} onBack={goBack} setView={handleSetView} />;
             case "collections":
                 return <CollectionsView t={t} roleColor={roleColor} setView={handleSetView} onOpenProfile={setSelectedProfileSlug} />;
-            case "journey":
-                return <MyJourneyView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;
             case "timeline":
                 return <TimelineView profile={profile} setView={handleSetView} />;
             case "activities":

@@ -34,7 +34,7 @@ export function AthleteHubView({
   }, []);
 
   const statItems = [
-    { label: "Journey", value: stats?.journeyCount ?? "—", onClick: () => setView("journey") },
+    { label: "Journey", value: stats?.journeyCount ?? "—", onClick: () => setView("activities") },
     { label: "Cheer", value: stats?.cheerCount ?? "—", onClick: () => setView("cheer") },
     { label: "継続", value: stats ? `${stats.streak}日` : "—", onClick: undefined },
     { label: "Bond", value: stats?.bondCount ?? "—", onClick: undefined },
@@ -77,7 +77,7 @@ export function AthleteHubView({
           <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
             <button
               type="button"
-              onClick={() => setView("journey")}
+              onClick={() => setView("activities")}
               style={{ padding: "13px 16px", borderRadius: 12, border: "none", background: accent, color: "#061018", fontSize: 13, fontWeight: 800, cursor: "pointer", textAlign: "left" }}
             >
               今日の記録をする →

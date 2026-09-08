@@ -379,7 +379,7 @@ export function NotificationsView({
             </p>
             <button
               type="button"
-              onClick={() => setView("journey")}
+              onClick={() => setView("activities")}
               style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 22px", borderRadius: 8, background: roleColor, color: "#000", fontSize: 12, fontWeight: 800, border: "none", cursor: "pointer" }}
             >
               最初のJourneyを記録する

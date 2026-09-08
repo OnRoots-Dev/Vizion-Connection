@@ -3,12 +3,13 @@
 // dashboard/views/HomeView.tsx
 // WORLD ENTRANCE — 自分の管理画面ではなく「世界で今何が起きているか」を最前面に出す。
 // 情報階層（上→下）:
-//   1. AROUND YOU      … 地域 + 集計値 + 今起きていること
-//   2. MOMENTS         … 世界のMoment 横スクロール
-//   3. NEARBY          … Map プレビュー（Viz Map への導線）
-//   4. YOUR ACTIVITY   … 自分の次の予定（控えめ）
-//   5. SOCIAL          … Cheer / Connection / Together の通知サマリー
-//   6. JOURNEY         … 週間進捗バー（控えめ）
+//   1. AROUND YOU          … 地域 + 集計値 + 今起きていること
+//   2. MOMENTS · JUST NOW  … 世界のMoment 横スクロール
+//   3. NEARBY · VIZ MAP    … Map プレビュー（Viz Map への導線）
+//   4. PROFILE CARD        … 自分の実績・紹介（控えめ）
+//   5. YOUR WORLD · LIVE   … Cheer / Connection / Together の通知サマリー
+//   6. YOUR ACTIVITY       … 自分の次の予定（控えめ）
+//   7. JOURNEY · THIS WEEK … 週間進捗バー（控えめ）
 // 既存コンポーネント・API を最大限再利用し、機能は追加しない。
 
 import { useCallback, useEffect, useState } from "react";
@@ -16,7 +17,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { ProfileData } from "@/features/profile/types";
 import type { DashboardView, ThemeColors } from "@/app/(app)/dashboard/types";
 import { ProfileCardSection } from "@/app/(app)/dashboard/components/ProfileCard";
-import { DailyLogCard } from "@/components/DailyLog/DailyLogCard";
 import { LiveInfoCard, type LiveInfoItem } from "../components/LiveInfoCard";
 import { MomentCard } from "../components/core/MomentCard";
 import type { MomentFeedItem } from "@/features/moment/types";
@@ -198,7 +198,23 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </button>
             </section>
 
-            {/* ═══ 4. YOUR ACTIVITY ═══（控えめ） */}
+            {/* ═══ 4. PROFILE CARD ═══ */}
+            <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
+
+            {/* ═══ 5. YOUR WORLD · LIVE ═══ */}
+            <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR WORLD · LIVE</p>
+                    <button type="button" onClick={() => setView("moments")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>繋がる →</button>
+                </div>
+                {social.length > 0 || socialLoading ? (
+                    <LiveInfoCard items={social} loading={socialLoading} />
+                ) : (
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", padding: "2px 2px" }}>あなたへの反応と申請がここに届きます。世界を探索して、誰かのActivityに反応してみましょう。</p>
+                )}
+            </section>
+
+            {/* ═══ 6. YOUR ACTIVITY ═══ */}
             <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
@@ -226,24 +242,11 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 )}
             </section>
 
-            {/* ═══ 5. SOCIAL ═══ */}
-            <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR WORLD · LIVE</p>
-                    <button type="button" onClick={() => setView("moments")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>繋がる →</button>
-                </div>
-                {social.length > 0 || socialLoading ? (
-                    <LiveInfoCard items={social} loading={socialLoading} />
-                ) : (
-                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", padding: "2px 2px" }}>あなたへの反応と申請がここに届きます。世界を探索して、誰かのActivityに反応してみましょう。</p>
-                )}
-            </section>
-
-            {/* ═══ 6. JOURNEY ═══（週間進捗バー 控えめ） */}
+            {/* ═══ 7. JOURNEY · THIS WEEK ═══（週間進捗バー） */}
             <section aria-label="Journey" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>JOURNEY · THIS WEEK</p>
-                    <button type="button" onClick={() => setView("journey")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>振り返る →</button>
+                    <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>振り返る →</button>
                 </div>
                 <div style={{ background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px" }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
@@ -255,10 +258,6 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     </div>
                 </div>
             </section>
-
-            {/* 自分の実績・紹介（World の後ろに控えめに置く） */}
-            <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
-            <DailyLogCard t={t} roleColor={roleColor} role={profile.role} />
         </div>
     );
 }

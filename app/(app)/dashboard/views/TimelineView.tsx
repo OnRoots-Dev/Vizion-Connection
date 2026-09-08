@@ -436,7 +436,7 @@ export function TimelineView({
                         最初の活動を発信しましょう。
                     </div>
                     <button
-                        onClick={() => setView("journey")}
+                        onClick={() => setView("activities")}
                         style={{
                             marginTop: 20,
                             padding: "10px 20px",

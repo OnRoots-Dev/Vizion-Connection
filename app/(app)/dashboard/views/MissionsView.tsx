@@ -319,7 +319,7 @@ export function MissionsView({ profile, referralCount, t, roleColor, setView, on
                                     ) : (
                                         <button
                                             type="button"
-                                            onClick={() => setView("journey")}
+                                            onClick={() => setView("activities")}
                                             style={{
                                                 padding: "8px 12px",
                                                 borderRadius: 10,
