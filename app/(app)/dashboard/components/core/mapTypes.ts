@@ -14,7 +14,8 @@ export type PinCategory =
     | "trainer"
     | "crew"
     | "business"
-    | "event";
+    | "event"
+    | "place";
 
 // 1カテゴリ1カラー。Business は専用カラー（Moment blue とは分離）。
 // 色覚多様性（Okabe-Ito系・色覚セーフ配色）・軽量Map背景上のコントラスト・
@@ -28,6 +29,7 @@ export const PIN_COLOR: Record<PinCategory, string> = {
     crew: "#CC79A7",     // magenta（Crew）
     business: "#00BFA5", // teal/cyan（Business）
     event: "#6366F1",    // indigo（Event）※ユーザー指定の6種には含まれない補助色
+    place: "#8A96A8",    // muted slate（Place POI）※常時表示の一背景として控えめに
 };
 
 // クラスター（複数Pointを集約したマーカー）専用色。
@@ -43,4 +45,5 @@ export const PIN_COLOR_LABEL: Record<PinCategory, string> = {
     crew: "Crew",
     business: "Business",
     event: "Event",
+    place: "Place",
 };

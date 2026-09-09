@@ -17,6 +17,8 @@ export interface MapPoint {
     category?: PinCategory;
     color?: string;
     size?: number;
+    /** ピン下部に出すタイムラベル（例: "2h前" / "本日 18:00"）。無い場合は非表示。 */
+    timeLabel?: string;
 }
 
 interface Props {
@@ -24,6 +26,8 @@ interface Props {
     selectedId?: string | null;
     /** Search result selection only: pan the existing map without recreating it. */
     focusPoint?: Pick<MapPoint, "latitude" | "longitude"> | null;
+    /** 初期表示中心（座標）。永続化された直前位置があればそちらを優先する。 */
+    initialCenter?: [number, number];
     onSelect?: (id: string) => void;
     onClusterSelect?: (points: MapPoint[]) => void;
     onClearSelection?: () => void;
@@ -44,6 +48,8 @@ function markerGlyph(kind?: string): string {
         case "crew": return "◆";
         case "business": return "■";
         case "event": return "◇";
+        case "place": return "□";
+        case "person": return "●";
         case "training": return "△";
         case "practice": return "◌";
         case "match": return "★";
@@ -52,7 +58,7 @@ function markerGlyph(kind?: string): string {
     }
 }
 
-export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterSelect, onClearSelection, onViewportChange, loading }: Props) {
+export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSelect, onClusterSelect, onClearSelection, onViewportChange, loading }: Props) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<import("mapbox-gl").Map | null>(null);
     const dataRef = useRef<{ points: MapPoint[]; selectedId?: string | null }>({ points, selectedId });
@@ -95,20 +101,20 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
             const mapboxgl = (await import("mapbox-gl")).default;
             if (cancelled) return;
             mapboxgl.accessToken = token;
-            let initialCenter = TOKYO_STATION;
+            let initialCenterValue = initialCenter ?? TOKYO_STATION;
             let initialZoom = INITIAL_ZOOM;
             try {
                 const saved = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY) ?? "null") as { lng?: number; lat?: number; zoom?: number } | null;
                 if (Number.isFinite(saved?.lng) && Number.isFinite(saved?.lat)) {
-                    initialCenter = [saved!.lng!, saved!.lat!];
+                    initialCenterValue = [saved!.lng!, saved!.lat!];
                     initialZoom = Math.min(14, Math.max(13, saved?.zoom ?? INITIAL_ZOOM));
                 }
-            } catch { /* use Tokyo Station */ }
+            } catch { /* use prefecture center / Tokyo Station */ }
 
             const map = new mapboxgl.Map({
                 container: containerRef.current!,
                 style: "mapbox://styles/mapbox/light-v11",
-                center: initialCenter,
+                center: initialCenterValue,
                 zoom: initialZoom,
                 attributionControl: true,
             });
@@ -135,8 +141,8 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
                     type: "geojson",
                     data: { type: "FeatureCollection", features: [] },
                     cluster: true,
-                    clusterRadius: 48,
-                    clusterMaxZoom: 14,
+                    clusterRadius: 56,
+                    clusterMaxZoom: 16,
                 });
                 const source = "viz-points";
                 map.addLayer({ id: "viz-cluster-large", type: "circle", source, filter: [">=", ["get", "point_count"], 50], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 26, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
@@ -150,6 +156,9 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
                 map.addLayer({ id: "viz-activity-pulse", type: "circle", source, filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "category"], "activity"]], paint: { "circle-color": ["get", "pc"], "circle-radius": 14, "circle-opacity": 0.24, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1, "circle-radius-transition": { duration: 1400 }, "circle-opacity-transition": { duration: 1400 } } });
                 map.addLayer({ id: "viz-activity-circle", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["coalesce", ["get", "pc"], "#64748B"], "circle-radius": ["coalesce", ["get", "ps"], 10], "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-radius-transition": { duration: 150 } } });
                 map.addLayer({ id: "viz-activity-icon", type: "symbol", source, filter: ["!", ["has", "point_count"]], layout: { "text-field": ["get", "glyph"], "text-font": ["Arial Unicode MS Regular"], "text-size": 14, "text-allow-overlap": true }, paint: { "text-color": "#050508" } });
+                // タイムラベル（Activityの時刻感・Athlete/Placeの文脈）をPin下部に表示。
+                // ラベルが重なるところは allow-overlap=false で自動的に省略して地図を整理する。
+                map.addLayer({ id: "viz-activity-timelabel", type: "symbol", source, filter: ["all", ["has", "tlabel"], ["!=", ["get", "tlabel"], ""]], layout: { "text-field": ["get", "tlabel"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 10, "text-allow-overlap": false, "text-offset": [0, 1.8], "text-anchor": "top", "text-letter-spacing": 0.02 }, paint: { "text-color": "#f8fafc", "text-halo-color": "rgba(5,5,8,0.9)", "text-halo-width": 1.8, "text-halo-blur": 0.5 } });
 
                 const expandCluster = (e: import("mapbox-gl").MapLayerMouseEvent) => {
                     const feature = map.queryRenderedFeatures(e.point, { layers: ["viz-cluster-large", "viz-cluster-medium"] })[0] as unknown as { properties?: { cluster_id?: number }; geometry?: { type: string; coordinates: [number, number] } } | undefined;
@@ -249,6 +258,7 @@ export function MapCanvas({ points, selectedId, focusPoint, onSelect, onClusterS
                     pc: point.color ?? "#64748B",
                     ps: point.size ?? 10,
                     glyph: markerGlyph(kind),
+                    tlabel: point.timeLabel ?? "",
                 },
             };
         });

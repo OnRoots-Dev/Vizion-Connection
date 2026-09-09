@@ -322,7 +322,7 @@ export default function DashboardClient({
             case "moments":
                 return <MomentsFeedView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
             case "viz_map":
-                return <VizMapView t={t} roleColor={roleColor} onBack={goBack} />;
+                return <VizMapView t={t} roleColor={roleColor} onBack={goBack} initialPrefecture={profile.prefecture} />;
             case "portfolio":
                 // Portfolio（Journey履歴 / 活動記録 / 成長軌跡 / 実績）= Profile と責務分離した専用ビュー。
                 return <PortfolioView profile={profile} t={t} roleColor={roleColor} setView={handleSetView} />;

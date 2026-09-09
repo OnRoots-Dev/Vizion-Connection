@@ -61,6 +61,44 @@ export async function searchPlaces(params: PlaceSearchParams): Promise<PlaceReco
     return (data ?? []) as unknown as PlaceRecord[];
 }
 
+/** Viz Map の Place POI 表示用。テスト/検証アーティファクトは載せない。 */
+const MARKER_TEST_NAME = /検証|VizTest|テスト|TEST/;
+
+export interface MapPlacePoi {
+    id: string;
+    name: string;
+    prefecture: string;
+    place_type: PlaceRecord["place_type"];
+    precision: PlaceRecord["precision"];
+    latitude: number;
+    longitude: number;
+}
+
+export async function listMapPlacePois(
+    bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number },
+    options: { limit?: number } = {},
+): Promise<MapPlacePoi[]> {
+    const limit = Math.min(Math.max(options.limit ?? 60, 1), 200);
+
+    const { data, error } = await supabaseServer
+        .from("places")
+        .select("id,name,prefecture,place_type,precision,latitude,longitude")
+        .gte("latitude", bbox.minLat)
+        .lte("latitude", bbox.maxLat)
+        .gte("longitude", bbox.minLng)
+        .lte("longitude", bbox.maxLng)
+        .limit(limit);
+
+    if (error) {
+        console.error("[listMapPlacePois]", error);
+        return [];
+    }
+
+    return ((data ?? []) as unknown as MapPlacePoi[])
+        .filter((place) => !MARKER_TEST_NAME.test(place.name))
+        .slice(0, limit);
+}
+
 export async function getPlaceById(id: string): Promise<PlaceRecord | null> {
     const { data } = await supabaseServer
         .from("places")

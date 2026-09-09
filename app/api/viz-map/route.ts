@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseProfile } from "@/lib/auth/session";
-import { listPublicMapActivities, listPublicMapMoments } from "@/features/activity/server/map";
+import { listPublicMapActivities, listPublicMapMoments, listRecentPublicPeople } from "@/features/activity/server/map";
+import { listMapPlacePois } from "@/features/place/server/places";
 
 /**
  * Viz Map データ契約（読み取り専用）。
@@ -41,7 +42,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         { limit: Math.min(Number(sp.get("limit")) || 200, 500) },
     );
     const moments = requestedType === "activity" ? [] : await listPublicMapMoments(activities);
-    const items = requestedType === "moment" ? moments : [...activities, ...moments];
+    if (requestedType === "moment") {
+        // Moment専用ビューは従来どおり Activity 由来の Moment のみ返す。
+        return NextResponse.json({ success: true, items: moments });
+    }
 
-    return NextResponse.json({ success: true, items });
+    // コールドスタート対策（M2）：直近アクティブな公開ユーザーの近似Pin + Place POI を常時の背景として返す。
+    const people = await listRecentPublicPeople({ minLat, maxLat, minLng, maxLng });
+    const places = await listMapPlacePois({ minLat, maxLat, minLng, maxLng });
+    return NextResponse.json({ success: true, items: [...activities, ...moments, ...people], places });
 }
