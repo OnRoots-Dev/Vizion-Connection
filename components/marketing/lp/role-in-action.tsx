@@ -97,20 +97,29 @@ export function RoleInActionSection() {
   return (
     <section id="roles" className="relative overflow-hidden py-20 md:py-28">
       <div className="relative mx-auto max-w-6xl px-4">
-        {/* Section header */}
+        {/* Marriott Pattern B: section heading + "view all" link */}
         <motion.div
           initial={reduce ? undefined : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5 }}
-          className="mb-12 text-center"
+          className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
-          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--vc-accent)]">
-            <TextScramble text="4 ROLES" delay={100} duration={350} />
-          </p>
-          <h2 className="mt-3 text-balance font-[family-name:var(--font-bebas)] text-4xl font-normal tracking-wide text-white md:text-5xl">
-            あなたは、どの役割？
-          </h2>
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--vc-accent)]">
+              <TextScramble text="4 ROLES" delay={100} duration={350} />
+            </p>
+            <h2 className="mt-3 text-balance font-[family-name:var(--font-bebas)] text-4xl font-normal tracking-wide text-white md:text-5xl">
+              あなたは、どの役割？
+            </h2>
+          </div>
+          <Link
+            href="/register"
+            className="group inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white"
+          >
+            すべての役割から選ぶ
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </motion.div>
 
         {/* Role cards grid */}

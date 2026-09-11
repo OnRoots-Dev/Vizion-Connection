@@ -10,6 +10,7 @@ import { registerSchema } from "@/features/auth/validation/register-schema";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthPulseLoader, AuthSuccessMark } from "@/components/auth/AuthStatusMotion";
 import { EyeIcon } from "@/components/auth/EyeIcon";
+import { Zap, Dumbbell, HeartHandshake, Building2, type LucideIcon } from "lucide-react";
 import { springDefault, springSnap, fadeReduced } from "@/lib/motion/apple-springs";
 import { PRESS_SCALE } from "@/components/ui/Pressable";
 import { authGlassTokens } from "@/lib/design/tokens";
@@ -22,25 +23,26 @@ type Role = "Athlete" | "Trainer" | "Crew" | "Business";
 
 const ROLES: {
     value: Role;
+    icon: LucideIcon;
     label: string;
     displayName: string;
     color: string;
     detail: string;
 }[] = [
     {
-        value: "Athlete", label: "Athlete", displayName: "アスリート", color: "#FF5050",
+        value: "Athlete", icon: Zap, label: "Athlete", displayName: "アスリート", color: "#FF5050",
         detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
     },
     {
-        value: "Trainer", label: "Trainer", displayName: "トレーナー", color: "#30de1d",
+        value: "Trainer", icon: Dumbbell, label: "Trainer", displayName: "トレーナー", color: "#30de1d",
         detail: "スポーツの指導・サポートをしている方向け。",
     },
     {
-        value: "Crew", label: "Crew", displayName: "サポーター", color: "#FFC81E",
+        value: "Crew", icon: HeartHandshake, label: "Crew", displayName: "サポーター", color: "#FFC81E",
         detail: "ファン、サポーター、家族、友人、関係者の方向け。",
     },
     {
-        value: "Business", label: "Business", displayName: "ビジネス", color: "#3C8CFF",
+        value: "Business", icon: Building2, label: "Business", displayName: "ビジネス", color: "#3C8CFF",
         detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。",
     },
 ];
@@ -308,6 +310,7 @@ export default function RegisterForm() {
                             <div className="grid grid-cols-2 gap-3">
                                 {ROLES.map((r) => {
                                     const isSelected = role === r.value;
+                                    const Icon = r.icon;
                                     return (
                                         <motion.button
                                             key={r.value}
@@ -316,15 +319,25 @@ export default function RegisterForm() {
                                             whileTap={press}
                                             transition={springSnap}
                                             layout
-                                            className="rounded-2xl px-4 py-5 text-center"
+                                            className="flex flex-col items-center gap-2 rounded-2xl px-3 py-4 text-center"
                                             style={{
                                                 background: isSelected ? `${r.color}16` : "rgba(17,17,24,0.9)",
                                                 border: `1.5px solid ${isSelected ? r.color : "rgba(30,30,42,1)"}`,
                                                 boxShadow: isSelected ? `0 0 20px ${r.color}30` : "none",
                                             }}
                                         >
+                                            <span
+                                                className="grid h-10 w-10 place-items-center rounded-xl border"
+                                                style={{
+                                                    borderColor: isSelected ? `${r.color}66` : "rgba(255,255,255,0.1)",
+                                                    background: isSelected ? `${r.color}1e` : "rgba(255,255,255,0.04)",
+                                                    color: isSelected ? r.color : "rgba(255,255,255,0.35)",
+                                                }}
+                                            >
+                                                <Icon className="h-4 w-4" strokeWidth={1.9} />
+                                            </span>
                                             <div className="font-display text-[14px] font-black tracking-wide" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
-                                            <div className="mt-1 text-[11px] font-bold" style={{ color: isSelected ? "rgba(255,255,255,0.75)" : "#444" }}>{r.displayName}</div>
+                                            <div className="text-[11px] font-bold" style={{ color: isSelected ? "rgba(255,255,255,0.75)" : "#444" }}>{r.displayName}</div>
                                         </motion.button>
                                     );
                                 })}
@@ -504,9 +517,9 @@ export default function RegisterForm() {
                                     { label: "ユーザーID", value: `@${form.slug}` },
                                     ...(form.referrerSlug ? [{ label: "紹介コード", value: form.referrerSlug }] : []),
                                 ].map((row) => (
-                                    <div key={row.label} className="flex items-center justify-between gap-4 py-3.5">
-                                        <span className="shrink-0 text-[11px] text-white/35">{row.label}</span>
-                                        <span className="truncate text-sm font-medium" style={{ color: row.color ?? "rgba(255,255,255,0.85)" }}>
+                                    <div key={row.label} className="py-3.5">
+                                        <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-white/30">{row.label}</span>
+                                        <span className="mt-1.5 block truncate text-sm font-semibold" style={{ color: row.color ?? "rgba(255,255,255,0.85)" }}>
                                             {row.value}
                                         </span>
                                     </div>
