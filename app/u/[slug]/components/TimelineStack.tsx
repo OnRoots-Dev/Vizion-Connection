@@ -151,10 +151,42 @@ export default function TimelineStack({
     title?: string;
 }) {
     const compact = mode === "preview";
+    const showViewAll = mode === "preview" && !!viewAllHref;
 
     return (
         <section aria-label="活動タイムライン">
-            <h2 style={vpSectionTitle}>{title}</h2>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginBottom: showViewAll ? 14 : 0,
+                }}
+            >
+                <h2 style={showViewAll ? { ...vpSectionTitle, margin: 0 } : vpSectionTitle}>{title}</h2>
+                {showViewAll && viewAllHref ? (
+                    <Link
+                        href={viewAllHref}
+                        style={{
+                            flexShrink: 0,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "6px 2px",
+                            fontSize: 11,
+                            fontWeight: 800,
+                            fontFamily: VP_MONO_FONT,
+                            letterSpacing: "0.06em",
+                            color: VP.neon,
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        全ての軌跡を見る
+                        <IconArrowRight size={12} />
+                    </Link>
+                ) : null}
+            </div>
 
             {entries.length === 0 ? (
                 <div style={{ borderRadius: INTERACTION.radius.card, border: `1px solid ${VP.border}`, background: "rgba(255,255,255,0.02)", boxShadow: INTERACTION.hover.shadow.rest, padding: "28px 16px", textAlign: "center" }}>
@@ -225,32 +257,6 @@ export default function TimelineStack({
                     ) : null}
                 </div>
             )}
-
-            {mode === "preview" && viewAllHref ? (
-                <Link
-                    href={viewAllHref}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        marginTop: 4,
-                        padding: "13px 16px",
-                        minHeight: 44,
-                        borderRadius: 14,
-                        border: `1px solid ${VP.neonBorder}`,
-                        background: VP.neonFaint,
-                        color: VP.neonSoft,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        letterSpacing: "0.08em",
-                        cursor: "pointer",
-                    }}
-                >
-                    全ての軌跡を見る
-                    <IconArrowRight size={12} />
-                </Link>
-            ) : null}
         </section>
     );
 }

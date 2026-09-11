@@ -46,6 +46,31 @@ const STATUS_COLOR: Record<string, string> = {
     cancelled: "#FF5C7A",
 };
 
+const detailInfoCard = {
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.03)",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 5,
+    minWidth: 0,
+};
+const detailInfoLabel = {
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase" as const,
+    color: "rgba(255,255,255,0.35)",
+    fontFamily: "monospace",
+};
+const detailInfoValue = {
+    fontSize: 13,
+    lineHeight: 1.55,
+    color: "rgba(255,255,255,0.7)",
+    wordBreak: "break-word" as const,
+};
+
 function toLocalInput(iso?: string): string {
     const d = iso ? new Date(iso) : new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -591,15 +616,28 @@ export function ActivitiesView({
 
                             <MediaViewer imageUrl={a.image_url} videoUrl={a.video_url} alt="Activityの画像" maxHeight={360} />
 
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
-                                <span>🗓 {new Date(a.starts_at).toLocaleString("ja-JP")}{a.ends_at ? ` 〜 ${new Date(a.ends_at).toLocaleString("ja-JP")}` : ""}</span>
-                                {a.place ? <span>📍 {a.place.name}（{a.place.prefecture}）</span> : <span style={{ color: "rgba(255,255,255,0.4)" }}>📍 場所なし</span>}
+                            <div className="vc-detail-info-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, alignItems: "stretch" }}>
+                                <div style={detailInfoCard}>
+                                    <span style={detailInfoLabel}>SCHEDULE</span>
+                                    <span style={detailInfoValue}>🗓 {new Date(a.starts_at).toLocaleString("ja-JP")}{a.ends_at ? ` 〜 ${new Date(a.ends_at).toLocaleString("ja-JP")}` : ""}</span>
+                                </div>
+                                <div style={detailInfoCard}>
+                                    <span style={detailInfoLabel}>PLACE</span>
+                                    {a.place ? (
+                                        <span style={detailInfoValue}>📍 {a.place.name}（{a.place.prefecture}）</span>
+                                    ) : (
+                                        <span style={{ ...detailInfoValue, color: "rgba(255,255,255,0.4)" }}>📍 場所なし</span>
+                                    )}
+                                </div>
                                 {a.tags.length > 0 ? (
-                                    <span style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                        {a.tags.map((tag) => (
-                                            <span key={tag} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)" }}>#{tag}</span>
-                                        ))}
-                                    </span>
+                                    <div style={detailInfoCard}>
+                                        <span style={detailInfoLabel}>TAGS</span>
+                                        <span style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                            {a.tags.map((tag) => (
+                                                <span key={tag} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)" }}>#{tag}</span>
+                                            ))}
+                                        </span>
+                                    </div>
                                 ) : null}
                             </div>
 
