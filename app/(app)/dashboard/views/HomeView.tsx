@@ -77,7 +77,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         setSocialLoading(true);
         const items: LiveInfoItem[] = [];
         const fetchJson = async (url: string) => {
-            const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+            const response = await fetch(url, { cache: "no-store" });
             return response.json() as Promise<unknown>;
         };
         const [cheerResult, connectionResult] = await Promise.allSettled([
