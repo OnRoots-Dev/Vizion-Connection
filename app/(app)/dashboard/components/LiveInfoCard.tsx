@@ -18,7 +18,7 @@ interface LiveInfoItem {
 }
 
 // ── タイプ別のスタイル ──────────────────────────────────────────────────────
-const TYPE_CONFIG: Record<LiveInfoType, { icon: React.ReactNode; color: string; glow: string; label: string }> = {
+export const TYPE_CONFIG: Record<LiveInfoType, { icon: React.ReactNode; color: string; glow: string; label: string }> = {
     cheer: {
         icon: <IconCheer size={16} style={{ color: "#FFD600" }} />,
         color: "#FFD600",

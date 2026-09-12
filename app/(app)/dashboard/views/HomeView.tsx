@@ -22,6 +22,8 @@ import { MomentCard } from "../components/core/MomentCard";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
 import { apiGet } from "@/lib/api/core-client";
+import { Camera, CalendarDays, UserPlus } from "lucide-react";
+import { LiveWorldCarousel } from "../components/LiveWorldCarousel";
 
 const SECTION_LABEL: React.CSSProperties = {
     margin: 0,
@@ -35,13 +37,14 @@ const SECTION_LABEL: React.CSSProperties = {
 
 const ACCENT = "#C8E800";
 
-export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView }: {
+export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, isDesktop }: {
     profile: ProfileData;
     referralUrl: string;
     referralCount: number;
     t: ThemeColors;
     roleColor: string;
     setView: (v: DashboardView) => void;
+    isDesktop: boolean;
 }) {
     const reduce = useReducedMotion();
     const region = profile.prefecture || profile.region || "JAPAN";
@@ -119,10 +122,13 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
         .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
         .slice(0, 2);
 
+    const right: React.CSSProperties | undefined = isDesktop ? { gridColumn: 2 } : undefined;
+    const rail: React.CSSProperties | undefined = isDesktop ? { gridColumn: 1, gridRow: "1 / span 6" } : undefined;
+
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ display: "grid", gap: 20, alignItems: "start", gridTemplateColumns: isDesktop ? "minmax(240px, 268px) minmax(0, 1fr)" : "minmax(0, 1fr)" }}>
             {/* ═══ 1. AROUND YOU ═══ */}
-            <section aria-label="Around you" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <section aria-label="Around you" style={{ display: "flex", flexDirection: "column", gap: 12, ...right }}>
                 <motion.div initial={reduce ? { opacity: 1 } : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -138,13 +144,16 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 <motion.div initial={reduce ? { opacity: 1 } : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
                     style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
                     {([
-                        { n: worldMoments.length, label: "MOMENTS" },
-                        { n: total, label: "THIS WEEK" },
-                        { n: referralCount, label: "INVITES" },
-                    ]).map((s) => (
-                        <div key={s.label} style={{ background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px" }}>
-                            <p className="font-display" style={{ margin: 0, fontSize: 30, lineHeight: 1, fontWeight: 400, color: "#f0f0f5", fontVariantNumeric: "tabular-nums" }}>{s.n.toLocaleString()}</p>
-                            <p style={{ margin: "6px 0 0", fontSize: 9, fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: "0.14em", color: ACCENT }}>{s.label}</p>
+                        { n: worldMoments.length, label: "MOMENTS", Icon: Camera },
+                        { n: total, label: "THIS WEEK", Icon: CalendarDays },
+                        { n: referralCount, label: "INVITES", Icon: UserPlus },
+                    ]).map(({ n, label, Icon }) => (
+                        <div key={label} style={{ display: "flex", flexDirection: "column", background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                                <Icon size={14} style={{ color: ACCENT, opacity: 0.85 }} aria-hidden />
+                                <span style={{ fontSize: 9, fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: "0.14em", color: ACCENT, whiteSpace: "nowrap" }}>{label}</span>
+                            </div>
+                            <p className="font-display" style={{ margin: 0, fontSize: 30, lineHeight: 1, fontWeight: 400, color: "#f0f0f5", fontVariantNumeric: "tabular-nums" }}>{n.toLocaleString()}</p>
                         </div>
                     ))}
                 </motion.div>
@@ -154,7 +163,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             </section>
 
             {/* ═══ 2. MOMENTS ═══（世界のMoment 横スクロール） */}
-            <section aria-label="Moments" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <section aria-label="Moments" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>MOMENTS · JUST NOW</p>
                     <button type="button" onClick={() => setView("moments")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>見る →</button>
@@ -179,7 +188,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             </section>
 
             {/* ═══ 3. NEARBY ═══（Map プレビュー → Viz Map） */}
-            <section aria-label="Nearby" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <section aria-label="Nearby" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>NEARBY · VIZ MAP</p>
                     <button type="button" onClick={() => setView("viz_map")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>探す →</button>
@@ -198,24 +207,40 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 </button>
             </section>
 
-            {/* ═══ 4. PROFILE CARD ═══ */}
-            <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
+            {/* ═══ 4. PROFILE CARD ═══（Desktop: 左サイドレール） */}
+            <div style={rail}>
+                <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
+            </div>
 
             {/* ═══ 5. YOUR WORLD · LIVE ═══ */}
-            <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR WORLD · LIVE</p>
                     <button type="button" onClick={() => setView("moments")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>繋がる →</button>
                 </div>
-                {social.length > 0 || socialLoading ? (
-                    <LiveInfoCard items={social} loading={socialLoading} />
+                {socialLoading ? (
+                    <div style={{ height: 200, borderRadius: 20, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }} />
+                ) : social.length > 0 ? (
+                    <LiveWorldCarousel items={social} />
                 ) : (
-                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", padding: "2px 2px" }}>あなたへの反応と申請がここに届きます。世界を探索して、誰かのActivityに反応してみましょう。</p>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, textAlign: "center", border: "1px dashed rgba(255,255,255,0.18)", borderRadius: 16, padding: "28px 18px" }}>
+                        <div style={{ display: "grid", placeItems: "center", width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                            </svg>
+                        </div>
+                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.7 }}>まだ反応がありません。世界を探索してみましょう</p>
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                            <button type="button" onClick={() => setView("viz_map")} className="vz-btn" style={{ background: ACCENT, color: "#0B0B0F", border: "none", borderRadius: 10, padding: "9px 14px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>地図で探す</button>
+                            <button type="button" onClick={() => setView("activities")} className="vz-btn" style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "9px 14px", fontSize: 11, fontWeight: 800, color: "#f0f0f5", cursor: "pointer" }}>Activityを見る</button>
+                        </div>
+                    </div>
                 )}
             </section>
 
             {/* ═══ 6. YOUR ACTIVITY ═══ */}
-            <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
                     <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>全て →</button>
@@ -243,7 +268,7 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
             </section>
 
             {/* ═══ 7. JOURNEY · THIS WEEK ═══（週間進捗バー） */}
-            <section aria-label="Journey" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <section aria-label="Journey" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>JOURNEY · THIS WEEK</p>
                     <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>振り返る →</button>
