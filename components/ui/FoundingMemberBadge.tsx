@@ -4,28 +4,25 @@ import { motion } from "framer-motion";
 
 export function FoundingMemberBadge() {
     return (
-        <motion.div
-            initial={{ opacity: 0.9 }}
-            whileHover={{ opacity: 1 }}
-            className="relative inline-flex cursor-default items-center gap-[5px] overflow-hidden rounded-[2px] py-[4px] pl-[6px] pr-[9px] font-mono text-[6.5px] font-[800] uppercase tracking-[0.2em] text-[#fff5c0] shadow-[0_0_0_1px_rgba(100,75,0,0.7),inset_0_0_0_1px_rgba(255,215,60,0.18),inset_0_1px_0_rgba(255,235,100,0.35),inset_0_-1px_0_rgba(0,0,0,0.5),0_0_10px_rgba(180,130,5,0.22),0_0_24px_rgba(180,130,5,0.08)]"
-            style={{
-                background: `
+<motion.div
+                initial={{ opacity: 0.9 }}
+                whileHover={{ opacity: 1 }}
+                className="relative inline-flex cursor-default items-center gap-[5px] overflow-hidden rounded-[2px] py-[4px] pl-[6px] pr-[9px] font-mono text-[6.5px] font-[800] uppercase tracking-[0.2em] text-[#fff5c0] shadow-[0_0_0_1px_rgba(100,75,0,0.7),inset_0_0_0_1px_rgba(255,215,60,0.18),inset_0_1px_0_rgba(255,235,100,0.35),inset_0_-1px_0_rgba(0,0,0,0.5),0_0_10px_rgba(180,130,5,0.22),0_0_24px_rgba(180,130,5,0.08)]"
+                style={{
+                    background: `
           linear-gradient(170deg, rgba(255,245,160,0.07) 0%, rgba(255,255,255,0.04) 30%, transparent 60%),
           linear-gradient(105deg, #1a1200 0%, #362800 15%, #7a5c00 30%, #c8940c 42%, #f5dc5a 50%, #c8940c 58%, #7a5c00 70%, #362800 85%, #1a1200 100%)
         `,
-                backgroundSize: "100% 100%, 280% 100%",
-                textShadow: "0 1px 0 rgba(0,0,0,0.9), 0 -1px 0 rgba(255,220,40,0.3), 0 0 6px rgba(255,200,20,0.5), 0 0 14px rgba(255,180,0,0.2)",
-            }}
-        >
-            <motion.div
-                animate={{ backgroundPosition: ["160% 0", "-60% 0"] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="pointer-events-none absolute inset-0 z-[2]"
-                style={{
-                    background: "linear-gradient(112deg, transparent 35%, rgba(255,255,200,0.28) 47%, rgba(255,255,255,0.45) 50%, rgba(255,255,200,0.28) 53%, transparent 65%)",
-                    backgroundSize: "300% 100%",
+                    textShadow: "0 1px 0 rgba(0,0,0,0.9), 0 -1px 0 rgba(255,220,40,0.3), 0 0 6px rgba(255,200,20,0.5), 0 0 14px rgba(255,180,0,0.2)",
                 }}
-            />
+            >
+                <div className="pointer-events-none absolute inset-0 z-[2]"
+                    style={{
+                        background: "linear-gradient(112deg, transparent 35%, rgba(255,255,200,0.28) 47%, rgba(255,255,255,0.45) 50%, rgba(255,255,200,0.28) 53%, transparent 65%)",
+                        backgroundSize: "300% 100%",
+                        backgroundPosition: "20% 0",
+                    }}
+                />
             <svg className="z-[3] h-[9px] w-[9px] shrink-0 overflow-visible"
                 style={{ filter: "drop-shadow(0 0 2px rgba(255,220,40,0.9)) drop-shadow(0 0 5px rgba(255,180,0,0.5))" }}
                 viewBox="0 0 14 11" fill="none">
@@ -50,26 +47,23 @@ export function FoundingMemberBadge() {
 
 export function EarlyPartnerBadge() {
     return (
-        <motion.div
-            initial={{ opacity: 0.9 }}
-            whileHover={{ opacity: 1 }}
-            className="relative inline-flex cursor-default items-center gap-[5px] overflow-hidden rounded-[2px] py-[4px] pl-[6px] pr-[9px] font-mono text-[6.5px] font-[800] uppercase tracking-[0.2em] text-[rgba(180,220,255,0.85)]"
-            style={{
-                background: "linear-gradient(105deg, #001a30 0%, #003060 30%, #1060a0 50%, #003060 70%, #001a30 100%)",
-                backgroundSize: "280% 100%",
-                boxShadow: "0 0 0 1px rgba(0,60,120,0.7), inset 0 0 0 1px rgba(80,160,255,0.18), inset 0 1px 0 rgba(120,200,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 10px rgba(20,100,200,0.2)",
-                textShadow: "0 1px 0 rgba(0,0,0,0.9), 0 0 6px rgba(80,160,255,0.5)",
-            }}
-        >
-            <motion.div
-                animate={{ backgroundPosition: ["160% 0", "-60% 0"] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="pointer-events-none absolute inset-0 z-[2]"
+<motion.div
+                initial={{ opacity: 0.9 }}
+                whileHover={{ opacity: 1 }}
+                className="relative inline-flex cursor-default items-center gap-[5px] overflow-hidden rounded-[2px] py-[4px] pl-[6px] pr-[9px] font-mono text-[6.5px] font-[800] uppercase tracking-[0.2em] text-[rgba(180,220,255,0.85)]"
                 style={{
-                    background: "linear-gradient(112deg, transparent 35%, rgba(180,220,255,0.2) 47%, rgba(220,240,255,0.35) 50%, rgba(180,220,255,0.2) 53%, transparent 65%)",
-                    backgroundSize: "300% 100%",
+                    background: "linear-gradient(105deg, #001a30 0%, #003060 30%, #1060a0 50%, #003060 70%, #001a30 100%)",
+                    boxShadow: "0 0 0 1px rgba(0,60,120,0.7), inset 0 0 0 1px rgba(80,160,255,0.18), inset 0 1px 0 rgba(120,200,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.5), 0 0 10px rgba(20,100,200,0.2)",
+                    textShadow: "0 1px 0 rgba(0,0,0,0.9), 0 0 6px rgba(80,160,255,0.5)",
                 }}
-            />
+            >
+                <div className="pointer-events-none absolute inset-0 z-[2]"
+                    style={{
+                        background: "linear-gradient(112deg, transparent 35%, rgba(180,220,255,0.2) 47%, rgba(220,240,255,0.35) 50%, rgba(180,220,255,0.2) 53%, transparent 65%)",
+                        backgroundSize: "300% 100%",
+                        backgroundPosition: "20% 0",
+                    }}
+                />
             <svg className="z-[3] h-[9px] w-[9px] shrink-0"
                 style={{ filter: "drop-shadow(0 0 2px rgba(80,160,255,0.9))" }}
                 viewBox="0 0 14 11" fill="none">
