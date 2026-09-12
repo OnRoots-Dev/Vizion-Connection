@@ -76,22 +76,31 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const loadSocial = useCallback(async () => {
         setSocialLoading(true);
         const items: LiveInfoItem[] = [];
-        try {
-            const cheerJson = await (await fetch("/api/cheer/received", { cache: "no-store" })).json() as { cheers?: unknown[]; items?: unknown[] };
+        const fetchJson = async (url: string) => {
+            const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+            return response.json() as Promise<unknown>;
+        };
+        const [cheerResult, connectionResult] = await Promise.allSettled([
+            fetchJson("/api/cheer/received"),
+            fetchJson("/api/connections"),
+        ]);
+
+        if (cheerResult.status === "fulfilled") {
+            const cheerJson = cheerResult.value as { cheers?: unknown[]; items?: unknown[] };
             const cheers = cheerJson?.cheers ?? cheerJson?.items ?? [];
             if (Array.isArray(cheers) && cheers.length > 0) {
                 const c = cheers[0] as { fromDisplayName?: string };
                 items.push({ type: "cheer", text: `${c.fromDisplayName ?? "誰か"}があなたにCheerしました`, href: "/dashboard?view=cheer" });
             }
-        } catch {}
-        try {
-            const connJson = await (await fetch("/api/connections", { cache: "no-store" })).json() as { connections?: ConnectionListItem[] };
+        }
+        if (connectionResult.status === "fulfilled") {
+            const connJson = connectionResult.value as { connections?: ConnectionListItem[] };
             const conns = connJson?.connections ?? [];
             const pending = (Array.isArray(conns) ? conns : []).find((c) => c.status === "pending" && c.direction === "incoming");
             if (pending?.counterpart) {
                 items.push({ type: "connection", text: `${pending.counterpart.display_name ?? pending.counterpart.slug}からConnection申請が届いています`, href: "/dashboard?view=moments" });
             }
-        } catch {}
+        }
         setSocial(items.slice(0, 3));
         setSocialLoading(false);
     }, []);

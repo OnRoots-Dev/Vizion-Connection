@@ -22,7 +22,7 @@ export function LiveWorldCarousel({ items }: { items: LiveInfoItem[] }) {
     }
 
     return (
-        <div style={{ position: "relative", width: "100%", maxWidth: 560, margin: "0 auto" }}>
+        <div style={{ position: "relative", display: "block", width: "100%", minWidth: 0, maxWidth: 680, margin: "0 auto" }}>
             {/* Large showcase panel */}
             <div style={{ position: "relative", overflow: "hidden", borderRadius: 20, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.02)" }}>
                 <div

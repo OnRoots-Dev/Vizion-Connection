@@ -154,6 +154,7 @@ export function ProfileCardSection({
     const spotlightColor = hexToRgba(ROLE_COLOR[roleKey] ?? rl, 0.28);
     const initials = profile.displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
     const vzId = profile.serialId ?? "VZ-2026-000001";
+    const regionPrefecture = [profile.region, profile.prefecture].filter(Boolean).join(" / ") || "JAPAN";
     const cheerCount = profile.cheerCount ?? 0;
     const latestCheers = profile.latestCheers ?? [];
     const isFounding = profile.isFoundingMember ?? false;
@@ -296,7 +297,7 @@ export function ProfileCardSection({
                                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(128deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.025) 30%,transparent 55%)", borderRadius: 14, pointerEvents: "none", zIndex: 1 }} />
                                 <div style={{ position: "absolute", inset: 1, borderRadius: 13, border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none", zIndex: 1 }} />
                                 {bannerSrc ? (
-                                    <NextImage src={bannerSrc} alt={profile.displayName} width={1} height={1} unoptimized sizes="(max-width: 768px) 62vw, 62%" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none", zIndex: 3, ...photoMask }} />
+                                    <NextImage src={bannerSrc} alt={profile.displayName} width={1} height={1} unoptimized sizes="(max-width: 768px) 62vw, 62%" style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none", zIndex: 2, ...photoMask }} />
                                 ) : (
                                     <div style={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "62%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "monospace", fontSize: 80, fontWeight: 900, color: "rgba(255,255,255,0.05)", pointerEvents: "none", userSelect: "none", zIndex: 3, ...photoMask }}>{initials}</div>
                                 )}
@@ -307,7 +308,7 @@ export function ProfileCardSection({
                                     style={{
                                         position: "absolute",
                                         inset: 0,
-                                        zIndex: 7,
+                                        zIndex: 12,
                                         display: "flex",
                                         flexDirection: "column",
                                         justifyContent: "space-between",
@@ -344,7 +345,7 @@ export function ProfileCardSection({
                                     ) : null}
                                     <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "flex-start" }}>
                                         <div style={{ display: "inline-flex" }}>{isFounding ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}</div>
-                                        <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{profile.region || "N/A"} / {profile.prefecture || "N/A"}</span>
+                                        <span style={{ fontFamily: "monospace", fontSize: 8.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.5)" }}>{regionPrefecture}</span>
                                     </div>
                                     <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
@@ -378,7 +379,10 @@ export function ProfileCardSection({
                                             display: "flex",
                                             flexDirection: "column",
                                             gap: 4,
-                                            maxWidth: "60%",
+                                            width: "100%",
+                                            maxWidth: "calc(100% - 70px)",
+                                            minWidth: 0,
+                                            overflow: "visible",
                                         }}
                                     >
                                         <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.16em", color: "rgba(255,255,255,0.26)", textTransform: "uppercase" }}>
@@ -388,12 +392,16 @@ export function ProfileCardSection({
                                             style={{
                                                 display: "block",
                                                 fontFamily: "monospace",
-                                                fontSize: "clamp(12px, 3.0vw, 17px)",
+                                                fontSize: "clamp(9px, 2.4vw, 13px)",
                                                 fontWeight: 950,
-                                                letterSpacing: "clamp(0.06em, 0.5vw, 0.16em)",
+                                                letterSpacing: "clamp(0.03em, 0.24vw, 0.08em)",
                                                 color: "rgba(180, 180, 190, 0.9)",
                                                 opacity: 1,
-                                                whiteSpace: "nowrap",
+                                                whiteSpace: "normal",
+                                                overflow: "visible",
+                                                overflowWrap: "anywhere",
+                                                wordBreak: "break-word",
+                                                lineHeight: 1.2,
                                                 textShadow: "0 1px 0 rgba(255,255,255,0.12), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.42)",
                                                 filter: "drop-shadow(0 0 8px rgba(0,0,0,0.18))",
                                             }}
@@ -402,7 +410,7 @@ export function ProfileCardSection({
                                         </span>
                                     </div>
                                 </div>
-                                <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 7 }}>
+                                <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 8 }}>
                                     <NextImage src="/images/Vizion_Connection_logo-bk-cropped.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
                                 </div>
                             </div>
