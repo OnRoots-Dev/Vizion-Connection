@@ -16,6 +16,7 @@ const normalizeSpotlightColor = (color: string) => {
 
 interface SpotlightCardProps extends React.PropsWithChildren {
   className?: string;
+  style?: React.CSSProperties;
   spotlightColor?: `rgba(${number}, ${number}, ${number}, ${number})`;
   disabled?: boolean;
 }
@@ -23,6 +24,7 @@ interface SpotlightCardProps extends React.PropsWithChildren {
 const SpotlightCard: React.FC<SpotlightCardProps> = ({
   children,
   className = '',
+  style,
   spotlightColor = 'rgba(255, 255, 255, 0.25)',
   disabled = false
 }) => {
@@ -69,6 +71,7 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className={`relative rounded-3xl border border-neutral-800 bg-neutral-900 overflow-hidden p-8 ${className}`}
+      style={style}
     >
       {!disabled && (
         <div

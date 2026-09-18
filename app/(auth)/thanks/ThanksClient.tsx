@@ -110,12 +110,13 @@ export default function ThanksClient({
   const welcomeTriggered = useRef(false);
 
   // 認証後に復帰するパス（例: Business決済画面）。無ければ従来通り /onboarding。
+  // 認証完了画面は必ず表示するため、自動遷移はしない。遷移は CTA（「続ける」）のクリックのみ。
   const forwardNext = safeNextPath(next);
   const ctaHref = forwardNext ?? content.cta?.href ?? null;
   const ctaLabel = forwardNext ? "続ける" : (content.cta?.label ?? null);
 
   // 認証完了ページ表示後にウェルカムメールを自動送信（1回のみ）。
-  // next 指定時は送信トリガ後に即座にフォワード（決済導線など）。
+  // 送信完了を待たず画面表示をブロックしない。遷移は行わない。
   useEffect(() => {
     if (!content.triggerWelcomeEmail || welcomeTriggered.current) return;
     welcomeTriggered.current = true;
@@ -130,11 +131,8 @@ export default function ThanksClient({
       } catch {
         // メール送信失敗は画面をブロックしない（サーバーログに残る）
       }
-      if (forwardNext) {
-        window.location.assign(forwardNext);
-      }
     })();
-  }, [content.triggerWelcomeEmail, forwardNext]);
+  }, [content.triggerWelcomeEmail]);
 
   return (
     <AuthShell

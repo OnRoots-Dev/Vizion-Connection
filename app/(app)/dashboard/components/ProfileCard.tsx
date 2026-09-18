@@ -101,6 +101,34 @@ export function ProfileCardSection({
     const [showScan, setShowScan] = useState(false);
     const [cheerModalOpen, setCheerModalOpen] = useState(false);
     const [connectionCount, setConnectionCount] = useState(0);
+    const serialIdRef = useRef<HTMLSpanElement>(null);
+    const [serialFontSize, setSerialFontSize] = useState<number | undefined>(undefined);
+
+    useEffect(() => {
+        const el = serialIdRef.current;
+        if (!el) return;
+        let raf = 0;
+        const fit = () => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+                const parent = el.parentElement;
+                if (!parent) return;
+                const avail = parent.clientWidth;
+                if (avail <= 0) return;
+                const prev = el.style.fontSize;
+                el.style.fontSize = "13px";
+                const measured = el.scrollWidth;
+                el.style.fontSize = prev;
+                if (measured <= avail) { setSerialFontSize(undefined); return; }
+                setSerialFontSize(Math.max(7, Math.floor((13 * avail) / measured * 100) / 100));
+            });
+        };
+        fit();
+        document.fonts?.ready.then(() => fit()).catch(() => {});
+        const ro = new ResizeObserver(fit);
+        ro.observe(el.parentElement as Element);
+        return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+    }, [profile.serialId]);
 
     useEffect(() => {
         if (mode === "public") return;
@@ -212,10 +240,11 @@ export function ProfileCardSection({
 
             <SpotlightCard
                 className="border-0 bg-transparent p-0"
+                style={{ padding: 0 }}
                 spotlightColor={spotlightColor}
                 disabled={spotlightDisabled}
             >
-            <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", maxWidth: 440, margin: "0 auto" }}>
+            <div style={{ perspective: "1200px", width: "100%", aspectRatio: "400/240", minHeight: 148, maxWidth: 440, margin: "0 auto" }}>
                 <div style={{ position: "relative", width: "100%", height: "100%" }}>
                     <div
                         style={{
@@ -349,8 +378,8 @@ export function ProfileCardSection({
                                     </div>
                                     <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 3 }}>
                                         <div style={{ fontFamily: "monospace", fontSize: 7, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{ROLE_LABEL[profile.role]}</div>
-                                        <div style={{ fontSize: "clamp(14px, 4.2vw, 18px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
-                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(9px, 2.8vw, 10.5px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
+                                        <div style={{ fontSize: "clamp(12px, 3.6vw, 15px)", fontWeight: 900, color: "#fff", lineHeight: 1.04, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", textShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.75), 0 2px 5px rgba(0,0,0,0.55), 0 0 14px rgba(255,255,255,0.05)" }}>{profile.displayName}</div>
+                                        {profile.sport && <div style={{ fontFamily: "monospace", fontSize: "clamp(8.5px, 2.4vw, 10px)", letterSpacing: "0.03em", color: "rgba(255,255,255,0.52)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.sport}</div>}
                                         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
                                             <span style={{ display: "inline-flex", color: "#FFD600" }} aria-hidden><IconCheer size={9} /></span>
                                             <span style={{ fontFamily: "monospace", fontSize: 7, letterSpacing: "0.12em", color: "rgba(255,255,255,0.28)" }}>Cheer</span>
@@ -361,46 +390,23 @@ export function ProfileCardSection({
                                             <span style={{ fontFamily: "monospace", fontSize: 16, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em", color: rl }}>{connectionCount}</span>
                                         </div>
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }} />
-                                </div>
-
-                                <div
-                                    style={{
-                                        position: "absolute",
-                                        left: 16,
-                                        right: 16,
-                                        bottom: 14,
-                                        zIndex: 8,
-                                        pointerEvents: "none",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 4,
-                                            width: "100%",
-                                            maxWidth: "calc(100% - 70px)",
-                                            minWidth: 0,
-                                            overflow: "visible",
-                                        }}
-                                    >
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: "calc(100% - 76px)", minWidth: 0, overflow: "visible" }}>
                                         <span style={{ fontFamily: "monospace", fontSize: 6.5, letterSpacing: "0.16em", color: "rgba(255,255,255,0.26)", textTransform: "uppercase" }}>
                                             Vizion ID
                                         </span>
                                         <span
+                                            ref={serialIdRef}
                                             style={{
                                                 display: "block",
                                                 fontFamily: "monospace",
-                                                fontSize: "clamp(9px, 2.4vw, 13px)",
+                                                fontSize: serialFontSize ?? "clamp(9px, 2.4vw, 13px)",
                                                 fontWeight: 950,
                                                 letterSpacing: "clamp(0.03em, 0.24vw, 0.08em)",
                                                 color: "rgba(180, 180, 190, 0.9)",
                                                 opacity: 1,
-                                                whiteSpace: "normal",
-                                                overflow: "visible",
-                                                overflowWrap: "anywhere",
-                                                wordBreak: "break-word",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
                                                 lineHeight: 1.2,
                                                 textShadow: "0 1px 0 rgba(255,255,255,0.12), 0 -1px 0 rgba(0,0,0,0.88), 0 2px 8px rgba(0,0,0,0.42)",
                                                 filter: "drop-shadow(0 0 8px rgba(0,0,0,0.18))",
@@ -410,6 +416,7 @@ export function ProfileCardSection({
                                         </span>
                                     </div>
                                 </div>
+
                                 <div style={{ position: "absolute", bottom: 10, right: 10, zIndex: 8 }}>
                                     <NextImage src="/images/Vizion_Connection_logo-bk-cropped.png" alt="Logo" width={140} height={38} style={{ height: 38, width: "auto", opacity: 0.55, mixBlendMode: "lighten" }} />
                                 </div>
