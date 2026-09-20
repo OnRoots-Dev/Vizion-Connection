@@ -7,7 +7,7 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 const ROLE_LINKS = [
   { role: "Athlete", label: "アスリート", color: "#FF5050" },
   { role: "Trainer", label: "トレーナー", color: "#30de1d" },
-  { role: "Crew", label: "サポーター", color: "#FFC81E" },
+  { role: "Crew", label: "クルー", color: "#FFC81E" },
   { role: "Business", label: "ビジネス", color: "#3C8CFF" },
 ];
 
@@ -57,31 +57,26 @@ export function CTASection() {
         </Link>
       </motion.div>
 
+      {/* Editorial role links - not card grid */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ delay: 0.35, duration: 0.7 }}
-        className="w-full max-w-[560px]"
+        className="flex flex-wrap items-center justify-center gap-4 md:gap-6"
       >
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
-          ロールを選んで登録
-        </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {ROLE_LINKS.map((r) => (
-            <Link
-              key={r.role}
-              href={`/register?role=${r.role}`}
-              className="rounded-xl border px-3 py-3.5 font-display text-[12px] font-bold tracking-wide transition-all hover:scale-[1.03]"
-              style={{
-                borderColor: `${r.color}45`,
-                background: `${r.color}10`,
-                color: r.color,
-              }}
-            >
-              {r.label}
-            </Link>
-          ))}
-        </div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/30">
+          または
+        </span>
+        {ROLE_LINKS.map((r, i) => (
+          <Link
+            key={r.role}
+            href={`/register?role=${r.role}`}
+            className="font-mono text-[11px] uppercase tracking-[0.18em] transition-colors hover:text-white"
+            style={{ color: r.color }}
+          >
+            {r.label}
+          </Link>
+        ))}
       </motion.div>
 
       <motion.p
@@ -140,7 +135,7 @@ export function FloatingCTA() {
             <span>無料で始める</span>
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current transition-transform group-hover:translate-x-1">
               <path d="M13.22 19.03a.75.75 0 010-1.06L18.19 13H3.75a.75.75 0 010-1.5h14.44l-4.97-4.97a.75.75 0 011.06-1.06l6.25 6.25a.75.75 0 010 1.06l-6.25 6.25a.75.75 0 01-1.06 0z" />
-          </svg>
+            </svg>
           </Link>
         </motion.div>
       )}

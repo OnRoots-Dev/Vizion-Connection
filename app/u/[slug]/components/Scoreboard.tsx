@@ -1,7 +1,6 @@
 // app/u/[slug]/components/Scoreboard.tsx
-// スコアボード — 実績の4数値（Cheer / Connector / Activities / Together）を1画面にまとめる。
-// HeatPanel と同じ「ゲームHUD」表現（FONT.display 大数値＋monoラベル）で統一する。
-import { INTERACTION, COLOR } from "@/lib/design/tokens";
+// Activity Summary — Replaced KPI card grid with narrative summary
+// Focus on human activity story, not dashboard statistics
 import { VP, VP_DISPLAY_FONT, VP_MONO_FONT, vpPanel } from "../profile-theme";
 
 export default function Scoreboard({
@@ -15,47 +14,35 @@ export default function Scoreboard({
     activityCount: number;
     togetherCount: number;
 }) {
-    const cells = [
-        { label: "Cheer", value: cheerCount, color: COLOR.gold, glow: "0 0 18px rgba(255,214,0,0.35)" },
-        { label: "Connector", value: connectorCount, color: VP.neon, glow: VP.textGlow },
-        { label: "Activities", value: activityCount, color: VP.neon, glow: VP.textGlow },
-        { label: "Together", value: togetherCount, color: VP.neonSoft, glow: "0 0 18px rgba(200,232,0,0.28)" },
-    ];
+    // Only show if there's meaningful activity
+    if (activityCount === 0 && togetherCount === 0 && cheerCount === 0) {
+        return null;
+    }
 
     return (
-        <section aria-label="実績">
+        <section aria-label="Activity Summary">
             <div
                 style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                    gap: 10,
-                    padding: 14,
+                    padding: "18px 20px",
                     ...vpPanel,
                 }}
             >
-                {cells.map((c) => (
-                    <div
-                        key={c.label}
-                        style={{
-                            borderRadius: INTERACTION.radius.card,
-                            border: `1px solid ${VP.border}`,
-                            background: "rgba(255,255,255,0.02)",
-                            padding: "16px 14px 14px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 6,
-                            minHeight: 90,
-                            justifyContent: "center",
-                        }}
-                    >
-                        <span style={{ fontSize: 9, letterSpacing: "0.24em", textTransform: "uppercase", color: VP.faint, fontFamily: VP_MONO_FONT }}>
-                            {c.label}
+                <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: VP.sub }}>
+                    {activityCount > 0 && (
+                        <span>
+                            {activityCount}件の活動を記録
+                            {togetherCount > 0 && `、${togetherCount}回のTogetherに参加`}
                         </span>
-                        <span style={{ fontFamily: VP_DISPLAY_FONT, fontSize: 40, lineHeight: 1, color: c.color, textShadow: c.glow }}>
-                            {c.value.toLocaleString()}
+                    )}
+                    {activityCount === 0 && togetherCount > 0 && (
+                        <span>{togetherCount}回のTogetherに参加</span>
+                    )}
+                    {cheerCount > 0 && (
+                        <span style={{ marginLeft: activityCount > 0 || togetherCount > 0 ? 8 : 0 }}>
+                            {cheerCount}件のCheerを受け取りました
                         </span>
-                    </div>
-                ))}
+                    )}
+                </p>
             </div>
         </section>
     );

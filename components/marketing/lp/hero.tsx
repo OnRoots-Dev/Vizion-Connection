@@ -110,11 +110,7 @@ export function Hero() {
               athlete="YUKI TANAKA"
               sport="TRAINING"
               location="YOKOHAMA"
-              activity="12"
-              schedule="3"
-              connections="9"
-              cheers={24}
-              comments={12}
+              activityType="MORNING SESSION"
               delay={0}
             />
           </motion.div>

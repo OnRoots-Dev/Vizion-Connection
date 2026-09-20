@@ -137,6 +137,23 @@ export default function BusinessPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
+              {/* Presence preview — Place as hero, not SaaS */}
+              <div className="anim-fade-up relative overflow-hidden rounded-xl border border-white/10 bg-[#0e1018] [animation-delay:.35s]" aria-label="Presence preview">
+                <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
+                <svg viewBox="0 0 640 120" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
+                  <line x1="0" y1="60" x2="640" y2="60" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
+                  <line x1="160" y1="0" x2="160" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  <line x1="400" y1="0" x2="400" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                  <circle cx="120" cy="60" r="6" fill="#3C8CFF" stroke="white" strokeWidth={1.2} />
+                  <circle cx="300" cy="60" r="6" fill="#3C8CFF" stroke="white" strokeWidth={1.2} />
+                  <circle cx="480" cy="60" r="6" fill="#3C8CFF" stroke="white" strokeWidth={1.2} />
+                </svg>
+                <div className="relative flex flex-wrap items-center gap-3 px-5 py-4">
+                  <span className="rounded-full border border-[#3C8CFF]/25 bg-[#3C8CFF]/10 px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] uppercase text-[#3C8CFF]">PLACE · 横浜 — 東京 — 大阪</span>
+                  <span className="font-mono text-[11px] tracking-wide text-white/35">活動が起きる場所に、企業が存在する</span>
+                  <span className="ml-auto font-mono text-[9px] tracking-[0.14em] uppercase text-white/25">POSITION · PRESENCE · CONNECTION</span>
+                </div>
+              </div>
             </section>
 
             {/* separator */}
@@ -280,11 +297,12 @@ export default function BusinessPage() {
                   <p className="mb-3 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">
                     Roots · 地方ブロック残枠（ad_slots 集計）
                   </p>
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {/* Editorial availability display - not card grid */}
+                  <div className="space-y-2">
                     {rootsRegions.map((r) => (
                       <div
                         key={r.id}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0e1018] px-4 py-3"
+                        className="flex items-center justify-between gap-4 border-t border-white/5 pt-2 first:border-t-0"
                       >
                         <span className="text-[.82rem] font-bold text-white">{r.label}</span>
                         <span
@@ -306,11 +324,12 @@ export default function BusinessPage() {
                   <p className="mb-3 font-mono text-[9px] uppercase tracking-[.22em] text-[#C8E800]">
                     全国プラン残枠（ad_slots）
                   </p>
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {/* Editorial availability display - not card grid */}
+                  <div className="space-y-2">
                     {nationalTiers.map((n) => (
                       <div
                         key={n.tier}
-                        className="flex items-center justify-between gap-2 rounded-xl border border-white/8 bg-[#0e1018] px-4 py-3"
+                        className="flex items-center justify-between gap-4 border-t border-white/5 pt-2 first:border-t-0"
                       >
                         <span className="text-[.82rem] font-bold capitalize text-white">{n.tier}</span>
                         <span

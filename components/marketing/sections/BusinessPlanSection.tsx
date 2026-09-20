@@ -1,141 +1,131 @@
 "use client";
 
+// Business — Presence, not SaaS pricing. VIZION NATIVE.
+// Pricing is secondary to Position / Place / People. Each tier has distinct presence.
+
 import Link from "next/link";
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { EditorialSection, EditorialHeading, VizionRule } from "@/lib/design/editorial";
 
 const PLANS = [
   {
-    name: "Roots",
-    price: "¥30,000",
-    regularPrice: "¥120,000",
-    period: "1ヶ月料金で4ヶ月利用",
-    target: "地域密着型スポーツビジネス",
-    features: ["プロフィール掲載", "Journey閲覧", "Discovery掲載"],
+    name: "ROOTS",
+    pos: "地元で、同じ場所に立つ。",
+    desc: "1つの地方ブロックで、活動のすぐそばに存在する。地域の熱を、最も近くで支える。",
+    meta: "PLACE · 1 Block",
+    price: "¥30,000 / 4ヶ月",
     color: "#30de1d",
+    bleed: "left" as const,
   },
   {
-    name: "Signal",
-    price: "¥100,000",
-    regularPrice: "¥400,000",
-    period: "1ヶ月料金で4ヶ月利用",
-    target: "全国展開を目指すブランド",
-    features: ["Roots全機能", "Discovery優先表示", "効果測定レポート"],
-    color: "var(--electric)",
+    name: "SIGNAL",
+    pos: "全国で、見つけてもらう。",
+    desc: "全国に存在し、Discoveryで優先的に出会われる。広く、継続的に届く。",
+    meta: "PRESENCE · National",
+    price: "¥100,000 / 4ヶ月",
+    color: "#C8E800",
+    bleed: "right" as const,
   },
   {
-    name: "Presence",
-    price: "¥300,000",
-    regularPrice: "¥1,200,000",
-    period: "1ヶ月料金で4ヶ月利用",
-    target: "スポーツ業界のリーディングカンパニー",
-    features: ["Signal全機能", "専任サポート", "カスタム施策"],
-    color: "var(--flame)",
+    name: "PRESENCE",
+    pos: "街の中で、記憶に残る。",
+    desc: "専任サポートとレポートで、街の活動とともにブランドが記憶される。効果が可視化される。",
+    meta: "ACTIVITY · Report + Support",
+    price: "¥300,000 / 4ヶ月",
+    color: "#FFC81E",
+    bleed: "left" as const,
   },
   {
-    name: "Legacy",
+    name: "LEGACY",
+    pos: "文化を、共に創る。",
+    desc: "共同開発と独占ポジションで、スポーツ文化そのものを長期で支える。未来を共に設計する。",
+    meta: "CONNECTION · Co-creation",
     price: "個別見積",
-    regularPrice: "",
-    period: "",
-    target: "長期パートナーシップを検討する企業",
-    features: ["全機能", "共同開発権", "独占ポジション"],
     color: "#FF5050",
+    bleed: "right" as const,
   },
 ] as const;
 
 export function BusinessPlanSection() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const reduce = useReducedMotion();
 
   return (
-    <section id="business" ref={ref} className="border-t border-white/5 bg-[#020b18] px-5 py-24 md:px-10 lg:px-16 xl:px-20">
-      <div className="mx-auto max-w-[1200px]">
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-          className="mb-3 font-display text-[11px] uppercase tracking-[0.45em]"
-          style={{ color: "var(--electric)" }}
+    <EditorialSection background="accent-subtle" bleed>
+      <div className="px-4 md:px-6 lg:px-8 mx-auto max-w-6xl">
+        <motion.div
+          initial={reduce ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8 }}
         >
-          Business Plans
-        </motion.p>
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.1, duration: 0.8 }}
-          className="mb-3 font-display text-[clamp(28px,4vw,56px)] font-black tracking-tight text-white"
-        >
-          ビジネスとして、挑戦を支える。
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.18, duration: 0.7 }}
-          className="mb-14 font-body text-[clamp(13px,1.3vw,15px)] text-white/45"
-        >
-          スポーツに関わる企業・団体のためのプラン
-        </motion.p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {PLANS.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.15 + index * 0.07, duration: 0.7 }}
-              className="flex flex-col border border-white/10 bg-white/[0.02] p-6"
-              style={{ borderRadius: 2 }}
-            >
-              <div className="mb-5 h-[2px] w-8" style={{ background: plan.color }} />
-              <h3 className="mb-1 font-display text-[28px] font-black uppercase tracking-tight text-white">
-                {plan.name}
-              </h3>
-              <div className="mb-1">
-                {plan.regularPrice && (
-                  <p className="mb-0.5 font-mono text-[11px] text-white/35 line-through">
-                    通常 {plan.regularPrice}
-                  </p>
-                )}
-                <span className="font-display text-[22px] font-black" style={{ color: plan.color }}>
-                  {plan.price}
-                </span>
-                {plan.period && (
-                  <span className="ml-1.5 font-body text-[11px] text-white/45">{plan.period}</span>
-                )}
-              </div>
-              <p className="mb-5 font-body text-[11px] leading-relaxed text-white/40">{plan.target}</p>
-              <ul className="mb-6 flex-1 space-y-2.5">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 font-body text-[13px] text-white/60">
-                    <span className="mt-0.5 font-bold" style={{ color: plan.color }}>✔</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/contact"
-                className="block border border-white/15 py-3 text-center font-display text-[11px] font-black uppercase tracking-[0.2em] text-white/60 transition-all hover:border-white/30 hover:text-white"
-                style={{ borderRadius: 2 }}
-              >
-                お問い合わせ
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5, duration: 0.7 }}
-          className="mt-6 font-mono text-[10px] leading-relaxed tracking-wider text-white/25"
-        >
-          ※ 1ヶ月分の料金で合計4ヶ月利用可能（1ヶ月＋ボーナス3ヶ月）／キャンペーン期間：2026年7月19日〜7月31日
-          <br />
-          ※ 4ヶ月の利用期間終了後は、解約の申し出がない限り同額で自動継続されます。通常価格は月額×4の換算表示です。
-          <br />
-          ※ 料金・プラン内容の詳細は /business またはお問い合わせください
-        </motion.p>
+          <EditorialHeading label="BUSINESS — PRESENCE">ビジネスとして、挑戦を支える。</EditorialHeading>
+          <p className="mt-4 font-[family-name:var(--font-bebas)] text-[clamp(24px,4.5vw,40px)] leading-none tracking-wide text-white/80">どの場所で、どの人々と、どの活動に関わるか</p>
+        </motion.div>
       </div>
-    </section>
+
+      {/* Varied rhythm: ROOTS as local map strip, SIGNAL as full glow, etc. */}
+      <div className="mt-10 md:mt-14">
+        {PLANS.map((plan, i) => (
+          <motion.div
+            key={plan.name}
+            initial={reduce ? { opacity: 1 } : { opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.65, delay: i * 0.04 }}
+            className={`border-t border-white/10 ${i === 0 ? "border-t-0" : ""}`}
+          >
+            <div className={`grid items-stretch ${plan.bleed === "left" ? "lg:grid-cols-[1.1fr_0.9fr]" : "lg:grid-cols-[0.9fr_1.1fr]"}`}>
+              {/* Visual */}
+              <div className={`${plan.bleed === "right" ? "lg:order-2" : ""} relative min-h-[260px] md:min-h-[320px] overflow-hidden border-white/10 ${plan.bleed === "left" ? "lg:border-r" : "lg:border-l"} bg-[#0a0a0f]`}>
+                <div className="absolute inset-0 opacity-20" style={{ background: `radial-gradient(ellipse 70% 60% at 50% 40%, ${plan.color}22, transparent 70%)` }} />
+                {plan.name === "ROOTS" && (
+                  <svg viewBox="0 0 400 320" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
+                    <rect width="400" height="320" fill="#0e0e14" />
+                    <line x1="0" y1="160" x2="400" y2="160" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
+                    <line x1="200" y1="0" x2="200" y2="320" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                    <circle cx="200" cy="160" r={28} fill={plan.color} opacity={0.14} />
+                    <circle cx="200" cy="160" r={9} fill={plan.color} stroke="white" strokeWidth={1.5} />
+                    <text x="200" y="200" textAnchor="middle" fontSize="10" fontFamily="monospace" fill="rgba(255,255,255,0.35)">YOKOHAMA · 1 BLOCK</text>
+                  </svg>
+                )}
+                {plan.name === "SIGNAL" && (
+                  <div className="absolute inset-0 grid place-items-center">
+                    <div className="rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 font-mono text-[11px] tracking-[0.18em] uppercase text-white/60">SIGNAL · 全国 · Discovery優先</div>
+                  </div>
+                )}
+                {plan.name === "PRESENCE" && (
+                  <div className="absolute inset-0 p-6 flex flex-col justify-center gap-3">
+                    <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden"><div className="h-full w-[68%] rounded-full" style={{ background: plan.color }} /></div>
+                    <p className="font-mono text-[10px] tracking-wide text-white/40">月次レポート · 効果可視化 · 専任サポート</p>
+                  </div>
+                )}
+                {plan.name === "LEGACY" && (
+                  <div className="absolute inset-0 grid place-items-center p-6">
+                    <p className="font-[family-name:var(--font-bebas)] text-[48px] leading-none tracking-wide" style={{ color: plan.color }}>∞</p>
+                  </div>
+                )}
+                <p className="absolute left-4 top-4 font-mono text-[9px] tracking-[0.2em] uppercase text-white/30">{plan.meta}</p>
+                <p className="absolute right-4 bottom-4 font-[family-name:var(--font-bebas)] text-[40px] leading-none tracking-wide opacity-10" style={{ color: plan.color }}>{plan.name}</p>
+              </div>
+              {/* Text */}
+              <div className={`${plan.bleed === "right" ? "lg:order-1" : ""} px-6 md:px-8 lg:px-10 py-8 md:py-10 flex flex-col justify-center bg-[#0D0D12]`}>
+                <p className="font-[family-name:var(--font-bebas)] text-[clamp(32px,5vw,44px)] leading-none tracking-wide text-white">{plan.name}</p>
+                <p className="mt-2 font-mono text-[10px] tracking-[0.16em] uppercase" style={{ color: plan.color }}>{plan.pos}</p>
+                <p className="mt-4 text-[14px] leading-[1.85] text-white/60">{plan.desc}</p>
+                <div className="mt-6 flex items-center gap-4">
+                  <span className="font-[family-name:var(--font-bebas)] text-xl" style={{ color: plan.color }}>{plan.price}</span>
+                  <Link href="/business" className="font-mono text-[11px] tracking-[0.16em] uppercase text-white/50 hover:text-white transition-colors">詳細 →</Link>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="px-4 md:px-6 lg:px-8 mx-auto max-w-6xl">
+        <VizionRule label="PRESENCE IS POSITION" />
+        <p className="font-mono text-[10px] leading-relaxed tracking-wide text-white/25 max-w-2xl">料金は1ヶ月分で4ヶ月利用（1＋ボーナス3）。枠は各Tierで限定。詳細は /business へ。ビジネスが街の中に存在する体験を、まず地図で確かめる。</p>
+      </div>
+    </EditorialSection>
   );
 }

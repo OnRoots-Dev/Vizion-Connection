@@ -248,25 +248,18 @@ export default function PublicProfileView({
             </div>
           </section>
 
-          {role === "Athlete" ? (
+          {/* IDENTITY → ACTIVITY narrative, not KPI dashboard */}
+          {(cheerCount > 0 || followersCount > 0) && (
             <section className="rounded-[20px] border border-white/8 bg-[#0d0d1a] p-6">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">STATS</p>
-              <div className="mt-5 grid grid-cols-3 gap-3">
-                <div className="rounded-[16px] border border-white/8 bg-white/5 p-4">
-                  <p className="font-display text-4xl leading-none text-[#FFD600]">{cheerCount.toLocaleString()}</p>
-                  <p className="mt-2 font-body text-xs text-white/40">Cheer</p>
-                </div>
-                <div className="rounded-[16px] border border-white/8 bg-white/5 p-4">
-                  <p className="font-display text-4xl leading-none text-white">{viewsCount.toLocaleString()}</p>
-                  <p className="mt-2 font-body text-xs text-white/40">プロフィール閲覧数</p>
-                </div>
-                <div className="rounded-[16px] border border-white/8 bg-white/5 p-4">
-                  <p className="font-display text-4xl leading-none text-white">{followersCount.toLocaleString()}</p>
-                  <p className="mt-2 font-body text-xs text-white/40">フォロワー</p>
-                </div>
-              </div>
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/40">ACTIVITY</p>
+              <p className="mt-4 font-body text-[13px] leading-[1.9] text-white/60">
+                {cheerCount > 0 && <span>{cheerCount}件のCheerが届いています</span>}
+                {cheerCount > 0 && followersCount > 0 && <span className="text-white/25"> · </span>}
+                {followersCount > 0 && <span>{followersCount}人とつながっています</span>}
+                {viewsCount > 0 && <span className="text-white/25"> · {viewsCount}回見られています</span>}
+              </p>
             </section>
-          ) : null}
+          )}
 
           {sponsorLogos.length > 0 ? (
             <section className="rounded-[20px] border border-white/8 bg-[#0d0d1a] p-6">

@@ -131,6 +131,7 @@ export default function StepComplete() {
     );
   }
 
+  // @deprecated - StatCard replaced with editorial narrative display
   function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
     return (
       <div className="flex flex-col gap-0.5 p-3 rounded-xl" style={{ background: `${color}10`, border: `1px solid ${color}28` }}>
@@ -577,9 +578,17 @@ export default function StepComplete() {
       {stats.length > 0 ? (
         <motion.div {...fadeUp(0.32)} className="mb-5">
           <SectionLabel text="数字で語る実績" />
-          <div className="grid grid-cols-2 gap-2">
+          {/* Editorial narrative display - not card grid */}
+          <div className="space-y-2">
             {stats.map((s, i) => (
-              <StatCard key={`${s.label}-${i}`} label={s.label || "実績"} value={s.value} color={color} />
+              <div key={`${s.label}-${i}`} className="flex items-baseline gap-3 border-t border-white/5 pt-2 first:border-t-0">
+                <span className="text-[16px] font-black tabular-nums leading-none" style={{ color }}>
+                  {s.value}
+                </span>
+                <span className="text-[11px] leading-tight" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  {s.label || "実績"}
+                </span>
+              </div>
             ))}
           </div>
         </motion.div>

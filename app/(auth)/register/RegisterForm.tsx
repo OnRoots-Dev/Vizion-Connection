@@ -28,22 +28,32 @@ const ROLES: {
     displayName: string;
     color: string;
     detail: string;
+    world: string;
+    entry: string;
 }[] = [
     {
         value: "Athlete", icon: Zap, label: "Athlete", displayName: "アスリート", color: "#FF5050",
         detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
+        world: "日々の練習・試合を地図とタイムラインに残す入口",
+        entry: "横浜で → Activityを記録 → Momentで伝える → Viz Mapで出会う",
     },
     {
         value: "Trainer", icon: Dumbbell, label: "Trainer", displayName: "トレーナー", color: "#30de1d",
         detail: "スポーツの指導・サポートをしている方向け。",
+        world: "育てた選手のActivityが、あなたの実績になる入口",
+        entry: "指導する → 選手のMomentに現れる → Connectionでつながる",
     },
     {
         value: "Crew", icon: HeartHandshake, label: "Crew", displayName: "サポーター", color: "#FFC81E",
         detail: "ファン、サポーター、家族、友人、関係者の方向け。",
+        world: "現地と地図で、推しの歩みを参加として支える入口",
+        entry: "横浜スタジアムで → Cheerを届ける → Togetherに参加",
     },
     {
         value: "Business", icon: Building2, label: "Business", displayName: "ビジネス", color: "#3C8CFF",
         detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。",
+        world: "活動が起きる場所に、企業が存在する入口",
+        entry: "PLACEに存在する → PEOPLEと出会う → ACTIVITYを支える",
     },
 ];
 
@@ -306,7 +316,8 @@ export default function RegisterForm() {
                             transition={stepTr}
                             className="space-y-4"
                         >
-                            <p className="text-center text-sm font-bold text-white/70">あなたの役割を選んでください</p>
+                            <p className="text-center text-sm font-bold text-white/70">どの入口からVizionに入りますか？</p>
+                            <p className="text-center text-[11px] leading-relaxed text-white/35">Landingで見た4つの世界 — 同じ地図で、違う見え方から始まります。</p>
                             <div className="grid grid-cols-2 gap-3">
                                 {ROLES.map((r) => {
                                     const isSelected = role === r.value;
@@ -358,6 +369,12 @@ export default function RegisterForm() {
                                     <p className="mt-1 text-[11px] leading-relaxed text-white/45">
                                         {selectedRole.detail}
                                     </p>
+                                    <div className="mt-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
+                                        <p className="font-mono text-[9px] tracking-[0.14em] uppercase" style={{ color: `${selectedRole.color}aa` }}>この入口から入ると</p>
+                                        <p className="mt-1 text-[11px] leading-relaxed font-medium" style={{ color: selectedRole.color }}>{selectedRole.world}</p>
+                                        <p className="mt-1 font-mono text-[10px] leading-relaxed text-white/30">{selectedRole.entry}</p>
+                                    </div>
+                                    <p className="mt-2 font-mono text-[9px] tracking-wide text-white/20">Landingで選んだ世界が、ここでアカウントに紐づきます。後から変更できます。</p>
                                 </motion.div>
                             </AnimatePresence>
 

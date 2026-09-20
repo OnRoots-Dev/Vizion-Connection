@@ -538,16 +538,14 @@ export default async function UserProfilePage({ params }: Props) {
                     }
                 />
 
-                {/* ② 熱量パネル（常時 — メッセージ1）。Bond数はNetworkに一本化 */}
-                <HeatPanel
-                    slug={slug}
-                    initialCheerCount={profile.cheerCount ?? 0}
-                    sponsors={heatSponsors}
-                    comments={heatComments}
-                    planBadge={profile.sponsorPlan ? <SponsorBadge plan={profile.sponsorPlan} prominent /> : null}
+                {/* JOURNEY — Identity の直後に積み重ねを提示（DAY 0 → 現在）。Activityより前 */}
+                <TimelineStack
+                    entries={timelineEntries}
+                    mode="preview"
+                    viewAllHref={`/u/${slug}/portfolio`}
                 />
 
-                {/* Recent Activity — Core Loop（Activity / Moment）を上位表示。
+                {/* ACTIVITY — Core Loop（Activity / Moment）を Journey の次に提示。
                     可視性ルールに従い、閲覧者に見えるものだけを出す。0件時は空状態。 */}
                 {profileActivities.length > 0 || profileMoments.length > 0 ? (
                     <section aria-label="Recent Activity" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -586,14 +584,23 @@ export default async function UserProfilePage({ params }: Props) {
                     </section>
                 )}
 
-                {/* ⑤ タイムライン（常時 — メッセージ2「積み重ね」。直近3件） */}
-                <TimelineStack
-                    entries={timelineEntries}
-                    mode="preview"
-                    viewAllHref={`/u/${slug}/portfolio`}
+                {/* ACHIEVEMENT — Journey と Activity の後に達成を提示 */}
+                <MilestoneBadgeRow
+                    variant="compact"
+                    milestones={milestones}
+                    progress={{ cheerCount: profile.cheerCount ?? 0, streakDays, journeyCount, bondCount }}
                 />
 
-                {/* Cheer / Collect（主要アクション — 常時） */}
+                {/* CONNECTION — 熱量と関係を最後に提示。Achievement の後に信頼が残る */}
+                <HeatPanel
+                    slug={slug}
+                    initialCheerCount={profile.cheerCount ?? 0}
+                    sponsors={heatSponsors}
+                    comments={heatComments}
+                    planBadge={profile.sponsorPlan ? <SponsorBadge plan={profile.sponsorPlan} prominent /> : null}
+                />
+
+                {/* Cheer / Collect（主要アクション — Connection の一部として） */}
                 <section id="cheer" aria-label="応援" style={{ scrollMarginTop: 90 }}>
                     <h2 style={vpSectionTitle}>Cheer</h2>
                     <div style={{ ...vpPanel, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -618,13 +625,6 @@ export default async function UserProfilePage({ params }: Props) {
                         />
                     </section>
                 ) : null}
-
-                {/* ③ マイルストーン（段階的開示 — バッジ帯＋サマリーのみ常時） */}
-                <MilestoneBadgeRow
-                    variant="compact"
-                    milestones={milestones}
-                    progress={{ cheerCount: profile.cheerCount ?? 0, streakDays, journeyCount, bondCount }}
-                />
 
                 {/* ④ ネットワーク — BondはMVP外のため封印（config/mvp-scope.ts）。
                     Connection がMVPの関係モデル。サポーター表示もBond依存のため非表示。

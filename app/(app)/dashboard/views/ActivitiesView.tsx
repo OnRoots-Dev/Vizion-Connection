@@ -203,6 +203,7 @@ export function ActivitiesView({
     const [cheerBusy, setCheerBusy] = useState<Record<string, boolean>>({});
     const [commentsOpen, setCommentsOpen] = useState(false);
     const [commentsActivityId, setCommentsActivityId] = useState<string | null>(null);
+    const [mapNudge, setMapNudge] = useState<{ title: string; place: string | null } | null>(null);
 
     function getReaction(a: ActivityWithPlace) {
         return reactions[a.id] ?? { cheered: false, cheer_count: a.cheer_count ?? 0, comment_count: a.comment_count ?? 0 };
@@ -300,8 +301,12 @@ export function ActivitiesView({
                 image_url: fImageUrl.trim() || null,
                 video_url: fVideoUrl.trim() || null,
             });
+            const createdTitle = fTitle.trim();
+            const createdPlace = fPlace?.name ?? null;
             setSuccessFlash(true);
             window.setTimeout(() => setSuccessFlash(false), 1800);
+            setMapNudge({ title: createdTitle, place: createdPlace });
+            window.setTimeout(() => setMapNudge(null), 6000);
             setFTitle(""); setFDesc(""); setFEnd(""); setFPlace(null); setFTags(""); setFImageUrl(""); setFVideoUrl("");
             setMode("list");
             await load();
@@ -382,7 +387,21 @@ export function ActivitiesView({
                             color: "#C8E800",
                         }}
                     >
-                        ✓ Activityを記録しました
+                        ✓ Activityを記録しました — Viz Mapとプロフィールに現れます
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
+            <AnimatePresence>
+                {mapNudge ? (
+                    <motion.div
+                        initial={reduce ? false : { opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.10)", background: "#111118" }}
+                    >
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>「{mapNudge.title}」は{fPlace ? "Activity" : mapNudge.place ? `📍 ${mapNudge.place}` : "世界"}に記録されました。</span>
+                        <a href="/dashboard?view=viz_map" style={{ marginLeft: "auto", fontSize: 11, fontWeight: 900, color: roleColor, textDecoration: "none", border: `1px solid ${roleColor}30`, background: `${roleColor}12`, borderRadius: 8, padding: "6px 10px" }}>Viz Mapで見る →</a>
+                        {mapNudge.place ? null : <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>場所を追加すると地図に現れます</span>}
                     </motion.div>
                 ) : null}
             </AnimatePresence>
@@ -400,15 +419,22 @@ export function ActivitiesView({
                     {loading ? (
                         <LoadingSkeleton media={false} />
                     ) : items.length === 0 ? (
-                        <FeedEmptyState
-                            title="まだActivityがありません"
-                            description="最初の活動を記録して、自分のスポーツフィードを始めましょう。"
-                            action={
-                                <PrimaryButton onClick={() => setMode("create")} disabled={loading}>
-                                    + Activity を記録
-                                </PrimaryButton>
-                            }
-                        />
+                        <>
+                            <FeedEmptyState
+                                title="まだActivityがありません"
+                                description="最初の活動を記録して、自分のスポーツフィードを始めましょう。世界ではすでにActivityとMomentが地図に現れています。"
+                                action={
+                                    <PrimaryButton onClick={() => setMode("create")} disabled={loading}>
+                                        + Activity を記録
+                                    </PrimaryButton>
+                                }
+                            />
+                            <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+                                <a href="/dashboard?view=viz_map" style={{ flex: 1, textAlign: "center", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(200,232,0,0.25)", background: "rgba(200,232,0,0.06)", color: "#C8E800", fontSize: 12, fontWeight: 800, textDecoration: "none" }}>Viz Mapで近くのActivityを見る →</a>
+                                <a href="/dashboard?view=moments" style={{ flex: 1, textAlign: "center", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>Momentsを見る →</a>
+                            </div>
+                            <p style={{ margin: "8px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, textAlign: "center" }}>自分のデータが少なくても、世界は動いています。地図を覗くと昨日と違う発見があります。</p>
+                        </>
                     ) : (
                         <>
                             {/* Latest Activity */}

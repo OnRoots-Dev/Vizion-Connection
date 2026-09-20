@@ -1,7 +1,8 @@
 "use client";
 
-// components/marketing/lp/roles-section.tsx — 4ロール（MVP正: Athlete/Trainer/Crew/Business）
-// framer-motion whileInView・reduced-motion対応・GSAP不使用。
+// components/marketing/lp/roles-section.tsx — DEPRECATED: Replaced by RoleBenefitSection with editorial layout
+// This component is kept for reference but should not be used in new implementations.
+// Use editorial primitives from @/lib/design/editorial instead.
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
@@ -9,6 +10,7 @@ import { Zap, Dumbbell, HeartHandshake, Building2, ArrowRight } from "lucide-rea
 import type { LucideIcon } from "lucide-react";
 import { TextScramble } from "./text-scramble";
 
+// @deprecated - This card-based layout is being replaced by editorial narratives
 interface RoleCard {
   icon: LucideIcon;
   label: string;
@@ -53,6 +55,7 @@ const ROLES: RoleCard[] = [
   },
 ];
 
+// @deprecated - Use RoleBenefitSection with editorial layout instead
 export function RolesSection() {
   const reduce = useReducedMotion();
 

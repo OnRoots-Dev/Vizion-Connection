@@ -62,3 +62,7 @@ next-env.d.ts
 /spotlight-final-hover.png
 /lp-shinytext.png
 /tmp-spotlight-check.png
+
+# Confidential legacy-model database backups; keep backups outside the repository.
+/vizion-connection-legacy-backup/
+/backups/legacy-model/

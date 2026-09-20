@@ -41,15 +41,9 @@ export function TrustSection({ stats = DEFAULT_STATS }: { stats?: TrustStats }) 
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
-  const items = [
-    { label: "登録アスリート", value: stats.athleteCount, suffix: "+" },
-    { label: "積み上げられた継続日数", value: stats.totalContinuedDays, suffix: "日" },
-    { label: "送られたチアー", value: stats.cheerCount, suffix: "+" },
-  ];
-
   return (
     <section ref={ref} className="border-y border-white/5 bg-[#0B0B0F] px-5 py-16 md:px-10 md:py-24 lg:px-16">
-      <div className="mx-auto max-w-[1200px]">
+      <div className="mx-auto max-w-3xl">
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -77,31 +71,56 @@ export function TrustSection({ stats = DEFAULT_STATS }: { stats?: TrustStats }) 
           続けてきた事実だけが、ここでの信頼になる。
         </motion.p>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {items.map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 24 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.25 + i * 0.12, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-8 text-center"
-            >
-              <p
-                className="font-display text-[clamp(36px,8vw,52px)] font-black leading-none"
-                style={{ color: "var(--electric)", textShadow: "0 0 24px var(--electric-glow)" }}
-              >
-                <CountUp to={item.value} active={inView} suffix={item.suffix} />
-              </p>
-              <p className="mt-3 font-body text-[12px] tracking-wide text-white/45">{item.label}</p>
-            </motion.div>
-          ))}
+        {/* Editorial trust narrative - not cards */}
+        <div className="mt-16 md:mt-20 space-y-12 md:space-y-16">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="border-t border-white/10 pt-10 md:pt-12"
+          >
+            <div className="flex items-baseline gap-4">
+              <span className="font-display text-[clamp(28px,5vw,42px)] font-black leading-none" style={{ color: "var(--electric)" }}>
+                <CountUp to={stats.athleteCount} active={inView} suffix="+" />
+              </span>
+              <span className="text-[15px] md:text-[16px] text-white/70">人のアスリートが登録</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.4, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="border-t border-white/10 pt-10 md:pt-12"
+          >
+            <div className="flex items-baseline gap-4">
+              <span className="font-display text-[clamp(28px,5vw,42px)] font-black leading-none" style={{ color: "var(--electric)" }}>
+                <CountUp to={stats.totalContinuedDays} active={inView} suffix="日" />
+              </span>
+              <span className="text-[15px] md:text-[16px] text-white/70">の継続日数が積み上がっている</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.5, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="border-t border-white/10 pt-10 md:pt-12"
+          >
+            <div className="flex items-baseline gap-4">
+              <span className="font-display text-[clamp(28px,5vw,42px)] font-black leading-none" style={{ color: "var(--electric)" }}>
+                <CountUp to={stats.cheerCount} active={inView} suffix="+" />
+              </span>
+              <span className="text-[15px] md:text-[16px] text-white/70">のCheerが送られた</span>
+            </div>
+          </motion.div>
         </div>
 
         <motion.p
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-6 text-center font-mono text-[10px] tracking-[0.2em] text-white/20"
+          className="mt-12 text-center font-mono text-[10px] tracking-[0.2em] text-white/20"
         >
           ※ 数値は集計タイミングにより変動します
         </motion.p>

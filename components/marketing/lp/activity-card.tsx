@@ -1,17 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Activity, MapPin, Heart, MessageCircle, Clock } from "lucide-react";
+import { Activity, MapPin, Clock } from "lucide-react";
 
 interface ActivityCardProps {
   athlete?: string;
   sport?: string;
   location?: string;
-  activity?: string;
-  schedule?: string;
-  connections?: string;
-  cheers?: number;
-  comments?: number;
+  activityType?: string;
   delay?: number;
 }
 
@@ -19,11 +15,7 @@ export function ActivityCard({
   athlete = "YUKI TANAKA",
   sport = "TRAINING",
   location = "YOKOHAMA",
-  activity = "12",
-  schedule = "3",
-  connections = "9",
-  cheers = 24,
-  comments = 12,
+  activityType = "MORNING SESSION",
   delay = 0,
 }: ActivityCardProps) {
   const reduce = useReducedMotion();
@@ -54,11 +46,11 @@ export function ActivityCard({
         </div>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-3 border-b border-white/[0.06]">
-        <MetricCell label="ACTIVITY" value={activity} unit="" />
-        <MetricCell label="SCHEDULE" value={schedule} unit="" border />
-        <MetricCell label="CONN." value={connections} unit="" />
+      {/* Activity Type - no fake metrics */}
+      <div className="px-5 py-4">
+        <p className="font-[family-name:var(--font-bebas)] text-xl tracking-wide text-white">
+          {activityType}
+        </p>
       </div>
 
       {/* Mini Map Placeholder */}
@@ -86,32 +78,12 @@ export function ActivityCard({
         </div>
       </div>
 
-      {/* Engagement */}
-      <div className="flex items-center gap-4 border-t border-white/[0.06] px-5 py-3">
-        <span className="flex items-center gap-1.5 text-[11px] text-white/60">
-          <Heart className="h-3.5 w-3.5 text-[var(--vc-accent)]" fill="var(--vc-accent)" />
-          <span className="font-bold text-white/80">{cheers}</span> Cheers
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-white/60">
-          <MessageCircle className="h-3.5 w-3.5 text-white/40" />
-          <span className="font-bold text-white/80">{comments}</span> Comments
-        </span>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-white/30">
+      {/* Timestamp - no fake engagement numbers */}
+      <div className="flex items-center border-t border-white/[0.06] px-5 py-3">
+        <span className="flex items-center gap-1 text-[10px] text-white/30">
           <Clock className="h-3 w-3" /> 2h ago
         </span>
       </div>
     </motion.div>
-  );
-}
-
-function MetricCell({ label, value, unit, border }: { label: string; value: string; unit: string; border?: boolean }) {
-  return (
-    <div className={`flex flex-col items-center justify-center py-3.5 ${border ? "border-x border-white/[0.06]" : ""}`}>
-      <span className="text-[9px] uppercase tracking-[0.15em] text-white/35">{label}</span>
-      <span className="mt-0.5 font-[family-name:var(--font-bebas)] text-2xl leading-none tracking-wide text-white">
-        {value}
-        {unit && <span className="ml-0.5 text-xs text-white/40">{unit}</span>}
-      </span>
-    </div>
   );
 }

@@ -1,5 +1,8 @@
 "use client";
 
+// @deprecated — KPI stat grid. VIZION NATIVE prefers narrative/Activity. Use ActivityLedger instead.
+// Kept only as showcase carousel demo, not for real profile/KPI surfaces. Do not reuse for new Vizion pages.
+
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Trophy, Users, Calendar } from "lucide-react";
 

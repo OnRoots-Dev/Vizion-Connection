@@ -22,7 +22,6 @@ import { MomentCard } from "../components/core/MomentCard";
 import type { MomentFeedItem } from "@/features/moment/types";
 import type { ConnectionListItem } from "@/features/connection/types";
 import { apiGet } from "@/lib/api/core-client";
-import { Camera, CalendarDays, UserPlus } from "lucide-react";
 import { LiveWorldCarousel } from "../components/LiveWorldCarousel";
 
 const SECTION_LABEL: React.CSSProperties = {
@@ -36,6 +35,13 @@ const SECTION_LABEL: React.CSSProperties = {
 };
 
 const ACCENT = "#C8E800";
+
+const ROLE_RETURN: Record<string, { label: string; reason: string }> = {
+    Athlete: { label: "ATHLETE", reason: "明日もActivityを重ねると、JOURNEYが伸び、誰かのCheerが届きます。" },
+    Trainer: { label: "TRAINER", reason: "選手のActivityが増えると、あなたの指導が地図とタイムラインに現れます。" },
+    Crew: { label: "CREW", reason: "推しのMomentが増えるたび、CheerとTogetherで参加できます。" },
+    Business: { label: "BUSINESS", reason: "街のActivityが増えるたび、あなたのPresenceが地図で見つけられます。" },
+};
 
 export function HomeView({ profile, referralUrl, referralCount, t, roleColor, setView, isDesktop }: {
     profile: ProfileData;
@@ -134,8 +140,22 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
     const right: React.CSSProperties | undefined = isDesktop ? { gridColumn: 2 } : undefined;
     const rail: React.CSSProperties | undefined = isDesktop ? { gridColumn: 1, gridRow: "1 / span 6" } : undefined;
 
+    const isDay0 = total === 0 && !momentsLoading && journeyActivities.length === 0;
     return (
         <div style={{ display: "grid", gap: 20, alignItems: "start", gridTemplateColumns: isDesktop ? "minmax(240px, 268px) minmax(0, 1fr)" : "minmax(0, 1fr)" }}>
+            {isDay0 ? (
+                <section aria-label="DAY 0" style={{ gridColumn: isDesktop ? "1 / span 2" : undefined, borderRadius: 16, border: `1px solid ${roleColor}28`, background: `linear-gradient(135deg, ${roleColor}12, #111118)`, padding: "16px 18px", display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
+                    <div style={{ flex: 1, minWidth: 220 }}>
+                        <p style={{ margin: 0, fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: roleColor, fontWeight: 800 }}>DAY 0 — Vizionに入った</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 900, color: "#f0f0f5", lineHeight: 1.4 }}>Identity → Place → First Activity</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>アカウントを作ったのではなく、世界に入りました。まずは<span style={{ color: "#f0f0f5", fontWeight: 700 }}>場所</span>を選んで<span style={{ color: roleColor, fontWeight: 800 }}>最初のActivity</span>を記録しましょう。それが地図とプロフィールに現れます。</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button type="button" onClick={() => setView("activities")} style={{ background: roleColor, color: "#0B0B0F", border: "none", borderRadius: 10, padding: "11px 16px", fontSize: 12, fontWeight: 900, cursor: "pointer" }}>最初のActivityをつくる →</button>
+                        <button type="button" onClick={() => setView("viz_map")} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "#f0f0f5", borderRadius: 10, padding: "11px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Viz Mapで場所を見る</button>
+                    </div>
+                </section>
+            ) : null}
             {/* ═══ 1. AROUND YOU ═══ */}
             <section aria-label="Around you" style={{ display: "flex", flexDirection: "column", gap: 12, ...right }}>
                 <motion.div initial={reduce ? { opacity: 1 } : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -149,22 +169,27 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     </div>
                 </motion.div>
 
-                {/* 集計値（スコアボード風 display） */}
+                {/* Activity summary - narrative, not KPI cards */}
                 <motion.div initial={reduce ? { opacity: 1 } : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
-                    style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                    {([
-                        { n: worldMoments.length, label: "MOMENTS", Icon: Camera },
-                        { n: total, label: "THIS WEEK", Icon: CalendarDays },
-                        { n: referralCount, label: "INVITES", Icon: UserPlus },
-                    ]).map(({ n, label, Icon }) => (
-                        <div key={label} style={{ display: "flex", flexDirection: "column", background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 14px" }}>
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-                                <Icon size={14} style={{ color: ACCENT, opacity: 0.85 }} aria-hidden />
-                                <span style={{ fontSize: 9, fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: "0.14em", color: ACCENT, whiteSpace: "nowrap" }}>{label}</span>
-                            </div>
-                            <p className="font-display" style={{ margin: 0, fontSize: 30, lineHeight: 1, fontWeight: 400, color: "#f0f0f5", fontVariantNumeric: "tabular-nums" }}>{n.toLocaleString()}</p>
-                        </div>
-                    ))}
+                    style={{ background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px" }}>
+                    <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.65)" }}>
+                        {worldMoments.length > 0 && (
+                            <span>世界で{worldMoments.length}件のMomentが共有されています</span>
+                        )}
+                        {worldMoments.length === 0 && total === 0 && referralCount === 0 && (
+                            <span>世界で活動を始めましょう</span>
+                        )}
+                        {total > 0 && (
+                            <span style={{ marginLeft: worldMoments.length > 0 ? 8 : 0 }}>
+                                今週は{total}件の予定
+                            </span>
+                        )}
+                        {referralCount > 0 && (
+                            <span style={{ marginLeft: (worldMoments.length > 0 || total > 0) ? 8 : 0 }}>
+                                {referralCount}人の招待者
+                            </span>
+                        )}
+                    </p>
                 </motion.div>
 
                 {/* 今起きていること（Live Rotation） */}
@@ -187,41 +212,53 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                     <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", padding: "12px 2px" }}>世界で共有されたMomentがまだありません。あなたのActivityから最初の1件を投稿してみましょう。</p>
                 ) : (
                     <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "thin" }}>
-                        {worldMoments.map((item) => (
-                            <div key={item.moment.id} style={{ width: 300, flexShrink: 0 }}>
-                                <MomentCard item={item} viewerId={Number(profile.id) || null} roleColor={roleColor} t={t} />
-                            </div>
-                        ))}
+                        {worldMoments.map((item) => {
+                            const isNew = (() => {
+                                try {
+                                    const d = new Date(item.moment.created_at).getTime();
+                                    return Date.now() - d < 24 * 60 * 60 * 1000;
+                                } catch { return false; }
+                            })();
+                            return (
+                                <div key={item.moment.id} style={{ width: 300, flexShrink: 0, position: "relative" }}>
+                                    {isNew ? <span style={{ position: "absolute", top: 8, right: 8, zIndex: 2, fontSize: 9, fontWeight: 900, letterSpacing: "0.08em", background: "#C8E800", color: "#0B0B0F", borderRadius: 999, padding: "3px 7px" }}>NEW</span> : null}
+                                    <MomentCard item={item} viewerId={Number(profile.id) || null} roleColor={roleColor} t={t} />
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </section>
 
-            {/* ═══ 3. NEARBY ═══（Map プレビュー → Viz Map） */}
-            <section aria-label="Nearby" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
+            {/* ═══ 3. YOUR ACTIVITY (retention: yesterday→today) ═══ */}
+            <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>NEARBY · VIZ MAP</p>
-                    <button type="button" onClick={() => setView("viz_map")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>探す →</button>
+                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
+                    <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>全て →</button>
                 </div>
-                <button type="button" onClick={() => setView("viz_map")} aria-label="Viz Map を開く"
-                    style={{
-                        position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "flex-start",
-                        height: 120, borderRadius: 16, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)",
-                        padding: "14px 16px", background: "linear-gradient(135deg, #111118 0%, #0B0B0F 55%, #16161c 100%)", textAlign: "left", color: "#f0f0f5",
-                    }}>
-                    <div aria-hidden style={{ position: "absolute", inset: 0, opacity: 0.5, backgroundImage: "radial-gradient(circle at 20% 30%, rgba(200,232,0,0.18), transparent 34%), radial-gradient(circle at 76% 60%, rgba(200,232,0,0.12), transparent 30%), radial-gradient(circle at 48% 86%, rgba(200,232,0,0.1), transparent 26%)", pointerEvents: "none" }} />
-                    <div aria-hidden style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)", width: 10, height: 10, borderRadius: "50%", background: ACCENT, boxShadow: "0 0 0 6px rgba(200,232,0,0.12), 0 0 18px rgba(200,232,0,0.5)" }} />
-                    <div aria-hidden style={{ position: "absolute", right: 42, top: 30, width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.35)" }} />
-                    <div aria-hidden style={{ position: "absolute", right: 92, bottom: 28, width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.25)" }} />
-                    <span style={{ position: "relative", fontSize: 12, fontWeight: 800, letterSpacing: "0.06em", color: "#f0f0f5", textTransform: "uppercase" }}>世界中で今行われている場所を見る</span>
-                </button>
+                {upcoming.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {upcoming.map((a, i) => (
+                            <button key={i} type="button" onClick={() => setView("activities")} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", cursor: "pointer", textAlign: "left", color: "#f0f0f5" }}>
+                                <span style={{ fontSize: 16, fontWeight: 800, color: roleColor, fontVariantNumeric: "tabular-nums", minWidth: 26 }}>
+                                    {new Date(a.starts_at).getDate()}
+                                </span>
+                                <span style={{ flex: 1, fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {a.title ?? a.type}
+                                </span>
+                                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.08em", color: a.status === "planned" ? "rgba(255,255,255,0.4)" : ACCENT, textTransform: "uppercase" }}>{a.status}</span>
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
+                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>まだ予定がありません。地図で近くのActivityを見つけましょう</p>
+                        <button type="button" onClick={() => setView("viz_map")} style={{ flexShrink: 0, background: ACCENT, color: "#0B0B0F", border: "none", borderRadius: 10, padding: "8px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>地図で探す</button>
+                    </div>
+                )}
             </section>
 
-            {/* ═══ 4. PROFILE CARD ═══（Desktop: 左サイドレール） */}
-            <div style={rail}>
-                <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
-            </div>
-
-            {/* ═══ 5. YOUR WORLD · LIVE ═══ */}
+            {/* ═══ 4. YOUR WORLD · LIVE (PEOPLE) ═══ */}
             <section aria-label="Social" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR WORLD · LIVE</p>
@@ -248,49 +285,72 @@ export function HomeView({ profile, referralUrl, referralCount, t, roleColor, se
                 )}
             </section>
 
-            {/* ═══ 6. YOUR ACTIVITY ═══ */}
-            <section aria-label="Your activity" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
+            {/* ═══ 5. NEARBY · PLACE (living world entry) ═══ */}
+            <section aria-label="Nearby" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>YOUR ACTIVITY</p>
-                    <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>全て →</button>
+                    <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>NEARBY · VIZ MAP</p>
+                    <button type="button" onClick={() => setView("viz_map")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>探す →</button>
                 </div>
-                {upcoming.length > 0 ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {upcoming.map((a, i) => (
-                            <button key={i} type="button" onClick={() => setView("activities")} style={{ display: "flex", alignItems: "center", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "10px 14px", cursor: "pointer", textAlign: "left", color: "#f0f0f5" }}>
-                                <span style={{ fontSize: 16, fontWeight: 800, color: roleColor, fontVariantNumeric: "tabular-nums", minWidth: 26 }}>
-                                    {new Date(a.starts_at).getDate()}
-                                </span>
-                                <span style={{ flex: 1, fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                    {a.title ?? a.type}
-                                </span>
-                                <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.08em", color: a.status === "planned" ? "rgba(255,255,255,0.4)" : ACCENT, textTransform: "uppercase" }}>{a.status}</span>
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
-                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>まだ予定がありません。Activityに参加してみましょう</p>
-                        <button type="button" onClick={() => setView("activities")} style={{ flexShrink: 0, background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "8px 12px", fontSize: 11, fontWeight: 800, color: "#f0f0f5", cursor: "pointer" }}>Activityを見る</button>
-                    </div>
-                )}
+                <button type="button" onClick={() => setView("viz_map")} aria-label="Viz Map を開く"
+                    style={{
+                        position: "relative", display: "flex", alignItems: "flex-end", justifyContent: "flex-start",
+                        height: 120, borderRadius: 16, overflow: "hidden", cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)",
+                        padding: "14px 16px", background: "linear-gradient(135deg, #111118 0%, #0B0B0F 55%, #16161c 100%)", textAlign: "left", color: "#f0f0f5",
+                    }}>
+                    <div aria-hidden style={{ position: "absolute", inset: 0, opacity: 0.5, backgroundImage: "radial-gradient(circle at 20% 30%, rgba(200,232,0,0.18), transparent 34%), radial-gradient(circle at 76% 60%, rgba(200,232,0,0.12), transparent 30%), radial-gradient(circle at 48% 86%, rgba(200,232,0,0.1), transparent 26%)", pointerEvents: "none" }} />
+                    <div aria-hidden style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)", width: 10, height: 10, borderRadius: "50%", background: ACCENT, boxShadow: "0 0 0 6px rgba(200,232,0,0.12), 0 0 18px rgba(200,232,0,0.5)" }} />
+                    <div aria-hidden style={{ position: "absolute", right: 42, top: 30, width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.35)" }} />
+                    <div aria-hidden style={{ position: "absolute", right: 92, bottom: 28, width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.25)" }} />
+                    <span style={{ position: "relative", fontSize: 12, fontWeight: 800, letterSpacing: "0.06em", color: "#f0f0f5", textTransform: "uppercase" }}>世界中で今行われている場所を見る</span>
+                </button>
             </section>
 
-            {/* ═══ 7. JOURNEY · THIS WEEK ═══（週間進捗バー） */}
+            {/* ═══ 6. PROFILE CARD (identity anchor, desktop rail) ═══ */}
+            <div style={rail}>
+                <ProfileCardSection profile={profile} t={t} roleColor={roleColor} setView={goProfile} referralUrl={referralUrl} referralCount={referralCount} />
+            </div>
+
+            {/* ═══ 7. JOURNEY · THIS WEEK ═══ — narrative ledger, not KPI bar */}
             <section aria-label="Journey" style={{ display: "flex", flexDirection: "column", gap: 10, ...right }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.4)" }}>JOURNEY · THIS WEEK</p>
                     <button type="button" onClick={() => setView("activities")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: ACCENT, textTransform: "uppercase" }}>振り返る →</button>
                 </div>
                 <div style={{ background: "#111118", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
-                        <span className="font-display" style={{ fontSize: 26, lineHeight: 1, color: "#f0f0f5" }}>{total > 0 ? `${pct}%` : "—"}</span>
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{completed}/{total} 完了 · {worldMoments.length > 0 ? "世界は動いている" : "今週から始めよう"}</span>
-                    </div>
-                    <div aria-hidden style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${total > 0 ? pct : 0}%` }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} style={{ height: "100%", borderRadius: 999, background: ACCENT, boxShadow: "0 0 12px rgba(200,232,0,0.5)" }} />
-                    </div>
+                    {total === 0 ? (
+                        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.7 }}>今週はまだ記録がありません。ひとつのActivityから始めましょう。</p>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                            <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
+                                今週は{total}件の予定、{completed}件が完了。{completed > 0 ? "積み重ねが見えてきている。" : "これから積み上げていく。"}
+                            </p>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                {journeyActivities.slice(0, 7).map((a, idx) => (
+                                    <span key={idx} title={a.title ?? a.type} style={{ flex: 1, height: 6, borderRadius: 999, background: a.status === "completed" ? ACCENT : a.status === "planned" ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.06)", boxShadow: a.status === "completed" ? "0 0 8px rgba(200,232,0,0.35)" : "none" }} />
+                                ))}
+                                {Array.from({ length: Math.max(0, 7 - journeyActivities.length) }).map((_, idx) => (
+                                    <span key={`empty-${idx}`} style={{ flex: 1, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.08)" }} />
+                                ))}
+                            </div>
+                            <p style={{ margin: "8px 0 0", fontSize: 10, fontFamily: "'Space Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)" }}>DAY 0 から続くタイムライン</p>
+                        </div>
+                    )}
                 </div>
+            </section>
+
+            {/* ROLE-specific return reason — same world, different lens */}
+            <section aria-label="Return reason" style={{ display: "flex", flexDirection: "column", gap: 8, ...right }}>
+                <p style={{ ...SECTION_LABEL, color: "rgba(255,255,255,0.25)" }}>{ROLE_RETURN[profile.role]?.label ?? "VIZION"} · 明日また開く理由</p>
+                <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "12px 14px" }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>{ROLE_RETURN[profile.role]?.reason ?? "世界で何かが起きているから、また見に来る。"}</p>
+                </div>
+            </section>
+
+            {/* Revisit without notification — world itself is the reason */}
+            <section aria-label="World is moving" style={{ display: "flex", alignItems: "center", gap: 10, ...right, background: "rgba(200,232,0,0.04)", border: "1px solid rgba(200,232,0,0.1)", borderRadius: 12, padding: "12px 14px" }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, boxShadow: "0 0 8px rgba(200,232,0,0.45)", flexShrink: 0 }} />
+                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, flex: 1 }}>通知がなくても世界は動いている。VIZ MAPとMomentsを覗くと、昨日と違う場所と人が見つかります。</p>
+                <button type="button" onClick={() => setView("viz_map")} style={{ background: "none", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px", fontSize: 10, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}>世界を見る</button>
             </section>
         </div>
     );
