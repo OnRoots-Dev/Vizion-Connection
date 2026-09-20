@@ -176,3 +176,49 @@ backdrop-filter: blur(24px) saturate(160%);
 「1画面1メッセージ」。常時表示 = ①アイデンティティ（Hero）②熱量（HeatPanel）③積み重ね（Timeline 3件）。
 Milestones詳細 / Network詳細 / Career / Schedule / Card / Share は段階的開示（`Expandable`）。
 同じ数値を複数箇所に表示しない（Bond数=Network、Cheer数=HeatPanel が正）。
+
+
+## Marketing Composition Guardrails
+
+The design system must not be interpreted as a card-first SaaS system.
+
+### Anti-template rule
+
+The following are **not default Vizion patterns**:
+- equal 2x2 / 3-column card grids
+- repeated icon/title/description/KPI/CTA cards
+- decorative KPI widgets
+- fabricated metrics
+- black surface + thin border + neon accent repeated as the primary composition
+- rounded containers around every content group
+- excessive ALL-CAPS micro-labels
+
+Cards are a semantic component for contained objects. They are not a generic layout primitive.
+
+### Editorial-first rule
+
+Marketing sections should choose composition before components.
+Preferred compositions include:
+- editorial lists
+- asymmetric columns
+- oversized role typography
+- full-width bands
+- media-led layouts
+- interactive hover/tap reveals
+- spatial/map compositions
+- one dominant visual with secondary navigation
+
+### Role section
+
+Athlete / Trainer / Crew / Business are identities and entry points.
+The default representation is **not four equal cards**.
+
+Role color should identify the role through typography, accent marks, interaction, or media—not merely through a colored card border.
+
+Role sections must not use invented usage metrics to create visual density.
+
+### AI design rejection test
+
+If a new marketing section can be described as:
+"generic SaaS feature cards", "AI-generated card grid", or "dashboard template",
+it fails the design-system review and must be redesigned.
