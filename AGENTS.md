@@ -71,3 +71,63 @@ Before product work, read [00_MASTER_SPEC.md](00_MASTER_SPEC.md), then the relev
 - **Production DB first**: production Supabase is the schema authority. Migration files are historical evidence, not proof of live state; verify read-only before any schema work.
 - **Minimal change and verification**: preserve existing behavior; after changes run the relevant TypeScript, lint, test, and `git diff` checks.
 - **Security is non-optional**: apply authentication, authorization, RLS, CSRF, body validation, and rate limiting to every mutable surface.
+
+
+## UI DESIGN GATE — NON-NEGOTIABLE
+
+UI work is not complete merely because it is technically correct or visually polished.
+Vizion Connection must not drift into a generic AI-generated SaaS / dashboard visual language.
+
+Before implementing or revising any UI:
+1. Read `00_MASTER_SPEC.md`.
+2. Read `05_UI_DESIGN_SYSTEM.md`.
+3. Read `06_UI_REFERENCE.md`.
+4. Read `.skills/taste-ui/SKILL.md`.
+5. Read `design-system/MASTER.md`.
+6. If `.agents/skills/ui-ux-pro-max/SKILL.md` is used, treat it as supplementary UX guidance only. It must not override Vizion's local design system.
+
+### Forbidden default patterns
+
+Do NOT default to:
+- 2x2 / 3-column equal card grids for categories or roles
+- repeated identical cards with the same internal anatomy
+- icon + title + description + KPI + CTA cards
+- decorative/fake metrics used to make a section look like a product dashboard
+- excessive ALL-CAPS micro labels
+- black surface + thin border + neon accent as the entire composition
+- every section being wrapped in rounded rectangles
+- generic SaaS feature/pricing/dashboard layouts
+- arbitrary dashboard widgets when editorial, spatial, media, map, or typographic composition is more appropriate
+
+### Composition-first rule
+
+Do not choose components before choosing the composition.
+
+For marketing / brand UI, first define:
+- the message of the section
+- visual hierarchy
+- content rhythm
+- spatial composition
+- interaction/reveal behavior
+
+Then choose primitives.
+
+A component being available in the repository is NOT a reason to use it.
+
+### Role presentation rule
+
+Athlete / Trainer / Crew / Business are product identities, not four SaaS feature cards.
+When presenting the four roles, prefer editorial navigation, large typography, asymmetric composition, imagery/activity context, or interactive reveal.
+Role colors are accents and identity cues; they are not card-border decoration.
+
+### Data integrity rule
+
+Never invent metrics, counts, percentages, view numbers, plan names, or product usage data for visual decoration.
+Use real data or omit the metric entirely.
+
+### Visual acceptance gate
+
+Reject the implementation and redesign it if a reviewer could reasonably describe the result as:
+"generic SaaS landing page", "AI-generated card grid", "dashboard template", or "feature-card template".
+
+For marketing UI, visual differentiation from generic SaaS patterns is a release requirement.
