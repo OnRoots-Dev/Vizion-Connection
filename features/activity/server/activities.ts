@@ -218,6 +218,35 @@ export async function addActivityComment(
     return data as unknown as ActivityCommentRecord;
 }
 
+/** 既存コメントを本人スコープで更新する（1人1件のアプリ層制約）。 */
+export async function upsertActivityComment(
+    actorId: number,
+    activityId: string,
+    body: string,
+): Promise<ActivityCommentRecord> {
+    const { data: existing, error: lookupError } = await supabaseServer
+        .from("activity_comments")
+        .select("id")
+        .eq("activity_id", activityId)
+        .eq("user_id", actorId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ id: string }>();
+    if (lookupError) throw new Error("コメントの確認に失敗しました");
+    if (!existing) return addActivityComment(actorId, activityId, body);
+
+    const { data, error } = await supabaseServer
+        .from("activity_comments")
+        .update({ body })
+        .eq("id", existing.id)
+        .eq("activity_id", activityId)
+        .eq("user_id", actorId)
+        .select("id,activity_id,user_id,body,created_at")
+        .single();
+    if (error || !data) throw new Error("コメントの更新に失敗しました");
+    return data as unknown as ActivityCommentRecord;
+}
+
 export async function listActivityComments(
     activityId: string,
     limit = 100,

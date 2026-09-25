@@ -1,9 +1,8 @@
 "use client";
 
 // dashboard/components/core/ConnectionButton.tsx
-// Connection（承認制の双方向関係）専用ボタン。Bond/Followとは別UI。
-// 状態: none → Connect | outgoing pending → Requested(+Cancel) |
-//       incoming pending → Accept(+Ignore) | accepted → Connected(+Remove)
+// Connection（MVPは一方向の即時成立）専用ボタン。Bond/Followとは別UI。
+// 既存の保留中レコードは移行期表示として承認操作を残す。
 
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -26,6 +25,8 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [flash, setFlash] = useState(0);
+    const [optimisticState, setOptimisticState] = useState<ConnectionState | null>(null);
+    const visibleState = optimisticState ?? state;
 
     async function act(fn: () => Promise<unknown>) {
         if (busy) return;
@@ -33,10 +34,28 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
         setError("");
         try {
             await fn();
+            setOptimisticState(null);
             setFlash((n) => n + 1);
             onChanged?.();
         } catch (e) {
             setError(e instanceof ApiError ? e.message : "操作に失敗しました");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function request() {
+        if (busy) return;
+        setBusy(true);
+        setError("");
+        setOptimisticState("outgoing");
+        try {
+            await apiSend("/api/connections", "POST", { target_slug: targetSlug });
+            setFlash((n) => n + 1);
+            onChanged?.();
+        } catch (e) {
+            setOptimisticState(null);
+            setError(e instanceof ApiError ? e.message : "申請に失敗しました");
         } finally {
             setBusy(false);
         }
@@ -59,25 +78,25 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
     return (
         <div style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>
             <div style={{ display: "inline-flex", gap: 6 }}>
-                {state === "none" ? (
+                {visibleState === "none" ? (
                     <motion.button
                         type="button"
                         whileTap={reduce || busy ? undefined : { scale: TAP_SCALE }}
                         animate={flash && !reduce ? { scale: [1, 1.08, 1] } : undefined}
                         transition={MOTION.pop}
                         disabled={busy}
-                        onClick={() => act(() => apiSend("/api/connections", "POST", { target_slug: targetSlug }))}
+                        onClick={() => void request()}
                         style={{
                             ...baseStyle,
                             background: "#C8E800", color: "#000", border: "none",
                             opacity: busy ? 0.5 : 1,
                         }}
                     >
-                        Connect
+                        Connection
                     </motion.button>
                 ) : null}
 
-                {state === "outgoing" ? (
+                {visibleState === "outgoing" ? (
                     <>
                         <span
                             style={{
@@ -87,7 +106,7 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
                                 color: "rgba(255,255,255,0.65)",
                             }}
                         >
-                            Requested
+                            申請中
                         </span>
                         <motion.button
                             type="button"
@@ -108,7 +127,7 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
                     </>
                 ) : null}
 
-                {state === "incoming" ? (
+                {visibleState === "incoming" ? (
                     <>
                         <motion.button
                             type="button"
@@ -144,7 +163,7 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
                     </>
                 ) : null}
 
-                {state === "accepted" ? (
+                {visibleState === "accepted" ? (
                     <AnimatePresence>
                         <motion.span
                             key={`connected-${flash}`}
@@ -155,13 +174,13 @@ export function ConnectionButton({ targetSlug, state, connectionId, onChanged, c
                                 color: "#C8E800",
                             }}
                         >
-                            Connected
+                            Connection 済み
                         </motion.span>
                     </AnimatePresence>
                 ) : null}
             </div>
 
-            {state === "accepted" && connectionId ? (
+            {visibleState === "accepted" && connectionId ? (
                 <button
                     type="button"
                     onClick={() => !busy && act(() => apiSend(`/api/connections/${connectionId}`, "DELETE"))}

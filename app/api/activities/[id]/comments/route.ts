@@ -4,7 +4,8 @@ import { validateCSRF } from "@/lib/security/csrf";
 import { readLimitedJson, PayloadTooLargeError } from "@/lib/security/body";
 import { activityCommentLimiter, getIp } from "@/lib/ratelimit";
 import { activityCommentCreateSchema } from "@/features/activity/validation";
-import { addActivityComment, getVisibleActivity, listActivityComments } from "@/features/activity/server/activities";
+import { upsertActivityComment, getVisibleActivity, listActivityComments } from "@/features/activity/server/activities";
+import { moderateActivityComment } from "@/features/activity/comment-moderation";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -57,8 +58,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         );
     }
 
+    if (!moderateActivityComment(parsed.data.body).allowed) {
+        return NextResponse.json(
+            { success: false, error: "コメントに不適切な表現が含まれているため投稿できません。表現を見直してください。" },
+            { status: 422 },
+        );
+    }
+
     try {
-        const comment = await addActivityComment(user.id, id, parsed.data.body);
+        const comment = await upsertActivityComment(user.id, id, parsed.data.body);
         return NextResponse.json({ success: true, comment });
     } catch (e) {
         console.error("[activities/comments/POST]", e instanceof Error ? e.message : e);

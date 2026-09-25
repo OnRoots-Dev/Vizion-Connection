@@ -55,6 +55,9 @@ export function DashboardProfileView({
   const joinedAt = new Date(profile.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
   const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
   const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const foundingNumberDisplay = profile.isFoundingMember
+    ? `Founding Member #${String(profile.id).padStart(4, "0")}`
+    : null;
   const serialDisplay = profile.serialId ? String(profile.serialId).padStart(4, "0") : null;
   const needsInitialRegistration = !hasProfileSignal(profile) && !hasCareerSignal(careerProfile);
   const canPublish = profile.role !== "Admin";
@@ -218,6 +221,11 @@ export function DashboardProfileView({
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
+              {foundingNumberDisplay ? (
+                <span style={{ fontSize: 10, fontFamily: "monospace", fontWeight: 800, letterSpacing: "0.08em", color: "#f5dc5a" }}>
+                  #{String(profile.id).padStart(4, "0")}
+                </span>
+              ) : null}
             </div>
             <a 
               href={`/u/${profile.slug}`} 

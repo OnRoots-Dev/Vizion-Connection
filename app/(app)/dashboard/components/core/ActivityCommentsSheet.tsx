@@ -42,13 +42,21 @@ export function ActivityCommentsSheet({
         setError("");
         try {
             const data = await apiGet<{ success: boolean; comments: CommentRow[] }>(`/api/activities/${activityId}/comments`);
-            setComments(data.comments ?? []);
+            setComments((current) => {
+                const merged = [...(data.comments ?? [])];
+                for (const optimistic of current.filter((comment) => comment.id.startsWith("optimistic-"))) {
+                    const ownIndex = viewerId == null ? -1 : merged.findIndex((comment) => comment.user_id === viewerId);
+                    if (ownIndex >= 0) merged[ownIndex] = optimistic;
+                    else merged.push(optimistic);
+                }
+                return merged;
+            });
         } catch (e) {
             setError(e instanceof ApiError ? e.message : "コメントを読み込めませんでした");
         } finally {
             setLoading(false);
         }
-    }, [activityId]);
+    }, [activityId, viewerId]);
 
     useEffect(() => {
         if (open) void load();
@@ -56,13 +64,38 @@ export function ActivityCommentsSheet({
 
     async function post() {
         if (!body.trim() || posting) return;
-        setPosting(true);
+        const commentBody = body.trim();
+        const optimisticId = `optimistic-${Date.now()}`;
+        const previousOwnComment = viewerId == null ? undefined : comments.find((c) => c.user_id === viewerId);
+        const optimisticComment: CommentRow = {
+            id: optimisticId,
+            activity_id: activityId,
+            user_id: viewerId ?? -1,
+            body: commentBody,
+            created_at: new Date().toISOString(),
+            author_slug: null,
+            author_display_name: "あなた",
+        };
+
         setError("");
+        setComments((current) => previousOwnComment
+            ? current.map((comment) => comment.id === previousOwnComment.id ? optimisticComment : comment)
+            : [...current, optimisticComment]);
+        setBody("");
+        setPosting(true);
         try {
-            await apiSend(`/api/activities/${activityId}/comments`, "POST", { body: body.trim() });
-            setBody("");
-            await load();
+            const data = await apiSend<{ success: boolean; comment: ActivityCommentRecord }>(
+                `/api/activities/${activityId}/comments`,
+                "POST",
+                { body: commentBody },
+            );
+            setComments((current) => current.map((comment) => comment.id === optimisticId
+                ? { ...optimisticComment, ...data.comment, author_slug: optimisticComment.author_slug, author_display_name: optimisticComment.author_display_name }
+                : comment));
         } catch (e) {
+            setComments((current) => previousOwnComment
+                ? current.map((comment) => comment.id === optimisticId ? previousOwnComment : comment)
+                : current.filter((comment) => comment.id !== optimisticId));
             setError(e instanceof ApiError ? e.message : "コメントできませんでした");
         } finally {
             setPosting(false);

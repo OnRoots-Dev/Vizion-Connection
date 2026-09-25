@@ -14,13 +14,13 @@ import { SheetReveal } from "@/components/ui/SheetReveal";
 import { PlacePicker } from "../components/core/PlacePicker";
 import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia, CheerButton, CommentButton } from "../components/feed";
 import { ActivityCommentsSheet } from "../components/core/ActivityCommentsSheet";
-import { ActivityTogetherPanel } from "../components/core/ActivityTogetherPanel";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
 import type { PlaceRecord } from "@/features/place/place";
 import type { ThemeColors } from "../types";
 import { BusinessAdBanner } from "./BusinessAdBanner";
+import { useToast } from "@/components/ui/toast";
 
 type ActivityWithPlace = ActivityRecord & {
     place?: Pick<PlaceRecord, "id" | "name" | "prefecture"> | null;
@@ -77,49 +77,6 @@ function toLocalInput(iso?: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/**
- * Activity Detail 冒頭の通常/募集中 CTA 分岐（定員フィールドは無いため人数のみ）。
- * - completed: 実績表示（I DID THIS / 一緒に活動した人数）。参加ボタンなし。
- * - planned:   募集中表示（REQUEST TO JOIN は下の TogetherPanel が提供）。
- * - cancelled: 中止のミュート表示。
- * 参加人数は /api/activities/[id]/participants の accepted 数から動的集計。
- */
-function DetailCtaBanner({ status, isOwner, roleColor }: { status: string; isOwner: boolean; roleColor: string }) {
-    if (status === "cancelled") {
-        return (
-            <div style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}>
-                <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", color: STATUS_COLOR.cancelled }}>CANCELLED · 中止</p>
-                <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.5)" }}>このActivityは中止されました。</p>
-            </div>
-        );
-    }
-    const completed = status === "completed";
-    return (
-        <div
-            style={{
-                display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-                padding: "12px 14px", borderRadius: 12,
-                border: `1px solid ${completed ? "rgba(50,210,120,0.4)" : "rgba(255,255,255,0.12)"}`,
-                background: completed ? "rgba(50,210,120,0.07)" : "rgba(255,255,255,0.03)",
-            }}
-        >
-            <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: "0.02em", color: completed ? STATUS_COLOR.completed : "#fff" }}>
-                {completed ? "I DID THIS" : "JOIN ME · 募集中"}
-            </span>
-            {!completed && !isOwner ? (
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>参加するには下の REQUEST TO JOIN から申請してください。</span>
-            ) : null}
-            {!completed && isOwner ? (
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>募集は公開済み。参加希望は下の Together で承認できます。</span>
-            ) : null}
-            <span style={{ marginLeft: "auto", fontSize: 11, color: roleColor, fontWeight: 700, fontFamily: "monospace" }}>
-                {completed ? "TOGETHER 実績" : "人数は Together に表示"}
-            </span>
-        </div>
-    );
-}
-
-
 function formatDate(iso: string): string {
     const d = new Date(iso);
     return d.toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" });
@@ -142,6 +99,7 @@ export function ActivitiesView({
     onBack: () => void;
 }) {
     const reduce = useReducedMotion();
+    const toast = useToast();
     const searchParams = useSearchParams();
     const allowedTypes = (TYPES_BY_ROLE[profile.role as keyof typeof TYPES_BY_ROLE] ?? TYPES_BY_ROLE.Athlete) as readonly ActivityType[];
 
@@ -150,7 +108,7 @@ export function ActivitiesView({
     const [items, setItems] = useState<ActivityWithPlace[]>([]);
     const [mode, setMode] = useState<"list" | "create" | "detail">("list");
     const [detailId, setDetailId] = useState<string | null>(null);
-    // 他者の可視Activity（自分の items に無い場合に取得）。募集中ActivityのDetail表示用。
+    // 他者の可視Activity（自分の items に無い場合に取得）。MapからのDetail表示用。
     const [visibleActivity, setVisibleActivity] = useState<ActivityWithPlace | null>(null);
 
     // クエリパラメータからactivityIdを取得して詳細表示
@@ -162,7 +120,7 @@ export function ActivitiesView({
         }
     }, [searchParams]);
 
-    // Detail対象が自分の items に無い場合（他者の公開・募集中Activity）は可視一件取得する。
+    // Detail対象が自分の items に無い場合、他者の公開Activityを可視一件取得する。
     useEffect(() => {
         if (mode !== "detail") return;
         if (!detailId) return;
@@ -230,7 +188,11 @@ export function ActivitiesView({
             }));
         } catch (e) {
             setReactions((s) => ({ ...s, [a.id]: prev }));
-            setError(e instanceof ApiError ? e.message : "Cheerできませんでした");
+            toast.show({
+                title: "Cheerできませんでした",
+                description: e instanceof ApiError ? e.message : "通信に失敗しました。もう一度お試しください。",
+                tone: "danger",
+            });
         } finally {
             setCheerBusy((s) => ({ ...s, [a.id]: false }));
         }
@@ -627,15 +589,6 @@ export function ActivitiesView({
                             </div>
 
                             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#f0f0f5" }}>{a.title}</h3>
-                            {isOwner ? null : (
-                                <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                                    @{profile.slug} から見た「募集中」のActivityです。参加は下の Together から申請できます。
-                                </p>
-                            )}
-
-                            {/* 通常 / 募集中 CTA 分岐（status ベース。定員フィールドは無いため人数のみ） */}
-                            <DetailCtaBanner status={a.status} isOwner={isOwner} roleColor={roleColor} />
-
                             {a.description ? (
                                 <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.75)" }}>{a.description}</p>
                             ) : null}
@@ -683,13 +636,6 @@ export function ActivitiesView({
                                 />
                                 <CommentButton count={getReaction(a).comment_count} onClick={() => openComments(a)} size="lg" />
                             </div>
-
-                            {/* Together Activity（一緒に活動した人 / 参加申請） */}
-                            <ActivityTogetherPanel
-                                activityId={a.id}
-                                isOwner={isOwner}
-                                accentColor={roleColor}
-                            />
 
                             {isOwner ? (
                                 <div style={{ display: "flex", gap: 8, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12 }}>

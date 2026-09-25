@@ -43,7 +43,7 @@ export async function requestConnection(
 
     const { data: inserted, error } = await supabaseServer
         .from("connections")
-        .insert({ requester_id: actorId, addressee_id: target.id })
+        .insert({ requester_id: actorId, addressee_id: target.id, status: "pending" })
         .select("id")
         .single<{ id: string }>();
 

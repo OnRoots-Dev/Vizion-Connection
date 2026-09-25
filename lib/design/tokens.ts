@@ -10,7 +10,7 @@ export const COLOR = {
     // Surfaces（--vc-bg-base / --vc-bg-surface / --vc-bg-elevated と同値）
     bg: "#09090f",
     surface: "#111118",
-    elevated: "#1a1a24",
+    elevated: "#111118",
     border: "rgba(255,255,255,0.08)",
     borderStrong: "rgba(255,255,255,0.16)",
 
@@ -36,18 +36,18 @@ export const COLOR = {
 
 // グロー3段階
 export const GLOW = {
-    soft: "0 0 24px rgba(200,232,0,0.35)",
-    strong: "0 0 12px rgba(200,232,0,0.55), 0 0 40px rgba(200,232,0,0.25)",
-    text: "0 0 18px rgba(200,232,0,0.45)",
+    soft: "none",
+    strong: "none",
+    text: "none",
 } as const;
 
 // ── 役割色（サブ識別子。--vc-athlete 等と同値） ─────────────────────────────
 export const ROLE_COLOR: Record<UserRole, string> = {
-    Athlete: "#FF5050",
-    Trainer: "#30de1d",
-    Crew: "#FFC81E",
-    Business: "#3C8CFF",
-    Admin: "#7C3AED",
+    Athlete: "#C8E800",
+    Trainer: "#C8E800",
+    Crew: "#C8E800",
+    Business: "#C8E800",
+    Admin: "#C8E800",
 };
 
 // ── タイポグラフィ ───────────────────────────────────────────────────────
@@ -70,8 +70,8 @@ export const TYPE = {
     displayLg: 52,  // 主役数値（Cheer / DAY）
     displayMd: 36,  // 副数値（Bond 等）
     heading: 22,    // ページ内見出し
-    body: 14,
-    bodySm: 13,
+    body: 15,
+    bodySm: 14,
     label: 11,      // mono ラベル
     labelSm: 10,    // mono マイクロラベル（textTertiary 以上の色を使うこと）
     labelXs: 9,     // 大文字トラッキングラベル専用
@@ -79,22 +79,22 @@ export const TYPE = {
 
 // ── 余白（4pxグリッド。これ以外の値を使わない） ──────────────────────────
 export const SPACE = {
-    xs: 4,
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
-    xxl: 32,
-    xxxl: 48,
+    xs: 6,
+    sm: 12,
+    md: 18,
+    lg: 24,
+    xl: 36,
+    xxl: 48,
+    xxxl: 72,
 } as const;
 
 // ── 角丸（--vc-radius = md） ─────────────────────────────────────────────
 // ボタン / 入力 / カードは INTERACTION.radius と同値（下記 RECIPE を正とする）
 export const RADIUS = {
-    sm: 8,
+    sm: 12,
     md: 12,   // ボタン・チップ・入力（INTERACTION.radius.button / input）
-    lg: 16,   // カード・パネル（INTERACTION.radius.card）
-    xl: 28,   // auth ガラスカード・大型モーダルシェル（INTERACTION.radius.glass）
+    lg: 12,   // カード・パネル（INTERACTION.radius.card）
+    xl: 12,   // auth ガラスカード・大型モーダルシェル（INTERACTION.radius.glass）
     pill: 999,
 } as const;
 
@@ -102,12 +102,11 @@ export const RADIUS = {
 // design-system/MASTER.md 「共通インタラクションレシピ」と同値を保つこと。
 // Framer Motion / Motion の Transition 記法。
 
-/** 押下 spring（Pressable / whileTap の正） */
+/** 押下トランジション（Pressable / whileTap の正） */
 export const SPRING_PRESS = {
-    type: "spring",
-    stiffness: 600,
-    damping: 32,
-    mass: 0.5,
+    type: "tween",
+    duration: 0.15,
+    ease: "easeOut",
 } as const;
 
 /** カード・小さな UI の入場（旧 springSnap） */
@@ -165,9 +164,9 @@ export const INTERACTION = {
         y: -2,
         shadow: {
             /** 静止時 */
-            rest: "0 4px 16px rgba(0,0,0,0.28)",
+            rest: "none",
             /** ホバー時 */
-            hover: "0 12px 32px rgba(0,0,0,0.42)",
+            hover: "none",
         },
     },
 
@@ -175,8 +174,8 @@ export const INTERACTION = {
     radius: {
         button: 12, // RADIUS.md
         input: 12,  // RADIUS.md
-        card: 16,   // RADIUS.lg
-        glass: 28,  // RADIUS.xl — auth ガラス / 大型モーダル
+        card: 12,   // RADIUS.lg
+        glass: 12,  // RADIUS.xl — auth ガラス / 大型モーダル
     },
 
     /**
@@ -209,7 +208,7 @@ export const INTERACTION = {
         reduced: { type: "tween", duration: 0.2, ease: "easeOut" } as const,
         /** CSS transition 用（spring を使えない箇所） */
         css: {
-            pressMs: 100,
+            pressMs: 150,
             cardMs: 280,
             pageMs: 320,
             /** ease-out 寄り（Apple 風） */
