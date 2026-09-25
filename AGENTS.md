@@ -22,20 +22,20 @@ npx tsc --noEmit  # 型チェック（テストスイートは無い）
 6. **シークレットの直書き禁止**: 設定ファイルは `${ENV_VAR}` 参照。`.env*` はコミット・削除・上書きしない。
 7. マイグレーションは `supabase/migrations/` のみ。**ファイル作成と `apply_migration` は必ずセット**。
 8. `user.id` と `user.slug` を混同しない（移行期の既知バグ源）。
-9. アカウント「削除」はソフトデリート（`is_deleted`）。完全消去は `.Codex/rules/pii-handling.md` の範囲定義に従う。
+9. アカウント「削除」はソフトデリート（`is_deleted`）。完全消去は `.claude/rules/pii-handling.md` の範囲定義に従う。
 10. 破壊的なシェル操作（`rm -rf`、`.env`削除、`git clean -x` 等）はhooksがブロックする。回避しない。
 
 ## 作業前に読むルール（対象パスを触る時は必読）
 
 | 触るパス | 読むファイル |
 |---|---|
-| `features/auth/`, `lib/auth/`, `app/api/account/`, `middleware.ts` | `.Codex/rules/auth.md` |
-| PII関連（`app/api/{account,contact,profile,register}/`, `lib/supabase/data/`, `contacts.ts`, `business-orders.ts`） | `.Codex/rules/pii-handling.md` |
-| `supabase/`, `lib/supabase/`, SQL全般 | `.Codex/rules/db-and-rls.md` |
-| 決済（`app/api/business-checkout/`, `app/api/webhooks/`, `features/business/`） | `.Codex/rules/payments.md` |
-| UI（`app/`, `components/`） | `.Codex/rules/frontend.md` |
-| DBマイグレーション作業 | `.Codex/skills/db-migration/SKILL.md` |
-| デプロイ | `.Codex/skills/deploy/SKILL.md` |
+| `features/auth/`, `lib/auth/`, `app/api/account/`, `middleware.ts` | `.claude/rules/auth.md` |
+| PII関連（`app/api/{account,contact,profile,register}/`, `lib/supabase/data/`, `contacts.ts`, `business-orders.ts`） | `.claude/rules/pii-handling.md` |
+| `supabase/`, `lib/supabase/`, SQL全般 | `.claude/rules/db-and-rls.md` |
+| 決済（`app/api/business-checkout/`, `app/api/webhooks/`, `features/business/`） | `.claude/rules/payments.md` |
+| UI（`app/`, `components/`） | `.claude/rules/frontend.md` |
+| DBマイグレーション作業 | `.claude/skills/db-migration/SKILL.md` |
+| デプロイ | `.claude/skills/deploy/SKILL.md` |
 
 危険地帯ディレクトリには個別の `AGENTS.md` がある（`features/auth/`, `app/api/`, `lib/supabase/`, `supabase/migrations/`）。
 PII関連のヒヤリハットは `agent-memory/pii-incidents.md` に追記・参照。
@@ -43,9 +43,9 @@ PII関連のヒヤリハットは `agent-memory/pii-incidents.md` に追記・�
 ## アーキテクチャ（要点のみ）
 
 - ルートグループ: `app/(app)/`（認証済みシェル: dashboard/pulse/timeline）, `app/(auth)/`, `app/(marketing)/`, `app/(onboarding)/`（day0→profile→discovery→journey→invite→cheer）, `app/api/`, 公開プロフィール `app/p/[slug]` `app/u/[slug]` `app/r/[slug]`
-- `/dashboard` は**URLを変えないSPA**（詳細: `.Codex/rules/frontend.md`）
+- `/dashboard` は**URLを変えないSPA**（詳細: `.claude/rules/frontend.md`）
 - 機能ロジックは `features/<name>/{server,types.ts,validation}`。`lib/` は横断ヘルパー
-- Supabaseクライアントは4種を使い分け（**必読**: `lib/supabase/AGENTS.md`）
+- Supabaseクライアントは4種を使い分け（**必読**: `lib/supabase/CLAUDE.md`）
 - ロール: `Athlete | Trainer | Crew | Business | Admin`（`features/auth/types.ts`）
 - スポンサープラン: `roots | signal | presence | legacy`
 
