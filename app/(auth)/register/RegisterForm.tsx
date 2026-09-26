@@ -282,11 +282,11 @@ export default function RegisterForm() {
 
     return (
         <AuthShell
-            logoMarginClass="mb-5"
-            logoClassName="h-[4.5rem] w-auto sm:h-20"
+            logoMarginClass="mb-4 sm:mb-5"
+            logoClassName="h-14 w-auto sm:h-16 md:h-20"
             logoWithTitle={false}
             animated={false}
-            cardClassName="max-w-md px-5 py-7 sm:px-7 sm:py-8"
+            cardClassName="w-full max-w-[480px] mx-auto px-4 py-6 sm:px-6 sm:py-7 md:px-7 md:py-8"
         >
                 <div className="mb-6 space-y-1 text-center">
                     <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "monospace", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--electric)" }}>
@@ -316,9 +316,9 @@ export default function RegisterForm() {
                             transition={stepTr}
                             className="space-y-4"
                         >
-                            <p className="text-center text-sm font-bold text-white/70">どの入口からVizionに入りますか？</p>
-                            <p className="text-center text-[11px] leading-relaxed text-white/35">Landingで見た4つの世界 — 同じ地図で、違う見え方から始まります。</p>
-                            <div className="grid grid-cols-2 gap-3">
+                            <p className="text-center text-sm font-bold text-white/70 sm:text-sm">どの入口からVizionに入りますか？</p>
+                            <p className="text-center text-[11px] leading-relaxed text-white/35 px-2 sm:px-0">Landingで見た4つの世界 — 同じ地図で、違う見え方から始まります。</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                                 {ROLES.map((r) => {
                                     const isSelected = role === r.value;
                                     const Icon = r.icon;
@@ -330,7 +330,7 @@ export default function RegisterForm() {
                                             whileTap={press}
                                             transition={springSnap}
                                             layout
-                                            className="flex flex-col items-center gap-2 rounded-2xl px-3 py-4 text-center"
+                                            className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-2xl px-3 py-3 sm:py-4 text-center"
                                             style={{
                                                 background: isSelected ? `${r.color}16` : "rgba(17,17,24,0.9)",
                                                 border: `1.5px solid ${isSelected ? r.color : "rgba(30,30,42,1)"}`,
@@ -338,7 +338,7 @@ export default function RegisterForm() {
                                             }}
                                         >
                                             <span
-                                                className="grid h-10 w-10 place-items-center rounded-xl border"
+                                                className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border"
                                                 style={{
                                                     borderColor: isSelected ? `${r.color}66` : "rgba(255,255,255,0.1)",
                                                     background: isSelected ? `${r.color}1e` : "rgba(255,255,255,0.04)",
@@ -347,8 +347,8 @@ export default function RegisterForm() {
                                             >
                                                 <Icon className="h-4 w-4" strokeWidth={1.9} />
                                             </span>
-                                            <div className="font-display text-[14px] font-black tracking-wide" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
-                                            <div className="text-[11px] font-bold" style={{ color: isSelected ? "rgba(255,255,255,0.75)" : "#444" }}>{r.displayName}</div>
+                                            <div className="font-display text-[13px] sm:text-[14px] font-black tracking-wide" style={{ color: isSelected ? r.color : "#555" }}>{r.label}</div>
+                                            <div className="text-[10px] sm:text-[11px] font-bold" style={{ color: isSelected ? "rgba(255,255,255,0.75)" : "#444" }}>{r.displayName}</div>
                                         </motion.button>
                                     );
                                 })}
@@ -361,7 +361,7 @@ export default function RegisterForm() {
                                     animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
                                     exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
                                     transition={reduce ? fadeReduced : springDefault}
-                                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4"
+                                    className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 sm:px-4 sm:py-4"
                                 >
                                     <p className="text-xs font-bold tracking-wide" style={{ color: selectedRole.color }}>
                                         {selectedRole.label}（{selectedRole.displayName}）
@@ -383,7 +383,7 @@ export default function RegisterForm() {
                                 onClick={() => goTo(2)}
                                 whileTap={press}
                                 transition={springDefault}
-                                className="w-full rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
+                                className="w-full rounded-xl py-3 sm:py-3.5 text-sm font-black text-black hover:opacity-90"
                                 style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                             >
                                 次へ進む
@@ -401,9 +401,9 @@ export default function RegisterForm() {
                             animate="center"
                             exit="exit"
                             transition={stepTr}
-                            className="space-y-4"
+                            className="space-y-3 sm:space-y-4"
                         >
-                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5">
+                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 sm:px-4 sm:py-2.5">
                                 <span className="h-2 w-2 rounded-full" style={{ background: selectedRole.color }} />
                                 <span className="text-xs font-bold text-white/70">{selectedRole.displayName}として登録</span>
                                 <button type="button" onClick={() => goTo(1)} className="ml-auto text-[11px] text-white/40 underline underline-offset-2 hover:text-white/70 active:scale-[0.97]">
@@ -467,7 +467,7 @@ export default function RegisterForm() {
                                 </p>
                             </div>
 
-                            <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                            <label className="flex items-start gap-2 sm:gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 sm:px-4 sm:py-4">
                                 <input
                                     type="checkbox"
                                     checked={form.termsAccepted}
@@ -488,13 +488,13 @@ export default function RegisterForm() {
 
                             {error && <ErrorBox message={error} />}
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-2 sm:gap-3">
                                 <motion.button
                                     type="button"
                                     onClick={() => goTo(1)}
                                     whileTap={press}
                                     transition={springDefault}
-                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
+                                    className="w-1/3 rounded-xl border border-white/15 py-3 sm:py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
                                 >
                                     戻る
                                 </motion.button>
@@ -503,7 +503,7 @@ export default function RegisterForm() {
                                     onClick={handleStep2Next}
                                     whileTap={press}
                                     transition={springDefault}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
+                                    className="w-2/3 rounded-xl py-3 sm:py-3.5 text-sm font-black text-black hover:opacity-90"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     確認画面へ
@@ -522,11 +522,11 @@ export default function RegisterForm() {
                             animate="center"
                             exit="exit"
                             transition={stepTr}
-                            className="space-y-4"
+                            className="space-y-3 sm:space-y-4"
                         >
                             <p className="text-center text-sm font-bold text-white/70">入力内容をご確認ください</p>
 
-                            <div className="divide-y divide-white/6 rounded-2xl border border-white/10 bg-white/[0.03] px-5">
+                            <div className="divide-y divide-white/6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 sm:px-5">
                                 {[
                                     { label: "ロール", value: `${selectedRole.label}（${selectedRole.displayName}）`, color: selectedRole.color },
                                     { label: "メールアドレス", value: form.email },
@@ -534,7 +534,7 @@ export default function RegisterForm() {
                                     { label: "ユーザーID", value: `@${form.slug}` },
                                     ...(form.referrerSlug ? [{ label: "紹介コード", value: form.referrerSlug }] : []),
                                 ].map((row) => (
-                                    <div key={row.label} className="py-3.5">
+                                    <div key={row.label} className="py-3 sm:py-3.5">
                                         <span className="block font-mono text-[9px] uppercase tracking-[0.16em] text-white/30">{row.label}</span>
                                         <span className="mt-1.5 block truncate text-sm font-semibold" style={{ color: row.color ?? "rgba(255,255,255,0.85)" }}>
                                             {row.value}
@@ -549,13 +549,13 @@ export default function RegisterForm() {
 
                             {error && <ErrorBox message={error} />}
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-2 sm:gap-3">
                                 <motion.button
                                     type="button"
                                     onClick={() => goTo(2)}
                                     whileTap={press}
                                     transition={springDefault}
-                                    className="w-1/3 rounded-xl border border-white/15 py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
+                                    className="w-1/3 rounded-xl border border-white/15 py-3 sm:py-3.5 text-sm font-bold text-white/60 hover:border-white/30 hover:text-white"
                                 >
                                     修正する
                                 </motion.button>
@@ -564,7 +564,7 @@ export default function RegisterForm() {
                                     onClick={() => void handleSubmit()}
                                     whileTap={press}
                                     transition={springDefault}
-                                    className="w-2/3 rounded-xl py-3.5 text-sm font-black text-black hover:opacity-90"
+                                    className="w-2/3 rounded-xl py-3 sm:py-3.5 text-sm font-black text-black hover:opacity-90"
                                     style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                 >
                                     登録を完了する
@@ -596,7 +596,7 @@ export default function RegisterForm() {
                             )}
 
                             {!submitting && !succeeded && registerState?.kind === "pending_verification" && (
-                                <div className="space-y-4 border border-white/10 bg-white/[0.04] px-5 py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
+                                <div className="space-y-3 sm:space-y-4 border border-white/10 bg-white/[0.04] px-4 py-5 sm:px-5 sm:py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
                                     <div className="space-y-2 text-center">
                                         <p className="text-xs font-bold tracking-[0.2em]" style={{ color: "var(--flame)" }}>PENDING</p>
                                         <h2 className="text-2xl font-bold text-white">仮登録済みです</h2>
@@ -625,7 +625,7 @@ export default function RegisterForm() {
                                         disabled={resendLoading}
                                         whileTap={resendLoading ? undefined : press}
                                         transition={springDefault}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 sm:py-3.5 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-60"
                                         style={{ background: "var(--electric)", boxShadow: resendLoading ? "none" : "0 0 24px var(--electric-glow)" }}
                                     >
                                         {resendLoading && (
@@ -653,7 +653,7 @@ export default function RegisterForm() {
                             )}
 
                             {!submitting && !succeeded && registerState?.kind === "already_registered" && (
-                                <div className="space-y-4 border border-white/10 bg-white/[0.04] px-5 py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
+                                <div className="space-y-3 sm:space-y-4 border border-white/10 bg-white/[0.04] px-4 py-5 sm:px-5 sm:py-6" style={{ borderRadius: authGlassTokens().borderRadius }}>
                                     <div className="space-y-2 text-center">
                                         <p className="text-xs font-bold tracking-[0.2em]" style={{ color: "var(--flame)" }}>REGISTERED</p>
                                         <h2 className="text-2xl font-bold text-white">既に登録されています</h2>
@@ -669,7 +669,7 @@ export default function RegisterForm() {
 
                                     <Link
                                         href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
-                                        className="block w-full rounded-xl py-3.5 text-center text-sm font-black text-black active:scale-[0.97] transition-transform duration-100"
+                                        className="block w-full rounded-xl py-3 sm:py-3.5 text-center text-sm font-black text-black active:scale-[0.97] transition-transform duration-100"
                                         style={{ background: "var(--electric)", boxShadow: "0 0 24px var(--electric-glow)" }}
                                     >
                                         ログインへ進む
