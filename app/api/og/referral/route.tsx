@@ -21,12 +21,12 @@ export async function GET(req: Request) {
 
         if (ref) {
             const user = await findUserBySlug(ref);
-            foundingNumber = user?.isFoundingMember ? user.id : null;
+            foundingNumber = user?.isFoundingMember ? user.foundingNumber : null;
         } else {
             const session = await getSupabaseProfile();
             if (session?.slug) {
                 const user = await findUserBySlug(session.slug);
-                foundingNumber = user?.isFoundingMember ? user.id : null;
+                foundingNumber = user?.isFoundingMember ? user.foundingNumber : null;
             }
         }
 

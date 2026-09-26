@@ -56,7 +56,7 @@ export function DashboardProfileView({
   const bg1 = ROLE_GRADIENT[profile.role] ?? "#1a1a2e";
   const initials = profile.displayName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   const foundingNumberDisplay = profile.isFoundingMember
-    ? `Founding Member #${String(profile.id).padStart(4, "0")}`
+    ? `Founding Member #${String(profile.foundingNumber ?? "").padStart(4, "0")}`
     : null;
   const serialDisplay = profile.serialId ? String(profile.serialId).padStart(4, "0") : null;
   const needsInitialRegistration = !hasProfileSignal(profile) && !hasCareerSignal(careerProfile);
