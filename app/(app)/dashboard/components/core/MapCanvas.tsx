@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { COLOR } from "@/lib/design/tokens";
 import { CLUSTER_COLOR } from "./mapTypes";
 import type { MapBBox, PinCategory } from "./mapTypes";
 
@@ -36,8 +37,62 @@ interface Props {
 }
 
 const TOKYO_STATION: [number, number] = [139.7671, 35.6812];
-const INITIAL_ZOOM = 13.5;
+/** 東京付近で画面幅に半径 5〜10km が収まるズーム（スマホ〜デスクトップの中間）。 */
+const INITIAL_ZOOM = 12.25;
 const LAST_LOCATION_KEY = "viz-map:last-location:v1";
+const GEO_TIMEOUT_MS = 4000;
+
+function nearlySameCenter(a: { lng: number; lat: number }, b: [number, number], epsilon = 0.002) {
+    return Math.abs(a.lng - b[0]) < epsilon && Math.abs(a.lat - b[1]) < epsilon;
+}
+
+function getBrowserLocation(): Promise<[number, number] | null> {
+    return new Promise((resolve) => {
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            resolve(null);
+            return;
+        }
+        let settled = false;
+        const finish = (value: [number, number] | null) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+        };
+        const timer = window.setTimeout(() => finish(null), GEO_TIMEOUT_MS);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                window.clearTimeout(timer);
+                finish([position.coords.longitude, position.coords.latitude]);
+            },
+            () => {
+                window.clearTimeout(timer);
+                finish(null);
+            },
+            { enableHighAccuracy: false, timeout: GEO_TIMEOUT_MS - 400, maximumAge: 300000 },
+        );
+    });
+}
+
+function addSdfPinImages(map: import("mapbox-gl").Map) {
+    const size = 64;
+    const camp = document.createElement("canvas");
+    camp.width = size;
+    camp.height = size;
+    const campCtx = camp.getContext("2d");
+    if (!campCtx) return;
+    const cx = size / 2;
+    const cy = size * 0.38;
+    const r = size * 0.26;
+    campCtx.beginPath();
+    campCtx.arc(cx, cy, r, Math.PI * 0.82, Math.PI * 0.18, false);
+    campCtx.lineTo(cx, size * 0.92);
+    campCtx.closePath();
+    campCtx.fillStyle = "#fff";
+    campCtx.fill();
+    if (!map.hasImage("viz-pin-camp")) {
+        map.addImage("viz-pin-camp", campCtx.getImageData(0, 0, size, size), { pixelRatio: 2, sdf: true });
+    }
+}
 
 function markerGlyph(kind?: string): string {
     switch (kind) {
@@ -48,7 +103,7 @@ function markerGlyph(kind?: string): string {
         case "crew": return "◆";
         case "business": return "■";
         case "event": return "◇";
-        case "place": return "□";
+        case "place": return "⌂";
         case "person": return "●";
         case "training": return "△";
         case "practice": return "◌";
@@ -101,15 +156,9 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
             const mapboxgl = (await import("mapbox-gl")).default;
             if (cancelled) return;
             mapboxgl.accessToken = token;
-            let initialCenterValue = initialCenter ?? TOKYO_STATION;
-            let initialZoom = INITIAL_ZOOM;
-            try {
-                const saved = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY) ?? "null") as { lng?: number; lat?: number; zoom?: number } | null;
-                if (Number.isFinite(saved?.lng) && Number.isFinite(saved?.lat)) {
-                    initialCenterValue = [saved!.lng!, saved!.lat!];
-                    initialZoom = Math.min(14, Math.max(13, saved?.zoom ?? INITIAL_ZOOM));
-                }
-            } catch { /* use prefecture center / Tokyo Station */ }
+            const fallbackCenter = initialCenter ?? TOKYO_STATION;
+            const initialCenterValue = fallbackCenter;
+            const initialZoom = INITIAL_ZOOM;
 
             const map = new mapboxgl.Map({
                 container: containerRef.current!,
@@ -137,6 +186,7 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
                     }
                 }
 
+                addSdfPinImages(map);
                 map.addSource("viz-points", {
                     type: "geojson",
                     data: { type: "FeatureCollection", features: [] },
@@ -145,20 +195,35 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
                     clusterMaxZoom: 16,
                 });
                 const source = "viz-points";
-                map.addLayer({ id: "viz-cluster-large", type: "circle", source, filter: [">=", ["get", "point_count"], 50], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 26, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
-                map.addLayer({ id: "viz-cluster-medium", type: "circle", source, filter: ["all", [">=", ["get", "point_count"], 2], ["<", ["get", "point_count"], 50]], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
-                map.addLayer({ id: "viz-cluster-count", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 12, "text-allow-overlap": true }, paint: { "text-color": "#ffffff" } });
-                map.addLayer({ id: "viz-cluster-type", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["coalesce", ["get", "dominant_short"], ""], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 8, "text-allow-overlap": true, "text-offset": [0, 1.3] }, paint: { "text-color": "#f8fafc" } });
-                map.addLayer({ id: "viz-activity-ring", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": "rgba(200,232,0,0)", "circle-radius": ["case", ["==", ["get", "id"], ""], 0, 0], "circle-stroke-color": "#fff", "circle-stroke-width": 1.5, "circle-opacity": 0, "circle-radius-transition": { duration: 150 }, "circle-opacity-transition": { duration: 150 } } });
-                // 募集中（Viz Mapに載るのは常に planned=募集中）のActivity Pinだけに、
-                // ゆっくり「呼吸」するハローを常時描画して、地図上での存在感を出す。
-                // Mapboxのpaint遷移で駆動するため setData や RAFループは使わない。
-                map.addLayer({ id: "viz-activity-pulse", type: "circle", source, filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "category"], "activity"]], paint: { "circle-color": ["get", "pc"], "circle-radius": 14, "circle-opacity": 0.24, "circle-stroke-color": "#ffffff", "circle-stroke-width": 1, "circle-radius-transition": { duration: 1400 }, "circle-opacity-transition": { duration: 1400 } } });
-                map.addLayer({ id: "viz-activity-circle", type: "circle", source, filter: ["!", ["has", "point_count"]], paint: { "circle-color": ["coalesce", ["get", "pc"], "#64748B"], "circle-radius": ["coalesce", ["get", "ps"], 10], "circle-stroke-width": 2, "circle-stroke-color": "#fff", "circle-radius-transition": { duration: 150 } } });
-                map.addLayer({ id: "viz-activity-icon", type: "symbol", source, filter: ["!", ["has", "point_count"]], layout: { "text-field": ["get", "glyph"], "text-font": ["Arial Unicode MS Regular"], "text-size": 14, "text-allow-overlap": true }, paint: { "text-color": "#050508" } });
-                // タイムラベル（Activityの時刻感・Athlete/Placeの文脈）をPin下部に表示。
-                // ラベルが重なるところは allow-overlap=false で自動的に省略して地図を整理する。
-                map.addLayer({ id: "viz-activity-timelabel", type: "symbol", source, filter: ["all", ["has", "tlabel"], ["!=", ["get", "tlabel"], ""]], layout: { "text-field": ["get", "tlabel"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 10, "text-allow-overlap": false, "text-offset": [0, 1.8], "text-anchor": "top", "text-letter-spacing": 0.02 }, paint: { "text-color": "#f8fafc", "text-halo-color": "rgba(5,5,8,0.9)", "text-halo-width": 1.8, "text-halo-blur": 0.5 } });
+                const unclustered = ["!", ["has", "point_count"]] as const;
+                const unclusteredCircle = ["all", unclustered, ["!=", ["get", "shape"], "camp"]];
+                const unclusteredCamp = ["all", unclustered, ["==", ["get", "shape"], "camp"]];
+                map.addLayer({ id: "viz-cluster-large", type: "circle", source, filter: [">=", ["get", "point_count"], 50], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 26, "circle-stroke-width": 2, "circle-stroke-color": COLOR.accent, "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-cluster-medium", type: "circle", source, filter: ["all", [">=", ["get", "point_count"], 2], ["<", ["get", "point_count"], 50]], paint: { "circle-color": ["coalesce", ["get", "dominant_color"], CLUSTER_COLOR], "circle-radius": 18, "circle-stroke-width": 2, "circle-stroke-color": COLOR.accent, "circle-opacity": 0.98, "circle-radius-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-cluster-count", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 12, "text-allow-overlap": true }, paint: { "text-color": COLOR.text } });
+                map.addLayer({ id: "viz-cluster-type", type: "symbol", source, filter: ["has", "point_count"], layout: { "text-field": ["coalesce", ["get", "dominant_short"], ""], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 8, "text-allow-overlap": true, "text-offset": [0, 1.3] }, paint: { "text-color": COLOR.text } });
+                map.addLayer({ id: "viz-activity-ring", type: "circle", source, filter: unclusteredCircle, paint: { "circle-color": "rgba(200,232,0,0)", "circle-radius": ["case", ["==", ["get", "id"], ""], 0, 0], "circle-stroke-color": COLOR.text, "circle-stroke-width": 1.5, "circle-opacity": 0, "circle-radius-transition": { duration: 150 }, "circle-opacity-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-activity-pulse", type: "circle", source, filter: ["all", unclusteredCircle, ["==", ["get", "category"], "activity"]], paint: { "circle-color": ["get", "pc"], "circle-radius": 14, "circle-opacity": 0.24, "circle-stroke-color": COLOR.text, "circle-stroke-width": 1, "circle-radius-transition": { duration: 1400 }, "circle-opacity-transition": { duration: 1400 } } });
+                map.addLayer({ id: "viz-activity-circle", type: "circle", source, filter: unclusteredCircle, paint: { "circle-color": ["coalesce", ["get", "pc"], COLOR.accent], "circle-radius": ["coalesce", ["get", "ps"], 10], "circle-stroke-width": 2, "circle-stroke-color": COLOR.text, "circle-radius-transition": { duration: 150 } } });
+                map.addLayer({ id: "viz-activity-icon", type: "symbol", source, filter: unclusteredCircle, layout: { "text-field": ["get", "glyph"], "text-font": ["Arial Unicode MS Regular"], "text-size": 14, "text-allow-overlap": true }, paint: { "text-color": COLOR.bg } });
+                map.addLayer({
+                    id: "viz-camp-pin",
+                    type: "symbol",
+                    source,
+                    filter: unclusteredCamp,
+                    layout: {
+                        "icon-image": "viz-pin-camp",
+                        "icon-size": 0.9,
+                        "icon-anchor": "bottom",
+                        "icon-allow-overlap": true,
+                    },
+                    paint: {
+                        "icon-color": ["coalesce", ["get", "pc"], COLOR.gold],
+                        "icon-halo-color": COLOR.text,
+                        "icon-halo-width": 1.2,
+                    },
+                });
+                map.addLayer({ id: "viz-activity-timelabel", type: "symbol", source, filter: ["all", ["has", "tlabel"], ["!=", ["get", "tlabel"], ""]], layout: { "text-field": ["get", "tlabel"], "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"], "text-size": 10, "text-allow-overlap": false, "text-offset": [0, 1.8], "text-anchor": "top", "text-letter-spacing": 0.02 }, paint: { "text-color": COLOR.text, "text-halo-color": "rgba(5,5,8,0.9)", "text-halo-width": 1.8, "text-halo-blur": 0.5 } });
 
                 const expandCluster = (e: import("mapbox-gl").MapLayerMouseEvent) => {
                     const feature = map.queryRenderedFeatures(e.point, { layers: ["viz-cluster-large", "viz-cluster-medium"] })[0] as unknown as { properties?: { cluster_id?: number }; geometry?: { type: string; coordinates: [number, number] } } | undefined;
@@ -179,20 +244,27 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
                 };
                 map.on("click", "viz-cluster-large", expandCluster);
                 map.on("click", "viz-cluster-medium", expandCluster);
-                map.on("click", "viz-activity-circle", (e) => {
+                const selectFromFeature = (e: import("mapbox-gl").MapLayerMouseEvent) => {
                     const id = (e.features?.[0] as unknown as { properties?: { id?: string } } | undefined)?.properties?.id;
                     if (id) selectRef.current?.(id);
-                });
+                };
+                map.on("click", "viz-activity-circle", selectFromFeature);
+                map.on("click", "viz-camp-pin", selectFromFeature);
                 map.on("click", (e) => {
-                    const hit = map.queryRenderedFeatures(e.point, { layers: ["viz-cluster-large", "viz-cluster-medium", "viz-activity-circle"] });
+                    const hit = map.queryRenderedFeatures(e.point, { layers: ["viz-cluster-large", "viz-cluster-medium", "viz-activity-circle", "viz-camp-pin"] });
                     if (hit.length === 0) clearRef.current?.();
                 });
-                for (const layer of ["viz-cluster-large", "viz-cluster-medium", "viz-activity-circle"]) {
+                for (const layer of ["viz-cluster-large", "viz-cluster-medium", "viz-activity-circle", "viz-camp-pin"]) {
                     map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
                     map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
                 }
                 setReady(true);
                 emitViewport();
+                void getBrowserLocation().then((geo) => {
+                    if (cancelled || !geo || mapRef.current !== map) return;
+                    if (!nearlySameCenter(map.getCenter(), fallbackCenter)) return;
+                    map.flyTo({ center: geo, zoom: INITIAL_ZOOM, duration: 700, essential: true });
+                });
             });
             map.on("moveend", emitViewport);
             mapRef.current = map;
@@ -245,6 +317,8 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
         if (!map || !src) return;
         const features = dataRef.current.points.map((point) => {
             const kind = point.kind ?? point.category ?? "activity";
+            const category = point.category ?? kind;
+            const isCamp = category === "place" || kind === "place";
             return {
                 type: "Feature" as const,
                 geometry: { type: "Point" as const, coordinates: [point.longitude, point.latitude] },
@@ -252,10 +326,11 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
                     id: point.id,
                     label: point.label,
                     kind,
-                    category: point.category ?? kind,
+                    category,
+                    shape: isCamp ? "camp" : "circle",
                     dominant_color: point.color ?? CLUSTER_COLOR,
-                    dominant_short: String(point.category ?? kind).slice(0, 3).toUpperCase(),
-                    pc: point.color ?? "#64748B",
+                    dominant_short: isCamp ? "CAMP" : String(category).slice(0, 3).toUpperCase(),
+                    pc: point.color ?? COLOR.accent,
                     ps: point.size ?? 10,
                     glyph: markerGlyph(kind),
                     tlabel: point.timeLabel ?? "",
@@ -266,8 +341,13 @@ export function MapCanvas({ points, selectedId, focusPoint, initialCenter, onSel
         const selected = dataRef.current.selectedId ?? "";
         const selectionChanged = prevSelectedRef.current !== selected;
         prevSelectedRef.current = selected;
-        map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 17, 0]);
-        map.setPaintProperty("viz-activity-ring", "circle-opacity", ["case", ["==", ["get", "id"], selected], 1, 0]);
+        if (map.getLayer("viz-activity-ring")) {
+            map.setPaintProperty("viz-activity-ring", "circle-radius", ["case", ["==", ["get", "id"], selected], 17, 0]);
+            map.setPaintProperty("viz-activity-ring", "circle-opacity", ["case", ["==", ["get", "id"], selected], 1, 0]);
+        }
+        if (map.getLayer("viz-camp-pin")) {
+            map.setLayoutProperty("viz-camp-pin", "icon-size", ["case", ["==", ["get", "id"], selected], 1.12, 0.9]);
+        }
         if (selectionChanged && selected) {
             // A single restrained pulse communicates selection without turning the map into a feed.
             window.setTimeout(() => {

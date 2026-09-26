@@ -60,12 +60,12 @@
   --vc-hover-y:       -2px;
 
   /* Spec-aligned aliases (dashboard rebuild) — map to existing token values */
-  --vc-bg:       #09090f;
-  --vc-surface:  #111118;
-  --vc-elevated: #111118;
-  --vc-text1:    #f0f0f5;
-  --vc-text2:    rgba(255,255,255,0.62);
-  --vc-text3:    rgba(255,255,255,0.55);
+  --vc-bg:       var(--vc-bg-base);
+  --vc-surface:  var(--vc-bg-surface);
+  --vc-elevated: var(--vc-bg-elevated);
+  --vc-text1:    var(--vc-text-primary);
+  --vc-text2:    var(--vc-text-secondary);
+  --vc-text3:    var(--vc-text-tertiary);
 
   /* Role colors (badge / accent line only) */
   --vc-athlete:  #C8E800;
@@ -97,16 +97,21 @@
   --vc-z-modal: 90;
   --vc-z-toast: 95;
 
-  --vc-radius-xl: 12px;
+  --vc-radius-xl: var(--vc-radius);
 
-  /* Spec-aligned aliases (dashboard rebuild) ? map to existing token values
-     ⚠ DEPRECATED: 新規コードでは上記正式名を使うこと。既存viewの移行時に削除予定。 */
-  --vc-bg:       var(--vc-bg-base);
-  --vc-surface:  var(--vc-bg-surface);
-  --vc-elevated: var(--vc-bg-elevated);
-  --vc-text1:    var(--vc-text-primary);
-  --vc-text2:    var(--vc-text-secondary);
-  --vc-text3:    var(--vc-text-tertiary);
+  /* Shared spacing and type scale — values match lib/design/tokens.ts. */
+  --vc-space-xs: 6px;
+  --vc-space-sm: 12px;
+  --vc-space-md: 18px;
+  --vc-space-lg: 24px;
+  --vc-space-xl: 36px;
+  --vc-space-xxl: 48px;
+  --vc-space-xxxl: 72px;
+  --vc-type-body: 15px;
+  --vc-type-body-sm: 14px;
+  --vc-type-label: 11px;
+  --vc-type-label-sm: 10px;
+  --vc-type-label-xs: 9px;
 
   /* Vizion Connection accent + role colors for LP（A1: ブランド値へ統一）
      ※ 旧Athlete赤 #d91414 は廃止。fan は Crew amber の別名。 */
@@ -701,14 +706,14 @@ select:focus {
 ───────────────────────────────────────── */
 :root {
   /* shadcn 変数 — ダークテーマ（--vc-* と統合） */
-  --background: #09090f;
-  --foreground: #f0f0f5;
-  --card: #111118;
-  --card-foreground: #f0f0f5;
-  --popover: #111118;
-  --popover-foreground: #f0f0f5;
-  --primary: #C8E800;
-  --primary-foreground: #09090f;
+  --background: var(--vc-bg-base);
+  --foreground: var(--vc-text-primary);
+  --card: var(--vc-bg-surface);
+  --card-foreground: var(--vc-text-primary);
+  --popover: var(--vc-bg-elevated);
+  --popover-foreground: var(--vc-text-primary);
+  --primary: var(--vc-accent);
+  --primary-foreground: var(--on-accent);
   --secondary: rgba(255,255,255,0.06);
   --secondary-foreground: #f0f0f5;
   --muted: rgba(255,255,255,0.06);
@@ -716,15 +721,15 @@ select:focus {
   --accent: rgba(255,255,255,0.06);
   --accent-foreground: #f0f0f5;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: rgba(255,255,255,0.08);
-  --input: rgba(255,255,255,0.08);
-  --ring: #C8E800;
+  --border: var(--vc-border);
+  --input: var(--vc-border);
+  --ring: var(--vc-accent);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.75rem;
+  --radius: var(--vc-radius);
   --pulse: #C8E800;
   --electric: #C8E800;
   --electric-glow: rgba(200, 232, 0, 0.3);
@@ -732,18 +737,18 @@ select:focus {
   --flame-glow: rgba(255, 107, 0, 0.3);
   --pulse-glow: rgba(200, 232, 0, 0.3);
   --pulse-dim: rgba(200, 232, 0, 0.08);
-  --surface-1: #0a0a0a;
-  --surface-2: #101012;
-  --surface-3: #16161a;
-  --surface-4: #1e1e24;
-  --sidebar: #111118;
-  --sidebar-foreground: #f0f0f5;
-  --sidebar-primary: #C8E800;
-  --sidebar-primary-foreground: #09090f;
+  --surface-1: var(--vc-bg-base);
+  --surface-2: var(--vc-bg-surface);
+  --surface-3: var(--vc-bg-elevated);
+  --surface-4: var(--vc-bg-elevated);
+  --sidebar: var(--vc-bg-surface);
+  --sidebar-foreground: var(--vc-text-primary);
+  --sidebar-primary: var(--vc-accent);
+  --sidebar-primary-foreground: var(--on-accent);
   --sidebar-accent: rgba(255,255,255,0.06);
   --sidebar-accent-foreground: #f0f0f5;
-  --sidebar-border: rgba(255,255,255,0.08);
-  --sidebar-ring: #C8E800;
+  --sidebar-border: var(--vc-border);
+  --sidebar-ring: var(--vc-accent);
 }
 
 .font-display {

@@ -147,7 +147,7 @@ export function ActivityTogetherPanel({
                             border: `1px solid ${accentColor}55`,
                         }}
                     >
-                        {actionBusy ? "申請中..." : "一緒に参加する"}
+                        {actionBusy ? "申請中..." : "JOIN"}
                     </motion.button>
                 ) : null}
             </div>

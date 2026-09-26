@@ -46,11 +46,11 @@ export async function listPublicMapActivities(
 ): Promise<MapActivityItem[]> {
     const limit = Math.min(Math.max(options.limit ?? 200, 1), 500);
     // コールドスタート対策（M2）：時間軸表示範囲を「直近24時間に完了」+
-    // 「今後48時間に予定」に拡張する。見込時間で絞るため行数は自己制限される
+    // 「今後7日間に予定」に拡張し、数日先の募集ActivityもMapに含める。
     // （未完了の古い status=planned や古い completed は自然に除外される）。
     const now = Date.now();
     const windowStart = new Date(now - 24 * 3600 * 1000).toISOString();
-    const windowEnd = new Date(now + 48 * 3600 * 1000).toISOString();
+    const windowEnd = new Date(now + 7 * 24 * 3600 * 1000).toISOString();
 
     const { data, error } = await supabaseServer
         .from("activities")

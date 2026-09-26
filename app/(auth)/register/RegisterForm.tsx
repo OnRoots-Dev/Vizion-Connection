@@ -32,25 +32,25 @@ const ROLES: {
     entry: string;
 }[] = [
     {
-        value: "Athlete", icon: Zap, label: "Athlete", displayName: "アスリート", color: "#FF5050",
+        value: "Athlete", icon: Zap, label: "Athlete", displayName: "アスリート", color: "var(--vc-accent)",
         detail: "競技に取り組むすべての選手。競技歴・レベル・プロアマ問わず。",
         world: "日々の練習・試合を地図とタイムラインに残す入口",
         entry: "横浜で → Activityを記録 → Momentで伝える → Viz Mapで出会う",
     },
     {
-        value: "Trainer", icon: Dumbbell, label: "Trainer", displayName: "トレーナー", color: "#30de1d",
+        value: "Trainer", icon: Dumbbell, label: "Trainer", displayName: "トレーナー", color: "var(--vc-accent)",
         detail: "スポーツの指導・サポートをしている方向け。",
         world: "育てた選手のActivityが、あなたの実績になる入口",
         entry: "指導する → 選手のMomentに現れる → Connectionでつながる",
     },
     {
-        value: "Crew", icon: HeartHandshake, label: "Crew", displayName: "サポーター", color: "#FFC81E",
+        value: "Crew", icon: HeartHandshake, label: "Crew", displayName: "サポーター", color: "var(--vc-accent)",
         detail: "ファン、サポーター、家族、友人、関係者の方向け。",
         world: "現地と地図で、推しの歩みを参加として支える入口",
         entry: "横浜スタジアムで → Cheerを届ける → Togetherに参加",
     },
     {
-        value: "Business", icon: Building2, label: "Business", displayName: "ビジネス", color: "#3C8CFF",
+        value: "Business", icon: Building2, label: "Business", displayName: "ビジネス", color: "var(--vc-accent)",
         detail: "スポーツ界で注目・広告・エリア応援を検討している企業・団体の方向け。",
         world: "活動が起きる場所に、企業が存在する入口",
         entry: "PLACEに存在する → PEOPLEと出会う → ACTIVITYを支える",

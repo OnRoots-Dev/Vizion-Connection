@@ -4,12 +4,13 @@
 // label + control + hint/error のバンドル。control は Input / Textarea / Select を使う。
 
 import { useState } from "react";
+import { INTERACTION, SPACE, TYPE } from "@/lib/design/tokens";
 
 export const controlStyle: React.CSSProperties = {
     width: "100%",
-    padding: "11px 14px",
-    borderRadius: 12,
-    fontSize: 14,
+    padding: `${SPACE.sm}px ${SPACE.md}px`,
+    borderRadius: INTERACTION.radius.input,
+    fontSize: TYPE.bodySm,
     lineHeight: 1.5,
     color: "var(--vc-text-primary)",
     background: "rgba(255,255,255,0.04)",
@@ -97,14 +98,14 @@ export function Field({
     children: React.ReactNode;
 }) {
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: SPACE.xs }}>
             <label
                 htmlFor={htmlFor}
                 style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 4,
-                    fontSize: 10,
+                    fontSize: TYPE.labelSm,
                     fontWeight: 800,
                     letterSpacing: "0.14em",
                     textTransform: "uppercase",
@@ -117,9 +118,9 @@ export function Field({
             </label>
             {children}
             {error ? (
-                <p role="alert" style={{ margin: 0, fontSize: 12, color: "var(--vc-danger)" }}>{error}</p>
+                <p role="alert" style={{ margin: 0, fontSize: TYPE.label + 1, color: "var(--vc-danger)" }}>{error}</p>
             ) : hint ? (
-                <p style={{ margin: 0, fontSize: 12, color: "var(--vc-text-muted)" }}>{hint}</p>
+                <p style={{ margin: 0, fontSize: TYPE.label + 1, color: "var(--vc-text-muted)" }}>{hint}</p>
             ) : null}
         </div>
     );

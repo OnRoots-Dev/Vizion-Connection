@@ -371,12 +371,12 @@ export async function getPublicUsers(params: {
     return (data ?? []).map(toProfile);
 }
 
-export async function countUsersByRole(role: string): Promise<number> {
+export async function countUsersByRole(role: string): Promise<number | null> {
     const { count, error } = await supabase
         .from("users")
         .select("*", { count: "exact", head: true })
         .eq("role", role)
         .eq("is_deleted", false);
-    if (error) { console.error("[countUsersByRole]", error); return 0; }
+    if (error) { console.error("[countUsersByRole]", error.code); return null; }
     return count ?? 0;
 }

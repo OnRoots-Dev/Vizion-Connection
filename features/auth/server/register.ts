@@ -102,7 +102,8 @@ export async function registerUser(input: RegisterInput): Promise<RegisterRespon
         return { success: false, error: "紹介コードが無効です" };
     }
     const resolvedReferrerSlug = referrerUser?.slug;
-    const isFoundingMember = roleCount < FOUNDING_MEMBER_LIMIT;
+    // Count failure must never grant founder status; the role cap is based on the canonical flag.
+    const isFoundingMember = roleCount !== null && roleCount < FOUNDING_MEMBER_LIMIT;
 
     const emailRedirectTo = buildEmailRedirectTo(redirectTo);
 

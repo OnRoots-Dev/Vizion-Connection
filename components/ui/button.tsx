@@ -10,17 +10,17 @@ import { cn } from "@/lib/utils"
  * JIT が検出できるよう完全な静的文字列にする。
  * - press.scale = 0.97
  * - radius.button = 12
- * - transition.css.pressMs = 100
+ * - transition.css.pressMs = 150
  * - transition.css.ease = cubic-bezier(0.22, 1, 0.36, 1)
  * - hover.y = -2 / hover.shadow.hover
  */
 const RECIPE_CLASSES = [
   "rounded-[12px]",
-  "duration-100",
+  "duration-150",
   "ease-[cubic-bezier(0.22,1,0.36,1)]",
   "active:scale-[0.97]",
-  "hover:-translate-y-[2px]",
-  "hover:shadow-[0_12px_32px_rgba(0,0,0,0.42)]",
+  "hover:-translate-y-0",
+  "hover:shadow-none",
   "motion-reduce:active:scale-100",
   "motion-reduce:hover:translate-y-0",
   "motion-reduce:hover:shadow-none",

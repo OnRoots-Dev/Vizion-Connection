@@ -54,8 +54,8 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     cheerCount: user.cheerCount ?? 0,
                     missionBonusGiven: user.missionBonusGiven ?? false,
                     sponsorPlan: user.sponsorPlan ?? null,
-                    isFoundingMember: (user.seq ?? 999) <= 100,
-                    foundingNumber: user.foundingNumber ?? undefined,
+                    isFoundingMember: user.isFoundingMember,
+                    foundingNumber: user.isFoundingMember ? user.id : undefined,
                     isPublic: user.isPublic,
                     hasShared: user.hasShared ?? false,
                     isDeleted: user.isDeleted ?? false,
@@ -66,7 +66,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                 },
                 referralUrl,
                 referralCount,
-                isFoundingMember: (user.seq ?? 999) <= 100,
+                isFoundingMember: user.isFoundingMember,
             },
         };
     } catch (err) {

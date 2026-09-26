@@ -298,7 +298,7 @@ export default async function UserProfilePage({ params }: Props) {
     const roleColor = VP_ROLE_COLOR[profile.role];
     const initials = profile.displayName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
     const serialDisplay = profile.serialId ? `#${String(profile.serialId).padStart(4, "0")}` : null;
-    const foundingDisplay = profile.isFoundingMember && profile.foundingNumber != null
+    const foundingDisplay = profile.isFoundingMember
         ? `Founding Member #${String(profile.foundingNumber).padStart(4, "0")}`
         : null;
     const snsLinks = [

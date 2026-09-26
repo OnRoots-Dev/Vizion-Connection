@@ -30,8 +30,8 @@ export const COLOR = {
 
     // Semantic
     gold: "#FFD600",
-    green: "#10B981",
-    danger: "#FF5050",
+    green: "#32D278",
+    danger: "#FF5C7A",
 } as const;
 
 // グロー3段階
@@ -64,7 +64,7 @@ export const STATUS = {
     danger: "#FF5C7A",
 } as const;
 
-// タイプスケール（px）— これ以外のサイズを新規に作らない
+// タイプスケール（px）— globals.css の --vc-type-* と同値。
 export const TYPE = {
     displayXl: "clamp(64px, 11vw, 118px)", // ヒーローネーム
     displayLg: 52,  // 主役数値（Cheer / DAY）
@@ -77,7 +77,7 @@ export const TYPE = {
     labelXs: 9,     // 大文字トラッキングラベル専用
 } as const;
 
-// ── 余白（4pxグリッド。これ以外の値を使わない） ──────────────────────────
+// ── 余白（globals.css の --vc-space-* と同値） ──────────────────────────
 export const SPACE = {
     xs: 6,
     sm: 12,

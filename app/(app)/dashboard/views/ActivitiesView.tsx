@@ -14,6 +14,7 @@ import { SheetReveal } from "@/components/ui/SheetReveal";
 import { PlacePicker } from "../components/core/PlacePicker";
 import { LoadingSkeleton, FeedEmptyState, FeedErrorState, ImageDisplay, VideoDisplay, MediaViewer, uploadFeedMedia, CheerButton, CommentButton } from "../components/feed";
 import { ActivityCommentsSheet } from "../components/core/ActivityCommentsSheet";
+import { ActivityTogetherPanel } from "../components/core/ActivityTogetherPanel";
 import { apiGet, apiSend, ApiError } from "@/lib/api/core-client";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import { ACTIVITY_TYPES_BY_ROLE as TYPES_BY_ROLE, ACTIVITY_VISIBILITIES } from "@/features/activity/types";
@@ -148,7 +149,7 @@ export function ActivitiesView({
     const [fStart, setFStart] = useState(toLocalInput());
     const [fEnd, setFEnd] = useState("");
     const [fPlace, setFPlace] = useState<PlaceRecord | null>(null);
-    const [fVisibility, setFVisibility] = useState<(typeof ACTIVITY_VISIBILITIES)[number]>("private");
+    const [fVisibility, setFVisibility] = useState<(typeof ACTIVITY_VISIBILITIES)[number]>("public");
     const [fTags, setFTags] = useState("");
     const [fImageUrl, setFImageUrl] = useState("");
     const [fVideoUrl, setFVideoUrl] = useState("");
@@ -622,6 +623,10 @@ export function ActivitiesView({
 
                             {isOwner ? (
                                 <MomentComposerInline activityId={a.id} activityTitle={a.title ?? ""} roleColor={roleColor} onPublished={load} />
+                            ) : null}
+
+                            {a.status === "planned" ? (
+                                <ActivityTogetherPanel activityId={a.id} isOwner={isOwner} accentColor={roleColor} />
                             ) : null}
 
                             {/* 反応（Cheer / Comment） */}
