@@ -55,7 +55,7 @@ export async function getProfileFromSession(): Promise<GetProfileResult> {
                     missionBonusGiven: user.missionBonusGiven ?? false,
                     sponsorPlan: user.sponsorPlan ?? null,
                     isFoundingMember: user.isFoundingMember,
-                    foundingNumber: user.isFoundingMember ? user.id : undefined,
+                    foundingNumber: user.isFoundingMember ? user.foundingNumber ?? undefined : undefined,
                     isPublic: user.isPublic,
                     hasShared: user.hasShared ?? false,
                     isDeleted: user.isDeleted ?? false,

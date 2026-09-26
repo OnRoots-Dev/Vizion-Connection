@@ -1,6 +1,7 @@
 // lib/supabase/users.ts
 
 import { supabaseServer as supabase } from "@/lib/supabase/server";
+import { getFoundingMemberNumber } from "@/lib/founding-member-number";
 
 type UserRow = {
     id: number;
@@ -85,7 +86,7 @@ function toProfile(row: UserRow) {
         xUrl: row.x_url,
         tiktok: row.tiktok,
         ambassadorCode: row.ambassador_code,
-        foundingNumber: row.founding_number,
+        foundingNumber: row.is_founding_member ? getFoundingMemberNumber(row.id) : null,
         fromSlug: row.from_slug,
         referrerSlug: row.referrer_slug,
         cheerCount: row.cheer_count,

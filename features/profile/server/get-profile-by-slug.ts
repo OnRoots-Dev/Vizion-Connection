@@ -50,7 +50,7 @@ export async function getPublicProfileBySlug(
                 missionBonusGiven: user.missionBonusGiven ?? false,
                 sponsorPlan: user.sponsorPlan ?? null,
                 isFoundingMember: user.isFoundingMember,
-                foundingNumber: user.isFoundingMember ? user.id : undefined,
+                foundingNumber: user.isFoundingMember ? user.foundingNumber ?? undefined : undefined,
                 isPublic: user.isPublic ?? true,
                 isDeleted: user.isDeleted ?? false,
             },
