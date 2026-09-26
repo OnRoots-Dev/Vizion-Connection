@@ -1,0 +1,23 @@
+
+> vizion-connection@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.124.208.226:3000
+- Environments: .env.local
+✓ Ready in 2.8s
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · optimizePackageImports
+
+ GET /login 200 in 1981ms (next.js: 718ms, proxy.ts: 388ms, application-code: 875ms)
+ POST /api/login 200 in 2.5s (next.js: 551ms, proxy.ts: 24ms, application-code: 1876ms)
+ GET /base 200 in 2.9s (next.js: 194ms, application-code: 2.8s)
+ GET /api/activities/together-count 200 in 2.6s (next.js: 98ms, proxy.ts: 389ms, application-code: 2.2s)
+ GET /api/career/me 200 in 3.2s (next.js: 310ms, proxy.ts: 316ms, application-code: 2.6s)
+ GET /api/connections 200 in 3.7s (next.js: 209ms, proxy.ts: 362ms, application-code: 3.1s)
+ GET /api/activities 200 in 3.7s (next.js: 498ms, proxy.ts: 359ms, application-code: 2.8s)
+ GET /api/notifications/unread 200 in 3.7s (next.js: 139ms, proxy.ts: 205ms, application-code: 3.4s)
+ GET /api/og/referral?ref=shoma_trampwall 200 in 2.4s (next.js: 87ms, proxy.ts: 899ms, application-code: 1444ms)
+✓ Compiled in 2.3s

@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { COLOR, FONT, TYPE, SPACE, RADIUS } from "@/lib/design/tokens";
 import { ACTIVITY_TYPES, type ActivityType } from "@/features/activity/types";
 import type { MomentFeedItem } from "@/features/moment/types";
@@ -15,6 +16,9 @@ import type { ActivityRecord } from "@/features/activity/types";
 import { CreatorHeader, ProfileAvatar } from "@/app/(app)/dashboard/components/feed/creator";
 import { CheerButton, CommentButton } from "@/app/(app)/dashboard/components/feed/actions";
 import { MediaViewer } from "@/app/(app)/dashboard/components/feed/media";
+import { ViewHeader } from "@/app/(app)/dashboard/components/ui";
+import { useVzTheme } from "@/app/(app)/dashboard/components/bottom-nav/useVzTheme";
+import { ROLE_COLOR } from "@/app/(app)/dashboard/types";
 import { apiSend, ApiError } from "@/lib/api/core-client";
 import { useToast } from "@/components/ui/toast";
 
@@ -72,14 +76,21 @@ export default function TrailClient({
     initialActivities,
     initialMoments,
     viewerId,
+    viewerRole,
+    onBack,
 }: {
     initialActivities: ActivityWithAuthor[];
     initialMoments: MomentFeedItem[];
     viewerId: number | null;
     viewerRole?: string | null;
+    onBack?: () => void;
 }) {
     const reduce = useReducedMotion();
     const toast = useToast();
+    const router = useRouter();
+    const { t } = useVzTheme();
+    const roleColor = viewerRole ? ROLE_COLOR[viewerRole as keyof typeof ROLE_COLOR] ?? COLOR.accent : COLOR.accent;
+    const handleBack = onBack ?? (() => router.push("/dashboard"));
     const [tab, setTab] = useState<TabId>("activity");
     const [sportFilter, setSportFilter] = useState<ActivityType | "all">("all");
 
@@ -126,38 +137,10 @@ export default function TrailClient({
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: SPACE.lg, maxWidth: 720, margin: "0 auto", padding: `${SPACE.lg}px ${SPACE.md}px`, paddingBottom: 96 }}>
-            {/* 1. 上部ヘッダー */}
-            <header style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                    <h1
-                        style={{
-                            margin: 0,
-                            fontFamily: FONT.display,
-                            fontSize: TYPE.displayMd,
-                            fontWeight: 400,
-                            letterSpacing: "0.06em",
-                            color: COLOR.text,
-                            lineHeight: 1,
-                        }}
-                    >
-                        Trail
-                    </h1>
-                    <span
-                        style={{
-                            fontFamily: FONT.mono,
-                            fontSize: TYPE.label,
-                            letterSpacing: "0.14em",
-                            textTransform: "uppercase",
-                            color: COLOR.textTertiary,
-                        }}
-                    >
-                        みんなの軌跡
-                    </span>
-                </div>
-                <p style={{ margin: 0, fontFamily: FONT.body, fontSize: TYPE.bodySm, color: COLOR.textSecondary, lineHeight: 1.7 }}>
-                    Activity と Moment が一つの流れに。見て、感じて、次の一歩へ。
-                </p>
-            </header>
+            {/* 1. 上部ヘッダー — SPA統一: 他ページと同じ ViewHeader (戻るボタン) を使用 */}
+            <div style={{ marginBottom: 4 }}>
+                <ViewHeader title="Trail" sub="みんなの軌跡 — Activity と Moment が一つの流れに" onBack={handleBack} t={t} roleColor={roleColor} />
+            </div>
 
             {/* 2. タブ: Activity / Camp / Moment */}
             <nav

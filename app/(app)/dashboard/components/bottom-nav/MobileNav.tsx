@@ -15,13 +15,13 @@ const ACCENT = "#C8E800";
 
 const FOOTPRINT_ICON = "M8.25 8.25a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 13.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 16.5c-2 0-4 1.3-4 3.5 0 1.4 1 2.5 4 2.5s4-1.1 4-2.5c0-2-2-3.5-4-3.5z";
 
-const ITEMS: { id: string; label: string; view: DashboardView; href?: string; icon: string; featured?: boolean }[] = [
+const ITEMS: { id: string; label: string; view: DashboardView; icon: string; featured?: boolean }[] = [
     {
         id: "home", label: "HOME", view: "home",
         icon: "M3 10.5 12 3l9 7.5M5 8.5V21h5v-6h4v6h5V8.5",
     },
     {
-        id: "trail", label: "TRAIL", view: "home", href: "/trail",
+        id: "trail", label: "TRAIL", view: "trail",
         icon: FOOTPRINT_ICON,
     },
     {

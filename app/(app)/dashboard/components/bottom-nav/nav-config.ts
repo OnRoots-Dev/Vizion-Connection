@@ -38,7 +38,7 @@ const ICONS = {
 export function getPrimaryItems(): NavItem[] {
     return [
         { id: "home",       label: "Home",      icon: ICONS.home,      target: { kind: "view", view: "home" } },
-        { id: "trail",      label: "Trail",     icon: ICONS.trail,     target: { kind: "route", href: "/trail" } },
+        { id: "trail",      label: "Trail",     icon: ICONS.trail,     target: { kind: "view", view: "trail" } },
         { id: "viz_map",    label: "Viz Map",   icon: ICONS.map,       target: { kind: "view", view: "viz_map" } },
         { id: "schedule",   label: "Schedule",  icon: ICONS.schedule,  target: { kind: "route", href: "/schedule" } },
         { id: "settings",   label: "Settings",  icon: ICONS.settings,  target: { kind: "view", view: "settings" } },

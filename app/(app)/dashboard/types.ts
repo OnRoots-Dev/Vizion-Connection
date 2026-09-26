@@ -34,6 +34,7 @@ export type DashboardView =
     | "checkout"
     | "activities"
     | "moments"
+    | "trail"
     | "viz_map"
     | "monetize";
 

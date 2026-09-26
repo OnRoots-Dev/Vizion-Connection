@@ -149,12 +149,11 @@ export function AppShell({ role, children }: { role: string | null; children: Re
     }, []);
 
     // /dashboard は自前 nav・未ログイン(role=null)・デスクトップでは出さない
-    // /base と /trail は独自ヘッダーを持つためグローバルヘッダーを抑制
+    // /base は独自ヘッダーを持つためグローバルヘッダーを抑制、/trail はSPA化のためグローバルヘッダーを表示
     const isDashboard = pathname === "/dashboard";
     const isBase = pathname.startsWith("/base");
-    const isTrail = pathname.startsWith("/trail");
     const showNav = Boolean(role) && isMobile && !isDashboard;
-    const showAppHeader = Boolean(role) && !isDashboard && !isBase && !isTrail;
+    const showAppHeader = Boolean(role) && !isDashboard && !isBase;
     const roleColor = role ? ROLE_COLOR[role as keyof typeof ROLE_COLOR] ?? "#a78bfa" : "#a78bfa";
 
     return (

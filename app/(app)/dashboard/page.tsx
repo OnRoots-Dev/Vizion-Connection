@@ -37,6 +37,7 @@ function resolveInitialView(view?: string): DashboardView {
         "missions",
         "activities",
         "moments",
+        "trail",
         "viz_map",
         "monetize",
     ];

@@ -23,6 +23,7 @@ import { MediaViewer } from "@/app/(app)/dashboard/components/feed/media";
 import { CheerButton, CommentButton } from "@/app/(app)/dashboard/components/feed/actions";
 import { apiSend, ApiError } from "@/lib/api/core-client";
 import { useToast } from "@/components/ui/toast";
+import { getFoundingMemberNumber } from "@/lib/founding-member-number";
 import type { ProfileData } from "@/features/profile/types";
 import type { ActivityRecord, ActivityType } from "@/features/activity/types";
 import type { CareerProfileRow } from "@/lib/supabase/career-profiles";
@@ -174,6 +175,9 @@ function BaseHeader({ role, pathname }: { role: string | null; pathname: string 
 
 function VizionIdSection({ profile }: { profile: ProfileData }) {
     const vzId = profile.serialId ?? "VZ-2026-000001";
+    const foundingNo = getFoundingMemberNumber(profile.id);
+    const foundingNoPadded = String(foundingNo).padStart(4, "0");
+    const isFounding = profile.isFoundingMember || foundingNo > 0;
     return (
         <section
             style={{
@@ -254,8 +258,82 @@ function VizionIdSection({ profile }: { profile: ProfileData }) {
                 )}
                 {profile.isFoundingMember ? <FoundingMemberBadge /> : <EarlyPartnerBadge />}
             </div>
+            {isFounding ? (
+                <div
+                    style={{
+                        marginTop: 2,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 10px",
+                        borderRadius: RADIUS.md,
+                        background: "rgba(255,214,0,0.08)",
+                        border: "1px solid rgba(255,214,0,0.18)",
+                        alignSelf: "flex-start",
+                    }}
+                >
+                    <span style={{ fontFamily: FONT.mono, fontSize: 11, color: "#FFD600", fontWeight: 800 }}>創設メンバー番号:{foundingNoPadded}</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: 10, color: COLOR.textTertiary }}>(id={profile.id} → {foundingNoPadded})</span>
+                </div>
+            ) : null}
             <p style={{ margin: 0, fontFamily: FONT.body, fontSize: TYPE.bodySm, color: COLOR.textTertiary, lineHeight: 1.6 }}>
                 あなたの本人性と活動履歴を結ぶ固有ID。プロフィールや Activity と紐づいて公開されます。
+            </p>
+        </section>
+    );
+}
+
+function JoinStampSection({ profile }: { profile: ProfileData }) {
+    const foundingNo = getFoundingMemberNumber(profile.id);
+    const foundingNoPadded = String(foundingNo).padStart(4, "0");
+    const isFounding = profile.isFoundingMember || foundingNo > 0;
+    if (!isFounding) return null;
+    return (
+        <section
+            style={{
+                background: `linear-gradient(135deg, ${COLOR.surface} 0%, #1a1500 100%)`,
+                border: `1px solid rgba(255,214,0,0.22)`,
+                borderRadius: RADIUS.lg,
+                padding: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+                alignItems: "center",
+                textAlign: "center",
+            }}
+        >
+            <p
+                style={{
+                    margin: 0,
+                    fontFamily: FONT.mono,
+                    fontSize: TYPE.labelSm,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "#FFD600",
+                }}
+            >
+                Join Stamp
+            </p>
+            <div
+                style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: "50%",
+                    border: "3px solid #FFD600",
+                    background: "radial-gradient(circle at 30% 30%, #fff8c0, #FFD600 60%, #c8940c 100%)",
+                    display: "grid",
+                    placeItems: "center",
+                    boxShadow: "0 0 20px rgba(255,214,0,0.35), inset 0 0 12px rgba(255,255,255,0.6)",
+                }}
+            >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <span style={{ fontFamily: FONT.mono, fontSize: 10, letterSpacing: "0.12em", color: "#5a4000", fontWeight: 800 }}>No.</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: 32, fontWeight: 900, color: "#1a1200", lineHeight: 1 }}>{foundingNoPadded}</span>
+                </div>
+            </div>
+            <p style={{ margin: 0, fontFamily: FONT.mono, fontSize: 11, color: "#FFD600", fontWeight: 800 }}>創設メンバー番号:{foundingNoPadded}</p>
+            <p style={{ margin: 0, fontFamily: FONT.body, fontSize: 12, color: COLOR.textTertiary, lineHeight: 1.5 }}>
+                id={profile.id} → 創設メンバー番号:{foundingNoPadded} (base 230, id=2は特例1)
             </p>
         </section>
     );
@@ -525,6 +603,9 @@ export default function BaseClient({
 
                 {/* 3. Vizion ID */}
                 <VizionIdSection profile={profile} />
+
+                {/* 3b. Join Stamp (創設メンバー番号の可視化) */}
+                <JoinStampSection profile={profile} />
 
                 {/* 4. Profile (既存 DashboardProfileView を再利用) */}
                 <DashboardProfileView

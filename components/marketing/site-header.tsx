@@ -72,6 +72,18 @@ export function SiteHeader() {
 
   const closeMobile = useCallback(() => setMobileOpen(false), [])
 
+  const handleLoginClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    // 登録がない状態でCookieがない場合は登録フォームへ遷移
+    if (typeof document !== "undefined") {
+      const hasAuthCookie = document.cookie.includes("sb-") || document.cookie.includes("supabase-auth-token");
+      if (!hasAuthCookie || document.cookie.trim() === "") {
+        e.preventDefault();
+        closeMobile();
+        window.location.href = "/register";
+      }
+    }
+  }, [closeMobile])
+
   useEffect(() => {
     if (!mobileOpen) return
     const onKey = (e: KeyboardEvent) => {
@@ -135,6 +147,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             <a
               href="/login"
+              onClick={handleLoginClick}
               className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden shrink-0 sm:inline-flex')}
             >
               ログイン
@@ -203,7 +216,10 @@ export function SiteHeader() {
             <a
               href="/login"
               className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full')}
-              onClick={closeMobile}
+              onClick={(e) => {
+                handleLoginClick(e);
+                if (!e.defaultPrevented) closeMobile();
+              }}
             >
               ログイン
             </a>

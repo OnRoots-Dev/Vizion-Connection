@@ -2,10 +2,20 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function Header() {
   const [open, setOpen] = useState(false);
+
+  const handleLoginClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (typeof document !== "undefined") {
+      const hasAuthCookie = document.cookie.includes("sb-") || document.cookie.includes("supabase-auth-token");
+      if (!hasAuthCookie || document.cookie.trim() === "") {
+        e.preventDefault();
+        window.location.href = "/register";
+      }
+    }
+  }, []);
 
   return (
     <header
@@ -30,7 +40,7 @@ export function Header() {
         {/* Desktop */}
         <nav className="hidden items-center gap-8 md:flex">
           {/* NOTE: /contact はMVPスコープ外で封印中のためリンク非表示 */}
-          <Link href="/login" className="font-display text-[13px] uppercase tracking-[0.2em] text-[#F4C10A] transition-colors hover:text-white active:scale-[0.97]">Login</Link>
+          <Link href="/login" onClick={handleLoginClick} className="font-display text-[13px] uppercase tracking-[0.2em] text-[#F4C10A] transition-colors hover:text-white active:scale-[0.97]">Login</Link>
         </nav>
 
         {/* Mobile hamburger */}
@@ -57,7 +67,7 @@ export function Header() {
           }}
         >
           {/* NOTE: /contact はMVPスコープ外で封印中のためリンク非表示 */}
-          <Link href="/login" onClick={() => setOpen(false)} className="font-display text-[15px] font-bold uppercase tracking-[0.2em] text-[#F4C10A] active:scale-[0.97]">Login</Link>
+          <Link href="/login" onClick={(e) => { handleLoginClick(e); if (!e.defaultPrevented) setOpen(false); }} className="font-display text-[15px] font-bold uppercase tracking-[0.2em] text-[#F4C10A] active:scale-[0.97]">Login</Link>
           <Link
             href="/register"
             onClick={() => setOpen(false)}

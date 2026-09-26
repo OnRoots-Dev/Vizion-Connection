@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Founding Member Preview</title>
+<style>
+  body { background:#09090f; color:#f0f0f5; font-family: monospace; padding:24px; }
+  .card { background:#111118; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; margin-bottom:12px; max-width:600px; }
+  .accent { color:#FFD600; font-weight:800; }
+  .stamp { width:120px; height:120px; border-radius:50%; border:3px solid #FFD600; background:radial-gradient(circle at 30% 30%, #fff8c0, #FFD600 60%, #c8940c 100%); display:grid; place-items:center; box-shadow:0 0 20px rgba(255,214,0,0.35), inset 0 0 12px rgba(255,255,255,0.6); }
+</style>
+</head>
+<body>
+<h1>Founding Member Number Preview (BASE=230)</h1>
+<p style="color:rgba(255,255,255,0.6);font-size:13px;">id=2は特例で1、id=232以降は id - 230。重複なしを目視確認。</p>
+<div id="list"></div>
+<h2 style="margin-top:32px;">BASE画面プレビュー (id=2)</h2>
+<div class="card">
+  <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.55);">Vizion ID</div>
+  <div style="margin-top:6px; display:flex; gap:10; flex-wrap:wrap; align-items:center;">
+    <span style="font-size:16px; font-weight:900; letter-spacing:0.06em; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 12px;">VZ-2026-000002</span>
+    <span style="font-size:10px; color:rgba(255,255,255,0.55);">@test-user-2</span>
+    <span style="padding:4px 8px; border-radius:999px; font-size:10px; font-weight:800; background:rgba(200,232,0,0.08); color:#C8E800; border:1px solid rgba(200,232,0,0.22);">Verified</span>
+  </div>
+  <div style="margin-top:8px; display:inline-flex; gap:6px; padding:6px 10px; border-radius:10px; background:rgba(255,214,0,0.08); border:1px solid rgba(255,214,0,0.18);">
+    <span style="font-size:11px; color:#FFD600; font-weight:800;" id="founding-2">創設メンバー番号:1</span>
+    <span style="font-size:10px; color:rgba(255,255,255,0.45);">(id=2 → 1)</span>
+  </div>
+</div>
+<h2>Join Stamp 画像プレビュー (id=2)</h2>
+<div class="stamp"><div style="text-align:center;"><div style="font-size:10px; letter-spacing:0.12em; color:#5a4000; font-weight:800;">No.</div><div style="font-size:48px; font-weight:900; color:#1a1200; line-height:1;">1</div><div style="font-size:10px; color:#5a4000;">創設メンバー番号:1</div></div></div>
+<p style="margin-top:8px; font-size:11px; color:#FFD600; font-weight:800;">創設メンバー番号:1 — Join Stamp id=2</p>
+<script>
+  const BASE = 230;
+  function getFoundingMemberNumber(id){ if(id===2) return 1; return id - BASE; }
+  const ids = [2,232,233,234,235];
+  const list = document.getElementById('list');
+  ids.forEach(id=>{
+    const n = getFoundingMemberNumber(id);
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:10px;margin-bottom:6px;' + (id===2?'background:rgba(255,214,0,0.12);border:1px solid rgba(255,214,0,0.3);':'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);');
+    div.innerHTML = `<span style="min-width:80px;font-weight:700;">id=${id}</span><span style="font-size:14px;font-weight:800;color:${id===2?'#FFD600':'#C8E800'}">創設メンバー番号:${n}</span><span style="font-size:11px;color:rgba(255,255,255,0.45);">(id - ${id===2?'special':BASE} = ${n})</span>` + (id===2?'<span style="margin-left:auto;font-size:11px;color:#FFD600;font-weight:700;">★ 特例</span>':'');
+    list.appendChild(div);
+  });
+  // Verify explicitly for screenshot check
+  console.log('Founding check id2:', getFoundingMemberNumber(2), 'expected 1');
+</script>
+</body>
+</html>

@@ -45,6 +45,7 @@ import { TrainerHubView } from "./views/TrainerHubView";
 import { CheckoutView } from "./views/CheckoutView";
 import { ActivitiesView } from "./views/ActivitiesView";
 import { MomentsFeedView } from "./views/MomentsFeedView";
+import { TrailView } from "./views/TrailView";
 import { VizMapView } from "./views/VizMapView";
 import { isSealedDashboardView } from "@/config/mvp-scope";
 import { MobileNav } from "./components/bottom-nav/MobileNav";
@@ -321,6 +322,8 @@ export default function DashboardClient({
                 return <ActivitiesView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
             case "moments":
                 return <MomentsFeedView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
+            case "trail":
+                return <TrailView profile={profile} t={t} roleColor={roleColor} onBack={goBack} />;
             case "viz_map":
                 return <VizMapView t={t} roleColor={roleColor} onBack={goBack} initialPrefecture={profile.prefecture} />;
             case "portfolio":
