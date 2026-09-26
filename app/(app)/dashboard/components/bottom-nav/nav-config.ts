@@ -24,7 +24,7 @@ export interface NavItem {
 const ICONS = {
     home: "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75",
     activities: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z",
-    moments: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9",
+    trail: "M8.25 8.25a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 13.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 16.5c-2 0-4 1.3-4 3.5 0 1.4 1 2.5 4 2.5s4-1.1 4-2.5c0-2-2-3.5-4-3.5z",
     journey: "M6 12h.008v.008H6V12zm.75-4.5a3 3 0 113 3 3 3 0 01-3-3zm9 3a3 3 0 11-3 3 3 3 0 013-3zm-6 4.5h.008v.008H9.75v-.008zm8.25 3h.008v.008H18v-.008zM18 12a6 6 0 10-12 0c0 3.314 2.686 6 6 6s6-2.686 6-6z",
     map: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z",
     schedule: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5",
@@ -33,15 +33,12 @@ const ICONS = {
 
 /**
  * Bottom Bar に常時表示する共通項目。
- * MVPスコープ（config/mvp-scope.ts）準拠:
- * Home / Activities / Moments / Journey / Viz Map / Schedule / Settings
+ * Trail統合: Activity/Moments → Trail(足跡)に統合。MomentsはTrailへ移行。
  */
 export function getPrimaryItems(): NavItem[] {
     return [
         { id: "home",       label: "Home",      icon: ICONS.home,      target: { kind: "view", view: "home" } },
-        { id: "activities", label: "Activity",  icon: ICONS.activities, target: { kind: "view", view: "activities" } },
-        { id: "moments",    label: "Moments",   icon: ICONS.moments,   target: { kind: "view", view: "moments" } },
-        // MY Journeyは非表示（ダッシュボード上は表示させない）
+        { id: "trail",      label: "Trail",     icon: ICONS.trail,     target: { kind: "route", href: "/trail" } },
         { id: "viz_map",    label: "Viz Map",   icon: ICONS.map,       target: { kind: "view", view: "viz_map" } },
         { id: "schedule",   label: "Schedule",  icon: ICONS.schedule,  target: { kind: "route", href: "/schedule" } },
         { id: "settings",   label: "Settings",  icon: ICONS.settings,  target: { kind: "view", view: "settings" } },

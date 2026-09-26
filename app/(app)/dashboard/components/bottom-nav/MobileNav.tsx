@@ -7,19 +7,22 @@
 // 中央 CREATE は ActionSheet を開き、既存の活動導線へ遷移（機能は追加しない）。
 
 import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DashboardView, ThemeColors } from "../../types";
 
 const ACCENT = "#C8E800";
 
-const ITEMS: { id: string; label: string; view: DashboardView; icon: string; featured?: boolean }[] = [
+const FOOTPRINT_ICON = "M8.25 8.25a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 13.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 16.5c-2 0-4 1.3-4 3.5 0 1.4 1 2.5 4 2.5s4-1.1 4-2.5c0-2-2-3.5-4-3.5z";
+
+const ITEMS: { id: string; label: string; view: DashboardView; href?: string; icon: string; featured?: boolean }[] = [
     {
         id: "home", label: "HOME", view: "home",
         icon: "M3 10.5 12 3l9 7.5M5 8.5V21h5v-6h4v6h5V8.5",
     },
     {
-        id: "moments", label: "MOMENT", view: "moments",
-        icon: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+        id: "trail", label: "TRAIL", view: "home", href: "/trail",
+        icon: FOOTPRINT_ICON,
     },
     {
         id: "map", label: "MAP", view: "viz_map", featured: true,
@@ -55,13 +58,22 @@ export function MobileNav({ view, setView, t }: {
     t: ThemeColors;
 }) {
     const [createOpen, setCreateOpen] = useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
 
-    const select = (v: DashboardView) => {
+    const select = (v: DashboardView, href?: string) => {
         setCreateOpen(false);
+        if (href) {
+            router.push(href);
+            return;
+        }
         setView(v);
     };
 
-    const isCurrent = (v: DashboardView) => view === v;
+    const isCurrent = (v: DashboardView, href?: string) => {
+        if (href) return pathname === href || pathname.startsWith(href);
+        return view === v;
+    };
 
     return (
         <>
@@ -78,7 +90,7 @@ export function MobileNav({ view, setView, t }: {
                 }}
             >
                 {ITEMS.map((item) => {
-                    const active = isCurrent(item.view);
+                    const active = isCurrent(item.view, (item as any).href);
                     const featured = item.featured === true;
                     return (
                         <motion.button
@@ -86,7 +98,7 @@ export function MobileNav({ view, setView, t }: {
                             type="button"
                             aria-label={item.label}
                             aria-current={active ? "page" : undefined}
-                            onClick={() => select(item.view)}
+                            onClick={() => select(item.view, (item as any).href)}
                             whileTap={{ scale: 0.88 }}
                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             style={{

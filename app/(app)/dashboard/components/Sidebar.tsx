@@ -83,15 +83,10 @@ export function Sidebar({ profile, view, setView, notificationUnreadCount, theme
                     // Map-First化: Map（デフォルト遷移先）をWORLDグループの最上位に配置
                     { type: "item", id: "viz_map", label: "Viz Map", icon: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" },
                     { type: "item", id: "home", label: "Dashboard", icon: "M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.5a.75.75 0 00.75.75h4.5v-6h4.5v6h4.5a.75.75 0 00.75-.75V9.75" },
-                    { type: "item", id: "moments", label: "Moments", icon: "M6.75 6.75v10.5a1.5 1.5 0 001.5 1.5h7.5a1.5 1.5 0 001.5-1.5V6.75a1.5 1.5 0 00-1.5-1.5h-7.5a1.5 1.5 0 00-1.5 1.5zM9.75 12l1.5 1.5L15 9" },
+                    { type: "external", id: "trail", label: "Trail", icon: "M8.25 8.25a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 13.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 16.5c-2 0-4 1.3-4 3.5 0 1.4 1 2.5 4 2.5s4-1.1 4-2.5c0-2-2-3.5-4-3.5z", href: "/trail" },
                     { type: "item", id: "notifications", label: "Notifications", icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0", badge: "notifications" },
                     // MVP外のため封印（config/mvp-scope.ts）: pulse, timeline
-                ],
-            },
-            {
-                group: "ACTIVITY",
-                items: [
-                    { type: "item", id: "activities", label: "Activities", icon: "M9 6.75V15m6-6v8.25M3.75 3.75h16.5a1.5 1.5 0 011.5 1.5v13.5a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5V5.25a1.5 1.5 0 011.5-1.5z" },
+                    // Trailに統合: Activity/MomentsはTrailタブ内で提供
                 ],
             },
             {
